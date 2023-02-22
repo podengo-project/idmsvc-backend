@@ -5,10 +5,11 @@ GOLANGCI_LINT_VERSION ?= v1.46.2
 .venv:
 	python3 -m venv .venv && $(ADD_PYTHON_ENV) pip3 install -U pip
 
+# FIXME fails for the pre-commit hook installed, but launching pre-commit by 'make lint' works
 .PHONY: install-pre-commit
 install-pre-commit: install-golangci-lint .venv
 	$(ADD_PYTHON_ENV) pip3 install pre-commit
-	$(ADD_PYTHON_ENV) pre-commit install --install-hooks --allow-missing-config
+	# $(ADD_PYTHON_ENV) pre-commit install --install-hooks --allow-missing-config
 
 .PHONY: install-golangci-lint
 install-golangci-lint: $(BIN)/golangci-lint
