@@ -1,0 +1,65 @@
+@schema = http
+@hostname = localhost
+@port = 8000
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@createdAt = {{$datetime iso8601}}
+@modifiedBy = {{$processEnv USERNAME}}
+@x-rh-identity = eyJpZGVudGl0eSI6eyJ0eXBlIjoiVXNlciIsInVzZXIiOnsidXNlcm5hbWUiOiJqZG9lIn0sImludGVybmFsIjp7Im9yZ19pZCI6IjEyMzQ1In19fQo=
+@basepath = /api/hmsidm/v1
+
+###
+
+# @name createTodo
+
+POST {{schema}}://{{host}}{{basepath}}/todo
+X-Rh-Identity: {{x-rh-identity}}
+Content-Type: {{contentType}}
+
+{
+    "title": "Todo Title",
+    "body": "Todo Description"
+}
+
+### Get All Todo
+
+GET http://{{host}}{{basepath}}/todo
+X-Rh-Identity: {{x-rh-identity}}
+Content-Type: {{contentType}}
+
+### Get last created Todo
+
+# @name getTodo
+
+GET  http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
+X-Rh-Identity: {{x-rh-identity}}
+Content-Type: {{contentType}}
+
+### Partial Update Todo
+
+PATCH http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
+X-Rh-Identity: {{x-rh-identity}}
+Content-Type: {{contentType}}
+
+{
+    "title": "Patched Todo Title"
+}
+
+### Update Todo
+
+PUT http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
+X-Rh-Identity: {{x-rh-identity}}
+Content-Type: {{contentType}}
+
+{
+    "id": {{createTodo.response.body.id}},
+    "title": "Updated Todo Title",
+    "body": "Updated body"
+}
+
+### Delete Todo
+
+DELETE http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
+X-Rh-Identity: {{x-rh-identity}}
+Content-Type: {{contentType}}
+

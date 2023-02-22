@@ -1,0 +1,4 @@
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+### metrics
+GET http://localhost:9000/metrics

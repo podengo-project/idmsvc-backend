@@ -1,0 +1,38 @@
+---
+# Bonfire deployment configuration
+# https://github.com/RedHatInsights/bonfire#app-config-overrides
+
+# Defines where to fetch the file that defines application configs
+# https://gitlab.cee.redhat.com/insights-platform/cicd-common
+# https://gitlab.cee.redhat.com/insights-platform/cicd-common/-/blob/master/bonfire_configs/ephemeral_apps.yaml
+#   See deprecation note here:
+#     https://gitlab.cee.redhat.com/insights-platform/cicd-common/-/blob/master/bonfire_configs/ephemeral_apps.yaml#L1
+# appsFile:
+#   host: gitlab
+#   repo: insights-platform/cicd-common
+#   # path: bonfire_configs/ephemeral_apps.yaml
+#   path: bonfire_configs/ephemeral_apps_deprecated.yaml
+
+# (optional) define any apps locally. An app defined here with <name> will
+# override config for app
+# <name> in above fetched config.
+apps:
+  - name: hmsidm
+    components:
+      - name: backend
+        # host: github
+        # repo: content-services/content-sources-backend
+        host: local
+        repo: ./
+        path: deployments/clowder.yaml
+        parameters:
+          ENV_NAME: ""
+          IMAGE: ""
+          IMAGE_TAG: ""
+
+#      - name: frontend
+#        host: github
+#        repo: content-services/content-sources-frontend
+#        parameters:
+#          ENV_NAME: ""
+#        path: /deploy/frontend.yaml

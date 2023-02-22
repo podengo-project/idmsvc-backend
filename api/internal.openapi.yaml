@@ -1,0 +1,82 @@
+# https://swagger.io/specification/
+# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md
+---
+openapi: "3.0.3"
+
+# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#info-object
+info:
+  title: Sample Todo API
+  description: Example of API design first approach and using golang stack (viper+echo+gorm+confluent+cleanarchitecture)
+  version: "0.0.1"
+  termsOfService: https://console.redhat.com/api/hmsidm/v1
+
+servers:
+  - url: /internal
+    description: Use for Development
+
+tags:
+  - name: healthcheck
+    description: Healthcheck operations
+
+paths:
+  /readyz:
+    get:
+      summary: Readiness kubernetes probe endpoint
+      description: Probe the infrastructure is ready and return 200 when all are ready
+      tags: ["healthcheck"]
+      operationId: getReadyz
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthySuccess'
+        default:
+          $ref: '#/components/responses/HealthyFailure'
+
+  /livez:
+    get:
+      summary: Liveness kubernetes probe endpoint
+      description: Probe the infrastructure is healthy and return 200 when all are healthy
+      tags: ["healthcheck"]
+      operationId: getLivez
+      responses:
+        '200':
+          $ref: '#/components/responses/HealthySuccess'
+        default:
+          $ref: '#/components/responses/HealthyFailure'
+  
+components:
+  schemas:
+    SuccessProbe:
+      description: Todo schema
+      type: string
+      enum:
+        - Ok
+
+    Error:
+      description: Schema to define the error response
+      additionalProperties: false
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 404
+        message:
+          type: string
+          example: "Not Found"
+
+  responses:
+    HealthyFailure:
+      description: Response for unhealthy probe
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    
+    HealthySuccess:
+      description: Response for healthy probe
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SuccessProbe'

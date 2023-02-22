@@ -1,0 +1,382 @@
+# https://swagger.io/specification/
+# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md
+# https://regex101.com
+---
+openapi: "3.0.3"
+
+# https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#info-object
+# TODO Update info for your API
+info:
+  title: Sample Todo API
+  description: Example of API design first approach and using golang stack (viper+echo+gorm+confluent+cleanarchitecture)
+  version: "0.0.1"
+  termsOfService: https://console.redhat.com/api/hmsidm/v1
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+  contact:
+    name: Todo API Support
+    url: https://www.example.com/support
+    email: support@example.com
+
+servers:
+  - url: https://console.redhat.com/api/hmsidm/v1
+    description: Production service
+  - url: /api/hmsidm/v1
+    description: Use for Development
+
+security:
+  - ApiKeyAuth: []
+
+tags:
+  - name: todo
+    description: Group the Todo resource operations
+
+paths:
+  /todo/{id}:
+    get:
+      summary: Return a Todo resource
+      operationId: getTodo
+      tags: ["todo"]
+      parameters:
+        - $ref: '#/components/parameters/x-rh-identity'
+        - $ref: '#/components/parameters/id'
+      responses:
+        "200":    # status code
+          description: The Todo resource
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Todo'
+        "404":
+          description: The Todo resource does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Replace an existing Todo
+      operationId: updateTodo
+      tags: ["todo"]
+      parameters:
+        - $ref: '#/components/parameters/x-rh-identity'
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Todo'
+      responses:
+        "200":    # status code
+          description: The Todo resource updated
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Todo'
+        "404":
+          description: The Todo resource does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    patch:
+      summary: Modify an existing Todo
+      operationId: partialUpdateTodo
+      tags: ["todo"]
+      parameters:
+        - $ref: '#/components/parameters/x-rh-identity'
+        - $ref: '#/components/parameters/id'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Todo'
+      responses:
+        "200":    # status code
+          description: The Todo resource updated
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Todo'
+        "404":
+          description: The Todo resource does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    delete:
+      summary: Delete an existing Todo
+      operationId: deleteTodo
+      tags: ["todo"]
+      parameters:
+        - $ref: '#/components/parameters/x-rh-identity'
+        - $ref: '#/components/parameters/id'
+      responses:
+        "204":    # status code
+          description: Todo resource deleted
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Todo'
+        "404":
+          description: The Todo resource does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /todo:
+    get:
+      summary: List all Todos
+      operationId: listTodos
+      tags: ["todo"]
+      parameters:
+        - $ref: "#/components/parameters/x-rh-identity"
+        - $ref: "#/components/parameters/limitParam"
+        - $ref: "#/components/parameters/offsetParam"
+      responses:
+        "200":    # status code
+          description: The Todo resource created
+          content:
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/ListTodo'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    post:
+      summary: Create Todo
+      operationId: createTodo
+      tags: ["todo"]
+      parameters:
+        - $ref: "#/components/parameters/x-rh-identity"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Todo'
+      responses:
+        "201":    # status code
+          description: The Todo resource created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+          links:
+            getTodo:
+              operationId: getTodo
+              parameters:
+                todoId: '$response.body#/id'
+              description: >
+                The `id` value returned in the response can be used
+                as the `id` parameter in `GET /todo/{id}`.
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Rh-Identity
+      description: Identity header which identify the request
+
+  parameters:
+    # Header X-Rh-Identity
+    x-rh-identity:
+      in: header
+      name: "X-Rh-Identity"
+      required: true
+      schema:
+        $ref: '#/components/schemas/Identity'
+
+    id:
+      in: path
+      name: id
+      required: true
+      schema:
+        $ref: '#/components/schemas/TodoId'
+
+    limitParam:
+      name: limit
+      in: query
+      description: max records to return
+      required: false
+      # default: 10
+      schema:
+        type: integer
+        format: int32
+        default: 100
+        example: 0
+
+    offsetParam:
+      name: offset
+      in: query
+      description: offset record to return
+      required: false
+      # default: 10
+      schema:
+        type: integer
+        format: int64
+        minimum: 0
+        maximum: 9223372036854775807
+        default: 0
+        example: 0
+
+  schemas:
+    Meta:
+      description: Metadata for a paginated Todo List
+      additionalProperties: false
+      properties:
+        count:
+          type: integer
+          format: int32
+          minimum: 0
+          maximum: 2147483647
+          example: 10
+    TodoArray:
+      description: An array of Todos
+      additionalProperties: false
+      type: array
+      items:
+        $ref: '#/components/schemas/Todo'
+    Links:
+      description: Links for a paginated result
+      additionalProperties: false
+      properties:
+        first:
+          type: string
+          format: uri
+          default: /todo/?offset=0&count=$response.count
+        previous:
+          type: string
+          format: uri
+        next:
+          type: string
+          format: uri
+        last:
+          type: string
+          format: uri
+    ListTodo:
+      description: A Todo list
+      additionalProperties: false
+      properties:
+        meta:
+          $ref: '#/components/schemas/Meta'
+        links:
+          $ref: '#/components/schemas/Links'
+        data:
+          # optional: false
+          $ref: '#/components/schemas/TodoArray'
+      example: |
+        {
+          "meta": {
+            "count": 9
+          },
+          "links": {
+            "first": "/api/hmsidm/v1/todo?limit=10&offset=0",
+            "last": "/api/hmsidm/v1/todo?limit=10&offset=10",
+            "next": "/api/hmsidm/v1/todo?limit=10&offset=10"
+          },
+          "data": [
+            {
+              "title": "Todo title",
+              "body": "Todo body"
+            }
+          ]
+        }
+
+    Identity:
+      description: The Identity header
+      additionalProperties: false
+      type: string
+      format: base64
+      pattern: '^(?:[A-Za-z0-9+\/]{4})*(?:[A-Za-z0-9+\/]{4}|[A-Za-z0-9+\/]{3}=|[A-Za-z0-9+\/]{2}={2})$'
+      example: eyJpZGVudGl0eSI6eyJ0eXBlIjoiQXNzb2NpYXRlIiwiYWNjb3VudF9udW1iZXIiOiIxMjM0NSIsImludGVybmFsIjp7Im9yZ19pZCI6IjEyMzQ1In19fQo=
+
+    TodoId:
+      description: The id for a Todo resource
+      additionalProperties: false
+      type: integer
+      format: uint
+      minimum: 0
+      maximum: 9223372036854775807
+      example: 73813
+
+    # todo object format
+    Todo:
+      description: Todo schema
+      additionalProperties: false
+      properties:
+        id:
+          $ref: '#/components/schemas/TodoId'
+        title:
+          type: string
+          pattern: '^([[:alnum:]]|[[:blank:]])*$'
+          example: "A Todo title"
+          maxLength: 255
+        body:
+          type: string
+          pattern: '^([[:alnum:]]|[[:blank:]])*$'
+          example: "This is a demo todo"
+          maxLength: 4096
+
+    # Error message format
+    Error:
+      description: Schema to define the error response
+      additionalProperties: false
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: integer
+          format: int32
+          minimum: 100
+          maximum: 599
+          example: 200
+        message:
+          type: string
+          example: Request unauthorized
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

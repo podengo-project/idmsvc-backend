@@ -1,0 +1,69 @@
+##
+# Set default variable values for the project
+##
+
+APP ?= hmsidm
+export APP
+
+BIN ?= $(PROJECT_DIR)/bin
+PATH := $(BIN):$(PATH)
+export PATH
+
+CONFIG_PATH ?= $(PROJECT_DIR)/configs
+export CONFIG_PATH
+CONFIG_YAML := $(CONFIG_PATH)/config.yaml
+
+DOCKER_COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
+
+DOCKER_IMAGE_BASE ?= quay.io/$(firstword $(subst +, ,$(QUAY_USER)))/$(APP_NAME)-$(APP_COMPONENT)
+
+LOAD_DB_CFG_WITH_YQ := n
+ifneq (,$(shell yq --version 2>/dev/null))
+ifneq (,$(shell ls -1 "$(CONFIG_YAML)" 2>/dev/null))
+LOAD_DB_CFG_WITH_YQ := y
+endif
+endif
+
+#
+# Kafka configuration variables
+#
+
+DATABASE_CONTAINER_NAME="database"
+ifeq (y,$(LOAD_DB_CFG_WITH_YQ))
+$(info info:Trying to load DATABASE configuration from '$(CONFIG_YAML)')
+DATABASE_HOST ?= $(shell yq -r -M '.database.host' "$(CONFIG_YAML)")
+DATABASE_EXTERNAL_PORT ?= $(shell yq -M '.database.port' "$(CONFIG_YAML)")
+DATABASE_NAME ?= $(shell yq -r -M '.database.name' "$(CONFIG_YAML)")
+DATABASE_USER ?= $(shell yq -r -M '.database.user' "$(CONFIG_YAML)")
+DATABASE_PASSWORD ?= $(shell yq -r -M '.database.password' "$(CONFIG_YAML)")
+else
+$(info info:Using DATABASE_* defaults)
+DATABASE_HOST ?= localhost
+DATABASE_EXTERNAL_PORT ?= 5432
+DATABASE_NAME ?= hmsidm
+DATABASE_USER ?= hmsidm
+DATABASE_PASSWORD ?= hmsidm
+endif
+
+
+#
+# Kafka configuration variables
+#
+
+# The directory where the kafka data will be stored
+KAFKA_DATA_DIR ?= $(PROJECT_DIR)/build/kafka/data
+
+# The directory where the kafka configuration will be
+# bound to the containers
+KAFKA_CONFIG_DIR ?= $(PROJECT_DIR)/build/kafka/config
+
+# The topics used by the repository
+# Updated to follow the pattern used at playbook-dispatcher
+KAFKA_TOPICS ?= platform.hmsidm.todo-created
+
+# The group id for the consumers; every consumer subscribed to
+# a topic with different group-id will receive a copy of the
+# message. In our scenario, any replica of the consumer wants
+# only one message to be processed, so we only use a unique
+# group id at the moment.
+KAFKA_GROUP_ID ?= hmsidm

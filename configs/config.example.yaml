@@ -1,0 +1,59 @@
+logging:
+  level: debug
+  # Set to false to get a json output for the log
+  console: True
+
+web:
+  port: 8000
+
+database:
+  host: localhost
+  port: 5432
+  user: hmsidm
+  password: hmsidm
+  name: hmsidm
+
+kafka:
+  auto:
+    offset:
+      reset: latest
+    commit:
+      interval:
+        ms: 5000
+  bootstrap:
+    servers: localhost:9092
+  group:
+    id: content-sources
+  message:
+    send:
+      max:
+        retries: 15
+  request:
+    timeout:
+      ms: 30000
+    required:
+      acks: -1
+  retry:
+    backoff:
+      ms: 100
+  timeout: 10000
+  topics:
+    - platform.content-sources.introspect
+  # sasl:
+  #   username: someusername
+  #   passowrd: somepassword
+  #   mechanism: somemechanism
+  #   protocol: someprotocol
+
+# cloudwatch:
+#   region:
+#   group:
+#   stream:
+#   key:
+#   secret:
+#   session:
+# options:
+#   paged_rpm_inserts_limit: 100
+metrics:
+  path: "/metrics"
+  port: 9000

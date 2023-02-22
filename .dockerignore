@@ -1,0 +1,15 @@
+.DS_Store
+.cicd_bootstrap.sh
+secrets
+.venv
+bin
+tmp.*/**
+**/__debug_bin
+
+*.log
+
+configs
+
+# File generated when running unit tests
+coverage.out
+

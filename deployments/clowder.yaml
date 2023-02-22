@@ -1,0 +1,133 @@
+# https://consoledot.pages.redhat.com/clowder/dev/api_reference.html
+---
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  # TODO Rename todo-backend to your service-backend name
+  name: hmsidm
+
+objects:
+  - apiVersion: cloud.redhat.com/v1alpha1
+    kind: ClowdApp
+    metadata:
+      # TODO Rename todo-backend to your service-backend name
+      name: hmsidm-backend
+    spec:
+      envName: ${ENV_NAME}
+      testing:
+        # TODO Rename to your IQE plugin name
+        iqePlugin: hmsidm
+      # FIXME Update dependencies when integration with rbac is made
+      # dependencies: ["rbac"]
+      dependencies: []
+      # https://consoledot.pages.redhat.com/clowder/dev/providers/kafka.html
+      # kafkaTopics:
+      #   - partitions: 3
+      #     replicas: 3
+      #     topicName: platform.content-sources.introspect
+      deployments:
+        # TODO Rename to your service-name deployment name
+        - name: service
+          # NOTE minReplicas is deprecated, but not sure if this change exist further
+          # than the ephemeral environment. When both values exist, replicas has
+          # priority over minReplicas
+          # https://github.com/RedHatInsights/clowder/commit/aaf5643a7b1e769b53768e7c1a446d348d0a71f4
+          minReplicas: 3  # DEPRECATED
+          replicas: 3
+          webServices:
+            public:
+              enabled: true
+              apiPath: hmsidm
+          podSpec:
+            initContainers:
+              - name: db-migrate
+                inheritEnv: true
+                args:
+                  - /opt/bin/db-tool
+                  - migrate
+                  - up
+                  - "0"
+            image: ${IMAGE}:${IMAGE_TAG}
+            command:
+              - /opt/bin/service
+            livenessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /private/livez
+                port: 8000
+                scheme: HTTP
+              initialDelaySeconds: 35
+              periodSeconds: 5
+              successThreshold: 1
+              timeoutSeconds: 120
+            readinessProbe:
+              failureThreshold: 3
+              httpGet:
+                path: /private/readyz
+                port: 8000
+                scheme: HTTP
+              initialDelaySeconds: 35
+              periodSeconds: 5
+              successThreshold: 1
+              timeoutSeconds: 120
+            env:
+              - name: CLOWDER_ENABLED
+                value: ${CLOWDER_ENABLED}
+              - name: LOGGING_LEVEL
+                value: ${{LOGGING_LEVEL}}
+            resources:
+              limits:
+                cpu: ${CPU_LIMIT}
+                memory: ${MEMORY_LIMIT}
+              requests:
+                cpu: ${CPU_REQUESTS}
+                memory: ${MEMORY_REQUESTS}
+            volumes:
+              - emptyDir: {}
+                name: tmpdir
+            volumeMounts:
+              - mountPath: /tmp
+                name: tmpdir
+
+      # https://consoledot.pages.redhat.com/clowder/dev/providers/kafka.html
+      kafkaTopics:
+        - partitions: 3
+          replicas: 3
+          topicName: platform.hmsidm.todo-created
+
+      jobs:
+        # TODO Uncomment and update for your jobs
+        # - name: todo-job-name
+        #   # https://crontab.guru/
+        #   schedule: "0 0/8 * * *"
+        #   concurrencyPolicy: "Forbid"
+        #   podSpec:
+        #     image: ${IMAGE}:${IMAGE_TAG}
+        #     inheritEnv: true
+        #     command:
+        #       - /opt/bin/my-job-binary
+        #     env:
+        #       - name: LOGGING_LEVEL
+        #         value: ${{LOGGING_LEVEL}}
+      
+      database:
+        name: hmsidm
+        version: 13
+
+parameters:
+  - name: ENV_NAME
+    required: true
+  - name: IMAGE
+    value: quay.io/cloudservices/hmsidm
+  - name: IMAGE_TAG
+    required: true
+  - name: CPU_LIMIT
+    value: 500m
+  - name: CPU_REQUESTS
+    value: 100m
+  - name: MEMORY_LIMIT
+    value: 1Gi
+  - name: MEMORY_REQUESTS
+    value: 100Mi
+  - name: LOGGING_LEVEL
+    value: warn
