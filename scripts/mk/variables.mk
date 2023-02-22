@@ -18,7 +18,7 @@ DOCKER_COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
 DOCKER_IMAGE_BASE ?= quay.io/$(firstword $(subst +, ,$(QUAY_USER)))/$(APP_NAME)-$(APP_COMPONENT)
 
 LOAD_DB_CFG_WITH_YQ := n
-ifneq (,$(shell yq --version 2>/dev/null))
+ifneq (,$(shell "$(BIN)/yq" --version 2>/dev/null))
 ifneq (,$(shell ls -1 "$(CONFIG_YAML)" 2>/dev/null))
 LOAD_DB_CFG_WITH_YQ := y
 endif
@@ -31,11 +31,11 @@ endif
 DATABASE_CONTAINER_NAME="database"
 ifeq (y,$(LOAD_DB_CFG_WITH_YQ))
 $(info info:Trying to load DATABASE configuration from '$(CONFIG_YAML)')
-DATABASE_HOST ?= $(shell yq -r -M '.database.host' "$(CONFIG_YAML)")
-DATABASE_EXTERNAL_PORT ?= $(shell yq -M '.database.port' "$(CONFIG_YAML)")
-DATABASE_NAME ?= $(shell yq -r -M '.database.name' "$(CONFIG_YAML)")
-DATABASE_USER ?= $(shell yq -r -M '.database.user' "$(CONFIG_YAML)")
-DATABASE_PASSWORD ?= $(shell yq -r -M '.database.password' "$(CONFIG_YAML)")
+DATABASE_HOST ?= $(shell "$(BIN)/yq" -r -M '.database.host' "$(CONFIG_YAML)")
+DATABASE_EXTERNAL_PORT ?= $(shell "$(BIN)/yq" -M '.database.port' "$(CONFIG_YAML)")
+DATABASE_NAME ?= $(shell "$(BIN)/yq" -r -M '.database.name' "$(CONFIG_YAML)")
+DATABASE_USER ?= $(shell "$(BIN)/yq" -r -M '.database.user' "$(CONFIG_YAML)")
+DATABASE_PASSWORD ?= $(shell "$(BIN)/yq" -r -M '.database.password' "$(CONFIG_YAML)")
 else
 $(info info:Using DATABASE_* defaults)
 DATABASE_HOST ?= localhost
