@@ -19,12 +19,10 @@ objects:
         iqePlugin: hmsidm
       # FIXME Update dependencies when integration with rbac is made
       # dependencies: ["rbac"]
+      # https://consoledot.pages.redhat.com/clowder/dev/providers/dependencies.html
       dependencies: []
-      # https://consoledot.pages.redhat.com/clowder/dev/providers/kafka.html
-      # kafkaTopics:
-      #   - partitions: 3
-      #     replicas: 3
-      #     topicName: platform.content-sources.introspect
+
+      # https://consoledot.pages.redhat.com/clowder/dev/providers/deployment.html
       deployments:
         # TODO Rename to your service-name deployment name
         - name: service
@@ -34,9 +32,13 @@ objects:
           # https://github.com/RedHatInsights/clowder/commit/aaf5643a7b1e769b53768e7c1a446d348d0a71f4
           minReplicas: 3  # DEPRECATED
           replicas: 3
+
+          # https://consoledot.pages.redhat.com/clowder/dev/providers/web.html
           webServices:
             public:
               enabled: true
+              # TODO Define the service name
+              # For /api/hmsidm/v*/* endpoints
               apiPath: hmsidm
           podSpec:
             initContainers:
@@ -95,6 +97,7 @@ objects:
           replicas: 3
           topicName: platform.hmsidm.todo-created
 
+      # https://consoledot.pages.redhat.com/clowder/dev/providers/cronjob.html
       jobs:
         # TODO Uncomment and update for your jobs
         # - name: todo-job-name
@@ -110,6 +113,7 @@ objects:
         #       - name: LOGGING_LEVEL
         #         value: ${{LOGGING_LEVEL}}
       
+      # https://consoledot.pages.redhat.com/clowder/dev/providers/database.html
       database:
         name: hmsidm
         version: 13
@@ -118,7 +122,7 @@ parameters:
   - name: ENV_NAME
     required: true
   - name: IMAGE
-    value: quay.io/cloudservices/hmsidm
+    value: quay.io/cloudservices/hmsidm-backend
   - name: IMAGE_TAG
     required: true
   - name: CPU_LIMIT
