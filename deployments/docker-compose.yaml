@@ -21,50 +21,51 @@ services:
       retries: 10
       start_period: 3s
 
-  zookeeper:
-    image: localhost/kafka:latest
-    build:
-      dockerfile: ./build/kafka/Dockerfile
-      context: ..
-    command: /opt/kafka/scripts/zookeeper-entrypoint.sh
-    ports:
-      - "8778:8778"
-      - "2181:2181"
-    environment:
-      ZOOKEEPER_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
-      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
-    volumes:
-      - zookeeper:/tmp/zookeeper
-      - ${KAFKA_CONFIG_DIR}:/tmp/config:z
-    healthcheck:
-      test: /opt/kafka/scripts/zookeeper-healthcheck.sh
-      interval: 5s
-      retries: 10
-      timeout: 3s
-      start_period: 3s
+  # TODO Uncomment or clean-up when using or not kafka
+  # zookeeper:
+  #   image: localhost/kafka:latest
+  #   build:
+  #     dockerfile: ./build/kafka/Dockerfile
+  #     context: ..
+  #   command: /opt/kafka/scripts/zookeeper-entrypoint.sh
+  #   ports:
+  #     - "8778:8778"
+  #     - "2181:2181"
+  #   environment:
+  #     ZOOKEEPER_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
+  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+  #   volumes:
+  #     - zookeeper:/tmp/zookeeper
+  #     - ${KAFKA_CONFIG_DIR}:/tmp/config:z
+  #   healthcheck:
+  #     test: /opt/kafka/scripts/zookeeper-healthcheck.sh
+  #     interval: 5s
+  #     retries: 10
+  #     timeout: 3s
+  #     start_period: 3s
 
-  kafka:
-    image: localhost/kafka:latest
-    build:
-      dockerfile: ./build/kafka/Dockerfile
-      context: ..
-    command: /opt/kafka/scripts/kafka-entrypoint.sh
-    ports:
-      - "9092:9092"
-    restart: "on-failure:5"
-    depends_on:
-      - zookeeper
-    volumes:
-      - ${KAFKA_CONFIG_DIR}:/tmp/config:z
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
-      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OPTS: '-javaagent:/usr/jolokia/agents/jolokia-jvm.jar=host=0.0.0.0'
-      KAFKA_TOPICS: "${KAFKA_TOPICS}"
+  # kafka:
+  #   image: localhost/kafka:latest
+  #   build:
+  #     dockerfile: ./build/kafka/Dockerfile
+  #     context: ..
+  #   command: /opt/kafka/scripts/kafka-entrypoint.sh
+  #   ports:
+  #     - "9092:9092"
+  #   restart: "on-failure:5"
+  #   depends_on:
+  #     - zookeeper
+  #   volumes:
+  #     - ${KAFKA_CONFIG_DIR}:/tmp/config:z
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+  #     KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_OPTS: '-javaagent:/usr/jolokia/agents/jolokia-jvm.jar=host=0.0.0.0'
+  #     KAFKA_TOPICS: "${KAFKA_TOPICS}"
 
   # backend-service:
   #   image: ${DOCKER_IMAGE_BASE}:${DOCKER_IMAGE_TAG}

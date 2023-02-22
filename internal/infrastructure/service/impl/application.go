@@ -55,13 +55,15 @@ func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config,
 	s.Api = NewApi(s.Context, s.WaitGroup, s.Config, handler, metrics)
 
 	// Create kafka consumer service
-	s.Kafka = NewKafkaConsumer(s.Context, s.WaitGroup, s.Config, db)
+	// TODO Uncomment or clean-up when we know if we use kafka
+	// s.Kafka = NewKafkaConsumer(s.Context, s.WaitGroup, s.Config, db)
 
 	return s
 }
 
 func (svc *svcApplication) Start() error {
-	svc.WaitGroup.Add(3)
+	// svc.WaitGroup.Add(3)
+	svc.WaitGroup.Add(2)
 	go func() {
 		defer svc.WaitGroup.Done()
 		defer svc.Cancel()
@@ -71,14 +73,14 @@ func (svc *svcApplication) Start() error {
 		<-svc.Context.Done()
 	}()
 
-	go func() {
-		defer svc.WaitGroup.Done()
-		defer svc.Cancel()
-		if err := svc.Kafka.Start(); err != nil {
-			panic(err)
-		}
-		<-svc.Context.Done()
-	}()
+	// go func() {
+	// 	defer svc.WaitGroup.Done()
+	// 	defer svc.Cancel()
+	// 	if err := svc.Kafka.Start(); err != nil {
+	// 		panic(err)
+	// 	}
+	// 	<-svc.Context.Done()
+	// }()
 
 	go func() {
 		defer svc.WaitGroup.Done()

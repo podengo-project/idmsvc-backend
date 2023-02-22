@@ -3,15 +3,13 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  # TODO Rename todo-backend to your service-backend name
   name: hmsidm
 
 objects:
   - apiVersion: cloud.redhat.com/v1alpha1
     kind: ClowdApp
     metadata:
-      # TODO Rename todo-backend to your service-backend name
-      name: hmsidm-backend
+      name: ${APP_NAME}-backend
     spec:
       envName: ${ENV_NAME}
       testing:
@@ -39,7 +37,7 @@ objects:
               enabled: true
               # TODO Define the service name
               # For /api/hmsidm/v*/* endpoints
-              apiPath: hmsidm
+              apiPath: ${APP_NAME}
           podSpec:
             initContainers:
               - name: db-migrate
@@ -92,10 +90,11 @@ objects:
                 name: tmpdir
 
       # https://consoledot.pages.redhat.com/clowder/dev/providers/kafka.html
-      kafkaTopics:
-        - partitions: 3
-          replicas: 3
-          topicName: platform.hmsidm.todo-created
+      # TODO Uncomment when kafka is needed or clean-up
+      # kafkaTopics:
+      #   - partitions: 3
+      #     replicas: 3
+      #     topicName: platform.${APP_NAME}.todo-created
 
       # https://consoledot.pages.redhat.com/clowder/dev/providers/cronjob.html
       jobs:
@@ -115,12 +114,14 @@ objects:
       
       # https://consoledot.pages.redhat.com/clowder/dev/providers/database.html
       database:
-        name: hmsidm
+        name: ${APP_NAME}
         version: 13
 
 parameters:
   - name: ENV_NAME
     required: true
+  - name: APP_NAME
+    value: hmsidm
   - name: IMAGE
     value: quay.io/cloudservices/hmsidm-backend
   - name: IMAGE_TAG
