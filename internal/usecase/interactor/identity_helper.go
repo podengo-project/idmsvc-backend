@@ -18,9 +18,24 @@ func DecodeIdentity(data string) (*identity.Identity, error) {
 		return nil, err
 	}
 	identity := &identity.Identity{}
-	err = json.Unmarshal(bytes, identity)
-	if err != nil {
+	if err = json.Unmarshal(bytes, identity); err != nil {
 		return nil, err
 	}
+	// topLevelOrgIDFallback
+	// See: https://github.com/RedHatInsights/identity/blob/main/identity.go#L164
+	if identity.OrgID == "" && identity.Internal.OrgID != "" {
+		identity.OrgID = identity.Internal.OrgID
+	}
 	return identity, nil
+}
+
+func EncodeIdentity(data *identity.Identity) string {
+	if data == nil {
+		return ""
+	}
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return ""
+	}
+	return b64.StdEncoding.EncodeToString(bytes)
 }
