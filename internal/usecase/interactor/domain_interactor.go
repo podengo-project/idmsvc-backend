@@ -58,6 +58,8 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	}
 	if body.Ipa.CaList != "" {
 		domain.IpaDomain.CaList = pointy.String(body.Ipa.CaList)
+	} else {
+		domain.IpaDomain.CaList = pointy.String("")
 	}
 	return identity.OrgID, domain, nil
 }
