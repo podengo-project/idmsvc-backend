@@ -22,12 +22,47 @@ function error {
 
 case "$( uname -s )" in
 "Darwin" )
-  ENC="$(echo "{\"identity\":{\"type\":\"User\",\"user\":{\"username\":\"${USER_NAME}\"},\"internal\":{\"org_id\":\"${ORG_ID}\"}}}" | base64 -b 0)"
+  BASE64ENC="base64 -b 0"
 ;;
 
 "Linux" | *)
-  ENC="$(echo "{\"identity\":{\"type\":\"User\",\"user\":{\"username\":\"${USER_NAME}\"},\"internal\":{\"org_id\":\"${ORG_ID}\"}}}" | base64 -w0)"
+  BASE64ENC="base64 -w0"
 ;;
 esac
 
-echo "x-rh-identity: $ENC"
+printf "X-Rh-Identity: "
+cat <<EOF | jq -c -M | ${BASE64ENC}
+{
+  "account_number": "11111",
+  "employee_account_number": "22222",
+  "org_id": "${ORG_ID}",
+  "internal": {
+    "org_id": "${ORG_ID}"
+  },
+  "user": {
+    "username": "${USER_NAME}",
+    "email": "${USER_NAME}@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "is_active": true,
+    "is_org_admin": true,
+    "is_internal": true,
+    "locale": "en",
+    "user_id": "1987348"
+  },
+  "system": {},
+  "associate": {
+    "Role": null,
+    "email": "",
+    "givenName": "",
+    "rhatUUID": "",
+    "surname": ""
+  },
+  "x509": {
+    "subject_dn": "",
+    "issuer_dn": ""
+  },
+  "type": "User",
+  "auth_type": ""
+}
+EOF
