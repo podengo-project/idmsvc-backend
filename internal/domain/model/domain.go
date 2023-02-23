@@ -30,3 +30,21 @@ type Domain struct {
 
 	IpaDomain *Ipa `gorm:"foreignKey:DomainID"`
 }
+
+func DomainTypeString(data uint) string {
+	switch data {
+	case DomainTypeIpa:
+		return "ipa"
+	default:
+		return ""
+	}
+}
+
+func DomainTypeUint(data string) uint {
+	switch data {
+	case "ipa":
+		return DomainTypeIpa
+	default:
+		return DomainTypeUndefined
+	}
+}
