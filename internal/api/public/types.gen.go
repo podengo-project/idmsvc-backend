@@ -4,110 +4,120 @@
 package public
 
 const (
-	ApiKeyAuthScopes = "ApiKeyAuth.Scopes"
+	X_rh_identityScopes = "x_rh_identity.Scopes"
 )
 
-// Error Schema to define the error response
+// Defines values for CreateDomainDomainType.
+const (
+	CreateDomainDomainTypeIpa CreateDomainDomainType = "ipa"
+)
+
+// Defines values for CreateDomainResponseDomainType.
+const (
+	CreateDomainResponseDomainTypeIpa CreateDomainResponseDomainType = "ipa"
+)
+
+// CreateDomain A domain resource
+type CreateDomain struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// DomainName Domain name
+	DomainName string `json:"domain_name"`
+
+	// DomainType Type of this domain. Currently only ipa is supported.
+	DomainType CreateDomainDomainType `json:"domain_type"`
+
+	// Ipa Options for ipa domains
+	Ipa CreateDomainIpa `json:"ipa"`
+}
+
+// CreateDomainDomainType Type of this domain. Currently only ipa is supported.
+type CreateDomainDomainType string
+
+// CreateDomainIpa Options for ipa domains
+type CreateDomainIpa struct {
+	// CaList A base64 representation of all the list of chain of certificates, including the server ca.
+	CaList string `json:"ca_list"`
+
+	// RealmName The realm name for the domain
+	RealmName *string `json:"realm_name,omitempty"`
+
+	// ServerList List of auto-enrollment enabled servers for this domain.
+	ServerList *[]string `json:"server_list,omitempty"`
+}
+
+// CreateDomainResponse A domain resource
+type CreateDomainResponse struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// DomainName Domain name
+	DomainName string `json:"domain_name"`
+
+	// DomainType Type of this domain. Currently only ipa is supported.
+	DomainType CreateDomainResponseDomainType `json:"domain_type"`
+
+	// DomainUuid Internal id for this domain
+	DomainUuid string `json:"domain_uuid"`
+
+	// Ipa Options for ipa domains
+	Ipa CreateDomainIpa `json:"ipa"`
+}
+
+// CreateDomainResponseDomainType Type of this domain. Currently only ipa is supported.
+type CreateDomainResponseDomainType string
+
+// Error General error schema
 type Error struct {
-	Code    int32  `json:"code"`
-	Message string `json:"message"`
+	// Detail A human-readable explanation specific to this occurrence of the problem. This field’s value can be localized.
+	Detail string `json:"detail"`
+
+	// Id A unique identifier for this particular occurrence of the problem.
+	Id string `json:"id"`
+
+	// Status The HTTP status code applicable to this problem, expressed as a string value. This SHOULD be provided.
+	Status *string `json:"status,omitempty"`
 }
 
-// Identity The Identity header
-type Identity = string
-
-// Links Links for a paginated result
-type Links struct {
-	First    *string `json:"first,omitempty"`
-	Last     *string `json:"last,omitempty"`
-	Next     *string `json:"next,omitempty"`
-	Previous *string `json:"previous,omitempty"`
+// ErrorResponse General error response returned by the hmsidm API
+type ErrorResponse struct {
+	// Errors Error objects provide additional information about problems encountered while performing an operation.
+	Errors *[]Error `json:"errors,omitempty"`
 }
 
-// ListTodo A Todo list
-type ListTodo struct {
-	// Data An array of Todos
-	Data *TodoArray `json:"data,omitempty"`
+// ListDomainsParams defines parameters for ListDomains.
+type ListDomainsParams struct {
+	// Offset pagination offset
+	Offset *int `form:"offset,omitempty" json:"offset,omitempty"`
 
-	// Links Links for a paginated result
-	Links *Links `json:"links,omitempty"`
+	// Limit Number of items per page
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// Meta Metadata for a paginated Todo List
-	Meta *Meta `json:"meta,omitempty"`
+	// XRhIdentity Identity header for the request
+	XRhIdentity []byte `json:"X-Rh-Identity"`
+
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 }
 
-// Meta Metadata for a paginated Todo List
-type Meta struct {
-	Count *int32 `json:"count,omitempty"`
+// CreateDomainParams defines parameters for CreateDomain.
+type CreateDomainParams struct {
+	// XRhIdentity Identity header for the request
+	XRhIdentity []byte `json:"X-Rh-Identity"`
+
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 }
 
-// Todo Todo schema
-type Todo struct {
-	Body *string `json:"body,omitempty"`
+// DeleteDomainParams defines parameters for DeleteDomain.
+type DeleteDomainParams struct {
+	// XRhIdentity Identity header for the request
+	XRhIdentity []byte `json:"X-Rh-Identity"`
 
-	// Id The id for a Todo resource
-	Id    *TodoId `json:"id,omitempty"`
-	Title *string `json:"title,omitempty"`
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 }
 
-// TodoArray An array of Todos
-type TodoArray = []Todo
-
-// TodoId The id for a Todo resource
-type TodoId = uint
-
-// Id The id for a Todo resource
-type Id = TodoId
-
-// LimitParam defines model for limitParam.
-type LimitParam = int32
-
-// OffsetParam defines model for offsetParam.
-type OffsetParam = int64
-
-// XRhIdentity The Identity header
-type XRhIdentity = Identity
-
-// ListTodosParams defines parameters for ListTodos.
-type ListTodosParams struct {
-	// Limit max records to return
-	Limit *LimitParam `form:"limit,omitempty" json:"limit,omitempty"`
-
-	// Offset offset record to return
-	Offset      *OffsetParam `form:"offset,omitempty" json:"offset,omitempty"`
-	XRhIdentity XRhIdentity  `json:"X-Rh-Identity"`
-}
-
-// CreateTodoParams defines parameters for CreateTodo.
-type CreateTodoParams struct {
-	XRhIdentity XRhIdentity `json:"X-Rh-Identity"`
-}
-
-// DeleteTodoParams defines parameters for DeleteTodo.
-type DeleteTodoParams struct {
-	XRhIdentity XRhIdentity `json:"X-Rh-Identity"`
-}
-
-// GetTodoParams defines parameters for GetTodo.
-type GetTodoParams struct {
-	XRhIdentity XRhIdentity `json:"X-Rh-Identity"`
-}
-
-// PartialUpdateTodoParams defines parameters for PartialUpdateTodo.
-type PartialUpdateTodoParams struct {
-	XRhIdentity XRhIdentity `json:"X-Rh-Identity"`
-}
-
-// UpdateTodoParams defines parameters for UpdateTodo.
-type UpdateTodoParams struct {
-	XRhIdentity XRhIdentity `json:"X-Rh-Identity"`
-}
-
-// CreateTodoJSONRequestBody defines body for CreateTodo for application/json ContentType.
-type CreateTodoJSONRequestBody = Todo
-
-// PartialUpdateTodoJSONRequestBody defines body for PartialUpdateTodo for application/json ContentType.
-type PartialUpdateTodoJSONRequestBody = Todo
-
-// UpdateTodoJSONRequestBody defines body for UpdateTodo for application/json ContentType.
-type UpdateTodoJSONRequestBody = Todo
+// CreateDomainJSONRequestBody defines body for CreateDomain for application/vnd.api+json ContentType.
+type CreateDomainJSONRequestBody = CreateDomain

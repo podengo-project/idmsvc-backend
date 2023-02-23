@@ -13,24 +13,15 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-	// List all Todos
-	// (GET /todo)
-	ListTodos(ctx echo.Context, params ListTodosParams) error
-	// Create Todo
-	// (POST /todo)
-	CreateTodo(ctx echo.Context, params CreateTodoParams) error
-	// Delete an existing Todo
-	// (DELETE /todo/{id})
-	DeleteTodo(ctx echo.Context, id Id, params DeleteTodoParams) error
-	// Return a Todo resource
-	// (GET /todo/{id})
-	GetTodo(ctx echo.Context, id Id, params GetTodoParams) error
-	// Modify an existing Todo
-	// (PATCH /todo/{id})
-	PartialUpdateTodo(ctx echo.Context, id Id, params PartialUpdateTodoParams) error
-	// Replace an existing Todo
-	// (PUT /todo/{id})
-	UpdateTodo(ctx echo.Context, id Id, params UpdateTodoParams) error
+	// List domains in the organization
+	// (GET /domains)
+	ListDomains(ctx echo.Context, params ListDomainsParams) error
+	// Create a domain.
+	// (POST /domains)
+	CreateDomain(ctx echo.Context, params CreateDomainParams) error
+	// Delete domain.
+	// (DELETE /domains/:uuid)
+	DeleteDomain(ctx echo.Context, params DeleteDomainParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -38,21 +29,14 @@ type ServerInterfaceWrapper struct {
 	Handler ServerInterface
 }
 
-// ListTodos converts echo context to params.
-func (w *ServerInterfaceWrapper) ListTodos(ctx echo.Context) error {
+// ListDomains converts echo context to params.
+func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 	var err error
 
-	ctx.Set(ApiKeyAuthScopes, []string{""})
+	ctx.Set(X_rh_identityScopes, []string{""})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params ListTodosParams
-	// ------------- Optional query parameter "limit" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
-	}
-
+	var params ListDomainsParams
 	// ------------- Optional query parameter "offset" -------------
 
 	err = runtime.BindQueryParameter("form", true, false, "offset", ctx.QueryParams(), &params.Offset)
@@ -60,83 +44,17 @@ func (w *ServerInterfaceWrapper) ListTodos(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter offset: %s", err))
 	}
 
-	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity XRhIdentity
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
+	// ------------- Optional query parameter "limit" -------------
 
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.ListTodos(ctx, params)
-	return err
-}
-
-// CreateTodo converts echo context to params.
-func (w *ServerInterfaceWrapper) CreateTodo(ctx echo.Context) error {
-	var err error
-
-	ctx.Set(ApiKeyAuthScopes, []string{""})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params CreateTodoParams
-
-	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity XRhIdentity
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.CreateTodo(ctx, params)
-	return err
-}
-
-// DeleteTodo converts echo context to params.
-func (w *ServerInterfaceWrapper) DeleteTodo(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "id" -------------
-	var id Id
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
+	err = runtime.BindQueryParameter("form", true, false, "limit", ctx.QueryParams(), &params.Limit)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter limit: %s", err))
 	}
-
-	ctx.Set(ApiKeyAuthScopes, []string{""})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params DeleteTodoParams
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity XRhIdentity
+		var XRhIdentity []byte
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -151,32 +69,42 @@ func (w *ServerInterfaceWrapper) DeleteTodo(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.DeleteTodo(ctx, id, params)
+	err = w.Handler.ListDomains(ctx, params)
 	return err
 }
 
-// GetTodo converts echo context to params.
-func (w *ServerInterfaceWrapper) GetTodo(ctx echo.Context) error {
+// CreateDomain converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 	var err error
-	// ------------- Path parameter "id" -------------
-	var id Id
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
-	ctx.Set(ApiKeyAuthScopes, []string{""})
+	ctx.Set(X_rh_identityScopes, []string{""})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetTodoParams
+	var params CreateDomainParams
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity XRhIdentity
+		var XRhIdentity []byte
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -191,32 +119,42 @@ func (w *ServerInterfaceWrapper) GetTodo(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.GetTodo(ctx, id, params)
+	err = w.Handler.CreateDomain(ctx, params)
 	return err
 }
 
-// PartialUpdateTodo converts echo context to params.
-func (w *ServerInterfaceWrapper) PartialUpdateTodo(ctx echo.Context) error {
+// DeleteDomain converts echo context to params.
+func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	var err error
-	// ------------- Path parameter "id" -------------
-	var id Id
 
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
-	ctx.Set(ApiKeyAuthScopes, []string{""})
+	ctx.Set(X_rh_identityScopes, []string{""})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params PartialUpdateTodoParams
+	var params DeleteDomainParams
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity XRhIdentity
+		var XRhIdentity []byte
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -231,49 +169,26 @@ func (w *ServerInterfaceWrapper) PartialUpdateTodo(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-
-	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.PartialUpdateTodo(ctx, id, params)
-	return err
-}
-
-// UpdateTodo converts echo context to params.
-func (w *ServerInterfaceWrapper) UpdateTodo(ctx echo.Context) error {
-	var err error
-	// ------------- Path parameter "id" -------------
-	var id Id
-
-	err = runtime.BindStyledParameterWithLocation("simple", false, "id", runtime.ParamLocationPath, ctx.Param("id"), &id)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter id: %s", err))
-	}
-
-	ctx.Set(ApiKeyAuthScopes, []string{""})
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UpdateTodoParams
-
-	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity XRhIdentity
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
 		}
 
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhIdentity = XRhIdentity
+		params.XRhInsightsRequestId = XRhInsightsRequestId
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.UpdateTodo(ctx, id, params)
+	err = w.Handler.DeleteDomain(ctx, params)
 	return err
 }
 
@@ -305,11 +220,8 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"/todo", wrapper.ListTodos)
-	router.POST(baseURL+"/todo", wrapper.CreateTodo)
-	router.DELETE(baseURL+"/todo/:id", wrapper.DeleteTodo)
-	router.GET(baseURL+"/todo/:id", wrapper.GetTodo)
-	router.PATCH(baseURL+"/todo/:id", wrapper.PartialUpdateTodo)
-	router.PUT(baseURL+"/todo/:id", wrapper.UpdateTodo)
+	router.GET(baseURL+"/domains", wrapper.ListDomains)
+	router.POST(baseURL+"/domains", wrapper.CreateDomain)
+	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
 
 }
