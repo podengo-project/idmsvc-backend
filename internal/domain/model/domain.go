@@ -48,3 +48,10 @@ func DomainTypeUint(data string) uint {
 		return DomainTypeUndefined
 	}
 }
+
+// See: https://gorm.io/docs/hooks.html
+
+func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
+	d.DomainUuid = uuid.New()
+	return nil
+}
