@@ -39,9 +39,6 @@ func checkRouterConfig(c RouterConfig) error {
 	if c.Version == "" {
 		return fmt.Errorf("Version cannot be empty")
 	}
-	if c.Version[0] != 'v' {
-		return fmt.Errorf("Version should follow the pattern 'v<Major>.<Minor>'")
-	}
 	return nil
 }
 

@@ -81,16 +81,24 @@ func TestNewGroupPublic(t *testing.T) {
 			"GET": "github.com/hmsidm/internal/public.openapi",
 		},
 
-		appPrefix + appName + versionFull + "/todo": {
-			"GET":  "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).ListTodos-fm",
-			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).CreateTodo-fm",
+		appPrefix + appName + versionFull + "/domains": {
+			"GET":  "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).ListDomains-fm",
+			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).CreateDomain-fm",
 		},
 
-		appPrefix + appName + versionFull + "/todo/:id": {
-			"GET":    "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).GetTodo-fm",
-			"PUT":    "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).UpdateTodo-fm",
-			"PATCH":  "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).PartialUpdateTodo-fm",
-			"DELETE": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).DeleteTodo-fm",
+		appPrefix + appName + versionFull + "/domains/:uuid": {
+			"GET":    "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).ReadDomain-fm",
+			"PUT":    "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
+			"PATCH":  "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).PartialUpdateDomain-fm",
+			"DELETE": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
+		},
+
+		appPrefix + appName + versionFull + "/hostconf/:fqdn": {
+			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
+		},
+
+		appPrefix + appName + versionFull + "/check_host/:subscription_manager_id/:fqdn": {
+			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).CheckHost-fm",
 		},
 
 		// This routes are added when the group is created

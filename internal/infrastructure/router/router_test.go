@@ -57,20 +57,11 @@ func TestCheckRouterConfig(t *testing.T) {
 			Expected: fmt.Errorf("Version cannot be empty"),
 		},
 		{
-			Name: "Version should follow the pattern 'v<Major>.<Minor>'",
-			Given: RouterConfig{
-				PublicPath:  "/api/hmsidm/v1",
-				PrivatePath: "/private",
-				Version:     "iuasdf.iuasdf",
-			},
-			Expected: fmt.Errorf("Version should follow the pattern 'v<Major>.<Minor>'"),
-		},
-		{
 			Name: "Success scenario",
 			Given: RouterConfig{
 				PublicPath:  "/api/hmsidm/v1",
 				PrivatePath: "/private",
-				Version:     "v1.0",
+				Version:     "1.0",
 			},
 			Expected: nil,
 		},
