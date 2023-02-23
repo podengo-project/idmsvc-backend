@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS domains (
     updated_at TIMESTAMP WITH TIME ZONE,
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
 
+    org_id      VARCHAR(255) NOT NULL,
     domain_uuid UUID UNIQUE NOT NULL,
     domain_name VARCHAR(253) NOT NULL,
     domain_type INT NOT NULL,
