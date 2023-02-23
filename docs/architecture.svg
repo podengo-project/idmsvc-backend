@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" contentStyleType="text/css" height="561px" preserveAspectRatio="none" style="width:744px;height:561px;background:#FFFFFF;" version="1.1" viewBox="0 0 744 561" width="744px" zoomAndPan="magnify"><defs/><g><!--MD5=[9a8fef2338f1983c50e8518d6e32c3a4]
+cluster Client AWS--><g id="cluster_Client AWS"><path d="M28.2297,26.4299 C29.5688,15.7594 36.092,15.1898 44.0581,19.3637 C48.2161,7.2899 54.5398,6 64.0906,13.9754 C73.3094,7.6295 79.2265,10.5814 81.0216,21.3287 C92.6512,10.64 104.1105,16.7624 106.4653,30.8524 C107.996,30.956 108.2155,31.9177 107.6017,33.1037 C117.6279,36.7489 117.1362,44.4383 109.7653,50.2755 C117.7071,55.2633 117.8016,61.7218 109.5358,66.4801 C118.6244,72.3859 117.238,78.0725 109.412,83.8578 C117.2212,88.9447 115.3344,95.5191 108.0098,99.2252 C118.0994,103.8071 118.072,109.76 110.2663,116.6582 C118.219,121.7747 118.192,127.2932 110.1344,132.2745 C117.2883,137.1798 118.2008,143.8124 110.4986,149.0404 C118.8428,155.2932 115.9051,161.8611 108.1847,165.9105 C118.066,170.7825 117.462,177.1998 110.0971,183.9048 C118.7778,189.6753 117.1269,195.4879 109.1977,200.35 C116.372,206.471 117.0992,211.651 107.8904,216.4411 C118.343,221.7827 117.9708,228.2798 109.9121,235.577 C117.1281,241.2045 115.9578,246.7062 107.8794,250.209 C117.3503,260.5995 112.6689,270.8876 99.4653,272.8524 C100.6515,272.7752 101.4498,273.4667 100.8883,274.7206 C95.2109,281.5197 89.3397,281.1162 84.2453,274.0222 C79.8864,282.2582 70.9932,283.1186 65.4517,275.4168 C60.0413,284.6489 51.5041,285.9112 45.6863,275.8337 C33.9803,285.6725 21.4122,279.9017 18.4653,265.8524 C18.6738,265.7902 18.7883,265.9266 18.7328,266.1241 C10.213,261.4297 11.6706,254.2556 18.6244,249.4605 C11.3999,245.7929 11.4407,239.0724 18.2577,235.0476 C8.7104,229.5476 6.9507,223.533 16.5801,216.3155 C9.3709,210.7419 10.2092,203.8565 18.1122,199.6742 C9.9212,195.9419 9.0496,189.6346 15.3869,183.4603 C7.9017,178.1209 6,170.6346 15.3521,165.263 C7.7391,161.1107 7.0975,152.7714 15.2772,148.5483 C8.8266,143.6546 8.1435,137.7185 15.9243,133.4341 C7.1356,127.2806 7.0541,122.0814 16.5134,116.5652 C9.1786,110.2511 9.7993,104.4554 18.4835,100.0525 C10.1381,95.0147 10.2154,88.7618 18.3913,83.6314 C10.617,78.8645 10.8295,70.8937 17.9674,65.7729 C11.9489,60.1251 11.1266,53.1457 20.2443,49.6333 C11.5966,38.5097 10.5537,30.2049 25.4653,23.8524 C27.6285,23.1379 28.5217,24.5113 28.2297,26.4299 " style="stroke:#181818;stroke-width:1.0;fill:none;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="74.9375" x="24.9966" y="43.8183">Client AWS</text></g><!--MD5=[597d9e468e131f53f39d3eed4362fdcd]
+cluster Console.Dot Platform--><g id="cluster_Console.Dot Platform"><path d="M189.324,344.5375 C200.0618,326.1121 211.3939,325.791 224.6092,342.0146 C233.6979,321.1913 250.6533,321.9594 263.6922,337.8042 C275.6202,320.8386 288.7599,321.2426 298.6006,339.8524 C310.2888,322.1239 322.5537,320.7846 335.6224,338.4067 C342.6126,321.6336 357.1138,321.0468 367.8339,334.4215 C379.7996,315.182 392.512,316.0471 406.9761,331.6117 C416.9664,316.5287 433.7382,314.2902 442.7978,332.6097 C452.1484,315.2087 464.9147,317.8933 476.0281,330.6685 C488.0217,315.5605 505.4805,317.83 512.3288,336.2408 C527.212,317.5428 540.2964,317.506 553.3787,338.1213 C561.2847,323.4313 576.9761,322.6287 586.6218,336.0651 C598.112,322.6834 613.3287,319.0218 621.7968,339.2298 C635.8585,321.4382 651.5313,325.0502 661.3863,343.7887 C673.8725,324.9274 691.7417,329.5745 701.4653,346.8524 C705.1284,345.9565 706.8372,347.5609 705.9874,351.2772 C728.8472,360.2212 730.8038,375.1013 712.6423,390.9298 C731.9178,400.2006 731.9278,416.2902 716.5888,429.1364 C737.3297,443.358 732.0679,462.0539 711.9556,471.8433 C726.1256,490.7838 720.5296,514.2069 694.4653,517.8524 C697.6422,517.6574 699.3642,519.4942 698.4527,522.6776 C685.9733,539.5464 675.0232,539.3652 664.269,521.0036 C655.0079,538.6401 639.494,543.4031 627.1601,524.0897 C618.0275,545.5646 602.6111,543.4165 589.9264,527.6401 C577.145,549.0394 561.6339,543.5392 550.139,526.3148 C542.1958,544.9483 526.367,545.8766 513.7328,531.4861 C503.5688,549.7562 492.0453,548.7681 478.7992,534.829 C466.024,553.6935 452.764,554.682 439.6475,535.1773 C425.6643,551.3768 411.2129,545.6406 403.6553,528.285 C394.3285,541.139 382.0227,542.7717 372.2132,528.8519 C361.7127,543.2976 345.3269,543.1788 336.8722,526.5269 C327.5845,548.4105 309.5987,547.2781 297.3276,529.5017 C285.4032,542.9494 269.1393,543.8939 262.5693,523.9313 C251.0876,541.6071 233.5222,542.241 224.7576,521.2728 C207.4117,543.6954 184.8725,533.5361 177.4653,510.8524 C177.9975,510.098 178.8551,510.0853 179.36,510.8856 C155.5781,499.5589 154.4891,486.3108 174.7575,470.0226 C157.8041,461.6199 153.215,447.9307 168.4658,433.9163 C149.1084,417.0349 155.5818,401.9478 175.663,391.8071 C151.4339,371.3391 156.4691,351.4722 184.4653,339.8524 C188.3354,339.153 189.6874,340.8466 189.324,344.5375 " style="stroke:#181818;stroke-width:1.0;fill:none;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="152.3125" x="363.3091" y="359.8183">Console.Dot Platform</text></g><!--MD5=[0f533a43c0b2f7679aae6c105029b1e0]
+cluster Postgresql--><g id="cluster_Postgresql"><path d="M595.4653,387.8524 C595.4653,377.8524 640.4653,377.8524 640.4653,377.8524 C640.4653,377.8524 685.4653,377.8524 685.4653,387.8524 L685.4653,491.8524 C685.4653,501.8524 640.4653,501.8524 640.4653,501.8524 C640.4653,501.8524 595.4653,501.8524 595.4653,491.8524 L595.4653,387.8524 " style="stroke:#181818;stroke-width:1.0;fill:none;"/><path d="M595.4653,387.8524 C595.4653,397.8524 640.4653,397.8524 640.4653,397.8524 C640.4653,397.8524 685.4653,397.8524 685.4653,387.8524 " fill="none" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="14" font-weight="bold" lengthAdjust="spacing" textLength="74.375" x="603.2778" y="414.8183">Postgresql</text></g><!--MD5=[8890788e37b11dd3053f547e2b5ce265]
+entity domain--><g id="elem_domain"><ellipse cx="60.4653" cy="232.8524" fill="#F1F1F1" rx="8" ry="8" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="48" x="36.4653" y="264.8183">Freeipa</text></g><!--MD5=[da9746410650acf9fab14ea35e32d13b]
+entity host--><g id="elem_host"><ellipse cx="62.4653" cy="107.8524" fill="#F1F1F1" rx="8" ry="8" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="57" x="33.9653" y="139.8183">Host VM</text></g><!--MD5=[da2a9b9a0b1eedb60627853543e25a6f]
+entity hbi_requests--><g id="elem_hbi_requests"><ellipse cx="212.4653" cy="476.8524" fill="#F1F1F1" rx="8" ry="8" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="28" x="198.4653" y="508.8183">http</text></g><!--MD5=[2d7f3d7930cfe627951e8fae949f7663]
+entity service_hmsidm--><g id="elem_service_hmsidm"><rect fill="#F1F1F1" height="49.0679" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="86" x="274.4653" y="452.3524"/><rect fill="#F1F1F1" height="10" style="stroke:#181818;stroke-width:0.5;" width="15" x="340.4653" y="457.3524"/><rect fill="#F1F1F1" height="2" style="stroke:#181818;stroke-width:0.5;" width="4" x="338.4653" y="459.3524"/><rect fill="#F1F1F1" height="2" style="stroke:#181818;stroke-width:0.5;" width="4" x="338.4653" y="463.3524"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="46" x="289.4653" y="487.3183">Service</text></g><!--MD5=[89728e2d0d5261bb83c8a6a44c161d56]
+entity service_hbi--><g id="elem_service_hbi"><rect fill="#F1F1F1" height="49.0679" rx="2.5" ry="2.5" style="stroke:#181818;stroke-width:0.5;" width="65" x="513.9653" y="452.3524"/><rect fill="#F1F1F1" height="10" style="stroke:#181818;stroke-width:0.5;" width="15" x="558.9653" y="457.3524"/><rect fill="#F1F1F1" height="2" style="stroke:#181818;stroke-width:0.5;" width="4" x="556.9653" y="459.3524"/><rect fill="#F1F1F1" height="2" style="stroke:#181818;stroke-width:0.5;" width="4" x="556.9653" y="463.3524"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="25" x="528.9653" y="487.3183">HBI</text></g><!--MD5=[f50ff5e4cd64f259303fc83dba1819fc]
+entity database--><g id="elem_database"><ellipse cx="623.4653" cy="476.8524" fill="#F1F1F1" rx="8" ry="8" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="33" x="606.9653" y="508.8183">Data</text></g><!--MD5=[4dd5cfdbfacc03eb11db5fe62cdfafba]
+entity http_requests--><g id="elem_http_requests"><ellipse cx="141.4653" cy="476.8524" fill="#F1F1F1" rx="8" ry="8" style="stroke:#181818;stroke-width:0.5;"/><text fill="#000000" font-family="sans-serif" font-size="14" lengthAdjust="spacing" textLength="65" x="108.9653" y="508.8183">Public API</text></g><!--MD5=[875a613e4697df01191de7c4af4b21b4]
+link host to domain--><g id="link_host_domain"><path d="M62.2453,122.1724 C61.8653,145.7824 61.0653,194.7024 60.6853,218.4024 " fill="none" id="host-domain" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="60.5953,223.5924,64.749,214.6623,60.681,218.5931,56.7502,214.5252,60.5953,223.5924" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="62.3353,116.9224,58.1817,125.8525,62.2496,121.9217,66.1805,125.9896,62.3353,116.9224" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[98b573c3529443dba844d07da6ade6f6]
+link host to http_requests--><g id="link_host_http_requests"><path d="M67.9353,117.0524 C78.0353,132.6224 99.4853,167.8924 109.4653,200.8524 C138.8153,297.7524 141.5253,421.3724 141.5753,462.1424 " fill="none" id="host-to-http_requests" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="141.5653,467.5424,145.591,458.5539,141.5796,462.5424,137.5911,458.531,141.5653,467.5424" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[c570c79e19e2f47484332ab018a871aa]
+link domain to http_requests--><g id="link_domain_http_requests"><path d="M63.1653,241.9024 C74.9753,277.2124 122.2853,418.5424 137.0453,462.6424 " fill="none" id="domain-to-http_requests" style="stroke:#181818;stroke-width:1.0;"/><polygon fill="#181818" points="138.6753,467.5224,139.6063,457.7176,137.0856,462.7819,132.0214,460.2612,138.6753,467.5224" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[158a0a0bc4063f617bcf4428ce87a3e7]
+link http_requests to service_hmsidm--><g id="link_http_requests_service_hmsidm"><path d="M139.9453,467.6424 C136.4053,442.5124 130.5953,372.5324 169.4653,340.8524 C199.7853,316.1424 224.6953,319.4924 257.4653,340.8524 C295.4053,365.5824 309.5253,420.3224 314.6553,452.3024 " fill="none" id="http_requests-service_hmsidm" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="95" x="172.9653" y="311.7494">/api/hmsidm/v*</text></g><!--MD5=[79c3e98a97e7e2b2a59d47364946a2f3]
+link service_hmsidm to service_hbi--><g id="link_service_hmsidm_service_hbi"><path d="M360.5353,476.8524 C405.1053,476.8524 473.7153,476.8524 513.9453,476.8524 " fill="none" id="service_hmsidm-service_hbi" style="stroke:#181818;stroke-width:1.0;"/><text fill="#000000" font-family="sans-serif" font-size="13" lengthAdjust="spacing" textLength="117" x="378.7153" y="469.7494">/api/inventory/v1/*</text></g><!--MD5=[b0a79081758cc20608d786a3ae6aef98]
+link service_hmsidm to database--><g id="link_service_hmsidm_database"><path d="M334.4353,452.3324 C376.0553,395.4724 487.4753,262.6524 592.9653,306.3524 C652.9753,331.2124 633.4353,435.5024 625.8553,467.4824 " fill="none" id="service_hmsidm-database" style="stroke:#181818;stroke-width:1.0;"/></g><!--MD5=[25ea2b78f7397fae6250be691167ac97]
+@startuml architecture
+
+() "Public API" as http_requests
+
+cloud "Client AWS" {
+    () "Freeipa" as domain
+    () "Host VM" as host
+    host <- -> domain
+    host - -> http_requests
+    domain - -> http_requests
+}
+
+cloud "Console.Dot Platform" {
+    ' () "Kafka Consumers" as kafka_consumer
+    ' () "Kafka Producers" as kafka_producer
+    () "http" as hbi_requests
+    ' () "Http Clients" as http_clients
+
+    database "Postgresql" {
+        () "Data" as database
+    }
+
+    [Service] as service_hmsidm
+    [HBI] as service_hbi
+
+    http_requests - service_hmsidm: /api/hmsidm/v*
+    service_hmsidm - service_hbi: /api/inventory/v1/*
+    ' service - http_clients: third party services
+    ' service - kafka_producer: produce event topics
+    ' kafka_consumer - service: kafka handler
+    service_hmsidm - database
+}
+
+@enduml
+
+@startuml architecture
+
+() "Public API" as http_requests
+
+cloud "Client AWS" {
+    () "Freeipa" as domain
+    () "Host VM" as host
+    host <- -> domain
+    host - -> http_requests
+    domain - -> http_requests
+}
+
+cloud "Console.Dot Platform" {
+    () "http" as hbi_requests
+
+    database "Postgresql" {
+        () "Data" as database
+    }
+
+    [Service] as service_hmsidm
+    [HBI] as service_hbi
+
+    http_requests - service_hmsidm: /api/hmsidm/v*
+    service_hmsidm - service_hbi: /api/inventory/v1/*
+    service_hmsidm - database
+}
+
+@enduml
+
+PlantUML version 1.2022.5(Sat Apr 30 12:55:52 CEST 2022)
+(LGPL source distribution)
+Java Runtime: OpenJDK Runtime Environment
+JVM: OpenJDK 64-Bit Server VM
+Default Encoding: UTF-8
+Language: en
+Country: null
+--></g></svg>
