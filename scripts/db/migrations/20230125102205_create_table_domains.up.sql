@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS domains (
     domain_uuid UUID UNIQUE NOT NULL,
     domain_name VARCHAR(253) NOT NULL,
     domain_type INT NOT NULL,
-    auto_enrollment_enabled BOOLEAN NOT NULL,
+    auto_enrollment_enabled BOOLEAN NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ipas (
