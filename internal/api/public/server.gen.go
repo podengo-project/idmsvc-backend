@@ -65,7 +65,7 @@ func (w *ServerInterfaceWrapper) CheckHost(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity []byte
+		var XRhIdentity string
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -80,7 +80,7 @@ func (w *ServerInterfaceWrapper) CheckHost(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -93,9 +93,7 @@ func (w *ServerInterfaceWrapper) CheckHost(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -128,7 +126,7 @@ func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity []byte
+		var XRhIdentity string
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -143,7 +141,7 @@ func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -156,9 +154,7 @@ func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -178,7 +174,7 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity []byte
+		var XRhIdentity string
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -193,7 +189,7 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -206,9 +202,7 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -235,7 +229,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity []byte
+		var XRhIdentity string
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -250,7 +244,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -263,9 +257,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -292,7 +284,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity []byte
+		var XRhIdentity string
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -307,7 +299,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -320,9 +312,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -349,7 +339,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity []byte
+		var XRhIdentity string
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
@@ -364,7 +354,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -377,9 +367,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments

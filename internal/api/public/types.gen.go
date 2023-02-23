@@ -12,9 +12,9 @@ const (
 	CreateDomainDomainTypeIpa CreateDomainDomainType = "ipa"
 )
 
-// Defines values for CreateDomainResponseDomainType.
+// Defines values for CreateDomainResponseSchemaDomainType.
 const (
-	CreateDomainResponseDomainTypeIpa CreateDomainResponseDomainType = "ipa"
+	CreateDomainResponseSchemaDomainTypeIpa CreateDomainResponseSchemaDomainType = "ipa"
 )
 
 // CheckHosts Define the input data for the /check_host action.
@@ -65,8 +65,8 @@ type CreateDomainIpa struct {
 	ServerList *[]string `json:"server_list,omitempty"`
 }
 
-// CreateDomainResponse A domain resource
-type CreateDomainResponse struct {
+// CreateDomainResponseSchema A domain resource
+type CreateDomainResponseSchema struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
@@ -74,7 +74,7 @@ type CreateDomainResponse struct {
 	DomainName string `json:"domain_name"`
 
 	// DomainType Type of this domain. Currently only ipa is supported.
-	DomainType CreateDomainResponseDomainType `json:"domain_type"`
+	DomainType CreateDomainResponseSchemaDomainType `json:"domain_type"`
 
 	// DomainUuid Internal id for this domain
 	DomainUuid string `json:"domain_uuid"`
@@ -83,8 +83,8 @@ type CreateDomainResponse struct {
 	Ipa CreateDomainIpa `json:"ipa"`
 }
 
-// CreateDomainResponseDomainType Type of this domain. Currently only ipa is supported.
-type CreateDomainResponseDomainType string
+// CreateDomainResponseSchemaDomainType Type of this domain. Currently only ipa is supported.
+type CreateDomainResponseSchemaDomainType string
 
 // Error General error schema
 type Error struct {
@@ -98,8 +98,8 @@ type Error struct {
 	Status *string `json:"status,omitempty"`
 }
 
-// ErrorResponse General error response returned by the hmsidm API
-type ErrorResponse struct {
+// ErrorResponseSchema General error response returned by the hmsidm API
+type ErrorResponseSchema struct {
 	// Errors Error objects provide additional information about problems encountered while performing an operation.
 	Errors *[]Error `json:"errors,omitempty"`
 }
@@ -113,9 +113,9 @@ type HostConf struct {
 	SubscriptionManagerId *string `json:"subscription_manager_id,omitempty"`
 }
 
-// HostConfResponse The response for the action to retrieve the host vm information when
+// HostConfResponseSchema The response for the action to retrieve the host vm information when
 // it is being enrolled. This action is taken from the host vm.
-type HostConfResponse struct {
+type HostConfResponseSchema struct {
 	DomainName *string `json:"domain_name,omitempty"`
 	DomainType *string `json:"domain_type,omitempty"`
 	Ipa        *struct {
@@ -133,8 +133,8 @@ type ListDomainsData struct {
 	DomainUuid            *string `json:"domain_uuid,omitempty"`
 }
 
-// ListDomainsResponse Represent a paginated result for a list of domains
-type ListDomainsResponse struct {
+// ListDomainsResponseSchema Represent a paginated result for a list of domains
+type ListDomainsResponseSchema struct {
 	// Data The content for this page.
 	Data []ListDomainsData `json:"data"`
 
@@ -177,8 +177,8 @@ type ReadDomainIpa struct {
 	ServerList *[]string `json:"server_list,omitempty"`
 }
 
-// ReadDomainResponse Represent the information read for a specific domain.
-type ReadDomainResponse struct {
+// ReadDomainResponseSchema Represent the information read for a specific domain.
+type ReadDomainResponseSchema struct {
 	// AutoEnrollmentEnabled Inidicate if the auto-enrollment is enabled or disabled for this domain.
 	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
 
@@ -195,13 +195,29 @@ type ReadDomainResponse struct {
 	Ipa *ReadDomainIpa `json:"ipa,omitempty"`
 }
 
+// CreateDomainResponse A domain resource
+type CreateDomainResponse = CreateDomainResponseSchema
+
+// ErrorResponse General error response returned by the hmsidm API
+type ErrorResponse = ErrorResponseSchema
+
+// HostConfResponse The response for the action to retrieve the host vm information when
+// it is being enrolled. This action is taken from the host vm.
+type HostConfResponse = HostConfResponseSchema
+
+// ListDomainsResponse Represent a paginated result for a list of domains
+type ListDomainsResponse = ListDomainsResponseSchema
+
+// ReadDomainResponse Represent the information read for a specific domain.
+type ReadDomainResponse = ReadDomainResponseSchema
+
 // CheckHostParams defines parameters for CheckHost.
 type CheckHostParams struct {
 	// XRhIdentity Identity header.
-	XRhIdentity []byte `json:"X-Rh-Identity"`
+	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // ListDomainsParams defines parameters for ListDomains.
@@ -213,46 +229,46 @@ type ListDomainsParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// XRhIdentity Identity header for the request
-	XRhIdentity []byte `json:"X-Rh-Identity"`
+	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // CreateDomainParams defines parameters for CreateDomain.
 type CreateDomainParams struct {
 	// XRhIdentity Identity header for the request
-	XRhIdentity []byte `json:"X-Rh-Identity"`
+	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // DeleteDomainParams defines parameters for DeleteDomain.
 type DeleteDomainParams struct {
 	// XRhIdentity Identity header for the request
-	XRhIdentity []byte `json:"X-Rh-Identity"`
+	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // ReadDomainParams defines parameters for ReadDomain.
 type ReadDomainParams struct {
 	// XRhIdentity Identity header for the request
-	XRhIdentity []byte `json:"X-Rh-Identity"`
+	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // HostConfParams defines parameters for HostConf.
 type HostConfParams struct {
 	// XRhIdentity The identity header of the request.
-	XRhIdentity []byte `json:"X-Rh-Identity"`
+	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Unique request id for distributing tracing.
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // CheckHostJSONRequestBody defines body for CheckHost for application/vnd.api+json ContentType.
