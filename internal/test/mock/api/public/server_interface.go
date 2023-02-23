@@ -14,12 +14,26 @@ type ServerInterface struct {
 	mock.Mock
 }
 
-// CreateTodo provides a mock function with given fields: ctx, params
-func (_m *ServerInterface) CreateTodo(ctx echo.Context, params public.CreateTodoParams) error {
+// CheckHost provides a mock function with given fields: ctx, subscriptionManagerId, fqdn, params
+func (_m *ServerInterface) CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string, params public.CheckHostParams) error {
+	ret := _m.Called(ctx, subscriptionManagerId, fqdn, params)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, string, string, public.CheckHostParams) error); ok {
+		r0 = rf(ctx, subscriptionManagerId, fqdn, params)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// CreateDomain provides a mock function with given fields: ctx, params
+func (_m *ServerInterface) CreateDomain(ctx echo.Context, params public.CreateDomainParams) error {
 	ret := _m.Called(ctx, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, public.CreateTodoParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, public.CreateDomainParams) error); ok {
 		r0 = rf(ctx, params)
 	} else {
 		r0 = ret.Error(0)
@@ -28,13 +42,13 @@ func (_m *ServerInterface) CreateTodo(ctx echo.Context, params public.CreateTodo
 	return r0
 }
 
-// DeleteTodo provides a mock function with given fields: ctx, id, params
-func (_m *ServerInterface) DeleteTodo(ctx echo.Context, id uint, params public.DeleteTodoParams) error {
-	ret := _m.Called(ctx, id, params)
+// DeleteDomain provides a mock function with given fields: ctx, uuid, params
+func (_m *ServerInterface) DeleteDomain(ctx echo.Context, uuid string, params public.DeleteDomainParams) error {
+	ret := _m.Called(ctx, uuid, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, uint, public.DeleteTodoParams) error); ok {
-		r0 = rf(ctx, id, params)
+	if rf, ok := ret.Get(0).(func(echo.Context, string, public.DeleteDomainParams) error); ok {
+		r0 = rf(ctx, uuid, params)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -42,13 +56,13 @@ func (_m *ServerInterface) DeleteTodo(ctx echo.Context, id uint, params public.D
 	return r0
 }
 
-// GetTodo provides a mock function with given fields: ctx, id, params
-func (_m *ServerInterface) GetTodo(ctx echo.Context, id uint, params public.GetTodoParams) error {
-	ret := _m.Called(ctx, id, params)
+// HostConf provides a mock function with given fields: ctx, fqdn, params
+func (_m *ServerInterface) HostConf(ctx echo.Context, fqdn string, params public.HostConfParams) error {
+	ret := _m.Called(ctx, fqdn, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, uint, public.GetTodoParams) error); ok {
-		r0 = rf(ctx, id, params)
+	if rf, ok := ret.Get(0).(func(echo.Context, string, public.HostConfParams) error); ok {
+		r0 = rf(ctx, fqdn, params)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -56,12 +70,12 @@ func (_m *ServerInterface) GetTodo(ctx echo.Context, id uint, params public.GetT
 	return r0
 }
 
-// ListTodos provides a mock function with given fields: ctx, params
-func (_m *ServerInterface) ListTodos(ctx echo.Context, params public.ListTodosParams) error {
+// ListDomains provides a mock function with given fields: ctx, params
+func (_m *ServerInterface) ListDomains(ctx echo.Context, params public.ListDomainsParams) error {
 	ret := _m.Called(ctx, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, public.ListTodosParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, public.ListDomainsParams) error); ok {
 		r0 = rf(ctx, params)
 	} else {
 		r0 = ret.Error(0)
@@ -70,27 +84,13 @@ func (_m *ServerInterface) ListTodos(ctx echo.Context, params public.ListTodosPa
 	return r0
 }
 
-// PartialUpdateTodo provides a mock function with given fields: ctx, id, params
-func (_m *ServerInterface) PartialUpdateTodo(ctx echo.Context, id uint, params public.PartialUpdateTodoParams) error {
-	ret := _m.Called(ctx, id, params)
+// ReadDomain provides a mock function with given fields: ctx, uuid, params
+func (_m *ServerInterface) ReadDomain(ctx echo.Context, uuid string, params public.ReadDomainParams) error {
+	ret := _m.Called(ctx, uuid, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, uint, public.PartialUpdateTodoParams) error); ok {
-		r0 = rf(ctx, id, params)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
-// UpdateTodo provides a mock function with given fields: ctx, id, params
-func (_m *ServerInterface) UpdateTodo(ctx echo.Context, id uint, params public.UpdateTodoParams) error {
-	ret := _m.Called(ctx, id, params)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, uint, public.UpdateTodoParams) error); ok {
-		r0 = rf(ctx, id, params)
+	if rf, ok := ret.Get(0).(func(echo.Context, string, public.ReadDomainParams) error); ok {
+		r0 = rf(ctx, uuid, params)
 	} else {
 		r0 = ret.Error(0)
 	}
