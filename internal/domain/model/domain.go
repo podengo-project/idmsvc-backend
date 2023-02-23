@@ -1,6 +1,9 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 // See: https://gorm.io/docs/models.html
 
@@ -22,11 +25,24 @@ import "gorm.io/gorm"
 }
 */
 
+const (
+	DomainTypeIpa uint = iota + 1
+	DomainTypeAzure
+	DomainTypeActiveDirector
+)
+
+// NOTE https://samu.space/uuids-with-postgres-and-gorm/
+//      thanks @anschnei
+// NOTE hmscontent can be an example of this; they redefine
+//      the base model of the gorm models to use uuid as
+//      the primary key
+
 type Domain struct {
 	gorm.Model
-	DomainUuid            *string `gorm:"unique"`
+	OrgId                 string
+	DomainUuid            *uuid.UUID `gorm:"unique"`
 	DomainName            *string
-	DomainType            *string
+	DomainType            uint
 	AutoEnrollmentEnabled bool
 	Title                 *string
 	Description           *string
