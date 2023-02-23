@@ -15,15 +15,15 @@ type DomainPresenter struct {
 }
 
 // Create provides a mock function with given fields: domain
-func (_m *DomainPresenter) Create(domain *model.Domain) (*public.CreateDomainResponse, error) {
+func (_m *DomainPresenter) Create(domain *model.Domain) (*public.CreateDomainResponseSchema, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.CreateDomainResponse
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.CreateDomainResponse); ok {
+	var r0 *public.CreateDomainResponseSchema
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.CreateDomainResponseSchema); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.CreateDomainResponse)
+			r0 = ret.Get(0).(*public.CreateDomainResponseSchema)
 		}
 	}
 
@@ -38,15 +38,15 @@ func (_m *DomainPresenter) Create(domain *model.Domain) (*public.CreateDomainRes
 }
 
 // Get provides a mock function with given fields: domain
-func (_m *DomainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, error) {
+func (_m *DomainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponseSchema, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.ReadDomainResponse
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.ReadDomainResponse); ok {
+	var r0 *public.ReadDomainResponseSchema
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.ReadDomainResponseSchema); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.ReadDomainResponse)
+			r0 = ret.Get(0).(*public.ReadDomainResponseSchema)
 		}
 	}
 
@@ -61,15 +61,15 @@ func (_m *DomainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse
 }
 
 // List provides a mock function with given fields: prefix, offset, count, data
-func (_m *DomainPresenter) List(prefix string, offset int64, count int32, data []model.Domain) (*public.ListDomainsResponse, error) {
+func (_m *DomainPresenter) List(prefix string, offset int64, count int32, data []model.Domain) (*public.ListDomainsResponseSchema, error) {
 	ret := _m.Called(prefix, offset, count, data)
 
-	var r0 *public.ListDomainsResponse
-	if rf, ok := ret.Get(0).(func(string, int64, int32, []model.Domain) *public.ListDomainsResponse); ok {
+	var r0 *public.ListDomainsResponseSchema
+	if rf, ok := ret.Get(0).(func(string, int64, int32, []model.Domain) *public.ListDomainsResponseSchema); ok {
 		r0 = rf(prefix, offset, count, data)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.ListDomainsResponse)
+			r0 = ret.Get(0).(*public.ListDomainsResponseSchema)
 		}
 	}
 
