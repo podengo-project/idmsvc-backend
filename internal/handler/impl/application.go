@@ -13,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-type todoComponent struct {
-	interactor interactor.TodoInteractor
-	repository repository.TodoRepository
-	presenter  presenter.TodoPresenter
+type domainComponent struct {
+	interactor interactor.DomainInteractor
+	repository repository.DomainRepository
+	presenter  presenter.DomainPresenter
 }
 
 type application struct {
 	config  *config.Config
 	metrics *metrics.Metrics
-	todo    todoComponent
+	domain  domainComponent
 	db      *gorm.DB
 }
 
@@ -33,16 +33,16 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics) handler.
 	if db == nil {
 		panic("db is nil")
 	}
-	i := usecase_interactor.NewTodoInteractor()
-	r := usecase_repository.NewTodoRepository()
-	p := usecase_presenter.NewTodoPresenter()
+	i := usecase_interactor.NewDomainInteractor()
+	r := usecase_repository.NewDomainRepository()
+	p := usecase_presenter.NewDomainPresenter()
 
 	// Instantiate application
 	return &application{
 		config:  config,
 		db:      db,
 		metrics: m,
-		todo: todoComponent{
+		domain: domainComponent{
 			interactor: i,
 			repository: r,
 			presenter:  p,

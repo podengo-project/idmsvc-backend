@@ -18,7 +18,7 @@ func (a *application) ListDomains(ctx echo.Context, params public.ListDomainsPar
 	var (
 		err    error
 		data   []model.Domain
-		output public.ListDomainsResponse
+		output *public.ListDomainsResponse
 		orgId  string
 		offset int
 		limit  int
@@ -39,10 +39,10 @@ func (a *application) ListDomains(ctx echo.Context, params public.ListDomainsPar
 		return tx.Error
 	}
 	// TODO Read prefix from configuration
-	if err = a.domain.presenter.List("/api/hmsidm/v1", offset, limit, data, &output); err != nil {
+	if output, err = a.domain.presenter.List("/api/hmsidm/v1", int64(offset), int32(limit), data); err != nil {
 		return err
 	}
-	return ctx.JSON(http.StatusOK, output)
+	return ctx.JSON(http.StatusOK, *output)
 }
 
 // Return a Domain resource
@@ -51,7 +51,7 @@ func (a *application) ReadDomain(ctx echo.Context, uuid string, params public.Re
 	var (
 		err    error
 		data   model.Domain
-		output public.ReadDomainResponse
+		output *public.ReadDomainResponse
 		orgId  string
 		itemId string
 		tx     *gorm.DB
@@ -71,10 +71,10 @@ func (a *application) ReadDomain(ctx echo.Context, uuid string, params public.Re
 	if err = tx.Commit().Error; err != nil {
 		return err
 	}
-	if err = a.domain.presenter.Get(&data, &output); err != nil {
+	if output, err = a.domain.presenter.Get(&data); err != nil {
 		return err
 	}
-	return ctx.JSON(http.StatusOK, output)
+	return ctx.JSON(http.StatusOK, *output)
 }
 
 // // Modify an existing Domain
@@ -146,7 +146,7 @@ func (a *application) CreateDomain(ctx echo.Context, params public.CreateDomainP
 		input  public.CreateDomain
 		orgId  string
 		data   *model.Domain
-		output public.CreateDomainResponse
+		output *public.CreateDomainResponse
 		tx     *gorm.DB
 	)
 
@@ -166,10 +166,10 @@ func (a *application) CreateDomain(ctx echo.Context, params public.CreateDomainP
 	if tx.Commit(); tx.Error != nil {
 		return tx.Error
 	}
-	if err = a.domain.presenter.Create(&data, &output); err != nil {
+	if output, err = a.domain.presenter.Create(data); err != nil {
 		return err
 	}
-	return ctx.JSON(http.StatusCreated, output)
+	return ctx.JSON(http.StatusCreated, *output)
 }
 
 // Delete a Todo resource
