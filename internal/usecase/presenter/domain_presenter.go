@@ -128,6 +128,7 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	if domain.IpaDomain.CaList == nil {
 		return nil, fmt.Errorf("CaList cannot be nil")
 	}
+	output.Ipa = &public.ReadDomainIpa{}
 	output.Ipa.CaList = *domain.IpaDomain.CaList
 
 	if domain.IpaDomain.RealmName == nil {

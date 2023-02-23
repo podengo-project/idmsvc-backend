@@ -4,16 +4,18 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
 func TestNewTodoPresenter(t *testing.T) {
 	assert.NotPanics(t, func() {
-		NewTodoPresenter()
+		NewDomainPresenter()
 	})
 }
 
@@ -23,14 +25,15 @@ func (e *mynewerror) Error() string {
 	return "mynewerror"
 }
 
-func TestTodoPresenterGet(t *testing.T) {
+func TestDomainPresenterGet(t *testing.T) {
+	testUuid := uuid.New()
 	type TestCaseGiven struct {
-		Input  *model.Todo
-		Output *public.Todo
+		Input  *model.Domain
+		Output *public.ReadDomainResponse
 	}
 	type TestCaseExpected struct {
 		Err    error
-		Output *public.Todo
+		Output *public.ReadDomainResponse
 	}
 	type TestCase struct {
 		Name     string
@@ -41,61 +44,77 @@ func TestTodoPresenterGet(t *testing.T) {
 		{
 			Name: "error when 'in' is nil",
 			Given: TestCaseGiven{
-				Input:  nil,
-				Output: nil,
+				Input: nil,
 			},
 			Expected: TestCaseExpected{
-				Err:    fmt.Errorf("'in' cannot be nil"),
+				Err:    fmt.Errorf("'domain' cannot be nil"),
 				Output: nil,
 			},
 		},
 		{
-			Name: "error when 'out'' is nil",
+			Name: "Success case",
 			Given: TestCaseGiven{
-				Input: &model.Todo{
-					Model:       gorm.Model{ID: 1},
-					Title:       pointy.String("mytitle"),
-					Description: pointy.String("mydescription"),
+				Input: &model.Domain{
+					Model:                 gorm.Model{ID: 1},
+					OrgId:                 "12345",
+					DomainUuid:            testUuid,
+					DomainName:            pointy.String("domain.example"),
+					DomainType:            pointy.Uint(model.DomainTypeIpa),
+					AutoEnrollmentEnabled: pointy.Bool(true),
+					IpaDomain: &model.Ipa{
+						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
+						CaList:     pointy.String(""),
+						ServerList: pointy.String("server1.domain.example,server2.domain.example"),
+					},
 				},
-				Output: nil,
-			},
-			Expected: TestCaseExpected{
-				Err:    fmt.Errorf("'out' cannot be nil"),
-				Output: nil,
-			},
-		},
-		{
-			Name: "error when 'out'' is nil",
-			Given: TestCaseGiven{
-				Input: &model.Todo{
-					Model:       gorm.Model{ID: 1},
-					Title:       pointy.String("mytitle"),
-					Description: pointy.String("mydescription"),
-				},
-				Output: &public.Todo{},
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
-				Output: &public.Todo{
-					Id:    pointy.Uint(1),
-					Title: pointy.String("mytitle"),
-					Body:  pointy.String("mydescription"),
+				Output: &public.ReadDomainResponse{
+					AutoEnrollmentEnabled: pointy.Bool(true),
+					DomainUuid:            pointy.String(testUuid.String()),
+					DomainName:            pointy.String("domain.example"),
+					DomainType:            pointy.String(model.DomainTypeString(model.DomainTypeIpa)),
+					Ipa: &public.ReadDomainIpa{
+						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
+						CaList:     "",
+						ServerList: &[]string{"server1.domain.example", "server2.domain.example"},
+					},
 				},
 			},
 		},
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		obj := NewTodoPresenter()
-		err := obj.Get(testCase.Given.Input, testCase.Given.Output)
+		obj := NewDomainPresenter()
+		output, err := obj.Get(testCase.Given.Input)
 		if testCase.Expected.Err != nil {
-			assert.Error(t, err)
+			require.Error(t, err)
 			assert.Equal(t, testCase.Expected.Err.Error(), err.Error())
+			assert.Nil(t, output)
 		} else {
 			assert.NoError(t, err)
-			assert.Equal(t, *testCase.Expected.Output.Id, *testCase.Given.Output.Id)
-			assert.Equal(t, *testCase.Expected.Output.Title, *testCase.Given.Output.Title)
-			assert.Equal(t, *testCase.Expected.Output.Body, *testCase.Given.Output.Body)
+			assert.Equal(t,
+				*testCase.Expected.Output.DomainUuid,
+				*output.DomainUuid)
+			assert.Equal(t,
+				*testCase.Expected.Output.DomainName,
+				*output.DomainName)
+			assert.Equal(t,
+				*testCase.Expected.Output.DomainType,
+				*output.DomainType)
+			assert.Equal(t,
+				*testCase.Expected.Output.AutoEnrollmentEnabled,
+				*output.AutoEnrollmentEnabled)
+			assert.Equal(t,
+				*testCase.Expected.Output.Ipa.RealmName,
+				*output.Ipa.RealmName)
+			assert.Equal(t,
+				testCase.Expected.Output.Ipa.CaList,
+				output.Ipa.CaList)
+			assert.Equal(t,
+				testCase.Expected.Output.Ipa.ServerList,
+				output.Ipa.ServerList)
 		}
 	}
 }
