@@ -27,7 +27,7 @@ Content-Type: {{contentType}}
     "ca_list": "base64",
     "server_list": [
       "server1.ipa.example", 
-      "Server2.ipa.example"
+      "server2.ipa.example"
     ],
     "client_options": {}
   }
