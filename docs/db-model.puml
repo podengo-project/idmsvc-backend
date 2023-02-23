@@ -1,0 +1,36 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "**domains**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp with time zone //
+  ""updated_at"": //timestamp with time zone //
+  ""deleted_at"": //timestamp with time zone //
+  *""domain_uuid"": //uuid //
+  *""domain_name"": //character varying(253) //
+  *""domain_type"": //integer //
+  *""auto_enrollment_enabled"": //boolean //
+}
+
+entity "**ipas**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp with time zone //
+  ""updated_at"": //timestamp with time zone //
+  ""deleted_at"": //timestamp with time zone //
+  ""domain_id"": //integer [FK]//
+  *""realm_name"": //character varying(253) //
+  *""ca_list"": //text //
+  *""server_list"": //text //
+}
+
+entity "**schema_migrations**" {
+  + ""version"": //bigint [PK]//
+  --
+  *""dirty"": //boolean //
+}
+
+"**ipas**"   }--  "**domains**"
+@enduml
