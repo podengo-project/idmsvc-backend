@@ -8,6 +8,7 @@ entity "**domains**" {
   ""created_at"": //timestamp with time zone //
   ""updated_at"": //timestamp with time zone //
   ""deleted_at"": //timestamp with time zone //
+  *""org_id"": //character varying(255) //
   *""domain_uuid"": //uuid //
   *""domain_name"": //character varying(253) //
   *""domain_type"": //integer //
