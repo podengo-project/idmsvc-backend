@@ -124,10 +124,10 @@ func (i domainInteractor) List(params *api_public.ListDomainsParams) (orgId stri
 		return "", -1, -1, fmt.Errorf("'params' cannot be nil")
 	}
 	if params.Offset == nil {
-		return "", -1, -1, fmt.Errorf("'offset' cannot be nil")
+		offset = 0
 	}
 	if params.Limit == nil {
-		return "", -1, -1, fmt.Errorf("'limit' cannot be nil")
+		limit = 10
 	}
 	identity, err := DecodeIdentity(string(params.XRhIdentity))
 	if err != nil {
