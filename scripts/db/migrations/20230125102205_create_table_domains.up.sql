@@ -16,9 +16,6 @@ CREATE TABLE IF NOT EXISTS domains (
     domain_name VARCHAR(253) NOT NULL,
     domain_type INT NOT NULL,
     auto_enrollment_enabled BOOLEAN NOT NULL,
-
-    title VARCHAR(128) NOT NULL,
-    description VARCHAR(1024) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS ipas (
