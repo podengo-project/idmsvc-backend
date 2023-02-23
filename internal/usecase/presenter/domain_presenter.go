@@ -46,7 +46,7 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	if domain.DomainType == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = public.CreateDomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
+	output.DomainType = public.CreateDomainResponseSchemaDomainType(model.DomainTypeString(*domain.DomainType))
 
 	if domain.IpaDomain == nil {
 		return nil, fmt.Errorf("IpaDomain cannot be nil")
