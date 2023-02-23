@@ -5,61 +5,86 @@
 @contentType = application/json
 @createdAt = {{$datetime iso8601}}
 @modifiedBy = {{$processEnv USERNAME}}
-@x-rh-identity = eyJpZGVudGl0eSI6eyJ0eXBlIjoiVXNlciIsInVzZXIiOnsidXNlcm5hbWUiOiJqZG9lIn0sImludGVybmFsIjp7Im9yZ19pZCI6IjEyMzQ1In19fQo=
+@x-rh-identity = eyJhY2NvdW50X251bWJlciI6IjExMTExIiwiZW1wbG95ZWVfYWNjb3VudF9udW1iZXIiOiIyMjIyMiIsIm9yZ19pZCI6IjEyMzQ1IiwiaW50ZXJuYWwiOnsib3JnX2lkIjoiMTIzNDUifSwidXNlciI6eyJ1c2VybmFtZSI6Impkb2UiLCJlbWFpbCI6Impkb2VAZXhhbXBsZS5jb20iLCJmaXJzdF9uYW1lIjoiSm9obiIsImxhc3RfbmFtZSI6IkRvZSIsImlzX2FjdGl2ZSI6dHJ1ZSwiaXNfb3JnX2FkbWluIjp0cnVlLCJpc19pbnRlcm5hbCI6dHJ1ZSwibG9jYWxlIjoiZW4iLCJ1c2VyX2lkIjoiMTk4NzM0OCJ9LCJzeXN0ZW0iOnt9LCJhc3NvY2lhdGUiOnsiUm9sZSI6bnVsbCwiZW1haWwiOiIiLCJnaXZlbk5hbWUiOiIiLCJyaGF0VVVJRCI6IiIsInN1cm5hbWUiOiIifSwieDUwOSI6eyJzdWJqZWN0X2RuIjoiIiwiaXNzdWVyX2RuIjoiIn0sInR5cGUiOiJVc2VyIiwiYXV0aF90eXBlIjoiIn0K
 @basepath = /api/hmsidm/v1
+@fqdn = host1.domain.example
+@subscription_manager_id = 6f324116-b3d2-11ed-8a37-482ae3863d30
 
 ###
 
-# @name createTodo
+# @name createDomain
 
-POST {{schema}}://{{host}}{{basepath}}/todo
+POST {{schema}}://{{host}}{{basepath}}/domains
 X-Rh-Identity: {{x-rh-identity}}
 Content-Type: {{contentType}}
 
 {
-    "title": "Todo Title",
-    "body": "Todo Description"
+  "domain_name": "mydomain.example",
+  "domain_type": "ipa",
+  "auto_enrollment_enabled": true,
+  "ipa": {
+    "realm_name": "MYDOMAIN.EXAMPLE",
+    "ca_list": "base64",
+    "server_list": [
+      "server1.ipa.example", 
+      "Server2.ipa.example"
+    ],
+    "client_options": {}
+  }
 }
 
-### Get All Todo
+### Get All Domains
 
-GET http://{{host}}{{basepath}}/todo
+# @name listDomains
+
+GET http://{{host}}{{basepath}}/domains?offset=0&limit=10
 X-Rh-Identity: {{x-rh-identity}}
 Content-Type: {{contentType}}
 
 ### Get last created Todo
 
-# @name getTodo
+# @name getDomain
 
-GET  http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
+GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
 X-Rh-Identity: {{x-rh-identity}}
 Content-Type: {{contentType}}
 
 ### Partial Update Todo
 
-PATCH http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
+# PATCH http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
+# X-Rh-Identity: {{x-rh-identity}}
+# Content-Type: {{contentType}}
+
+# {
+#     "title": "Patched Todo Title"
+# }
+
+### Update Domain
+
+# PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
+# X-Rh-Identity: {{x-rh-identity}}
+# Content-Type: {{contentType}}
+
+# {
+#     "id": {{createDomain.response.body.domain_uuid}},
+#     "title": "Updated Todo Title",
+#     "body": "Updated body"
+# }
+
+### Delete Domain
+
+DELETE http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
 X-Rh-Identity: {{x-rh-identity}}
 Content-Type: {{contentType}}
 
-{
-    "title": "Patched Todo Title"
-}
-
-### Update Todo
-
-PUT http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
-X-Rh-Identity: {{x-rh-identity}}
+### HostConf
+POST http://{{host}}{{basepath}}/hostconf/{{fqdn}}
+X-Rh-Identity: TODO Fill a test certificate value
 Content-Type: {{contentType}}
 
-{
-    "id": {{createTodo.response.body.id}},
-    "title": "Updated Todo Title",
-    "body": "Updated body"
-}
 
-### Delete Todo
-
-DELETE http://{{host}}{{basepath}}/todo/{{createTodo.response.body.id}}
-X-Rh-Identity: {{x-rh-identity}}
+### CheckHost
+POST http://{{host}}{{basepath}}/check_host/{{subscription_manager_id}}/{{fqdn}}
+X-Rh-Identity: TODO Fill a test certificate value
 Content-Type: {{contentType}}
 
