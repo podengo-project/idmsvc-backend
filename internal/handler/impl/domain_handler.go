@@ -204,7 +204,7 @@ func (a *application) HostConf(ctx echo.Context, fqdn string, params public.Host
 }
 
 // TODO Document this method
-func (a *application) CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string) error {
+func (a *application) CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string, params public.CheckHostParams) error {
 	// TODO Implement this endpoint
 	return http.ErrNotSupported
 }
