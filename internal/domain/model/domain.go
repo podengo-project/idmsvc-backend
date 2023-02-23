@@ -8,9 +8,10 @@ import (
 // See: https://gorm.io/docs/models.html
 
 const (
-	DomainTypeIpa uint = iota + 1
-	DomainTypeAzure
-	DomainTypeActiveDirector
+	DomainTypeUndefined uint = iota
+	DomainTypeIpa
+	// DomainTypeAzure
+	// DomainTypeActiveDirector
 )
 
 // NOTE https://samu.space/uuids-with-postgres-and-gorm/
@@ -22,10 +23,10 @@ const (
 type Domain struct {
 	gorm.Model
 	OrgId                 string
-	DomainUuid            *uuid.UUID `gorm:"unique"`
+	DomainUuid            uuid.UUID `gorm:"unique"`
 	DomainName            *string
-	DomainType            uint
-	AutoEnrollmentEnabled bool
-	Title                 *string
-	Description           *string
+	DomainType            *uint
+	AutoEnrollmentEnabled *bool
+
+	IpaDomain *Ipa `gorm:"foreignKey:DomainID"`
 }

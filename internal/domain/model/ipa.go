@@ -14,5 +14,5 @@ type Ipa struct {
 	// NOTE Thinking about this as a comma separated list
 	//      of servers
 	ServerList *string
-	Domain     Domain `gorm:"foreignKey:DomainUuid"`
+	Domain     Domain `gorm:"foreignKey:id"`
 }
