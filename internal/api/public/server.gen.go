@@ -13,6 +13,9 @@ import (
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Check a host vm before auto-enroll into the domain.
+	// (POST /check_host/:subscription_manager_id/:fqdn)
+	CheckHost(ctx echo.Context) error
 	// List domains in the organization
 	// (GET /domains)
 	ListDomains(ctx echo.Context, params ListDomainsParams) error
@@ -22,11 +25,28 @@ type ServerInterface interface {
 	// Delete domain.
 	// (DELETE /domains/:uuid)
 	DeleteDomain(ctx echo.Context, params DeleteDomainParams) error
+	// Read a domain.
+	// (GET /domains/:uuid)
+	ReadDomain(ctx echo.Context, params ReadDomainParams) error
+	// Get host vm information.
+	// (POST /hostconf/:fqdn)
+	HostConf(ctx echo.Context, params HostConfParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
 type ServerInterfaceWrapper struct {
 	Handler ServerInterface
+}
+
+// CheckHost converts echo context to params.
+func (w *ServerInterfaceWrapper) CheckHost(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(X_rh_identityScopes, []string{""})
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.CheckHost(ctx)
+	return err
 }
 
 // ListDomains converts echo context to params.
@@ -192,6 +212,106 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	return err
 }
 
+// ReadDomain converts echo context to params.
+func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(X_rh_identityScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ReadDomainParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Rh-Identity" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
+		var XRhIdentity []byte
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
+		}
+
+		params.XRhIdentity = XRhIdentity
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.ReadDomain(ctx, params)
+	return err
+}
+
+// HostConf converts echo context to params.
+func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(X_rh_identityScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HostConfParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Rh-Identity" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
+		var XRhIdentity []byte
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
+		}
+
+		params.XRhIdentity = XRhIdentity
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.HostConf(ctx, params)
+	return err
+}
+
 // This is a simple interface which specifies echo.Route addition functions which
 // are present on both echo.Echo and echo.Group, since we want to allow using
 // either of them for path registration
@@ -220,8 +340,11 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
+	router.POST(baseURL+"/check_host/:subscription_manager_id/:fqdn", wrapper.CheckHost)
 	router.GET(baseURL+"/domains", wrapper.ListDomains)
 	router.POST(baseURL+"/domains", wrapper.CreateDomain)
 	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
+	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
+	router.POST(baseURL+"/hostconf/:fqdn", wrapper.HostConf)
 
 }
