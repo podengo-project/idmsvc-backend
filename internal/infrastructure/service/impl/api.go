@@ -42,7 +42,7 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, config *config.Config, app 
 	result.logger = zerolog.New(os.Stderr)
 	result.config = config
 	routerConfig := router.RouterConfig{
-		Version:     "v1.0",
+		Version:     "1.0",
 		PublicPath:  "/api/hmsidm",
 		PrivatePath: "/private",
 		Handlers:    app,
