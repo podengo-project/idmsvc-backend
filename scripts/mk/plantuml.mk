@@ -12,14 +12,17 @@
 
 PLANTER=$(BIN)/planter
 
-.PHONY: plantuml-generate
-plantuml-generate: PLANTUML ?= $(shell command -v plantuml 2>/dev/null)
-plantuml-generate: PLANTUML ?= false
-plantuml-generate: $(patsubst docs/%.puml,docs/%.svg,$(wildcard docs/*.puml)) ## Generate diagrams
+.PHONY: generate-diagrams
+generate-diagrams: PLANTUML ?= $(shell command -v plantuml 2>/dev/null)
+generate-diagrams: PLANTUML ?= false
+generate-diagrams: $(patsubst docs/%.puml,docs/%.svg,$(wildcard docs/*.puml)) ## Generate diagrams
 
 .PHONY: docs/db-model.puml
 docs/db-model.puml: $(PLANTER)
 	$(PLANTER) postgres://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST)/$(DATABASE_NAME)?sslmode=disable -o $@
+
+.PHONY: install-planter
+install-planter: $(PLANTER)
 
 $(PLANTER):
 	@{\

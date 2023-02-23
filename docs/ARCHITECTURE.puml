@@ -1,22 +1,38 @@
+' https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf
 @startuml architecture
 
-() "Kafka Consumers" as kafka_consumer
+skinparam handwritten true
 
+() "Public API" as http_requests
 
-() "Kafka Producers" as kafka_producer
+cloud "Client AWS" {
+    () "Freeipa" as domain
+    () "Host VM" as host
+    host --> domain
+    host --> http_requests
+    domain --> http_requests
+}
 
-() "Http Handlers" as http_requests
+cloud "Console.Dot Platform" {
+    [HBI] as service_hbi
+    cloud "hmsidm" {
+        ' () "Kafka Consumers" as kafka_consumer
+        ' () "Kafka Producers" as kafka_producer
+        ' () "Http Clients" as http_clients
 
-()"Http Clients" as http_clients
+        database "Postgresql" {
+            () "Data" as database
+        }
 
-()"Database" as database
+        [Service] as service_hmsidm
 
-[Service] as service
-
-http_requests - service:
-service - http_clients: third party services
-service - kafka_producer: produce event topics
-kafka_consumer - service: kafka handler
-service - database: crud
+        http_requests - service_hmsidm: /api/hmsidm/v*
+        service_hmsidm --> service_hbi: /api/inventory/v1/*
+        ' service - http_clients: third party services
+        ' service - kafka_producer: produce event topics
+        ' kafka_consumer - service: kafka handler
+        service_hmsidm - database
+    }
+}
 
 @enduml
