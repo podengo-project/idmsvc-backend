@@ -95,12 +95,24 @@ func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (out
 	if db == nil {
 		return model.Domain{}, fmt.Errorf("db is nil")
 	}
-	if err = db.Count(&count).First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).Error; err != nil {
+	if err = db.First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).Count(&count).Error; err != nil {
 		return model.Domain{}, err
+	}
+	if count == 0 {
+		return model.Domain{}, fmt.Errorf("Not found")
+	}
+	if output.DomainType != nil && *output.DomainType == model.DomainTypeIpa {
+		if err = db.First(&output.IpaDomain, "domain_id = ?", output.ID).Count(&count).Error; err != nil {
+			return model.Domain{}, err
+		}
+		if count == 0 {
+			return model.Domain{}, fmt.Errorf("Not found")
+		}
 	}
 	return output, nil
 }
 
+// See: https://gorm.io/docs/delete.html
 func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (err error) {
 	var (
 		data  model.Domain
@@ -115,17 +127,14 @@ func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (e
 	if uuid == "" {
 		return fmt.Errorf("uuid cannot be an empty string")
 	}
-	if err = db.Count(&count).First(&data, "org_id = ? AND domain_uuid = ?", orgId, uuid).Error; err != nil {
-		return err
-	}
-	if count == 1 {
-		return fmt.Errorf("Register not found")
-	}
-	if err = db.Count(&count).Delete(&data, "org_id = ? AND domain_uuid = ?", orgId, uuid).Error; err != nil {
+	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgId, uuid).Count(&count).Error; err != nil {
 		return err
 	}
 	if count == 0 {
-		return fmt.Errorf("None register was deleted")
+		return fmt.Errorf("Register not found")
+	}
+	if err = db.Unscoped().Delete(&data).Error; err != nil {
+		return err
 	}
 	return nil
 }
