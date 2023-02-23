@@ -14,8 +14,8 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Check a host vm before auto-enroll into the domain.
-	// (POST /check_host/:subscription_manager_id/:fqdn)
-	CheckHost(ctx echo.Context) error
+	// (POST /check_host/{subscription_manager_id}/{fqdn})
+	CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string) error
 	// List domains in the organization
 	// (GET /domains)
 	ListDomains(ctx echo.Context, params ListDomainsParams) error
@@ -23,14 +23,14 @@ type ServerInterface interface {
 	// (POST /domains)
 	CreateDomain(ctx echo.Context, params CreateDomainParams) error
 	// Delete domain.
-	// (DELETE /domains/:uuid)
-	DeleteDomain(ctx echo.Context, params DeleteDomainParams) error
+	// (DELETE /domains/{uuid})
+	DeleteDomain(ctx echo.Context, uuid string, params DeleteDomainParams) error
 	// Read a domain.
-	// (GET /domains/:uuid)
-	ReadDomain(ctx echo.Context, params ReadDomainParams) error
+	// (GET /domains/{uuid})
+	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
 	// Get host vm information.
-	// (POST /hostconf/:fqdn)
-	HostConf(ctx echo.Context, params HostConfParams) error
+	// (POST /hostconf/{fqdn})
+	HostConf(ctx echo.Context, fqdn string, params HostConfParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -41,11 +41,26 @@ type ServerInterfaceWrapper struct {
 // CheckHost converts echo context to params.
 func (w *ServerInterfaceWrapper) CheckHost(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "subscription_manager_id" -------------
+	var subscriptionManagerId string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "subscription_manager_id", runtime.ParamLocationPath, ctx.Param("subscription_manager_id"), &subscriptionManagerId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter subscription_manager_id: %s", err))
+	}
+
+	// ------------- Path parameter "fqdn" -------------
+	var fqdn string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "fqdn", runtime.ParamLocationPath, ctx.Param("fqdn"), &fqdn)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter fqdn: %s", err))
+	}
 
 	ctx.Set(X_rh_identityScopes, []string{""})
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.CheckHost(ctx)
+	err = w.Handler.CheckHost(ctx, subscriptionManagerId, fqdn)
 	return err
 }
 
@@ -165,6 +180,13 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 // DeleteDomain converts echo context to params.
 func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
 
 	ctx.Set(X_rh_identityScopes, []string{""})
 
@@ -208,13 +230,20 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.DeleteDomain(ctx, params)
+	err = w.Handler.DeleteDomain(ctx, uuid, params)
 	return err
 }
 
 // ReadDomain converts echo context to params.
 func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
 
 	ctx.Set(X_rh_identityScopes, []string{""})
 
@@ -258,13 +287,20 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.ReadDomain(ctx, params)
+	err = w.Handler.ReadDomain(ctx, uuid, params)
 	return err
 }
 
 // HostConf converts echo context to params.
 func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "fqdn" -------------
+	var fqdn string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "fqdn", runtime.ParamLocationPath, ctx.Param("fqdn"), &fqdn)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter fqdn: %s", err))
+	}
 
 	ctx.Set(X_rh_identityScopes, []string{""})
 
@@ -308,7 +344,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.HostConf(ctx, params)
+	err = w.Handler.HostConf(ctx, fqdn, params)
 	return err
 }
 
