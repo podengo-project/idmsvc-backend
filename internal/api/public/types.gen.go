@@ -195,6 +195,15 @@ type ReadDomainResponse struct {
 	Ipa *ReadDomainIpa `json:"ipa,omitempty"`
 }
 
+// CheckHostParams defines parameters for CheckHost.
+type CheckHostParams struct {
+	// XRhIdentity Identity header.
+	XRhIdentity []byte `json:"X-Rh-Identity"`
+
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+}
+
 // ListDomainsParams defines parameters for ListDomains.
 type ListDomainsParams struct {
 	// Offset pagination offset

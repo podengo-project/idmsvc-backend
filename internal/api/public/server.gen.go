@@ -15,7 +15,7 @@ import (
 type ServerInterface interface {
 	// Check a host vm before auto-enroll into the domain.
 	// (POST /check_host/{subscription_manager_id}/{fqdn})
-	CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string) error
+	CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string, params CheckHostParams) error
 	// List domains in the organization
 	// (GET /domains)
 	ListDomains(ctx echo.Context, params ListDomainsParams) error
@@ -59,8 +59,47 @@ func (w *ServerInterfaceWrapper) CheckHost(ctx echo.Context) error {
 
 	ctx.Set(X_rh_identityScopes, []string{""})
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CheckHostParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Rh-Identity" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
+		var XRhIdentity []byte
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
+		}
+
+		params.XRhIdentity = XRhIdentity
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
+	}
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+	}
+
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.CheckHost(ctx, subscriptionManagerId, fqdn)
+	err = w.Handler.CheckHost(ctx, subscriptionManagerId, fqdn, params)
 	return err
 }
 
