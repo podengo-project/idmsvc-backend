@@ -125,15 +125,19 @@ func (i domainInteractor) List(params *api_public.ListDomainsParams) (orgId stri
 	}
 	if params.Offset == nil {
 		offset = 0
+	} else {
+		offset = *params.Offset
 	}
 	if params.Limit == nil {
 		limit = 10
+	} else {
+		limit = *params.Limit
 	}
 	identity, err := DecodeIdentity(string(params.XRhIdentity))
 	if err != nil {
 		return "", -1, -1, err
 	}
-	return identity.OrgID, *params.Offset, *params.Limit, nil
+	return identity.OrgID, offset, limit, nil
 }
 
 // TODO Document method
