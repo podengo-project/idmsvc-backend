@@ -24,7 +24,8 @@ func (r *domainRepository) FindAll(db *gorm.DB, orgId string, offset int64, coun
 	if count < 0 {
 		return []model.Domain{}, fmt.Errorf("limit lower than 0")
 	}
-	if err = db.Offset(int(offset)).Limit(int(count)).Find(&output).Error; err != nil {
+	err = db.Offset(int(offset)).Limit(int(count)).Find(&output).Error
+	if err != nil {
 		return []model.Domain{}, err
 	}
 	return
@@ -38,7 +39,8 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 		return fmt.Errorf("data is nil")
 	}
 	data.OrgId = orgId
-	if err = db.Create(data).Error; err != nil {
+	err = db.Create(data).Error
+	if err != nil {
 		return err
 	}
 	return nil
