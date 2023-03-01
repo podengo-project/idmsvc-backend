@@ -1,6 +1,8 @@
 package model
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
@@ -53,5 +55,9 @@ func DomainTypeUint(data string) uint {
 
 func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
 	d.DomainUuid = uuid.New()
+	var currentTime = time.Now()
+	d.CreatedAt = currentTime
+	d.UpdatedAt = currentTime
+
 	return nil
 }
