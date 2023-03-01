@@ -60,9 +60,20 @@ func (s *Suite) TestCreate() {
 	}
 
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" `+
-		`("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","domain_type","auto_enrollment_enabled","id") VALUES `+
-		`($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`)).
-		WithArgs(data.CreatedAt, data.UpdatedAt, data.DeletedAt, orgId, data.DomainUuid, data.DomainName, data.DomainType, data.AutoEnrollmentEnabled, data.ID).
+		`("created_at","updated_at","deleted_at","org_id","domain_uuid",`+
+		`"domain_name","domain_type","auto_enrollment_enabled","id") `+
+		`VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`)).
+		WithArgs(
+			data.CreatedAt,
+			data.UpdatedAt,
+			nil,
+			orgId,
+			data.DomainUuid,
+			data.DomainName,
+			data.DomainType,
+			data.AutoEnrollmentEnabled,
+			data.ID,
+		).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
 
@@ -101,8 +112,21 @@ func (s *Suite) TestCreateErrors() {
 	err = s.repository.Create(s.DB, orgId, nil)
 	assert.Error(t, err)
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","domain_type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`)).
-		WithArgs(data.CreatedAt, data.UpdatedAt, data.DeletedAt, orgId, data.DomainUuid, data.DomainName, data.DomainType, data.AutoEnrollmentEnabled, data.ID).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" `+
+		`("created_at","updated_at","deleted_at","org_id","domain_uuid",`+
+		`"domain_name","domain_type","auto_enrollment_enabled","id") `+
+		`VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`)).
+		WithArgs(
+			data.CreatedAt,
+			data.UpdatedAt,
+			nil,
+			orgId,
+			data.DomainUuid,
+			data.DomainName,
+			data.DomainType,
+			data.AutoEnrollmentEnabled,
+			data.ID,
+		).
 		WillReturnError(fmt.Errorf("an error happened"))
 	err = s.repository.Create(s.DB, orgId, &data)
 	assert.Error(t, err)
