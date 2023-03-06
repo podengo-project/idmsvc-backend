@@ -13,10 +13,15 @@ import (
 
 type domainInteractor struct{}
 
+// NewDomainInteractor Create an interactor for the /domain endpoint handler
+// Return an initialized instance of interactor.DomainInteractor
 func NewDomainInteractor() interactor.DomainInteractor {
 	return domainInteractor{}
 }
 
+// helperDomainTypeToUint transform public.CreateDomainDomainType to an uint const
+// Return the uint representation or model.DomainTypeUndefined if it does not match
+// the current types.
 func helperDomainTypeToUint(domainType public.CreateDomainDomainType) uint {
 	switch domainType {
 	case public.CreateDomainDomainTypeIpa:
@@ -26,7 +31,11 @@ func helperDomainTypeToUint(domainType public.CreateDomainDomainType) uint {
 	}
 }
 
-// TODO Document method
+// Create translate api request to modle.Domain internal representation.
+// params is the x-rh-identity as base64 and the x-rh-insights-request-id value for this request.
+// body is the CreateDomain schema received for the POST request.
+// Return a reference to a new model.Domain instance and nil error for
+// a success transformation, else nil and an error instance.
 func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *api_public.CreateDomain) (string, *model.Domain, error) {
 	if params == nil {
 		return "", nil, fmt.Errorf("'params' cannot be nil")
