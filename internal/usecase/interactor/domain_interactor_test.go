@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/interactor"
@@ -24,7 +25,7 @@ func TestNewTodoInteractor(t *testing.T) {
 func TestCreate(t *testing.T) {
 	type TestCaseGiven struct {
 		Params *api_public.CreateDomainParams
-		In     *api_public.CreateDomain
+		Body   *api_public.CreateDomain
 	}
 	type TestCaseExpected struct {
 		Err   error
@@ -38,10 +39,10 @@ func TestCreate(t *testing.T) {
 	}
 	testCases := []TestCase{
 		{
-			Name: "nil for params",
+			Name: "nil for the 'params'",
 			Given: TestCaseGiven{
 				Params: nil,
-				In:     &api_public.CreateDomain{},
+				Body:   &api_public.CreateDomain{},
 			},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("'params' cannot be nil"),
@@ -49,10 +50,10 @@ func TestCreate(t *testing.T) {
 			},
 		},
 		{
-			Name: "nil for In",
+			Name: "nil for the 'body'",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{},
-				In:     nil,
+				Body:   nil,
 			},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("'body' cannot be nil"),
@@ -60,10 +61,10 @@ func TestCreate(t *testing.T) {
 			},
 		},
 		{
-			Name: "nil for Out",
+			Name: "nil for the returned Model",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{},
-				In:     &api_public.CreateDomain{},
+				Body:   &api_public.CreateDomain{},
 			},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("X-Rh-Identity content cannot be an empty string"),
@@ -83,7 +84,7 @@ func TestCreate(t *testing.T) {
 						},
 					),
 				},
-				In: &api_public.CreateDomain{
+				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
 					DomainName:            "domain.example",
 					DomainType:            api_public.CreateDomainDomainTypeIpa,
@@ -112,12 +113,56 @@ func TestCreate(t *testing.T) {
 				},
 			},
 		},
+		{
+			Name: "success case - not empty ca list",
+			Given: TestCaseGiven{
+				Params: &api_public.CreateDomainParams{
+					XRhIdentity: EncodeIdentity(
+						&identity.Identity{
+							OrgID: "12345",
+							Internal: identity.Internal{
+								OrgID: "12345",
+							},
+						},
+					),
+				},
+				Body: &api_public.CreateDomain{
+					AutoEnrollmentEnabled: true,
+					DomainName:            "domain.example",
+					DomainType:            api_public.CreateDomainDomainTypeIpa,
+					Ipa: api_public.CreateDomainIpa{
+						CaList: `-----BEGIN CERTIFICATE-----
+MII...
+-----END CERTIFICATE-----`,
+						RealmName: pointy.String("DOMAIN.EXAMPLE"),
+						ServerList: &[]string{
+							"server1.domain.example",
+							"server2.domain.example",
+						},
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				Out: &model.Domain{
+					OrgId:                 "12345",
+					DomainName:            pointy.String("domain.example"),
+					DomainType:            pointy.Uint(model.DomainTypeIpa),
+					AutoEnrollmentEnabled: pointy.Bool(true),
+					IpaDomain: &model.Ipa{
+						CaList:     pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----"),
+						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
+						ServerList: pointy.String("server1.domain.example,server2.domain.example"),
+					},
+				},
+			},
+		},
 	}
 
 	component := NewDomainInteractor()
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		orgId, data, err := component.Create(testCase.Given.Params, testCase.Given.In)
+		orgId, data, err := component.Create(testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
 			require.Equal(t, testCase.Expected.Err.Error(), err.Error())
@@ -142,4 +187,16 @@ func TestCreate(t *testing.T) {
 				*data.IpaDomain.ServerList)
 		}
 	}
+}
+
+func TestHelperDomainTypeToUint(t *testing.T) {
+	var (
+		result uint
+	)
+
+	result = helperDomainTypeToUint("")
+	assert.Equal(t, model.DomainTypeUndefined, result)
+
+	result = helperDomainTypeToUint(public.CreateDomainDomainTypeIpa)
+	assert.Equal(t, model.DomainTypeIpa, result)
 }
