@@ -18,12 +18,15 @@ import (
 
 type domainPresenter struct{}
 
-// TODO Document the function
+// NewDomainPresenter create a new DomainPresenter instance
+// Return a new presenter.DomainPresenter instance
 func NewDomainPresenter() presenter.DomainPresenter {
 	return domainPresenter{}
 }
 
-// TODO Document the method
+// Create translate from internal domain to the API response.
+// Return a new response domain representation and nil error on success,
+// or a nil response with an error on failure.
 func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainResponse, error) {
 	if domain == nil {
 		return nil, fmt.Errorf("domain cannot be nil")
