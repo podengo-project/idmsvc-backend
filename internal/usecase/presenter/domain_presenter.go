@@ -8,7 +8,6 @@ package presenter
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -22,6 +21,29 @@ type domainPresenter struct{}
 // Return a new presenter.DomainPresenter instance
 func NewDomainPresenter() presenter.DomainPresenter {
 	return domainPresenter{}
+}
+
+func (p domainPresenter) FillCert(to *public.DomainResponseIpaCert, from *model.IpaCert) error {
+	if to == nil {
+		return fmt.Errorf("'to' cannot be nil")
+	}
+	if from == nil {
+		return fmt.Errorf("'from' cannot be nil")
+	}
+
+	to.Nickname = from.Nickname
+	to.Issuer = from.Issuer
+	to.NotValidAfter = from.NotValidAfter
+	to.NotValidBefore = from.NotValidBefore
+	to.SerialNumber = from.SerialNumber
+	to.Subject = from.Subject
+	to.Pem = from.Pem
+	return nil
+}
+
+func (p domainPresenter) FillServer(to *public.DomainResponseIpaServer, from *model.IpaServer) error {
+	// TODO Implement this
+	return nil
 }
 
 // Create translate from internal domain to the API response.
@@ -49,26 +71,35 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	if domain.DomainType == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = public.CreateDomainResponseSchemaDomainType(model.DomainTypeString(*domain.DomainType))
+	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
 
 	if domain.IpaDomain == nil {
 		return nil, fmt.Errorf("IpaDomain cannot be nil")
 	}
-	if domain.IpaDomain.CaList == nil {
-		return nil, fmt.Errorf("CaList cannot be nil")
+	if domain.IpaDomain.CaCerts == nil {
+		return nil, fmt.Errorf("CaCerts cannot be nil")
 	}
-	output.Ipa.CaList = *domain.IpaDomain.CaList
+	output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
+	for i, cert := range domain.IpaDomain.CaCerts {
+		if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
+			return nil, err
+		}
+	}
 
-	if domain.IpaDomain.RealmName == nil {
+	if domain.RealmName == nil {
 		return nil, fmt.Errorf("RealmName cannot be nil")
 	}
-	output.Ipa.RealmName = pointy.String(*domain.IpaDomain.RealmName)
+	output.RealmName = *domain.RealmName
 
-	if domain.IpaDomain.ServerList == nil {
-		return nil, fmt.Errorf("ServerList cannot be nil")
+	if domain.IpaDomain.Servers == nil {
+		return nil, fmt.Errorf("Servers cannot be nil")
 	}
-	output.Ipa.ServerList = &[]string{}
-	*output.Ipa.ServerList = strings.Split(*domain.IpaDomain.ServerList, ",")
+	output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
+	for i, server := range domain.IpaDomain.Servers {
+		if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
+			return nil, err
+		}
+	}
 
 	return output, nil
 }
@@ -108,42 +139,51 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	output := &public.ReadDomainResponse{}
 	// TODO Maybe some nil values should be considered as a no valid response?
 	// TODO Important to be consistent, whatever is the response
-	output.DomainUuid = pointy.String(domain.DomainUuid.String())
+	output.DomainUuid = domain.DomainUuid.String()
 
 	if domain.AutoEnrollmentEnabled == nil {
 		return nil, fmt.Errorf("AutoenrollmentEnabled cannot be nil")
 	}
-	output.AutoEnrollmentEnabled = pointy.Bool(*domain.AutoEnrollmentEnabled)
+	output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
 
 	if domain.DomainName == nil {
 		return nil, fmt.Errorf("DomainName cannot be nil")
 	}
-	output.DomainName = pointy.String(*domain.DomainName)
+	output.DomainName = *domain.DomainName
 
 	if domain.DomainType == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = pointy.String(model.DomainTypeString(*domain.DomainType))
+	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
 
 	if domain.IpaDomain == nil {
 		return nil, fmt.Errorf("IpaDomain cannot be nil")
 	}
-	if domain.IpaDomain.CaList == nil {
-		return nil, fmt.Errorf("CaList cannot be nil")
+	if domain.IpaDomain.CaCerts == nil {
+		return nil, fmt.Errorf("CaCerts cannot be nil")
 	}
-	output.Ipa = &public.ReadDomainIpa{}
-	output.Ipa.CaList = *domain.IpaDomain.CaList
+	output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
+	for i, cert := range domain.IpaDomain.CaCerts {
+		if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
+			return nil, err
+		}
 
-	if domain.IpaDomain.RealmName == nil {
+	}
+
+	if domain.RealmName == nil {
 		return nil, fmt.Errorf("RealmName cannot be nil")
 	}
-	output.Ipa.RealmName = pointy.String(*domain.IpaDomain.RealmName)
+	output.RealmName = *domain.RealmName
 
-	if domain.IpaDomain.ServerList == nil {
-		return nil, fmt.Errorf("ServerList cannot be nil")
+	if domain.IpaDomain.Servers == nil {
+		return nil, fmt.Errorf("Servers cannot be nil")
 	}
-	output.Ipa.ServerList = &[]string{}
-	*output.Ipa.ServerList = strings.Split(*domain.IpaDomain.ServerList, ",")
+	output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
+	for i, server := range domain.IpaDomain.Servers {
+		if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
+			return nil, err
+		}
+	}
 
 	return output, nil
 }
