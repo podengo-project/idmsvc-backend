@@ -307,6 +307,7 @@ components:
                 - domain_name
                 - domain_type
                 - ipa
+                - realm_name
             type: object
             properties:
                 domain_name:
@@ -339,14 +340,17 @@ components:
                             type: object
                     example: |
                         {
-                            "realm_name": "IPA.EXAMPLE",
                             "ca_list": "base64",
                             "server_list": [
                               "server1.mydomain.example", 
-                              "Server2.mydomain.example"
+                              "server2.mydomain.example"
                             ],
                             "client_options": {}
                           }
+                realm_name:
+                    description: The name of the realm that manage the domain.
+                    type: string
+                    example: MYDOMAIN.EXAMPLE
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
@@ -357,37 +361,62 @@ components:
                     ca_list: base64
                     server_list:
                         - server1.mydomain.example
-                        - Server2.mydomain.example
+                        - server2.mydomain.example
                     client_options: {}
         CreateDomainIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
             required:
-                - ca_list
+                - ca_certs
             type: object
             properties:
-                realm_name:
-                    description: The realm name for the domain
-                    type: string
-                    example: IPA.EXAMPLE
-                ca_list:
-                    description: A base64 representation of all the list of chain of certificates,
-                        including the server ca.
-                    type: string
-                    example: ""
-                server_list:
+                servers:
                     description: List of auto-enrollment enabled servers for this domain.
                     type: array
                     items:
-                        type: string
+                        $ref: "#/components/schemas/CreateDomainIpaServer"
                     example: '["server1.mydomain.example","server2.mydomain.example"]'
-            example:
-                realm_name: IPA.EXAMPLE
-                ca_list: base64
-                server_list:
-                    - server1.mydomain.example
-                    - server2.mydomain.example
-                client_options: {}
+                ca_certs:
+                    description: A base64 representation of all the list of chain of certificates,
+                        including the server ca.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/CreateDomainIpaCert"
+                    example: >-
+                        [
+                          {
+                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "serial_number": "1",
+                            "not_valid_before": "2023-01-31T13:23:36",
+                            "not_valid_after": "2023-01-31T13:23:36"
+                            "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
+                          }
+                        ]
+            example: >-
+                {
+                  "servers": [
+                    {
+                      "fqdn": "ipaserver.mydomain.example",
+                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                      "ca_server": true,
+                      "hcc_enrollment_server": true,
+                      "pkinit_server": true
+                    }
+                  ],
+                  "cacerts": [
+                    {
+                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "serial_number": "1",
+                      "not_valid_before": "2023-01-31T13:23:36",
+                      "not_valid_after": "2023-01-31T13:23:36"
+                      "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
+                    }
+                  ]
+                }
         Error:
             title: Root Type for Error
             description: General error schema
@@ -468,35 +497,6 @@ components:
                 domain_name: mydomain.example
                 domain_type: ipa
                 auto_enrollment_enabled: true
-        ReadDomainIpa:
-            title: Root Type for ResponseIpaObject
-            description: Options for ipa domains
-            required:
-                - ca_list
-            type: object
-            properties:
-                realm_name:
-                    description: The realm name for the domain
-                    type: string
-                    example: IPA.EXAMPLE
-                ca_list:
-                    description: A base64 representation of all the list of chain of certificates,
-                        including the server ca.
-                    type: string
-                    example: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUh1ekNDQnFPZ0F3SUJBZ0lRQjJYRWg0U05iZ1BKd3pCcGIvMVRCakFOQmdrcWhraUc5dzBCQVFzRkFEQlAKTVFzd0NRWURWUVFHRXdKVlV6RVZNQk1HQTFVRUNoTU1SR2xuYVVObGNuUWdTVzVqTVNrd0p3WURWUVFERXlCRQphV2RwUTJWeWRDQlVURk1nVWxOQklGTklRVEkxTmlBeU1ESXdJRU5CTVRBZUZ3MHlNakF6TWprd01EQXdNREJhCkZ3MHlNekF6TWpreU16VTVOVGxhTUdVeEN6QUpCZ05WQkFZVEFsVlRNUmN3RlFZRFZRUUlFdzVPYjNKMGFDQkQKWVhKdmJHbHVZVEVRTUE0R0ExVUVCeE1IVW1Gc1pXbG5hREVXTUJRR0ExVUVDaE1OVW1Wa0lFaGhkQ3dnU1c1agpMakVUTUJFR0ExVUVBeE1LY21Wa2FHRjBMbU52YlRDQ0FpSXdEUVlKS29aSWh2Y05BUUVCQlFBRGdnSVBBRENDCkFnb0NnZ0lCQU5FZzVYWWcxOXlPOXBCQnp0RWZNRjlwWFhZWThrczBOOWlZOHBJbTYwd1BKOEpBMUNDRC9FQksKYyt5d1VrRXN3TEpTOFpxZjl5QzRhRXVUK0lHOG1aSmNWZWdhQkZ0UzhBZVZ3RmZMK2g4dElpOXhIUnM5Mk5WYQpYTVlTU0JySk9JYUlLZXpxcllhV2JaSnVkaWFYcFAvcTFGZGxtZkIwSndDeW4vYmUvOTNpRGpiRW9BdFVFdmRxCkRpdzQzblNxSEhVTVlibkdXbFVOdFVLTVoxSkF5b2lYQ2tSQ2t4L2lGNC9EbXpjdDRTcUYwNzQrQURWZFJ6RTYKaEFvbmJ4aUZnYWU5cGx5SHRVUVd0RWhadmhRaERpUGVIdjZVUWxDbDJaVDVjdjArVHdHYUl6UnFDTVhXS0J5WQpKQXVML1dPdndjcmF1dE9ZRXlnZSs1TFJ3Yk1Rd2xnemZQeUN5RU9NZWZ3N1lIaEd1ZHUyUnJvaG1RdVltYlcyCk9kS3RZM1ZlRzNuTURobTVTVHFTcnlGbDdPbXNXUllZT3NiSVRCbjJNL2NxdTlPcFVlN0xpOFEzQ2wydk5YTVAKbGZ1SWovenBKcC9FVElUVG84Y1cvNnJCU2xXN2hCSjZhcm85cW8zM2F0Vy9mR2pmdnByV0JETjJodVVVZjI2KwpjSXdHUFowbTlkU01wMFRqRFdoamt6cmNlRzNaNlpNQjNIR3JWZVgwaFJXb0xFbk55bWprRE42RE5mOU9QcWRJCm1yRE1RcEptVFZ5bjhvZ0lSTkdmdklTTGE2RHhGT1AwYkxuOWRqR0FPR255ZGcvd2hYVVZRQkFmK0ZLNkxmSWcKSElDNndTcjVjWnVrb29tb2FZeU5pMi80N3B2TlNoRWpDaXRhMEdYa3kyY0lXc2tSejlzSkFnTUJBQUdqZ2dONwpNSUlEZHpBZkJnTlZIU01FR0RBV2dCUzNhNkxxcUtxRWpIbnF0Tm9QbUxMRmxYYTU5REFkQmdOVkhRNEVGZ1FVCmcyakNZMEFhODVLbnI4NGhvSG1UOW55Z2lLNHdKUVlEVlIwUkJCNHdISUlLY21Wa2FHRjBMbU52YllJT2QzZDMKTG5KbFpHaGhkQzVqYjIwd0RnWURWUjBQQVFIL0JBUURBZ1dnTUIwR0ExVWRKUVFXTUJRR0NDc0dBUVVGQndNQgpCZ2dyQmdFRkJRY0RBakNCandZRFZSMGZCSUdITUlHRU1FQ2dQcUE4aGpwb2RIUndPaTh2WTNKc015NWthV2RwClkyVnlkQzVqYjIwdlJHbG5hVU5sY25SVVRGTlNVMEZUU0VFeU5UWXlNREl3UTBFeExUUXVZM0pzTUVDZ1BxQTgKaGpwb2RIUndPaTh2WTNKc05DNWthV2RwWTJWeWRDNWpiMjB2UkdsbmFVTmxjblJVVEZOU1UwRlRTRUV5TlRZeQpNREl3UTBFeExUUXVZM0pzTUQ0R0ExVWRJQVEzTURVd013WUdaNEVNQVFJQ01Da3dKd1lJS3dZQkJRVUhBZ0VXCkcyaDBkSEE2THk5M2QzY3VaR2xuYVdObGNuUXVZMjl0TDBOUVV6Qi9CZ2dyQmdFRkJRY0JBUVJ6TUhFd0pBWUkKS3dZQkJRVUhNQUdHR0doMGRIQTZMeTl2WTNOd0xtUnBaMmxqWlhKMExtTnZiVEJKQmdnckJnRUZCUWN3QW9ZOQphSFIwY0RvdkwyTmhZMlZ5ZEhNdVpHbG5hV05sY25RdVkyOXRMMFJwWjJsRFpYSjBWRXhUVWxOQlUwaEJNalUyCk1qQXlNRU5CTVMweExtTnlkREFKQmdOVkhSTUVBakFBTUlJQmZ3WUtLd1lCQkFIV2VRSUVBZ1NDQVc4RWdnRnIKQVdrQWRnRG9QdERhUHZVR05UTG5WeWk4aVd2SkE5UEwwUkZyN090cDRYZDliUWE5YmdBQUFYL1VpcHZoQUFBRQpBd0JITUVVQ0lBOTFQZXB5K3MvbHhtb2JLNVZFVTdqdWx3Ynd5Yk9vZE4yTFFwVm81eHdMQWlFQWdqa2NNcnlMCk5xOXp2MmgxVTdmWm1Vc0tJVFlXR1liQTQvOWR3WWxiczBnQWRnQTF6eGtidjdGc1Y3OFByVXh0UXN1N3RpY2cKSmxIcVArRXE3NmdEd3p2V1RBQUFBWC9VaXB3UUFBQUVBd0JITUVVQ0lEdisra05VKzd1TVJaOWVvM3RuVHZocgpacG9SYnJuMlZUN2NPakJkY3pMNkFpRUF6elRqV3M2b0xsdUZaQ1dYN0NHOUxwM05Yb015U1lac2Jka0VBUUFOCmMzb0Fkd0N6YzNjSDRZUlErR09HMWdXcDNCRUpTbmt0c1djTUM0ZmM4QU1PZVRhbG1nQUFBWC9VaXB3ZUFBQUUKQXdCSU1FWUNJUURZaldhWm5SckRJRm1kZEUwLzBMNUwvd1g4S3g3RldHcUdxU2JmMGZGMXZ3SWhBSTgwbnVuaQp3UDF0cnBtQXpMaDRyVVJmdE1Ed1MrdE5wMzNwczVXblloLytNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUJBUUF4Ck1rRUh0RHJIbkcxdUdVTS9xVFc3TlRtLzB6RFRmbWpQaVpZVEREaWdOK29PWDVpL2VENDcwaUpYR21iRmg5MWsKZFZhRllGWTFsMGNGNmFKdjhvYm8wdVNSVHNHVGM3VklvQkkvZGZUV2E3eWNCV0ViNko5RkQ4NlkzTXgzVndsMQowQUpUeFBjejcwRGdGUkhEZXA0clVzSTVjTHNnV1pIS2Z2RzN6aytLWTk4aHdoR2sxc2I3czRlaWxDS0RUWXMvCnN5VkZ4dWc5c1JuZmV4YVgxcXN6cy9aTTBCMVVkOGhHRmJrUG45bFcvZGpsM2VkTFJ3c0pOeXZPRU5EN0hTUmsKVTNybGdEbkhUMzJVNVNyenNoVWRrQUZoZW9Ibi9uS3hXVENGenlHSzhTUlhjK29iWmFDNkNkcVZNeDlSZFhJVwpneitVcTlCYkJSc0trTE5wY0ZndgotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlFdmpDQ0E2YWdBd0lCQWdJUUJ0alpCTlZZUTBiMmlpK25WQ0oreERBTkJna3Foa2lHOXcwQkFRc0ZBREJoCk1Rc3dDUVlEVlFRR0V3SlZVekVWTUJNR0ExVUVDaE1NUkdsbmFVTmxjblFnU1c1ak1Sa3dGd1lEVlFRTEV4QjMKZDNjdVpHbG5hV05sY25RdVkyOXRNU0F3SGdZRFZRUURFeGRFYVdkcFEyVnlkQ0JIYkc5aVlXd2dVbTl2ZENCRApRVEFlRncweU1UQTBNVFF3TURBd01EQmFGdzB6TVRBME1UTXlNelU1TlRsYU1FOHhDekFKQmdOVkJBWVRBbFZUCk1SVXdFd1lEVlFRS0V3eEVhV2RwUTJWeWRDQkpibU14S1RBbkJnTlZCQU1USUVScFoybERaWEowSUZSTVV5QlMKVTBFZ1UwaEJNalUySURJd01qQWdRMEV4TUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQwpBUUVBd1V1elpVZHd2TjFQV052c25PM0RadVVmTVJOVXJVcG1SaDhzQ3V4a0IrVXUzTnk1Q2lEdDMrUEUwSjZhCnFYb2Rnb2psRVZiYkhwOVl3bEhuTERRTkx0S1M0VmJMOFhsZnM3dUh5aVVEZTVwU1FXWVFZRTlYRTBudzZEZG4KZzkvbjAwdG5UQ0pScHQ4T21SRHRWMUYwSnVKOXg4cGlMaE1iZnlPSUpWTnZ3VFJZQUl1RS8vaStwMWhKSW51VwpyYUtJbXhXOG9IemY2VkdvMWJEdE4rSTJ0SUpMWXJWSm11ekhaOWJqUHZYajFoSmVSUEcvY1VKOVdJUURnTEdCCkFmcjV5aks3dEk0bmh5ZkZLM1RVcU5hWDNzTmsrY3JPVTZKV3ZIZ1hqa2tES2E3N1NVK2tGYm5POGx3WlYyMXIKZWFjcm9pY2dFN1hRUFVEVElUQUhrK3FaOVFJREFRQUJvNElCZ2pDQ0FYNHdFZ1lEVlIwVEFRSC9CQWd3QmdFQgovd0lCQURBZEJnTlZIUTRFRmdRVXQydWk2cWlxaEl4NTZyVGFENWl5eFpWMnVmUXdId1lEVlIwakJCZ3dGb0FVCkE5NVFOVmJSVEx0bThLUGlHeHZEbDdJOTBWVXdEZ1lEVlIwUEFRSC9CQVFEQWdHR01CMEdBMVVkSlFRV01CUUcKQ0NzR0FRVUZCd01CQmdnckJnRUZCUWNEQWpCMkJnZ3JCZ0VGQlFjQkFRUnFNR2d3SkFZSUt3WUJCUVVITUFHRwpHR2gwZEhBNkx5OXZZM053TG1ScFoybGpaWEowTG1OdmJUQkFCZ2dyQmdFRkJRY3dBb1kwYUhSMGNEb3ZMMk5oClkyVnlkSE11WkdsbmFXTmxjblF1WTI5dEwwUnBaMmxEWlhKMFIyeHZZbUZzVW05dmRFTkJMbU55ZERCQ0JnTlYKSFI4RU96QTVNRGVnTmFBemhqRm9kSFJ3T2k4dlkzSnNNeTVrYVdkcFkyVnlkQzVqYjIwdlJHbG5hVU5sY25SSApiRzlpWVd4U2IyOTBRMEV1WTNKc01EMEdBMVVkSUFRMk1EUXdDd1lKWUlaSUFZYjliQUlCTUFjR0JXZUJEQUVCCk1BZ0dCbWVCREFFQ0FUQUlCZ1puZ1F3QkFnSXdDQVlHWjRFTUFRSURNQTBHQ1NxR1NJYjNEUUVCQ3dVQUE0SUIKQVFDQU1zNWVDOTF1V2cwS3IrSFdoTXZBanZxRmNPM2FYYk1NOXl0MVFQNkZDdnJ6TVhpM2NFc2FpVmk2Z0wzegpheDNwZnM4THVsaWNXZFNRMC8xcy9kQ1liYmR4Z2x2UGJRdGFDZEI3M3NSRDJDcWszcDVCSmwrN2o1bkwzYTdoCnFHK2ZoLzUwdHg4YklLdXhUOGIxWjExZG16enAvMm4zWVd6VzJmUDlOc2FyQTRoMjBrc3VkWWJqL05oVmZTYkMKRVhmZlBnSzJmUE9yZTNxR05tKzQ5OWlUY2MrRzMzTXcrbnVyN1NwWnlFS0VPeEVYR2xMenlRNFVmYUpiY21lNgpjZTFYUjJiRnVBSktaVFJlaTlBcVBDQ2NVWmxNNTFLZTkyc1JLdzJTZmgzb2l1czJGa09INmlwanYzVS82OTdFCkE3c0tQUGN3Nyt1dlRQeUxOaEJ6UHZPawotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg==
-                server_list:
-                    description: List of auto-enrollment enabled servers for this domain.
-                    type: array
-                    items:
-                        type: string
-                    example: '["server1.mydomain.example","server2.mydomain.example"]'
-            example:
-                realm_name: IPA.EXAMPLE
-                ca_list: base64
-                server_list:
-                    - server1.mydomain.example
-                    - server2.mydomain.example
-                client_options: {}
         HostConf:
             title: Root Type for HostConf
             description: Represent the request payload for the /hostconf/:fqdn endpoint.
@@ -580,71 +580,6 @@ components:
                     - server1.mydomain.example
                     - server2.mydomain.example
                 client_options: {}
-        CreateDomainResponseSchema:
-            title: Root Type for DomainResponse
-            description: A domain resource
-            required:
-                - auto_enrollment_enabled
-                - domain_name
-                - domain_type
-                - ipa
-                - domain_uuid
-            type: object
-            properties:
-                domain_uuid:
-                    description: Internal id for this domain
-                    type: string
-                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name:
-                    description: Domain name
-                    type: string
-                    example: mydomain.example
-                domain_type:
-                    description: Type of this domain. Currently only ipa is supported.
-                    enum:
-                        - ipa
-                    type: string
-                    example: ipa
-                auto_enrollment_enabled:
-                    description: Enable or disable host vm auto-enrollment for this domain
-                    type: boolean
-                    example: "true"
-                ipa:
-                    $ref: "#/components/schemas/CreateDomainIpa"
-                    description: Example for ipa parameters
-                    properties:
-                        realm_name:
-                            type: string
-                        ca_list:
-                            type: string
-                        server_list:
-                            type: array
-                            items:
-                                type: string
-                        client_options:
-                            type: object
-                    example: |
-                        {
-                            "realm_name": "IPA.EXAMPLE",
-                            "ca_list": "base64",
-                            "server_list": [
-                              "server1.mydomain.example", 
-                              "Server2.mydomain.example"
-                            ],
-                            "client_options": {}
-                          }
-            example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name: mydomain.example
-                domain_type: ipa
-                auto_enrollment_enabled: true
-                ipa:
-                    realm_name: IPA.EXAMPLE
-                    ca_list: base64
-                    server_list:
-                        - server1.mydomain.example
-                        - Server2.mydomain.example
-                    client_options: {}
         ErrorResponseSchema:
             title: Root Type for ErrorResponse
             description: General error response returned by the hmsidm API
@@ -752,31 +687,209 @@ components:
                       domain_name: mydomain.example
                       domain_type: ipa
                       auto_enrollment_enabled: true
-        ReadDomainResponseSchema:
-            title: Root Type for ReadDomainResponse
-            description: Represent the information read for a specific domain.
+        CreateDomainIpaServer:
+            title: Root Type for CreateDomainIpaServer
+            description: Server schema for an entry into the Ipa domain type.
+            required:
+                - ca_server
+                - fqdn
+                - hcc_enrollment_server
+                - pkinit_server
+                - rhsm_id
+            type: object
+            properties:
+                fqdn:
+                    type: string
+                    example: '"server1.mydomain.example"'
+                rhsm_id:
+                    type: string
+                    example: '"03965a2c-bd24-11ed-968d-482ae3863d30"'
+                ca_server:
+                    type: boolean
+                    example: "true"
+                hcc_enrollment_server:
+                    type: boolean
+                    example: "true"
+                pkinit_server:
+                    type: boolean
+                    example: "true"
+            example:
+                fqdn: ipaserver.mydomain.example
+                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server: true
+                hcc_enrollment_server: true
+                pkinit_server: true
+        CreateDomainIpaCert:
+            title: Root Type for CreateDomainIpaCert
+            description: Represent a certificate item in the cacerts list for the Ipa domain
+                type.
+            type: object
+            properties:
+                nickname:
+                    type: string
+                issuer:
+                    type: string
+                subject:
+                    type: string
+                serial_number:
+                    type: string
+                not_valid_before:
+                    format: date-time
+                    type: string
+                not_valid_after:
+                    format: date-time
+                    type: string
+                pem:
+                    type: string
+            example:
+                nickname: MYDOMAIN.EXAMPLE IPA CA
+                issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                serial_number: "1"
+                not_valid_before: 2023-01-31T13:23:36
+                not_valid_after: 2023-01-31T13:23:36
+                pem: >
+                    -----BEGIN CERTIFICATE-----
+
+                    MIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI
+
+                    Q0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz
+
+                    MTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx
+
+                    HjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB
+
+                    BQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+
+
+                    XuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa
+
+                    D9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so
+
+                    ltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8
+
+                    fT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ
+
+                    sViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz
+
+                    Q21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd
+
+                    BR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH
+
+                    80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv
+
+                    H1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G
+
+                    A1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI
+
+                    KwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq
+
+                    hkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l
+
+                    uCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC
+
+                    QXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU
+
+                    ZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G
+
+                    bzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm
+
+                    iW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT
+
+                    rJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9
+
+                    Sxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos
+
+                    UjUaqSGxf/mfGbGDETXj
+
+                    -----END CERTIFICATE-----
+        DomainResponseIpa:
+            title: Root Type for ResponseIpaObject
+            description: Options for ipa domains
+            required:
+                - ca_certs
+                - servers
+            type: object
+            properties:
+                servers:
+                    description: List of auto-enrollment enabled servers for this domain.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DomainResponseIpaServer"
+                    example: '["server1.mydomain.example","server2.mydomain.example"]'
+                ca_certs:
+                    description: A base64 representation of all the list of chain of certificates,
+                        including the server ca.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DomainResponseIpaCert"
+                    example: >-
+                        [
+                          {
+                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "serial_number": "1",
+                            "not_valid_before": "2023-01-31T13:23:36",
+                            "not_valid_after": "2023-01-31T13:23:36"
+                            "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
+                          }
+                        ]
+            example: >-
+                {
+                  "servers": [
+                    {
+                      "fqdn": "ipaserver.mydomain.example",
+                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                      "ca_server": true,
+                      "hcc_enrollment_server": true,
+                      "pkinit_server": true
+                    }
+                  ],
+                  "cacerts": [
+                    {
+                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "serial_number": "1",
+                      "not_valid_before": "2023-01-31T13:23:36",
+                      "not_valid_after": "2023-01-31T13:23:36"
+                      "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
+                    }
+                  ]
+                }
+        DomainResponse:
+            title: Root Type for DomainResponse
+            description: A domain resource
+            required:
+                - auto_enrollment_enabled
+                - domain_name
+                - domain_type
+                - ipa
+                - domain_uuid
+                - realm_name
             type: object
             properties:
                 domain_uuid:
-                    description: Internal identifier for the domain, it is unique into system.
+                    description: Internal id for this domain
                     type: string
-                    example: '"870d6ad2-b354-11ed-925c-482ae3863d30"'
+                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name:
-                    description: The name of the domain.
+                    description: Domain name
                     type: string
-                    example: '"mydomain.example"'
+                    example: mydomain.example
                 domain_type:
-                    description: Actually only "ipa" is supported.
+                    description: Type of this domain. Currently only ipa is supported.
+                    enum:
+                        - ipa
                     type: string
-                    example: '"ipa"'
+                    example: ipa
                 auto_enrollment_enabled:
-                    description: Inidicate if the auto-enrollment is enabled or disabled for this
-                        domain.
+                    description: Enable or disable host vm auto-enrollment for this domain
                     type: boolean
                     example: "true"
                 ipa:
-                    $ref: "#/components/schemas/ReadDomainIpa"
-                    description: It contains the specific information for domains of type IPA.
+                    $ref: "#/components/schemas/DomainResponseIpa"
+                    description: Example for ipa parameters
                     properties:
                         realm_name:
                             type: string
@@ -788,34 +901,160 @@ components:
                                 type: string
                         client_options:
                             type: object
-                    example: |-
+                    example: |
                         {
-                            "realm_name": "MYDOMAIN.EXAMPLE",
+                            "realm_name": "IPA.EXAMPLE",
                             "ca_list": "base64",
                             "server_list": [
-                                "server1.mydomain.example",
-                                "server2.mydomain.example"
+                              "server1.mydomain.example", 
+                              "Server2.mydomain.example"
                             ],
                             "client_options": {}
-                        }
+                          }
+                realm_name:
+                    description: The realm name managed for this domain name.
+                    type: string
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
                 domain_type: ipa
                 auto_enrollment_enabled: true
                 ipa:
-                    realm_name: MYDOMAIN.EXAMPLE
+                    realm_name: IPA.EXAMPLE
                     ca_list: base64
                     server_list:
                         - server1.mydomain.example
-                        - server2.mydomain.example
+                        - Server2.mydomain.example
                     client_options: {}
+        DomainResponseIpaCert:
+            title: Root Type for CreateDomainIpaCert
+            description: Represent a certificate item in the cacerts list for the Ipa domain
+                type.
+            required:
+                - issuer
+                - nickname
+                - not_valid_after
+                - not_valid_before
+                - pem
+                - serial_number
+                - subject
+            type: object
+            properties:
+                nickname:
+                    type: string
+                issuer:
+                    type: string
+                subject:
+                    type: string
+                serial_number:
+                    type: string
+                not_valid_before:
+                    format: date-time
+                    type: string
+                not_valid_after:
+                    format: date-time
+                    type: string
+                pem:
+                    type: string
+            example:
+                nickname: MYDOMAIN.EXAMPLE IPA CA
+                issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                serial_number: "1"
+                not_valid_before: 2023-01-31T13:23:36
+                not_valid_after: 2023-01-31T13:23:36
+                pem: >
+                    -----BEGIN CERTIFICATE-----
+
+                    MIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI
+
+                    Q0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz
+
+                    MTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx
+
+                    HjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB
+
+                    BQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+
+
+                    XuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa
+
+                    D9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so
+
+                    ltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8
+
+                    fT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ
+
+                    sViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz
+
+                    Q21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd
+
+                    BR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH
+
+                    80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv
+
+                    H1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G
+
+                    A1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI
+
+                    KwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq
+
+                    hkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l
+
+                    uCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC
+
+                    QXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU
+
+                    ZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G
+
+                    bzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm
+
+                    iW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT
+
+                    rJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9
+
+                    Sxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos
+
+                    UjUaqSGxf/mfGbGDETXj
+
+                    -----END CERTIFICATE-----
+        DomainResponseIpaServer:
+            title: Root Type for CreateDomainIpaServer
+            description: Server schema for an entry into the Ipa domain type.
+            required:
+                - ca_server
+                - fqdn
+                - hcc_enrollment_server
+                - pkinit_server
+                - rhsm_id
+            type: object
+            properties:
+                fqdn:
+                    type: string
+                    example: '"server1.mydomain.example"'
+                rhsm_id:
+                    type: string
+                    example: '"03965a2c-bd24-11ed-968d-482ae3863d30"'
+                ca_server:
+                    type: boolean
+                    example: "true"
+                hcc_enrollment_server:
+                    type: boolean
+                    example: "true"
+                pkinit_server:
+                    type: boolean
+                    example: "true"
+            example:
+                fqdn: ipaserver.mydomain.example
+                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server: true
+                hcc_enrollment_server: true
+                pkinit_server: true
     responses:
         CreateDomainResponse:
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/CreateDomainResponseSchema"
+                        $ref: "#/components/schemas/DomainResponse"
             description: Response when a domain has been created.
         ErrorResponse:
             content:
@@ -827,7 +1066,7 @@ components:
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/ReadDomainResponseSchema"
+                        $ref: "#/components/schemas/DomainResponse"
             description: This represent the response for a specific domain.
         ListDomainsResponse:
             content:
