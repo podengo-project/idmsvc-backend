@@ -87,10 +87,18 @@ func TestCreate(t *testing.T) {
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
 					DomainName:            "domain.example",
+					RealmName:             "DOMAIN.EXAMPLE",
 					DomainType:            api_public.CreateDomainDomainTypeIpa,
 					Ipa: api_public.CreateDomainIpa{
-						CaList:    "",
-						RealmName: pointy.String("DOMAIN.EXAMPLE"),
+						CaCerts: []api_public.CreateDomainIpaCert{
+							{
+								Nickname:      pointy.String("DOMAIN.EXAMPLE IPA CA"),
+								Issuer:        pointy.String("CN=Certificate Authority,O=DOMAIN.EXAMPLE"),
+								Subject:       pointy.String("CN=Certificate Authority,O=DOMAIN.EXAMPLE"),
+								SerialNumber:  pointy.String("1"),
+								NotValidAfter: pointy.,
+							},
+						},
 						ServerList: &[]string{
 							"server1.domain.example",
 							"server2.domain.example",

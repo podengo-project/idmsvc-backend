@@ -2,7 +2,6 @@ package interactor
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
@@ -29,6 +28,14 @@ func helperDomainTypeToUint(domainType public.CreateDomainDomainType) uint {
 	default:
 		return model.DomainTypeUndefined
 	}
+}
+
+func (i domainInteractor) FillCert(to *model.IpaCert, from *api_public.CreateDomainIpaCert) error {
+	return fmt.Errorf("FillCert not implemented")
+}
+
+func (i domainInteractor) FillServer(to *model.IpaServer, from *api_public.CreateDomainIpaServer) error {
+	return fmt.Errorf("FillServer not implemented")
 }
 
 // Create translate api request to modle.Domain internal representation.
@@ -59,16 +66,26 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	domain.DomainType = pointy.Uint(helperDomainTypeToUint(body.DomainType))
 
 	domain.IpaDomain = &model.Ipa{}
-	if body.Ipa.RealmName != nil {
-		domain.IpaDomain.RealmName = pointy.String(*body.Ipa.RealmName)
+	if body.RealmName != "" {
+		domain.RealmName = pointy.String(body.RealmName)
 	}
-	if body.Ipa.ServerList != nil {
-		domain.IpaDomain.ServerList = pointy.String(strings.Join(*body.Ipa.ServerList, ","))
-	}
-	if body.Ipa.CaList != "" {
-		domain.IpaDomain.CaList = pointy.String(body.Ipa.CaList)
+	if body.Ipa.Servers != nil {
+		domain.IpaDomain.Servers = make([]model.IpaServer, len(*body.Ipa.Servers))
+		for idx, server := range *body.Ipa.Servers {
+			if err := i.FillServer(&domain.IpaDomain.Servers[idx], &server); err != nil {
+				return "", nil, err
+			}
+		}
 	} else {
-		domain.IpaDomain.CaList = pointy.String("")
+		domain.IpaDomain.Servers = []model.IpaServer{}
+	}
+	if body.Ipa.CaCerts != nil {
+		domain.IpaDomain.CaCerts = make([]model.IpaCert, len(body.Ipa.CaCerts))
+		for idx, cert := range body.Ipa.CaCerts {
+			i.FillCert(&domain.IpaDomain.CaCerts[idx], &cert)
+		}
+	} else {
+		domain.IpaDomain.CaCerts = []model.IpaCert{}
 	}
 	return identity.OrgID, domain, nil
 }
