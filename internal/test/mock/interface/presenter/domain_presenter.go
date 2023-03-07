@@ -15,15 +15,15 @@ type DomainPresenter struct {
 }
 
 // Create provides a mock function with given fields: domain
-func (_m *DomainPresenter) Create(domain *model.Domain) (*public.CreateDomainResponseSchema, error) {
+func (_m *DomainPresenter) Create(domain *model.Domain) (*public.DomainResponse, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.CreateDomainResponseSchema
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.CreateDomainResponseSchema); ok {
+	var r0 *public.DomainResponse
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.DomainResponse); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.CreateDomainResponseSchema)
+			r0 = ret.Get(0).(*public.DomainResponse)
 		}
 	}
 
@@ -38,15 +38,15 @@ func (_m *DomainPresenter) Create(domain *model.Domain) (*public.CreateDomainRes
 }
 
 // Get provides a mock function with given fields: domain
-func (_m *DomainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponseSchema, error) {
+func (_m *DomainPresenter) Get(domain *model.Domain) (*public.DomainResponse, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.ReadDomainResponseSchema
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.ReadDomainResponseSchema); ok {
+	var r0 *public.DomainResponse
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.DomainResponse); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.ReadDomainResponseSchema)
+			r0 = ret.Get(0).(*public.DomainResponse)
 		}
 	}
 
