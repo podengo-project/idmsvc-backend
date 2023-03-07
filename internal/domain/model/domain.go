@@ -27,10 +27,10 @@ type Domain struct {
 	OrgId                 string
 	DomainUuid            uuid.UUID `gorm:"unique"`
 	DomainName            *string
+	RealmName             *string
 	DomainType            *uint
 	AutoEnrollmentEnabled *bool
-
-	IpaDomain *Ipa `gorm:"foreignKey:DomainID"`
+	IpaDomain             *Ipa
 }
 
 func DomainTypeString(data uint) string {

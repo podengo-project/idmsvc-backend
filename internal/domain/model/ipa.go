@@ -6,13 +6,13 @@ import "gorm.io/gorm"
 
 type Ipa struct {
 	gorm.Model
-	DomainID  uint
-	RealmName *string
-	CaList    *string
-	// TODO Do we want to create a ipa_server_list table
+	DomainID uint
+	CaCerts  []IpaCert `gorm:"foreignKey:id"`
+	// TODO Do we want to create an ipa_server_list table
 	//      related with this Ipa entry?
 	// NOTE Thinking about this as a comma separated list
 	//      of servers
-	ServerList *string
-	Domain     Domain `gorm:"foreignKey:id"`
+	Servers []IpaServer `gorm:"foreignKey:id"`
+
+	// Domain Domain `gorm:"foreignKey:id"`
 }
