@@ -20,10 +20,10 @@ Content-Type: {{contentType}}
 
 {
   "domain_name": "mydomain.example",
+  "realm_name": "MYDOMAIN.EXAMPLE",
   "domain_type": "ipa",
   "auto_enrollment_enabled": true,
   "ipa": {
-    "realm_name": "MYDOMAIN.EXAMPLE",
     "ca_list": "base64",
     "server_list": [
       "server1.ipa.example", 
