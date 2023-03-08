@@ -12,10 +12,11 @@
 
 PLANTER=$(BIN)/planter
 
+PLANTUML_SOURCES ?= $(patsubst docs/%.puml,docs/%.svg,$(wildcard docs/*.puml)) $(patsubst docs/sequence/%.puml,docs/sequence/%.svg,$(wildcard docs/sequence/*.puml))
 .PHONY: generate-diagrams
 generate-diagrams: PLANTUML ?= $(shell command -v plantuml 2>/dev/null)
 generate-diagrams: PLANTUML ?= false
-generate-diagrams: $(patsubst docs/%.puml,docs/%.svg,$(wildcard docs/*.puml)) ## Generate diagrams
+generate-diagrams: $(PLANTUML_SOURCES)  ## Generate diagrams
 
 .PHONY: docs/db-model.puml
 docs/db-model.puml: $(PLANTER)
@@ -39,4 +40,6 @@ $(PLANTER):
 # General rule to generate a diagram in SVG format for
 # each .puml file found at docs/ directory
 docs/%.svg: docs/%.puml
+	$(PLANTUML) -tsvg $<
+docs/sequence/%.svg: docs/sequence/%.puml
 	$(PLANTUML) -tsvg $<
