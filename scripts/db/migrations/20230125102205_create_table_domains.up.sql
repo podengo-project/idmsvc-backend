@@ -10,9 +10,9 @@ BEGIN;
 --      Consider to use UUID as the primary key
 CREATE TABLE IF NOT EXISTS domains (
     id SERIAL UNIQUE NOT NULL PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE,
-    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
 
     org_id      VARCHAR(255) NOT NULL,
     domain_uuid UUID UNIQUE NOT NULL,
@@ -24,17 +24,17 @@ CREATE TABLE IF NOT EXISTS domains (
 
 CREATE TABLE IF NOT EXISTS ipas (
     id SERIAL UNIQUE NOT NULL PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
     -- NOTE Keep in mind that gorm is making a logical delete,
     --      the row is not deleted from the database when
     --      using the normal operations.
     --      See: https://gorm.io/docs/delete.html
-    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    deleted_at TIMESTAMP DEFAULT NULL,
     realm_name VARCHAR(253) NOT NULL,
     realm_domains TEXT NOT NULL,
     token VARCHAR(256) DEFAULT NULL,
-    token_expiration TIMESTAMP WITH TIME ZONE DEFAULT NULL
+    token_expiration TIMESTAMP DEFAULT NULL
 );
 
 ALTER TABLE ipas
@@ -46,15 +46,15 @@ ON DELETE CASCADE;
 
 CREATE TABLE IF NOT EXISTS ipa_certs (
     id SERIAL UNIQUE NOT NULL PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE,
-    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
 
     ipa_id  INT,
     issuer TEXT NOT NULL,
     nickname VARCHAR(255) NOT NULL,
-    not_valid_after TIMESTAMP WITH TIME ZONE NOT NULL,
-    not_valid_before TIMESTAMP WITH TIME ZONE NOT NULL,
+    not_valid_after TIMESTAMP NOT NULL,
+    not_valid_before TIMESTAMP NOT NULL,
     serial_number VARCHAR(64) NOT NULL,
     subject TEXT NOT NULL,
     pem TEXT NOT NULL
@@ -71,9 +71,9 @@ ON DELETE CASCADE;
 
 CREATE TABLE IF NOT EXISTS ipa_servers (
     id SERIAL UNIQUE NOT NULL PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE,
-    updated_at TIMESTAMP WITH TIME ZONE,
-    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
 
     ipa_id  INT,
     fqdn VARCHAR(253) NOT NULL,
