@@ -1,0 +1,133 @@
+' https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf
+@startuml
+skinparam handwritten true
+
+actor Administrator as Administrator
+participant "Ipa Server" as ipa_server
+participant "idm-domains-backend" as hmsidm_backend
+
+
+
+group Create Domain from UI
+Administrator -> hmsidm_backend: (1) (https) POST /api/hmsidm/v1/domains
+note right Administrator
+{
+  "domain_name": "mydomain.example",
+  "domain_type": "ipa",
+  "auto_enrollment_enabled": true,
+  "ipa": {
+    "realm_name": "IPA.EXAMPLE",
+    "ca_certs": [],
+    "servers": [],
+  }
+}
+end note
+
+hmsidm_backend -> rbac: (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (http) ACL list for the current user
+note left rbac
+The communication between services will be encrypted by TLS in a near future
+See: ADR-18 at https://issues.redhat.com/browse/ADR-18
+end note
+
+alt domain created
+Administrator <-- hmsidm_backend: (https) 201 Created
+note right Administrator
+{
+  "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+  "domain_name": "mydomain.example",
+  "domain_type": "ipa",
+  "auto_enrollment_enabled": true,
+  "ipa": {
+    "realm_name": "IPA.EXAMPLE",
+    "token": "Iesah0IengaeFah6Cienai4tooph5Eiv",
+    "token_expiration": "2023-03-08T15:50:45",
+    "ca_certs": [],
+    "servers": [],
+  },
+}
+end note
+note right Administrator
+Execute the command below into your ipa server:
+$ ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
+end note
+else user not authorized
+Administrator <-- hmsidm_backend: (https) 404 Not Found (401 Unauthorized)
+end alt
+end group
+
+
+
+group Populate domains data from IPA Server
+Administrator -> ipa_server: (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
+ipa_server -> hmsidm_backend: (https) PUT /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
+note right ipa_server
+X-Rh-Idm-Registration-Token: Iesah0IengaeFah6Cienai4tooph5Eiv
+
+{
+  "domain_name": "mydomain.example",
+  "domain_type": "ipa",
+  "auto_enrollment_enabled": true,
+  "ipa": {
+    "realm_name": "IPA.EXAMPLE",
+    "servers": [
+      "fqdn": "ipaserver.mydomain.example",
+      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+      "ca_server": true,
+      "hcc_enrollment_server": true,
+      "pkinit_server": true
+    ],
+    "ca_certs": [
+      {
+        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "serial_number": "1",
+        "not_valid_before": "2023-01-31T13:23:36",
+        "not_valid_after": "2023-01-31T13:23:36",
+        "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+      }
+    ],
+    "realm_domains": [
+      "ipahcc.test"
+    ]
+  },
+}
+end note
+
+ipa_server <-- hmsidm_backend: (https) 200 Ok
+note right ipa_server
+{
+  "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+  "domain_name": "mydomain.example",
+  "domain_type": "ipa",
+  "auto_enrollment_enabled": true,
+  "ipa": {
+    "realm_name": "IPA.EXAMPLE",
+    "servers": [
+      "fqdn": "ipaserver.mydomain.example",
+      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+      "ca_server": true,
+      "hcc_enrollment_server": true,
+      "pkinit_server": true
+    ],
+    "ca_certs": [
+      {
+        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "serial_number": "1",
+        "not_valid_before": "2023-01-31T13:23:36",
+        "not_valid_after": "2023-01-31T13:23:36",
+        "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+      }
+    ],
+    "realm_domains": [
+      "ipahcc.test"
+    ]
+  },
+}
+end note
+end group
+
+@enduml
