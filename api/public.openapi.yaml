@@ -299,70 +299,6 @@ paths:
               required: false
 components:
     schemas:
-        CreateDomain:
-            title: Root Type for DomainResponse
-            description: A domain resource
-            required:
-                - auto_enrollment_enabled
-                - domain_name
-                - domain_type
-                - ipa
-                - realm_name
-            type: object
-            properties:
-                domain_name:
-                    description: Domain name
-                    type: string
-                    example: mydomain.example
-                domain_type:
-                    description: Type of this domain. Currently only ipa is supported.
-                    enum:
-                        - ipa
-                    type: string
-                    example: ipa
-                auto_enrollment_enabled:
-                    description: Enable or disable host vm auto-enrollment for this domain
-                    type: boolean
-                    example: "true"
-                ipa:
-                    $ref: "#/components/schemas/CreateDomainIpa"
-                    description: Example for ipa parameters
-                    properties:
-                        realm_name:
-                            type: string
-                        ca_list:
-                            type: string
-                        server_list:
-                            type: array
-                            items:
-                                type: string
-                        client_options:
-                            type: object
-                    example: |
-                        {
-                            "ca_list": "base64",
-                            "server_list": [
-                              "server1.mydomain.example", 
-                              "server2.mydomain.example"
-                            ],
-                            "client_options": {}
-                          }
-                realm_name:
-                    description: The name of the realm that manage the domain.
-                    type: string
-                    example: MYDOMAIN.EXAMPLE
-            example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name: mydomain.example
-                domain_type: ipa
-                auto_enrollment_enabled: true
-                ipa:
-                    realm_name: IPA.EXAMPLE
-                    ca_list: base64
-                    server_list:
-                        - server1.mydomain.example
-                        - server2.mydomain.example
-                    client_options: {}
         CreateDomainIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
@@ -641,52 +577,6 @@ components:
                         -----END CERTIFICATE-----
                     server_list:
                         - ipaserver.domain.example
-        ListDomainsResponseSchema:
-            title: Root Type for ListDomains
-            description: Represent a paginated result for a list of domains
-            required:
-                - meta
-                - data
-                - links
-            type: object
-            properties:
-                meta:
-                    $ref: "#/components/schemas/PaginationMeta"
-                    description: Page metadata.
-                    properties:
-                        count:
-                            format: int32
-                            type: integer
-                links:
-                    $ref: "#/components/schemas/PaginationLinks"
-                    description: Pagination links.
-                    properties:
-                        first:
-                            type: string
-                        last:
-                            type: string
-                        next:
-                            type: string
-                        previous:
-                            type: string
-                data:
-                    description: The content for this page.
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/ListDomainsData"
-            example:
-                meta:
-                    count: 1
-                links:
-                    first: /api/idm/v1/domains?limit=10&offset=0
-                    last: /api/idm/v1/domains?limit=10&offset=10
-                    next: /api/idm/v1/domains?limit=10&offset=10
-                    previous: /api/idm/v1/domains?limit=10&offset=0
-                data:
-                    - domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                      domain_name: mydomain.example
-                      domain_type: ipa
-                      auto_enrollment_enabled: true
         CreateDomainIpaServer:
             title: Root Type for CreateDomainIpaServer
             description: Server schema for an entry into the Ipa domain type.
@@ -857,75 +747,6 @@ components:
                     }
                   ]
                 }
-        DomainResponse:
-            title: Root Type for DomainResponse
-            description: A domain resource
-            required:
-                - auto_enrollment_enabled
-                - domain_name
-                - domain_type
-                - ipa
-                - domain_uuid
-                - realm_name
-            type: object
-            properties:
-                domain_uuid:
-                    description: Internal id for this domain
-                    type: string
-                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name:
-                    description: Domain name
-                    type: string
-                    example: mydomain.example
-                domain_type:
-                    description: Type of this domain. Currently only ipa is supported.
-                    enum:
-                        - ipa
-                    type: string
-                    example: ipa
-                auto_enrollment_enabled:
-                    description: Enable or disable host vm auto-enrollment for this domain
-                    type: boolean
-                    example: "true"
-                ipa:
-                    $ref: "#/components/schemas/DomainResponseIpa"
-                    description: Example for ipa parameters
-                    properties:
-                        realm_name:
-                            type: string
-                        ca_list:
-                            type: string
-                        server_list:
-                            type: array
-                            items:
-                                type: string
-                        client_options:
-                            type: object
-                    example: |
-                        {
-                            "realm_name": "IPA.EXAMPLE",
-                            "ca_list": "base64",
-                            "server_list": [
-                              "server1.mydomain.example", 
-                              "Server2.mydomain.example"
-                            ],
-                            "client_options": {}
-                          }
-                realm_name:
-                    description: The realm name managed for this domain name.
-                    type: string
-            example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name: mydomain.example
-                domain_type: ipa
-                auto_enrollment_enabled: true
-                ipa:
-                    realm_name: IPA.EXAMPLE
-                    ca_list: base64
-                    server_list:
-                        - server1.mydomain.example
-                        - Server2.mydomain.example
-                    client_options: {}
         DomainResponseIpaCert:
             title: Root Type for CreateDomainIpaCert
             description: Represent a certificate item in the cacerts list for the Ipa domain
@@ -1049,6 +870,125 @@ components:
                 ca_server: true
                 hcc_enrollment_server: true
                 pkinit_server: true
+        DomainResponse:
+            title: Root Type for DomainResponse
+            description: A domain resource
+            required:
+                - auto_enrollment_enabled
+                - domain_name
+                - domain_type
+                - ipa
+                - domain_uuid
+                - realm_name
+            type: object
+            properties:
+                domain_uuid:
+                    description: Internal id for this domain
+                    type: string
+                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_name:
+                    description: Domain name
+                    type: string
+                    example: mydomain.example
+                domain_type:
+                    description: Type of this domain. Currently only ipa is supported.
+                    enum:
+                        - ipa
+                    type: string
+                    example: ipa
+                auto_enrollment_enabled:
+                    description: Enable or disable host vm auto-enrollment for this domain
+                    type: boolean
+                    example: "true"
+                ipa:
+                    $ref: "#/components/schemas/DomainResponseIpa"
+                realm_name:
+                    description: The realm name managed for this domain name.
+                    type: string
+            example:
+                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_name: mydomain.example
+                domain_type: ipa
+                auto_enrollment_enabled: true
+                ipa:
+                    realm_name: IPA.EXAMPLE
+                    ca_list: base64
+                    server_list:
+                        - server1.mydomain.example
+                        - Server2.mydomain.example
+                    client_options: {}
+        ListDomainsResponseSchema:
+            title: Root Type for ListDomains
+            description: Represent a paginated result for a list of domains
+            required:
+                - meta
+                - data
+                - links
+            type: object
+            properties:
+                meta:
+                    $ref: "#/components/schemas/PaginationMeta"
+                links:
+                    $ref: "#/components/schemas/PaginationLinks"
+                data:
+                    description: The content for this page.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/ListDomainsData"
+            example:
+                meta:
+                    count: 1
+                links:
+                    first: /api/idm/v1/domains?limit=10&offset=0
+                    last: /api/idm/v1/domains?limit=10&offset=10
+                    next: /api/idm/v1/domains?limit=10&offset=10
+                    previous: /api/idm/v1/domains?limit=10&offset=0
+                data:
+                    - domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                      domain_name: mydomain.example
+                      domain_type: ipa
+                      auto_enrollment_enabled: true
+        CreateDomain:
+            title: Root Type for DomainResponse
+            description: A domain resource
+            required:
+                - auto_enrollment_enabled
+                - domain_name
+                - domain_type
+                - ipa
+                - realm_name
+            type: object
+            properties:
+                domain_name:
+                    description: Domain name
+                    type: string
+                    example: mydomain.example
+                domain_type:
+                    description: Type of this domain. Currently only ipa is supported.
+                    enum:
+                        - ipa
+                    type: string
+                    example: ipa
+                auto_enrollment_enabled:
+                    description: Enable or disable host vm auto-enrollment for this domain
+                    type: boolean
+                    example: "true"
+                ipa:
+                    $ref: "#/components/schemas/CreateDomainIpa"
+                realm_name:
+                    description: The name of the realm that manage the domain.
+                    type: string
+                    example: MYDOMAIN.EXAMPLE
+            example:
+                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_name: mydomain.example
+                realm_name: MYDOMAIN.EXAMPLE
+                domain_type: ipa
+                auto_enrollment_enabled: true
+                ipa:
+                    realm_name: IPA.EXAMPLE
+                    ca_certs: []
+                    servers: []
     responses:
         CreateDomainResponse:
             content:
