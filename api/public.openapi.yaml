@@ -66,81 +66,6 @@ servers:
               default: /api/hmsidm/v1
               description: The prefix for our public API
 paths:
-    /domains:
-        summary: Domain resource
-        description: It store the necessary information about a domain that will let
-            manage them
-        get:
-            tags:
-                - resources
-            parameters:
-                - examples:
-                      Default offset:
-                          value: "0"
-                      Page 2 for pages of 10 items:
-                          value: "10"
-                  name: offset
-                  description: pagination offset
-                  schema:
-                      type: integer
-                  in: query
-                  required: false
-                - examples:
-                      Default value:
-                          value: "10"
-                      15 items per page:
-                          value: "15"
-                  name: limit
-                  description: Number of items per page
-                  schema:
-                      type: integer
-                  in: query
-                  required: false
-            responses:
-                "200":
-                    $ref: "#/components/responses/ListDomainsResponse"
-                "400":
-                    $ref: "#/components/responses/ErrorResponse"
-                "404":
-                    $ref: "#/components/responses/ErrorResponse"
-            security:
-                - x-rh-identity: []
-            operationId: listDomains
-            summary: List domains in the organization
-            description: |-
-                For the current organization, list all the domains that
-                are being managed from console.dot
-        post:
-            requestBody:
-                content:
-                    application/vnd.api+json:
-                        schema:
-                            $ref: "#/components/schemas/CreateDomain"
-            responses:
-                "201":
-                    $ref: "#/components/responses/CreateDomainResponse"
-                "400":
-                    $ref: "#/components/responses/ErrorResponse"
-                "404":
-                    $ref: "#/components/responses/ErrorResponse"
-            security:
-                - x-rh-identity: []
-            operationId: createDomain
-            summary: Create a domain.
-            description: Create a domain in the current organization.
-        parameters:
-            - name: X-Rh-Identity
-              description: Identity header for the request
-              schema:
-                  type: string
-              in: header
-              required: true
-            - name: X-Rh-Insights-Request-Id
-              description: Request id for distributed tracing.
-              schema:
-                  type: string
-              in: header
-              required: false
     "/domains/{uuid}":
         summary: Operations on a specific domain
         description: Specific operations on an existing domain to read, update or delete
@@ -197,57 +122,11 @@ paths:
                   type: string
               in: path
               required: true
-    "/hostconf/{fqdn}":
-        summary: Autoenroll host vm endpoint.
-        description: Endpoint used by host vm for auto-enrollment.
-        post:
-            requestBody:
-                description: Required information to take the action.
-                content:
-                    application/vnd.api+json:
-                        schema:
-                            $ref: "#/components/schemas/HostConf"
-                        examples:
-                            demo request:
-                                value:
-                                    fqdn: host1.domain.example
-                                    subscription_manager_id: c3ac4b91-27cc-422c-a283-42aadfe730af
-                required: true
-            tags:
-                - actions
-            responses:
-                "200":
-                    $ref: "#/components/responses/HostConfResponse"
-            security:
-                - x-rh-identity: []
-            operationId: hostConf
-            summary: Get host vm information.
-            description: Action to retrieve the host information for the host vm being
-                enrolled.
-        parameters:
-            - name: X-Rh-Identity
-              description: The identity header of the request.
-              schema:
-                  type: string
-              in: header
-              required: true
-            - name: X-Rh-Insights-Request-Id
-              description: Unique request id for distributing tracing.
-              schema:
-                  type: string
-              in: header
-              required: false
-            - name: fqdn
-              description: The full qualified domain name of the host.
-              schema:
-                  type: string
-              in: path
-              required: true
-    "/check_host/{subscription_manager_id}/{fqdn}":
+    "/check-host/{subscription_manager_id}/{fqdn}":
         post:
             requestBody:
                 content:
-                    application/vnd.api+json:
+                    application/json:
                         schema:
                             $ref: "#/components/schemas/CheckHosts"
                 required: true
@@ -297,62 +176,133 @@ paths:
                   type: string
               in: header
               required: false
+    "/host-conf/{fqdn}":
+        summary: Autoenroll host vm endpoint.
+        description: Endpoint used by host vm for auto-enrollment.
+        post:
+            requestBody:
+                description: Required information to take the action.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/HostConf"
+                        examples:
+                            demo request:
+                                value:
+                                    fqdn: host1.domain.example
+                                    subscription_manager_id: c3ac4b91-27cc-422c-a283-42aadfe730af
+                required: true
+            tags:
+                - actions
+            responses:
+                "200":
+                    $ref: "#/components/responses/HostConfResponse"
+            security:
+                - x-rh-identity: []
+            operationId: hostConf
+            summary: Get host vm information.
+            description: Action to retrieve the host information for the host vm being
+                enrolled.
+        parameters:
+            - name: X-Rh-Identity
+              description: The identity header of the request.
+              schema:
+                  type: string
+              in: header
+              required: true
+            - name: X-Rh-Insights-Request-Id
+              description: Unique request id for distributing tracing.
+              schema:
+                  type: string
+              in: header
+              required: false
+            - name: fqdn
+              description: The full qualified domain name of the host.
+              schema:
+                  type: string
+              in: path
+              required: true
+    /domains:
+        summary: Domain resource
+        description: It store the necessary information about a domain that will let
+            manage them
+        get:
+            tags:
+                - resources
+            parameters:
+                - examples:
+                      Default offset:
+                          value: 0
+                      Page 2 for pages of 10 items:
+                          value: 10
+                  name: offset
+                  description: pagination offset
+                  schema:
+                      type: integer
+                  in: query
+                  required: false
+                - examples:
+                      Default value:
+                          value: 10
+                      15 items per page:
+                          value: 15
+                  name: limit
+                  description: Number of items per page
+                  schema:
+                      type: integer
+                  in: query
+                  required: false
+            responses:
+                "200":
+                    $ref: "#/components/responses/ListDomainsResponse"
+                "400":
+                    $ref: "#/components/responses/ErrorResponse"
+                "404":
+                    $ref: "#/components/responses/ErrorResponse"
+            security:
+                - x-rh-identity: []
+            operationId: listDomains
+            summary: List domains in the organization
+            description: |-
+                For the current organization, list all the domains that
+                are being managed from console.dot
+        post:
+            requestBody:
+                description: Domain object to be created.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateDomain"
+                required: true
+            tags:
+                - resources
+            responses:
+                "201":
+                    $ref: "#/components/responses/CreateDomainResponse"
+                "400":
+                    $ref: "#/components/responses/ErrorResponse"
+                "404":
+                    $ref: "#/components/responses/ErrorResponse"
+            security:
+                - x-rh-identity: []
+            operationId: createDomain
+            summary: Create a domain.
+            description: Create a domain in the current organization.
+        parameters:
+            - name: X-Rh-Identity
+              description: Identity header for the request
+              schema:
+                  type: string
+              in: header
+              required: true
+            - name: X-Rh-Insights-Request-Id
+              description: Request id for distributed tracing.
+              schema:
+                  type: string
+              in: header
+              required: false
 components:
     schemas:
-        CreateDomainIpa:
-            title: Root Type for ResponseIpaObject
-            description: Options for ipa domains
-            required:
-                - ca_certs
-            type: object
-            properties:
-                servers:
-                    description: List of auto-enrollment enabled servers for this domain.
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/CreateDomainIpaServer"
-                    example: '["server1.mydomain.example","server2.mydomain.example"]'
-                ca_certs:
-                    description: A base64 representation of all the list of chain of certificates,
-                        including the server ca.
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/CreateDomainIpaCert"
-                    example: >-
-                        [
-                          {
-                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                            "serial_number": "1",
-                            "not_valid_before": "2023-01-31T13:23:36",
-                            "not_valid_after": "2023-01-31T13:23:36"
-                            "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
-                          }
-                        ]
-            example: >-
-                {
-                  "servers": [
-                    {
-                      "fqdn": "ipaserver.mydomain.example",
-                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
-                      "ca_server": true,
-                      "hcc_enrollment_server": true,
-                      "pkinit_server": true
-                    }
-                  ],
-                  "cacerts": [
-                    {
-                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "serial_number": "1",
-                      "not_valid_before": "2023-01-31T13:23:36",
-                      "not_valid_after": "2023-01-31T13:23:36"
-                      "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
-                    }
-                  ]
-                }
         Error:
             title: Root Type for Error
             description: General error schema
@@ -390,7 +340,10 @@ components:
             properties:
                 count:
                     format: int32
+                    description: Total number of registers without pagination.
                     type: integer
+                    example: "1"
+            additionalProperties: false
             example:
                 count: 1
         PaginationLinks:
@@ -577,38 +530,6 @@ components:
                         -----END CERTIFICATE-----
                     server_list:
                         - ipaserver.domain.example
-        CreateDomainIpaServer:
-            title: Root Type for CreateDomainIpaServer
-            description: Server schema for an entry into the Ipa domain type.
-            required:
-                - ca_server
-                - fqdn
-                - hcc_enrollment_server
-                - pkinit_server
-                - rhsm_id
-            type: object
-            properties:
-                fqdn:
-                    type: string
-                    example: '"server1.mydomain.example"'
-                rhsm_id:
-                    type: string
-                    example: '"03965a2c-bd24-11ed-968d-482ae3863d30"'
-                ca_server:
-                    type: boolean
-                    example: "true"
-                hcc_enrollment_server:
-                    type: boolean
-                    example: "true"
-                pkinit_server:
-                    type: boolean
-                    example: "true"
-            example:
-                fqdn: ipaserver.mydomain.example
-                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server: true
-                hcc_enrollment_server: true
-                pkinit_server: true
         CreateDomainIpaCert:
             title: Root Type for CreateDomainIpaCert
             description: Represent a certificate item in the cacerts list for the Ipa domain
@@ -692,61 +613,6 @@ components:
                     UjUaqSGxf/mfGbGDETXj
 
                     -----END CERTIFICATE-----
-        DomainResponseIpa:
-            title: Root Type for ResponseIpaObject
-            description: Options for ipa domains
-            required:
-                - ca_certs
-                - servers
-            type: object
-            properties:
-                servers:
-                    description: List of auto-enrollment enabled servers for this domain.
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/DomainResponseIpaServer"
-                    example: '["server1.mydomain.example","server2.mydomain.example"]'
-                ca_certs:
-                    description: A base64 representation of all the list of chain of certificates,
-                        including the server ca.
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/DomainResponseIpaCert"
-                    example: >-
-                        [
-                          {
-                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                            "serial_number": "1",
-                            "not_valid_before": "2023-01-31T13:23:36",
-                            "not_valid_after": "2023-01-31T13:23:36"
-                            "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
-                          }
-                        ]
-            example: >-
-                {
-                  "servers": [
-                    {
-                      "fqdn": "ipaserver.mydomain.example",
-                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
-                      "ca_server": true,
-                      "hcc_enrollment_server": true,
-                      "pkinit_server": true
-                    }
-                  ],
-                  "cacerts": [
-                    {
-                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "serial_number": "1",
-                      "not_valid_before": "2023-01-31T13:23:36",
-                      "not_valid_after": "2023-01-31T13:23:36"
-                      "pem": "-----BEGIN CERTIFICATE-----\nMIIEizCCAvOgAwIBAgIBATANBgkqhkiG9w0BAQsFADA2MRQwEgYDVQQKDAtJUEFI\nQ0MuVEVTVDEeMBwGA1UEAwwVQ2VydGlmaWNhdGUgQXV0aG9yaXR5MB4XDTIzMDEz\nMTEzMjMzNloXDTQzMDEzMTEzMjMzNlowNjEUMBIGA1UECgwLSVBBSENDLlRFU1Qx\nHjAcBgNVBAMMFUNlcnRpZmljYXRlIEF1dGhvcml0eTCCAaIwDQYJKoZIhvcNAQEB\nBQADggGPADCCAYoCggGBANqQ9Hf9t4POqE/vnLsvqEUagXA4O7qlj3O1khfnReO+\nXuMtS7AN4pQ15hMNeIc+yR4QYDGnzMbd46pcwn2dYidj2346pI4253RmHCYnzXoa\nD9EYXEerwVGQ6cgRcLmOUgTY/642ZJFNk15C05LBQkBJh1LFAsvA4/L79GWCm0so\nltBRY03hMl8BEzWb6vDv2lg/V+4bPGQhEgv4aI8YTMQ6TsLqDTH9/OwYnhzcOCz8\nfT2zG9MRSWySQLAhC3hXVBz/8asuSbcaX/fIkg2V8Uk+2Cqt/yly3bfdMUYeHjaJ\nsViiKS4orOoSOHvYbOz5ou7VPsuJKeP3l4Q4H6zYs/6eFtWjEV3AJ6rteY5/DFMz\nQ21IPB1C9O0RndlYsM36Fqf8UTf/QdxAUu1K9ppWv7WOCNCy9vV16nf67i77G+kd\nBR1nPZ9WAZf6DEtUi9mA+Nlm30+oBP97e7Jf0taqIBw8RW6YiqFqh9dms6lX3ZtH\n80hoosRdhIMm88jdo9D95wIDAQABo4GjMIGgMB8GA1UdIwQYMBaAFJ8IK4lIr4Jv\nH1NYD7rKXnuGW31FMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgHGMB0G\nA1UdDgQWBBSfCCuJSK+Cbx9TWA+6yl57hlt9RTA9BggrBgEFBQcBAQQxMC8wLQYI\nKwYBBQUHMAGGIWh0dHA6Ly9pcGEtY2EuaXBhaGNjLnRlc3QvY2Evb2NzcDANBgkq\nhkiG9w0BAQsFAAOCAYEA03f4Yt1qpvJZZwEjzsb47+NCxqc1evfJG2lOcwQ/Wa1l\nuCfw27txj8xMWys+zwmqx/ivloxrRh6p7lXNRVPiIRuvQtF+2fY4MdLDuiqwa9OC\nQXdYXbTKcgBDAFEkBcOPgbef7E134m/0wgP03Cb+rWHK6cLd2HxIyG3eJ/0SuJaU\nZI1E8vtVJJuzAA+cPhPWb3CXPXfzk9U+L2lpnFUNKC7PFEA4BN0U6MsXDthwig1G\nbzFQkwkvj+IqVfev0bZnBrWovx4kRNpCrsmQWfeGjiPWAJSWrm5Ga33Kw0r6aFzm\niW6TGvwrJ4KBhGKVKa/cFKL4ks0ipHrOBzZpJWXUXItsXLGwcgDDmnKRM5PAMYwT\nrJ6WAtCctzBllWu6aHCsIc6CjP3ylo+Lb1I2ZtR0ilkiyuWY+QVm9zWyV+yaGzz9\nSxp38/MOqDHbqMqOGLjhgVGfMnU/lY/FzWdyi21XR7sc7vyxpuk6Ms6I4KEWcaos\nUjUaqSGxf/mfGbGDETXj\n-----END CERTIFICATE-----\n",
-                    }
-                  ]
-                }
         DomainResponseIpaCert:
             title: Root Type for CreateDomainIpaCert
             description: Represent a certificate item in the cacerts list for the Ipa domain
@@ -838,38 +704,6 @@ components:
                     UjUaqSGxf/mfGbGDETXj
 
                     -----END CERTIFICATE-----
-        DomainResponseIpaServer:
-            title: Root Type for CreateDomainIpaServer
-            description: Server schema for an entry into the Ipa domain type.
-            required:
-                - ca_server
-                - fqdn
-                - hcc_enrollment_server
-                - pkinit_server
-                - rhsm_id
-            type: object
-            properties:
-                fqdn:
-                    type: string
-                    example: '"server1.mydomain.example"'
-                rhsm_id:
-                    type: string
-                    example: '"03965a2c-bd24-11ed-968d-482ae3863d30"'
-                ca_server:
-                    type: boolean
-                    example: "true"
-                hcc_enrollment_server:
-                    type: boolean
-                    example: "true"
-                pkinit_server:
-                    type: boolean
-                    example: "true"
-            example:
-                fqdn: ipaserver.mydomain.example
-                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server: true
-                hcc_enrollment_server: true
-                pkinit_server: true
         DomainResponse:
             title: Root Type for DomainResponse
             description: A domain resource
@@ -989,6 +823,179 @@ components:
                     realm_name: IPA.EXAMPLE
                     ca_certs: []
                     servers: []
+        CreateDomainIpa:
+            title: Root Type for ResponseIpaObject
+            description: Options for ipa domains
+            required:
+                - ca_certs
+            type: object
+            properties:
+                servers:
+                    description: List of auto-enrollment enabled servers for this domain.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/CreateDomainIpaServer"
+                    example: '["server1.mydomain.example","server2.mydomain.example"]'
+                ca_certs:
+                    description: A base64 representation of all the list of chain of certificates,
+                        including the server ca.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/CreateDomainIpaCert"
+                    example: >-
+                        [
+                          {
+                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "serial_number": "1",
+                            "not_valid_before": "2023-01-31T13:23:36",
+                            "not_valid_after": "2023-01-31T13:23:36"
+                            "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+                          }
+                        ]
+            example: >-
+                {
+                  "servers": [
+                    {
+                      "fqdn": "ipaserver.mydomain.example",
+                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                      "ca_server": true,
+                      "hcc_enrollment_server": true,
+                      "pkinit_server": true
+                    }
+                  ],
+                  "cacerts": [
+                    {
+                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "serial_number": "1",
+                      "not_valid_before": "2023-01-31T13:23:36",
+                      "not_valid_after": "2023-01-31T13:23:36"
+                      "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+                    }
+                  ]
+                }
+        CreateDomainIpaServer:
+            title: Root Type for CreateDomainIpaServer
+            description: Server schema for an entry into the Ipa domain type.
+            required:
+                - ca_server
+                - fqdn
+                - hcc_enrollment_server
+                - pkinit_server
+                - rhsm_id
+            type: object
+            properties:
+                fqdn:
+                    type: string
+                    example: server1.mydomain.example
+                rhsm_id:
+                    type: string
+                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server:
+                    type: boolean
+                    example: true
+                hcc_enrollment_server:
+                    type: boolean
+                    example: true
+                pkinit_server:
+                    type: boolean
+                    example: true
+            example:
+                fqdn: ipaserver.mydomain.example
+                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server: true
+                hcc_enrollment_server: true
+                pkinit_server: true
+        DomainResponseIpa:
+            title: Root Type for ResponseIpaObject
+            description: Options for ipa domains
+            required:
+                - ca_certs
+                - servers
+            type: object
+            properties:
+                servers:
+                    description: List of auto-enrollment enabled servers for this domain.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DomainResponseIpaServer"
+                    example: '["server1.mydomain.example","server2.mydomain.example"]'
+                ca_certs:
+                    description: A base64 representation of all the list of chain of certificates,
+                        including the server ca.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DomainResponseIpaCert"
+                    example: >-
+                        [
+                          {
+                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "serial_number": "1",
+                            "not_valid_before": "2023-01-31T13:23:36",
+                            "not_valid_after": "2023-01-31T13:23:36"
+                            "pem": "-----BEGIN CERTIFICATE-----\nMIIE...\n-----END CERTIFICATE-----\n",
+                          }
+                        ]
+            example: >-
+                {
+                  "servers": [
+                    {
+                      "fqdn": "ipaserver.mydomain.example",
+                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                      "ca_server": true,
+                      "hcc_enrollment_server": true,
+                      "pkinit_server": true
+                    }
+                  ],
+                  "cacerts": [
+                    {
+                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "serial_number": "1",
+                      "not_valid_before": "2023-01-31T13:23:36",
+                      "not_valid_after": "2023-01-31T13:23:36"
+                      "pem": "-----BEGIN CERTIFICATE-----\nMIIE...\n-----END CERTIFICATE-----\n",
+                    }
+                  ]
+                }
+        DomainResponseIpaServer:
+            title: Root Type for CreateDomainIpaServer
+            description: Server schema for an entry into the Ipa domain type.
+            required:
+                - ca_server
+                - fqdn
+                - hcc_enrollment_server
+                - pkinit_server
+                - rhsm_id
+            type: object
+            properties:
+                fqdn:
+                    type: string
+                    example: server1.mydomain.example
+                rhsm_id:
+                    type: string
+                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server:
+                    type: boolean
+                    example: true
+                hcc_enrollment_server:
+                    type: boolean
+                    example: true
+                pkinit_server:
+                    type: boolean
+                    example: true
+            example:
+                fqdn: ipaserver.mydomain.example
+                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server: true
+                hcc_enrollment_server: true
+                pkinit_server: true
     responses:
         CreateDomainResponse:
             content:

@@ -14,7 +14,7 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Check a host vm before auto-enroll into the domain.
-	// (POST /check_host/{subscription_manager_id}/{fqdn})
+	// (POST /check-host/{subscription_manager_id}/{fqdn})
 	CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string, params CheckHostParams) error
 	// List domains in the organization
 	// (GET /domains)
@@ -29,7 +29,7 @@ type ServerInterface interface {
 	// (GET /domains/{uuid})
 	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
 	// Get host vm information.
-	// (POST /hostconf/{fqdn})
+	// (POST /host-conf/{fqdn})
 	HostConf(ctx echo.Context, fqdn string, params HostConfParams) error
 }
 
@@ -403,11 +403,11 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.POST(baseURL+"/check_host/:subscription_manager_id/:fqdn", wrapper.CheckHost)
+	router.POST(baseURL+"/check-host/:subscription_manager_id/:fqdn", wrapper.CheckHost)
 	router.GET(baseURL+"/domains", wrapper.ListDomains)
 	router.POST(baseURL+"/domains", wrapper.CreateDomain)
 	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
 	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
-	router.POST(baseURL+"/hostconf/:fqdn", wrapper.HostConf)
+	router.POST(baseURL+"/host-conf/:fqdn", wrapper.HostConf)
 
 }

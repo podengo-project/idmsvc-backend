@@ -218,6 +218,7 @@ type PaginationLinks struct {
 
 // PaginationMeta Metadata for the paginated responses.
 type PaginationMeta struct {
+	// Count Total number of registers without pagination.
 	Count *int32 `json:"count,omitempty"`
 }
 
@@ -297,11 +298,11 @@ type HostConfParams struct {
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
-// CheckHostJSONRequestBody defines body for CheckHost for application/vnd.api+json ContentType.
+// CheckHostJSONRequestBody defines body for CheckHost for application/json ContentType.
 type CheckHostJSONRequestBody = CheckHosts
 
-// CreateDomainJSONRequestBody defines body for CreateDomain for application/vnd.api+json ContentType.
+// CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
 type CreateDomainJSONRequestBody = CreateDomain
 
-// HostConfJSONRequestBody defines body for HostConf for application/vnd.api+json ContentType.
+// HostConfJSONRequestBody defines body for HostConf for application/json ContentType.
 type HostConfJSONRequestBody = HostConf
