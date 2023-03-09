@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS ipas (
     --      using the normal operations.
     --      See: https://gorm.io/docs/delete.html
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
-    realm_name VARCHAR(253) NOT NULL
+    realm_name VARCHAR(253) NOT NULL,
+    realm_names TEXT NOT NULL
 );
 
 ALTER TABLE ipas

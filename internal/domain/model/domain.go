@@ -30,7 +30,7 @@ type Domain struct {
 	DomainDescription     *string
 	DomainType            *uint
 	AutoEnrollmentEnabled *bool
-	IpaDomain             *Ipa
+	IpaDomain             *Ipa `gorm:"foreignKey:id"`
 }
 
 func DomainTypeString(data uint) string {

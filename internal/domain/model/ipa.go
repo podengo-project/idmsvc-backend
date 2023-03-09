@@ -11,8 +11,9 @@ type Ipa struct {
 	//      related with this Ipa entry?
 	// NOTE Thinking about this as a comma separated list
 	//      of servers
-	Servers   []IpaServer `gorm:"foreignKey:id"`
-	RealmName *string
+	Servers    []IpaServer `gorm:"foreignKey:id"`
+	RealmName  *string
+	RealmNames string
 
 	Domain Domain `gorm:"foreignKey:id"`
 }
