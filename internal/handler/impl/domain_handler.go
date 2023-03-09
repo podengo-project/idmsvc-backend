@@ -208,3 +208,9 @@ func (a *application) CheckHost(ctx echo.Context, subscriptionManagerId string, 
 	// TODO Implement this endpoint
 	return http.ErrNotSupported
 }
+
+// Register an IPA domain.
+// (PUT /domains/{uuid}/ipa)
+func (a *application) RegisterIpaDomain(ctx echo.Context, uuid string, params public.RegisterIpaDomainParams) error {
+	return http.ErrNotSupported
+}
