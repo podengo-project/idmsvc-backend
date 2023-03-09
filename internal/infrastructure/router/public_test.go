@@ -29,7 +29,7 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	require.NotNil(t, metrics)
 
 	cfg := config.Get()
-	_, db, err = test.NewSqlMock()
+	_, db, err = test.NewSqlMock(&gorm.Session{})
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
@@ -136,7 +136,7 @@ func TestNewGroupPublic(t *testing.T) {
 	require.NotNil(t, metrics)
 
 	cfg := config.Get()
-	_, db, err = test.NewSqlMock()
+	_, db, err = test.NewSqlMock(&gorm.Session{})
 	require.NoError(t, err)
 	require.NotNil(t, db)
 

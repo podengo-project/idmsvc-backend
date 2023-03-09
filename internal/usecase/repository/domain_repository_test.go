@@ -29,7 +29,7 @@ type Suite struct {
 
 func (s *Suite) SetupSuite() {
 	var err error
-	s.mock, s.DB, err = test.NewSqlMock()
+	s.mock, s.DB, err = test.NewSqlMock(&gorm.Session{SkipHooks: true})
 	if err != nil {
 		s.Suite.FailNow("Error calling gorm.Open: %s", err.Error())
 		return

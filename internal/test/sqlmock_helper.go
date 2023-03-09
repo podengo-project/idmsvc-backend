@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewSqlMock() (sqlmock.Sqlmock, *gorm.DB, error) {
+func NewSqlMock(session *gorm.Session) (sqlmock.Sqlmock, *gorm.DB, error) {
 	sqlDB, sqlMock, err := sqlmock.New()
 	if err != nil {
 		return nil, nil, err
@@ -19,6 +19,9 @@ func NewSqlMock() (sqlmock.Sqlmock, *gorm.DB, error) {
 	})
 	if err != nil {
 		return nil, nil, err
+	}
+	if session != nil {
+		gormDB = gormDB.Session(session)
 	}
 
 	return sqlMock, gormDB, nil
