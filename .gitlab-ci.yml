@@ -1,0 +1,31 @@
+---
+image: golang:latest
+
+stages:
+  - test
+  - build
+
+run tests:
+  stage: test
+  tags:
+    - shared
+  script:
+    - go fmt $(go list ./... | grep -v /vendor/)
+    - go vet $(go list ./... | grep -v /vendor/)
+    - make test
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < coverage.out > coverage.xml
+    - go tool cover -func ./coverage.out
+  coverage: '/total:\s+\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+compile project:
+  stage: build
+  tags:
+    - shared
+  script:
+    - make build
