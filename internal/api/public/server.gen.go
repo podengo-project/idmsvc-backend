@@ -28,6 +28,9 @@ type ServerInterface interface {
 	// Read a domain.
 	// (GET /domains/{uuid})
 	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
+	// Register an IPA domain.
+	// (PUT /domains/{uuid}/ipa)
+	RegisterIpaDomain(ctx echo.Context, uuid string, params RegisterIpaDomainParams) error
 	// Get host vm information.
 	// (POST /host-conf/{fqdn})
 	HostConf(ctx echo.Context, fqdn string, params HostConfParams) error
@@ -320,6 +323,78 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	return err
 }
 
+// RegisterIpaDomain converts echo context to params.
+func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
+	var err error
+	// ------------- Path parameter "uuid" -------------
+	var uuid string
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
+	}
+
+	ctx.Set(X_rh_identityScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RegisterIpaDomainParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Rh-Identity" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
+		var XRhIdentity string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
+		}
+
+		params.XRhIdentity = XRhIdentity
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
+	}
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
+	}
+	// ------------- Required header parameter "X-Rh-IDM-Registration-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-IDM-Registration-Token")]; found {
+		var XRhIDMRegistrationToken string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-IDM-Registration-Token, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-IDM-Registration-Token", runtime.ParamLocationHeader, valueList[0], &XRhIDMRegistrationToken)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-IDM-Registration-Token: %s", err))
+		}
+
+		params.XRhIDMRegistrationToken = XRhIDMRegistrationToken
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-IDM-Registration-Token is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.RegisterIpaDomain(ctx, uuid, params)
+	return err
+}
+
 // HostConf converts echo context to params.
 func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	var err error
@@ -408,6 +483,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/domains", wrapper.CreateDomain)
 	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
 	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
+	router.PUT(baseURL+"/domains/:uuid/ipa", wrapper.RegisterIpaDomain)
 	router.POST(baseURL+"/host-conf/:fqdn", wrapper.HostConf)
 
 }

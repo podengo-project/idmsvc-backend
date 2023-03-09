@@ -222,6 +222,9 @@ type PaginationMeta struct {
 	Count *int32 `json:"count,omitempty"`
 }
 
+// CreateDomainIpaResponse A domain resource
+type CreateDomainIpaResponse = DomainResponse
+
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = DomainResponse
 
@@ -289,6 +292,18 @@ type ReadDomainParams struct {
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
+// RegisterIpaDomainParams defines parameters for RegisterIpaDomain.
+type RegisterIpaDomainParams struct {
+	// XRhIdentity Identity header
+	XRhIdentity string `json:"X-Rh-Identity"`
+
+	// XRhInsightsRequestId Request id
+	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+
+	// XRhIDMRegistrationToken One time use token to register ipa information.
+	XRhIDMRegistrationToken string `json:"X-Rh-IDM-Registration-Token"`
+}
+
 // HostConfParams defines parameters for HostConf.
 type HostConfParams struct {
 	// XRhIdentity The identity header of the request.
@@ -303,6 +318,9 @@ type CheckHostJSONRequestBody = CheckHosts
 
 // CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
 type CreateDomainJSONRequestBody = CreateDomain
+
+// RegisterIpaDomainJSONRequestBody defines body for RegisterIpaDomain for application/json ContentType.
+type RegisterIpaDomainJSONRequestBody = CreateDomainIpa
 
 // HostConfJSONRequestBody defines body for HostConf for application/json ContentType.
 type HostConfJSONRequestBody = HostConf

@@ -301,6 +301,91 @@ paths:
                   type: string
               in: header
               required: false
+    "/domains/{uuid}/ipa":
+        summary: IPA domain details.
+        description: Set, read or update the IPA domain details.
+        put:
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/CreateDomainIpa"
+                        examples:
+                            set ipa domain information:
+                                value: >
+                                    {
+                                      "servers": [
+                                        {
+                                          "fqdn": "ipaserver.mydomain.example",
+                                          "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                                          "ca_server": true,
+                                          "hcc_enrollment_server": true,
+                                          "pkinit_server": true
+                                        }
+                                      ],
+                                      "ca_certs": [
+                                        {
+                                          "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                                          "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                                          "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                                          "serial_number": "1",
+                                          "not_valid_before": "2023-01-31T13:23:36",
+                                          "not_valid_after": "2023-01-31T13:23:36"
+                                          "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+                                        }
+                                      ],
+                                      "realm_domains": [
+                                        "mydomain.example"
+                                      ]
+                                    }
+                required: true
+            tags:
+                - resources
+            responses:
+                "200":
+                    $ref: "#/components/responses/CreateDomainIpaResponse"
+                "400":
+                    $ref: "#/components/responses/ErrorResponse"
+                "403":
+                    $ref: "#/components/responses/ErrorResponse"
+                "404":
+                    $ref: "#/components/responses/ErrorResponse"
+            security:
+                - x-rh-identity: []
+            operationId: registerIpaDomain
+            summary: Register an IPA domain.
+            description: >-
+                Use the one time use token to register the initial information for
+
+                an IPA domain.
+        parameters:
+            - name: X-Rh-Identity
+              description: Identity header
+              schema:
+                  type: string
+              in: header
+              required: true
+            - name: X-Rh-Insights-Request-Id
+              description: Request id
+              schema:
+                  type: string
+              in: header
+              required: false
+            - name: X-Rh-IDM-Registration-Token
+              description: One time use token to register ipa information.
+              schema:
+                  type: string
+              in: header
+              required: true
+            - examples:
+                  uuid:
+                      value: 08363cd4-bea8-11ed-b83f-482ae3863d30
+              name: uuid
+              description: uuid for the IPA domain.
+              schema:
+                  type: string
+              in: path
+              required: true
 components:
     schemas:
         Error:
@@ -1027,6 +1112,12 @@ components:
                     schema:
                         $ref: "#/components/schemas/HostConfResponseSchema"
             description: Response for the HostConf action.
+        CreateDomainIpaResponse:
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/DomainResponse"
+            description: Response when a domain has been created.
     securitySchemes:
         x-rh-identity:
             type: apiKey
