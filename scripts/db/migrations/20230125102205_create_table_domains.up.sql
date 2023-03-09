@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS domains (
     org_id      VARCHAR(255) NOT NULL,
     domain_uuid UUID UNIQUE NOT NULL,
     domain_name VARCHAR(253) NOT NULL,
-    realm_name VARCHAR(253) NOT NULL,
+    domain_description VARCHAR(255) NOT NULL,
     domain_type INT NOT NULL,
     auto_enrollment_enabled BOOLEAN NOT NULL
 );
@@ -30,14 +30,9 @@ CREATE TABLE IF NOT EXISTS ipas (
     --      the row is not deleted from the database when
     --      using the normal operations.
     --      See: https://gorm.io/docs/delete.html
-    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL
+    deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    realm_name VARCHAR(253) NOT NULL
 );
-
--- ALTER TABLE ipas
--- ADD CONSTRAINT fk_domain
--- FOREIGN KEY (domain_id)
--- REFERENCES domains(id)
--- ON DELETE SET NULL;
 
 ALTER TABLE ipas
 ADD CONSTRAINT fk_domain

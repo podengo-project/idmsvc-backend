@@ -27,7 +27,7 @@ type Domain struct {
 	OrgId                 string
 	DomainUuid            uuid.UUID `gorm:"unique"`
 	DomainName            *string
-	RealmName             *string
+	DomainDescription     *string
 	DomainType            *uint
 	AutoEnrollmentEnabled *bool
 	IpaDomain             *Ipa

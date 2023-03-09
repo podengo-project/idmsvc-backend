@@ -11,20 +11,42 @@ entity "**domains**" {
   *""org_id"": //character varying(255) //
   *""domain_uuid"": //uuid //
   *""domain_name"": //character varying(253) //
+  *""domain_description"": //character varying(255) //
   *""domain_type"": //integer //
   *""auto_enrollment_enabled"": //boolean //
 }
 
-entity "**ipas**" {
+entity "**ipa_certs**" {
   + ""id"": //serial [PK]//
   --
   ""created_at"": //timestamp with time zone //
   ""updated_at"": //timestamp with time zone //
   ""deleted_at"": //timestamp with time zone //
-  ""domain_id"": //integer [FK]//
+  ""ipa_id"": //integer [FK]//
+  *""issuer"": //character varying(255) //
+  *""nickname"": //character varying(255) //
+  *""not_valid_after"": //timestamp with time zone //
+  *""not_valid_before"": //timestamp with time zone //
+  *""serial_number"": //character varying(255) //
+  *""subject"": //character varying(255) //
+}
+
+entity "**ipa_servers**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp with time zone //
+  ""updated_at"": //timestamp with time zone //
+  ""deleted_at"": //timestamp with time zone //
+  ""ipa_id"": //integer [FK]//
+}
+
+entity "**ipas**" {
+  + ""id"": //serial [PK][FK]//
+  --
+  ""created_at"": //timestamp with time zone //
+  ""updated_at"": //timestamp with time zone //
+  ""deleted_at"": //timestamp with time zone //
   *""realm_name"": //character varying(253) //
-  *""ca_list"": //text //
-  *""server_list"": //text //
 }
 
 entity "**schema_migrations**" {
@@ -33,5 +55,9 @@ entity "**schema_migrations**" {
   *""dirty"": //boolean //
 }
 
-"**ipas**"   }--  "**domains**"
+"**ipa_certs**"   }--  "**ipas**"
+
+"**ipa_servers**"   }--  "**ipas**"
+
+"**ipas**"  ||-||  "**domains**"
 @enduml
