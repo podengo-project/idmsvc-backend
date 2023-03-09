@@ -12,8 +12,9 @@ import (
 const headerXRhIdentity = "X-Rh-Identity"
 
 // FIXME Refactor to use the signature: func(c echo.Context) Error
-//       so that the predicate has information about the http Request
-//       context
+//
+//	so that the predicate has information about the http Request
+//	context
 type Predicate func(data *identity.Identity) error
 
 type IdentityConfig struct {
