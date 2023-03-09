@@ -876,6 +876,7 @@ components:
                 - domain_type
                 - ipa
                 - realm_name
+                - domain_description
             type: object
             properties:
                 domain_name:
@@ -898,6 +899,10 @@ components:
                     description: The name of the realm that manage the domain.
                     type: string
                     example: MYDOMAIN.EXAMPLE
+                domain_description:
+                    description: Humand readable description for this domain.
+                    type: string
+                    example: This is my awesome domain description.
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example

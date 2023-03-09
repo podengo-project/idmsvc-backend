@@ -44,6 +44,9 @@ type CreateDomain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
+	// DomainDescription Humand readable description for this domain.
+	DomainDescription string `json:"domain_description"`
+
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
