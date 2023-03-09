@@ -65,6 +65,9 @@ type CreateDomainIpa struct {
 	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
 	CaCerts []CreateDomainIpaCert `json:"ca_certs"`
 
+	// RealmName The kerberos realm name associated to the IPA domain.
+	RealmName string `json:"realm_name"`
+
 	// Servers List of auto-enrollment enabled servers for this domain.
 	Servers *[]CreateDomainIpaServer `json:"servers,omitempty"`
 }

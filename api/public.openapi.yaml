@@ -917,6 +917,7 @@ components:
             description: Options for ipa domains
             required:
                 - ca_certs
+                - realm_name
             type: object
             properties:
                 servers:
@@ -943,8 +944,13 @@ components:
                             "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
                           }
                         ]
+                realm_name:
+                    description: The kerberos realm name associated to the IPA domain.
+                    type: string
+                    example: MYDOMAIN.EXAMPLE
             example: >-
                 {
+                  "realm_name": "MYDOMAIN.EXAMPLE",
                   "servers": [
                     {
                       "fqdn": "ipaserver.mydomain.example",
