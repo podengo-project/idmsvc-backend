@@ -55,9 +55,6 @@ type CreateDomain struct {
 
 	// Ipa Options for ipa domains
 	Ipa CreateDomainIpa `json:"ipa"`
-
-	// RealmName The name of the realm that manage the domain.
-	RealmName string `json:"realm_name"`
 }
 
 // CreateDomainDomainType Type of this domain. Currently only ipa is supported.
@@ -96,6 +93,9 @@ type CreateDomainIpaServer struct {
 type DomainResponse struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// DomainDescription Human readable description abou the domain.
+	DomainDescription string `json:"domain_description"`
 
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`

@@ -799,6 +799,7 @@ components:
                 - ipa
                 - domain_uuid
                 - realm_name
+                - domain_description
             type: object
             properties:
                 domain_uuid:
@@ -824,9 +825,13 @@ components:
                 realm_name:
                     description: The realm name managed for this domain name.
                     type: string
+                domain_description:
+                    description: Human readable description abou the domain.
+                    type: string
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
+                domain_description: My awesome domain description.
                 domain_type: ipa
                 auto_enrollment_enabled: true
                 ipa:
@@ -875,7 +880,6 @@ components:
                 - domain_name
                 - domain_type
                 - ipa
-                - realm_name
                 - domain_description
             type: object
             properties:
@@ -895,10 +899,6 @@ components:
                     example: "true"
                 ipa:
                     $ref: "#/components/schemas/CreateDomainIpa"
-                realm_name:
-                    description: The name of the realm that manage the domain.
-                    type: string
-                    example: MYDOMAIN.EXAMPLE
                 domain_description:
                     description: Humand readable description for this domain.
                     type: string
@@ -906,11 +906,10 @@ components:
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
-                realm_name: MYDOMAIN.EXAMPLE
                 domain_type: ipa
                 auto_enrollment_enabled: true
                 ipa:
-                    realm_name: IPA.EXAMPLE
+                    realm_name: MYDOMAIN.EXAMPLE
                     ca_certs: []
                     servers: []
         CreateDomainIpa:
