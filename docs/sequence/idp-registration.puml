@@ -65,7 +65,7 @@ end group
 
 group Populate domains data from IPA Server
 Administrator -> ipa_server: (5) (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
-ipa_server -> hmsidm_backend: (6) (https) PATCH /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/ipa
+ipa_server -> hmsidm_backend: (6) (https) PUT /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/ipa
 note left hmsidm_backend
 Here it is used an X-Rh-Identity header resulting
 from the certificate issued for the host by RHSM.
@@ -158,6 +158,14 @@ note right ipa_server
         "mydomain.example"
     ]
 }
+end note
+note right ipa_server
+- The presence of `token` or `token_expiration` will
+  be considered a bad request on this operation. Once
+  the token is created, it is updated only internally
+  by the backend service currently.
+- This operation will remove the **token** and **token_expiration**
+  (set to NULL), for 200 Ok response.
 end note
 note right ipa_server
 At this point, the IPA section for the domain is filled up
