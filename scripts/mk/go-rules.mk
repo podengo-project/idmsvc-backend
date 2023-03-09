@@ -71,7 +71,7 @@ vendor: ## Generate vendor/ directory populated with the dependencies
 
 .PHONY: test
 test: ## Run tests
-	go test -coverprofile="coverage.out" $(MOD_VENDOR) ./...
+	go test -coverprofile="coverage.out" -covermode count $(MOD_VENDOR) ./...
 
 .PHONY: test-ci
 test-ci: ## Run tests for ci
