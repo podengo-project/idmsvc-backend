@@ -141,6 +141,20 @@ func (_m *Application) ReadDomain(ctx echo.Context, uuid string, params public.R
 	return r0
 }
 
+// RegisterIpaDomain provides a mock function with given fields: ctx, uuid, params
+func (_m *Application) RegisterIpaDomain(ctx echo.Context, uuid string, params public.RegisterIpaDomainParams) error {
+	ret := _m.Called(ctx, uuid, params)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, string, public.RegisterIpaDomainParams) error); ok {
+		r0 = rf(ctx, uuid, params)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewApplication interface {
 	mock.TestingT
 	Cleanup(func())
