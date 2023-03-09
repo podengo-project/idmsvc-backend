@@ -27,29 +27,29 @@ X-Rh-Insights-Request-Id: kjasdf01
 }
 end note
 
-hmsidm_backend -> rbac: (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
-hmsidm_backend <-- rbac: (http) ACL list for the current user
+hmsidm_backend -> rbac: (2) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (3) (http) ACL list for the current user
 note left rbac
 The communication between services will be encrypted by TLS in a near future
 See: ADR-18 at https://issues.redhat.com/browse/ADR-18
 end note
 
 alt domain created
-Administrator <-- hmsidm_backend: (https) 201 Created
+Administrator <-- hmsidm_backend: (4) (https) 201 Created
 note right Administrator
 {
-  "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
-  "domain_name": "mydomain.example",
-  "domain_type": "ipa",
-  "auto_enrollment_enabled": true,
-  "ipa": {
-    "realm_name": "MYDOMAIN.EXAMPLE",
-    "token": "Iesah0IengaeFah6Cienai4tooph5Eiv",
-    "token_expiration": "2023-03-08T15:50:45",
-    "ca_certs": [],
-    "servers": [],
-    "realm_domains": []
-  },
+    "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+    "domain_name": "mydomain.example",
+    "domain_type": "ipa",
+    "auto_enrollment_enabled": true,
+    "ipa": {
+        "realm_name": "MYDOMAIN.EXAMPLE",
+        "token": "Iesah0IengaeFah6Cienai4tooph5Eiv",
+        "token_expiration": "2023-03-08T15:50:45",
+        "ca_certs": [],
+        "servers": [],
+        "realm_domains": []
+    },
 }
 end note
 note right Administrator
@@ -57,15 +57,15 @@ Execute the command below into your ipa server:
 $ ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
 end note
 else user not authorized
-Administrator <-- hmsidm_backend: (https) 404 Not Found (401 Unauthorized)
+Administrator <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
 end alt
 end group
 
 
 
 group Populate domains data from IPA Server
-Administrator -> ipa_server: (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
-ipa_server -> hmsidm_backend: (https) PATCH /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/ipa
+Administrator -> ipa_server: (5) (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
+ipa_server -> hmsidm_backend: (6) (https) PATCH /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/ipa
 note left hmsidm_backend
 Here it is used an X-Rh-Identity header resulting
 from the certificate issued for the host by RHSM.
@@ -122,15 +122,15 @@ X-Rh-Idm-Registration-Token: Iesah0IengaeFah6Cienai4tooph5Eiv
         }
     ],
     "realm_domains": [
-        "ipahcc.test"
+        "mydomain.example"
     ]
 }
 end note
-hmsidm_backend -> rbac: (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
-hmsidm_backend <-- rbac: (http) ACL list for the current user
+hmsidm_backend -> rbac: (7) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (8) (http) ACL list for the current user
 
 alt IPA data updated
-ipa_server <-- hmsidm_backend: (https) 200 Ok
+ipa_server <-- hmsidm_backend: (9) (https) 200 Ok
 note right ipa_server
 {
     "realm_name": "MYDOMAIN.EXAMPLE",
@@ -164,7 +164,7 @@ At this point, the IPA section for the domain is filled up
 end note
 
 else RBAC validation: no 'hmsidm:domains_ipa:write' permission found
-ipa_server <-- hmsidm_backend: (https) 404 Not Found (401 Unauthorized)
+ipa_server <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
 
 else Fail one time token validation
 note right ipa_server
@@ -174,11 +174,64 @@ Token validation fails if:
 - Token provided does not match.
 - Token is outdated (expiration date).
 end note
-note right ipa_server
-QUESTION: Should the token be set to null?
-end note
-ipa_server <-- hmsidm_backend: (https) 404 Not Found (401 Unauthorized)
+ipa_server <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
 end alt
 end group
 
+
+group Get Domain information (UI)
+Administrator -> hmsidm_backend: (10) (https) GET /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
+note left hmsidm_backend
+X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
+X-Rh-Insights-Request-Id: kjasdf01
+end note
+note right hmsidm_backend
+Check for 'hmsidm:domains:read' permission
+end note
+
+hmsidm_backend -> rbac: (11) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (12) (http) ACL list for the current user
+
+alt 200 Ok
+Administrator <-- hmsidm_backend: (13) 200 Ok
+note right Administrator
+{
+    "doman_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+    "domain_name": "mydomain.example",
+    "domain_type": "ipa",
+    "auto_enrollment_enabled": true,
+    "ipa": {
+        "realm_name": "MYDOMAIN.EXAMPLE",
+        "servers": [
+            {
+                "fqdn": "ipaserver.mydomain.example",
+                "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                "ca_server": true,
+                "hcc_enrollment_server": true,
+                "pkinit_server": true
+            }
+        ],
+        "ca_certs": [
+            {
+                "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                "serial_number": "1",
+                "not_valid_before": "2023-01-31T13:23:36",
+                "not_valid_after": "2023-01-31T13:23:36",
+                "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
+            }
+        ],
+        "realm_domains": [
+            "mydomain.example"
+        ]
+    }
+}
+end note
+else alt RBAC validation: no 'hmsidm:domains:read' permission
+Administrator <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
+else alt Domain not found for the organization
+Administrator <-- hmsidm_backend: (https) 404 Not Found
+end alt
+end group
 @enduml
