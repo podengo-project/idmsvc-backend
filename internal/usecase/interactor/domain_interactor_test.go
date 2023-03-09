@@ -3,7 +3,9 @@ package interactor
 import (
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -23,6 +25,9 @@ func TestNewTodoInteractor(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	notValidBefore := time.Now()
+	notValidAfter := time.Now().Add(time.Hour * 24)
+	rhsmId := uuid.New().String()
 	type TestCaseGiven struct {
 		Params *api_public.CreateDomainParams
 		Body   *api_public.CreateDomain
@@ -87,22 +92,12 @@ func TestCreate(t *testing.T) {
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
 					DomainName:            "domain.example",
-					RealmName:             "DOMAIN.EXAMPLE",
 					DomainType:            api_public.CreateDomainDomainTypeIpa,
 					Ipa: api_public.CreateDomainIpa{
-						CaCerts: []api_public.CreateDomainIpaCert{
-							{
-								Nickname:      pointy.String("DOMAIN.EXAMPLE IPA CA"),
-								Issuer:        pointy.String("CN=Certificate Authority,O=DOMAIN.EXAMPLE"),
-								Subject:       pointy.String("CN=Certificate Authority,O=DOMAIN.EXAMPLE"),
-								SerialNumber:  pointy.String("1"),
-								NotValidAfter: pointy.,
-							},
-						},
-						ServerList: &[]string{
-							"server1.domain.example",
-							"server2.domain.example",
-						},
+						RealmName:  "DOMAIN.EXAMPLE",
+						CaCerts:    []api_public.CreateDomainIpaCert{},
+						Servers:    &[]api_public.CreateDomainIpaServer{},
+						RealmNames: []string{},
 					},
 				},
 			},
@@ -114,9 +109,10 @@ func TestCreate(t *testing.T) {
 					DomainType:            pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
-						CaList:     pointy.String(""),
 						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
-						ServerList: pointy.String("server1.domain.example,server2.domain.example"),
+						CaCerts:    []model.IpaCert{},
+						Servers:    []model.IpaServer{},
+						RealmNames: "",
 					},
 				},
 			},
@@ -139,11 +135,28 @@ func TestCreate(t *testing.T) {
 					DomainName:            "domain.example",
 					DomainType:            api_public.CreateDomainDomainTypeIpa,
 					Ipa: api_public.CreateDomainIpa{
-						CaList: `-----BEGIN CERTIFICATE-----
-MII...
------END CERTIFICATE-----`,
-						RealmName: pointy.String("DOMAIN.EXAMPLE"),
-						ServerList: &[]string{
+						RealmName: "DOMAIN.EXAMPLE",
+						CaCerts: []api_public.CreateDomainIpaCert{
+							{
+								Nickname:       pointy.String("DOMAIN.EXAMPLE IPA CA"),
+								Issuer:         pointy.String("CN=Certificate Authority,O=DOMAIN.EXAMPLE"),
+								Subject:        pointy.String("CN=Certificate Authority,O=DOMAIN.EXAMPLE"),
+								SerialNumber:   pointy.String("1"),
+								NotValidAfter:  &notValidAfter,
+								NotValidBefore: &notValidBefore,
+								Pem:            pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"),
+							},
+						},
+						Servers: &[]api_public.CreateDomainIpaServer{
+							{
+								Fqdn:                "server1.domain.example",
+								CaServer:            true,
+								HccEnrollmentServer: true,
+								PkinitServer:        true,
+								RhsmId:              rhsmId,
+							},
+						},
+						RealmNames: []string{
 							"server1.domain.example",
 							"server2.domain.example",
 						},
@@ -158,9 +171,28 @@ MII...
 					DomainType:            pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
-						CaList:     pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----"),
-						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
-						ServerList: pointy.String("server1.domain.example,server2.domain.example"),
+						RealmName: pointy.String("DOMAIN.EXAMPLE"),
+						CaCerts: []model.IpaCert{
+							{
+								Nickname:       "DOMAIN.EXAMPLE IPA CA",
+								Issuer:         "CN=Certificate Authority,O=DOMAIN.EXAMPLE",
+								Subject:        "CN=Certificate Authority,O=DOMAIN.EXAMPLE",
+								SerialNumber:   "1",
+								NotValidAfter:  notValidAfter,
+								NotValidBefore: notValidBefore,
+								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+							},
+						},
+						Servers: []model.IpaServer{
+							{
+								FQDN:                "server1.domain.example",
+								CaServer:            true,
+								HCCEnrollmentServer: true,
+								PKInitServer:        true,
+								RHSMId:              rhsmId,
+							},
+						},
+						RealmNames: "server1.domain.example,server2.domain.example",
 					},
 				},
 			},
@@ -185,14 +217,17 @@ MII...
 			assert.Equal(t, *testCase.Expected.Out.DomainName, *data.DomainName)
 			assert.Equal(t, *testCase.Expected.Out.DomainType, *data.DomainType)
 			assert.Equal(t,
-				*testCase.Expected.Out.IpaDomain.CaList,
-				*data.IpaDomain.CaList)
-			assert.Equal(t,
 				*testCase.Expected.Out.IpaDomain.RealmName,
 				*data.IpaDomain.RealmName)
 			assert.Equal(t,
-				*testCase.Expected.Out.IpaDomain.ServerList,
-				*data.IpaDomain.ServerList)
+				testCase.Expected.Out.IpaDomain.CaCerts,
+				data.IpaDomain.CaCerts)
+			assert.Equal(t,
+				testCase.Expected.Out.IpaDomain.Servers,
+				data.IpaDomain.Servers)
+			assert.Equal(t,
+				testCase.Expected.Out.IpaDomain.RealmNames,
+				data.IpaDomain.RealmNames)
 		}
 	}
 }

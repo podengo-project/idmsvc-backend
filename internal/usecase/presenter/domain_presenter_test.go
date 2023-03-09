@@ -60,12 +60,13 @@ func TestGet(t *testing.T) {
 					OrgId:                 "12345",
 					DomainUuid:            testUuid,
 					DomainName:            pointy.String("domain.example"),
-					RealmName:             pointy.String("DOMAIN.EXAMPLE"),
 					DomainType:            pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
-						CaCerts: []model.IpaCert{},
-						Servers: []model.IpaServer{},
+						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
+						CaCerts:    []model.IpaCert{},
+						Servers:    []model.IpaServer{},
+						RealmNames: "domain.example",
 					},
 				},
 			},
@@ -75,11 +76,12 @@ func TestGet(t *testing.T) {
 					AutoEnrollmentEnabled: true,
 					DomainUuid:            testUuid.String(),
 					DomainName:            "domain.example",
-					RealmName:             "DOMAIN.EXAMPLE",
 					DomainType:            public.DomainResponseDomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					Ipa: public.DomainResponseIpa{
-						CaCerts: []public.DomainResponseIpaCert{},
-						Servers: []public.DomainResponseIpaServer{},
+						RealmName:  "DOMAIN.EXAMPLE",
+						CaCerts:    []public.DomainResponseIpaCert{},
+						Servers:    []public.DomainResponseIpaServer{},
+						RealmNames: []string{"domain.example"},
 					},
 				},
 			},
@@ -108,8 +110,8 @@ func TestGet(t *testing.T) {
 				testCase.Expected.Output.AutoEnrollmentEnabled,
 				output.AutoEnrollmentEnabled)
 			assert.Equal(t,
-				testCase.Expected.Output.RealmName,
-				output.RealmName)
+				testCase.Expected.Output.Ipa.RealmName,
+				output.Ipa.RealmName)
 			assert.Equal(t,
 				testCase.Expected.Output.Ipa.CaCerts,
 				output.Ipa.CaCerts)
@@ -222,10 +224,10 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				RealmName:             nil,
 				DomainType:            pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
-					CaCerts: []model.IpaCert{},
+					RealmName: nil,
+					CaCerts:   []model.IpaCert{},
 				},
 			},
 			Expected: TestCaseExpected{
@@ -238,11 +240,11 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				RealmName:             pointy.String("DOMAIN.EXAMPLE"),
 				DomainType:            pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
-					CaCerts: []model.IpaCert{},
-					Servers: nil,
+					RealmName: pointy.String("DOMAIN.EXAMPLE"),
+					CaCerts:   []model.IpaCert{},
+					Servers:   nil,
 				},
 			},
 			Expected: TestCaseExpected{
@@ -255,23 +257,23 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				RealmName:             pointy.String("DOMAIN.EXAMPLE"),
 				DomainType:            pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
-					CaCerts: []model.IpaCert{},
-					Servers: []model.IpaServer{},
+					RealmName: pointy.String("DOMAIN.EXAMPLE"),
+					CaCerts:   []model.IpaCert{},
+					Servers:   []model.IpaServer{},
 				},
 			},
 			Expected: TestCaseExpected{
 				Response: &public.DomainResponse{
 					DomainName:            "domain.example",
-					RealmName:             "DOMAIN.EXAMPLE",
 					AutoEnrollmentEnabled: true,
 					DomainType:            "ipa",
 					DomainUuid:            "00000000-0000-0000-0000-000000000000",
 					Ipa: public.DomainResponseIpa{
-						CaCerts: []public.DomainResponseIpaCert{},
-						Servers: []public.DomainResponseIpaServer{},
+						RealmName: "DOMAIN.EXAMPLE",
+						CaCerts:   []public.DomainResponseIpaCert{},
+						Servers:   []public.DomainResponseIpaServer{},
 					},
 				},
 				Err: nil,
@@ -293,7 +295,7 @@ func TestCreate(t *testing.T) {
 			assert.Equal(t, testCase.Expected.Response.DomainUuid, response.DomainUuid)
 			assert.Equal(t, testCase.Expected.Response.Ipa.CaCerts, response.Ipa.CaCerts)
 			assert.Equal(t, testCase.Expected.Response.Ipa.Servers, response.Ipa.Servers)
-			assert.Equal(t, testCase.Expected.Response.RealmName, response.RealmName)
+			assert.Equal(t, testCase.Expected.Response.Ipa.RealmName, response.Ipa.RealmName)
 		}
 	}
 

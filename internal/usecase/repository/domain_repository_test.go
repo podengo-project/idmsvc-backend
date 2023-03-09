@@ -54,6 +54,7 @@ func (s *Suite) TestCreate() {
 		OrgId:                 "12345",
 		DomainUuid:            testUuid,
 		DomainName:            pointy.String("domain.example"),
+		DomainDescription:     pointy.String("My domain example test."),
 		DomainType:            pointy.Uint(model.DomainTypeIpa),
 		AutoEnrollmentEnabled: pointy.Bool(true),
 		IpaDomain: &model.Ipa{
@@ -62,43 +63,40 @@ func (s *Suite) TestCreate() {
 				CreatedAt: currentTime,
 				UpdatedAt: currentTime,
 			},
-			CaCerts: []model.IpaCert{},
-			Servers: []model.IpaServer{},
+			RealmName:  pointy.String("DOMAIN.EXAMPLE"),
+			CaCerts:    []model.IpaCert{},
+			Servers:    []model.IpaServer{},
+			RealmNames: "domain.example",
 		},
 	}
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" `+
-		`("created_at","updated_at","deleted_at","org_id","domain_uuid",`+
-		`"domain_name","realm_name","domain_type","auto_enrollment_enabled","id") `+
-		`VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","domain_description","domain_type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)).
 		WithArgs(
 			data.CreatedAt,
 			data.UpdatedAt,
 			nil,
+
 			orgId,
 			data.DomainUuid,
 			data.DomainName,
-			data.RealmName,
+			data.DomainDescription,
 			data.DomainType,
 			data.AutoEnrollmentEnabled,
 			data.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","domain_id","id") VALUES ($1,$2,$3,$4,$5) ON CONFLICT ("id") DO UPDATE SET "domain_id"="excluded"."domain_id" RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_names","id") VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT ("id") DO UPDATE SET "id"="excluded"."id" RETURNING "id"`)).
 		WithArgs(
 			data.IpaDomain.Model.CreatedAt,
 			data.IpaDomain.Model.UpdatedAt,
 			nil,
-			orgId,
-			data.IpaDomain.DomainID,
-			data.DomainName,
-			data.RealmName,
-			data.DomainType,
-			data.AutoEnrollmentEnabled,
-			data.ID).
+
+			data.IpaDomain.RealmName,
+			data.IpaDomain.RealmNames,
+			data.IpaDomain.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow(data.ID))
+			AddRow(data.IpaDomain.ID))
 
 	err := s.repository.Create(s.DB, orgId, &data)
 	require.NoError(t, err)
@@ -119,6 +117,7 @@ func (s *Suite) TestCreateErrors() {
 			OrgId:                 "12345",
 			DomainUuid:            testUuid,
 			DomainName:            pointy.String("domain.example"),
+			DomainDescription:     pointy.String("My domain test description"),
 			DomainType:            pointy.Uint(model.DomainTypeIpa),
 			AutoEnrollmentEnabled: pointy.Bool(true),
 			IpaDomain: &model.Ipa{
@@ -138,10 +137,7 @@ func (s *Suite) TestCreateErrors() {
 	err = s.repository.Create(s.DB, orgId, nil)
 	assert.Error(t, err)
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" `+
-		`("created_at","updated_at","deleted_at","org_id","domain_uuid",`+
-		`"domain_name","domain_type","auto_enrollment_enabled","id") `+
-		`VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","domain_description","domain_type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)).
 		WithArgs(
 			data.CreatedAt,
 			data.UpdatedAt,
@@ -149,6 +145,7 @@ func (s *Suite) TestCreateErrors() {
 			orgId,
 			data.DomainUuid,
 			data.DomainName,
+			data.DomainDescription,
 			data.DomainType,
 			data.AutoEnrollmentEnabled,
 			data.ID,
