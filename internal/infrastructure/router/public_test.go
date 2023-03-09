@@ -93,11 +93,15 @@ func TestNewGroupPublic(t *testing.T) {
 			"DELETE": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
 		},
 
-		appPrefix + appName + versionFull + "/hostconf/:fqdn": {
+		appPrefix + appName + versionFull + "/domains/:uuid/ipa": {
+			"PUT": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).RegisterIpaDomain-fm",
+		},
+
+		appPrefix + appName + versionFull + "/host-conf/:fqdn": {
 			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
 		},
 
-		appPrefix + appName + versionFull + "/check_host/:subscription_manager_id/:fqdn": {
+		appPrefix + appName + versionFull + "/check-host/:subscription_manager_id/:fqdn": {
 			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).CheckHost-fm",
 		},
 
