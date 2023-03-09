@@ -798,7 +798,6 @@ components:
                 - domain_type
                 - ipa
                 - domain_uuid
-                - realm_name
                 - domain_description
             type: object
             properties:
@@ -822,9 +821,6 @@ components:
                     example: "true"
                 ipa:
                     $ref: "#/components/schemas/DomainResponseIpa"
-                realm_name:
-                    description: The realm name managed for this domain name.
-                    type: string
                 domain_description:
                     description: Human readable description abou the domain.
                     type: string
@@ -918,6 +914,7 @@ components:
             required:
                 - ca_certs
                 - realm_name
+                - realm_names
             type: object
             properties:
                 servers:
@@ -948,6 +945,11 @@ components:
                     description: The kerberos realm name associated to the IPA domain.
                     type: string
                     example: MYDOMAIN.EXAMPLE
+                realm_names:
+                    description: TODO What is the meaning of this field.
+                    type: array
+                    items:
+                        type: string
             example: >-
                 {
                   "realm_name": "MYDOMAIN.EXAMPLE",
@@ -970,6 +972,9 @@ components:
                       "not_valid_after": "2023-01-31T13:23:36"
                       "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
                     }
+                  ],
+                  "realm_domains": [
+                    "ipahcc.test"
                   ]
                 }
         CreateDomainIpaServer:
@@ -1010,6 +1015,8 @@ components:
             required:
                 - ca_certs
                 - servers
+                - realm_name
+                - realm_names
             type: object
             properties:
                 servers:
@@ -1036,6 +1043,15 @@ components:
                             "pem": "-----BEGIN CERTIFICATE-----\nMIIE...\n-----END CERTIFICATE-----\n",
                           }
                         ]
+                realm_name:
+                    description: The kerberos realm name associated to this IPA domain.
+                    type: string
+                    example: MYDOMAIN.EXAMPLE
+                realm_names:
+                    description: List of realm associated to the IPA domain.
+                    type: array
+                    items:
+                        type: string
             example: >-
                 {
                   "servers": [
