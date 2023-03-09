@@ -8,6 +8,7 @@ package presenter
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -86,10 +87,10 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 		}
 	}
 
-	if domain.RealmName == nil {
+	if domain.IpaDomain.RealmName == nil {
 		return nil, fmt.Errorf("RealmName cannot be nil")
 	}
-	output.RealmName = *domain.RealmName
+	output.Ipa.RealmName = *domain.IpaDomain.RealmName
 
 	if domain.IpaDomain.Servers == nil {
 		return nil, fmt.Errorf("Servers cannot be nil")
@@ -100,6 +101,7 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 			return nil, err
 		}
 	}
+	output.Ipa.RealmNames = strings.Split(domain.IpaDomain.RealmNames, ",")
 
 	return output, nil
 }
@@ -170,10 +172,10 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 
 	}
 
-	if domain.RealmName == nil {
+	if domain.IpaDomain.RealmName == nil {
 		return nil, fmt.Errorf("RealmName cannot be nil")
 	}
-	output.RealmName = *domain.RealmName
+	output.Ipa.RealmName = *domain.IpaDomain.RealmName
 
 	if domain.IpaDomain.Servers == nil {
 		return nil, fmt.Errorf("Servers cannot be nil")
@@ -184,6 +186,7 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 			return nil, err
 		}
 	}
+	output.Ipa.RealmNames = strings.Split(domain.IpaDomain.RealmNames, ",")
 
 	return output, nil
 }

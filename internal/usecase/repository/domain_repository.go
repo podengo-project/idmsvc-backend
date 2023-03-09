@@ -46,10 +46,10 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	if err != nil {
 		return err
 	}
-	data.IpaDomain.DomainID = data.ID
-	if err = db.Create(data.IpaDomain).Error; err != nil {
-		return err
-	}
+	data.IpaDomain.Model.ID = data.ID
+	// if err = db.Create(data.IpaDomain).Error; err != nil {
+	// 	return err
+	// }
 	for _, cert := range data.IpaDomain.CaCerts {
 		cert.IpaID = data.IpaDomain.ID
 		if err = db.Create(&cert).Error; err != nil {

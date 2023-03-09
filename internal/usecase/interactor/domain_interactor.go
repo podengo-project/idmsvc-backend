@@ -2,6 +2,8 @@ package interactor
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
@@ -31,11 +33,63 @@ func helperDomainTypeToUint(domainType public.CreateDomainDomainType) uint {
 }
 
 func (i domainInteractor) FillCert(to *model.IpaCert, from *api_public.CreateDomainIpaCert) error {
-	return fmt.Errorf("FillCert not implemented")
+	if to == nil {
+		return fmt.Errorf("'to' cannot be nil")
+	}
+	if from == nil {
+		return fmt.Errorf("'from' cannot be nil")
+	}
+	if from.Nickname == nil {
+		to.Nickname = ""
+	} else {
+		to.Nickname = *from.Nickname
+	}
+	if from.Issuer == nil {
+		to.Issuer = ""
+	} else {
+		to.Issuer = *from.Issuer
+	}
+	if from.Subject == nil {
+		to.Subject = ""
+	} else {
+		to.Subject = *from.Subject
+	}
+	if from.NotValidAfter == nil {
+		to.NotValidAfter = time.Time{}
+	} else {
+		to.NotValidAfter = *from.NotValidAfter
+	}
+	if from.NotValidBefore == nil {
+		to.NotValidBefore = time.Time{}
+	} else {
+		to.NotValidBefore = *from.NotValidBefore
+	}
+	if from.Pem == nil {
+		to.Pem = ""
+	} else {
+		to.Pem = *from.Pem
+	}
+	if from.SerialNumber == nil {
+		to.SerialNumber = ""
+	} else {
+		to.SerialNumber = *from.SerialNumber
+	}
+	return nil
 }
 
 func (i domainInteractor) FillServer(to *model.IpaServer, from *api_public.CreateDomainIpaServer) error {
-	return fmt.Errorf("FillServer not implemented")
+	if to == nil {
+		return fmt.Errorf("'to' cannot be nil")
+	}
+	if from == nil {
+		return fmt.Errorf("'from' cannot be nil")
+	}
+	to.FQDN = from.Fqdn
+	to.CaServer = from.CaServer
+	to.HCCEnrollmentServer = from.HccEnrollmentServer
+	to.PKInitServer = from.PkinitServer
+	to.RHSMId = from.RhsmId
+	return nil
 }
 
 // Create translate api request to modle.Domain internal representation.
@@ -63,11 +117,12 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	domain.OrgId = identity.OrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
 	domain.DomainName = pointy.String(body.DomainName)
+	domain.DomainDescription = pointy.String(body.DomainDescription)
 	domain.DomainType = pointy.Uint(helperDomainTypeToUint(body.DomainType))
 
 	domain.IpaDomain = &model.Ipa{}
-	if body.RealmName != "" {
-		domain.RealmName = pointy.String(body.RealmName)
+	if body.Ipa.RealmName != "" {
+		domain.IpaDomain.RealmName = pointy.String(body.Ipa.RealmName)
 	}
 	if body.Ipa.Servers != nil {
 		domain.IpaDomain.Servers = make([]model.IpaServer, len(*body.Ipa.Servers))
@@ -86,6 +141,11 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 		}
 	} else {
 		domain.IpaDomain.CaCerts = []model.IpaCert{}
+	}
+	if body.Ipa.RealmNames == nil {
+		domain.IpaDomain.RealmNames = ""
+	} else {
+		domain.IpaDomain.RealmNames = strings.Join(body.Ipa.RealmNames, ",")
 	}
 	return identity.OrgID, domain, nil
 }
