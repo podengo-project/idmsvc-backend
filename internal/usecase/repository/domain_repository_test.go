@@ -57,6 +57,11 @@ func (s *Suite) TestCreate() {
 		DomainType:            pointy.Uint(model.DomainTypeIpa),
 		AutoEnrollmentEnabled: pointy.Bool(true),
 		IpaDomain: &model.Ipa{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+			},
 			CaCerts: []model.IpaCert{},
 			Servers: []model.IpaServer{},
 		},
@@ -72,6 +77,21 @@ func (s *Suite) TestCreate() {
 			nil,
 			orgId,
 			data.DomainUuid,
+			data.DomainName,
+			data.RealmName,
+			data.DomainType,
+			data.AutoEnrollmentEnabled,
+			data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.ID))
+
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","domain_id","id") VALUES ($1,$2,$3,$4,$5) ON CONFLICT ("id") DO UPDATE SET "domain_id"="excluded"."domain_id" RETURNING "id"`)).
+		WithArgs(
+			data.IpaDomain.Model.CreatedAt,
+			data.IpaDomain.Model.UpdatedAt,
+			nil,
+			orgId,
+			data.IpaDomain.DomainID,
 			data.DomainName,
 			data.RealmName,
 			data.DomainType,
