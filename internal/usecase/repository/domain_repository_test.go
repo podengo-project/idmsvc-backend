@@ -125,6 +125,20 @@ func (s *Suite) TestCreateErrors() {
 				Servers: []model.IpaServer{},
 			},
 		}
+		ipaDomainIsNil model.Domain = model.Domain{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+			},
+			OrgId:                 "12345",
+			DomainUuid:            testUuid,
+			DomainName:            pointy.String("domain.example"),
+			DomainDescription:     pointy.String("My domain test description"),
+			DomainType:            pointy.Uint(model.DomainTypeIpa),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			IpaDomain:             nil,
+		}
 		err error
 	)
 
@@ -154,6 +168,24 @@ func (s *Suite) TestCreateErrors() {
 	err = s.repository.Create(s.DB, orgId, &data)
 	assert.Error(t, err)
 	assert.Equal(t, "an error happened", err.Error())
+
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","domain_description","domain_type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)).
+		WithArgs(
+			data.CreatedAt,
+			data.UpdatedAt,
+			nil,
+			orgId,
+			data.DomainUuid,
+			data.DomainName,
+			data.DomainDescription,
+			data.DomainType,
+			data.AutoEnrollmentEnabled,
+			data.ID,
+		).
+		WillReturnError(fmt.Errorf("an error happened"))
+	err = s.repository.Create(s.DB, orgId, &ipaDomainIsNil)
+	assert.Error(t, err)
+	assert.Equal(t, "data.IpaDomain is nil", err.Error())
 }
 
 func TestSuite(t *testing.T) {
