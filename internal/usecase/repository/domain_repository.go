@@ -123,7 +123,8 @@ func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (out
 		return model.Domain{}, fmt.Errorf("Not found")
 	}
 	if output.DomainType != nil && *output.DomainType == model.DomainTypeIpa {
-		if err = db.First(&output.IpaDomain, "domain_id = ?", output.ID).Count(&count).Error; err != nil {
+		output.IpaDomain = &model.Ipa{}
+		if err = db.Preload("CaCerts").Preload("Servers").First(output.IpaDomain, "id = ?", output.ID).Count(&count).Error; err != nil {
 			return model.Domain{}, err
 		}
 		if count == 0 {
@@ -154,7 +155,7 @@ func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (e
 	if count == 0 {
 		return fmt.Errorf("Register not found")
 	}
-	if err = db.Unscoped().Delete(&data).Error; err != nil {
+	if err = db.Unscoped().Delete(&data, "org_id = ? AND domain_uuid = ?", orgId, uuid).Error; err != nil {
 		return err
 	}
 	return nil
