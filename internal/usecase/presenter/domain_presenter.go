@@ -43,7 +43,18 @@ func (p domainPresenter) FillCert(to *public.DomainResponseIpaCert, from *model.
 }
 
 func (p domainPresenter) FillServer(to *public.DomainResponseIpaServer, from *model.IpaServer) error {
-	// TODO Implement this
+	if to == nil {
+		return fmt.Errorf("'to' cannot be nil")
+	}
+	if from == nil {
+		return fmt.Errorf("'from' cannot be nil")
+	}
+
+	to.Fqdn = from.FQDN
+	to.CaServer = from.CaServer
+	to.HccEnrollmentServer = from.HCCEnrollmentServer
+	to.PkinitServer = from.PKInitServer
+	to.RhsmId = from.RHSMId
 	return nil
 }
 
@@ -82,9 +93,7 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	}
 	output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
 	for i, cert := range domain.IpaDomain.CaCerts {
-		if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
-			return nil, err
-		}
+		p.FillCert(&output.Ipa.CaCerts[i], &cert)
 	}
 
 	if domain.IpaDomain.RealmName == nil {
@@ -97,9 +106,7 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	}
 	output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
 	for i, server := range domain.IpaDomain.Servers {
-		if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
-			return nil, err
-		}
+		p.FillServer(&output.Ipa.Servers[i], &server)
 	}
 	output.Ipa.RealmNames = strings.Split(domain.IpaDomain.RealmNames, ",")
 

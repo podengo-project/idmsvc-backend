@@ -3,6 +3,7 @@ package presenter
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/public"
@@ -299,4 +300,154 @@ func TestCreate(t *testing.T) {
 		}
 	}
 
+}
+
+func TestFillCert(t *testing.T) {
+	notValidBefore := time.Now()
+	notValidAfter := notValidBefore.Add(time.Hour * 24)
+	type TestCaseGiven struct {
+		To   *public.DomainResponseIpaCert
+		From *model.IpaCert
+	}
+	type TestCaseExpected struct {
+		Err error
+		To  public.DomainResponseIpaCert
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+	testCases := []TestCase{
+		{
+			Name:  "'to' is nil",
+			Given: TestCaseGiven{},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'to' cannot be nil"),
+				To:  public.DomainResponseIpaCert{},
+			},
+		},
+		{
+			Name: "'from' is nil",
+			Given: TestCaseGiven{
+				To: &public.DomainResponseIpaCert{},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'from' cannot be nil"),
+				To:  public.DomainResponseIpaCert{},
+			},
+		},
+		{
+			Name: "Success copy",
+			Given: TestCaseGiven{
+				To: &public.DomainResponseIpaCert{},
+				From: &model.IpaCert{
+					Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
+					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+					NotValidBefore: notValidBefore,
+					NotValidAfter:  notValidAfter,
+					SerialNumber:   "1",
+					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				To: public.DomainResponseIpaCert{
+					Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
+					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+					NotValidBefore: notValidBefore,
+					NotValidAfter:  notValidAfter,
+					SerialNumber:   "1",
+					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		// I instantiate directly because the public methods
+		// are not part of the interface
+		p := domainPresenter{}
+		err := p.FillCert(testCase.Given.To, testCase.Given.From)
+		if testCase.Expected.Err != nil {
+			assert.EqualError(t, err, testCase.Expected.Err.Error())
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.Expected.To, *testCase.Given.To)
+		}
+	}
+}
+
+func TestFillServer(t *testing.T) {
+	type TestCaseGiven struct {
+		To   *public.DomainResponseIpaServer
+		From *model.IpaServer
+	}
+	type TestCaseExpected struct {
+		Err error
+		To  public.DomainResponseIpaServer
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+	testCases := []TestCase{
+		{
+			Name:  "'to' is nil",
+			Given: TestCaseGiven{},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'to' cannot be nil"),
+				To:  public.DomainResponseIpaServer{},
+			},
+		},
+		{
+			Name: "'from' is nil",
+			Given: TestCaseGiven{
+				To: &public.DomainResponseIpaServer{},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'from' cannot be nil"),
+				To:  public.DomainResponseIpaServer{},
+			},
+		},
+		{
+			Name: "Success copy",
+			Given: TestCaseGiven{
+				To: &public.DomainResponseIpaServer{},
+				From: &model.IpaServer{
+					FQDN:                "server1.mydomain.example",
+					RHSMId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
+					CaServer:            true,
+					HCCEnrollmentServer: true,
+					PKInitServer:        true,
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				To: public.DomainResponseIpaServer{
+					Fqdn:                "server1.mydomain.example",
+					RhsmId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
+					CaServer:            true,
+					HccEnrollmentServer: true,
+					PkinitServer:        true,
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		// I instantiate directly because the public methods
+		// are not part of the interface
+		p := domainPresenter{}
+		err := p.FillServer(testCase.Given.To, testCase.Given.From)
+		if testCase.Expected.Err != nil {
+			assert.EqualError(t, err, testCase.Expected.Err.Error())
+		} else {
+			assert.NoError(t, err)
+			assert.Equal(t, testCase.Expected.To, *testCase.Given.To)
+		}
+	}
 }
