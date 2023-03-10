@@ -9,6 +9,6 @@
       "server1.ipa.example", 
       "server2.ipa.example"
     ],
-    "client_options": {}
+    "realm_names": ["mydomain.example"]
   }
 }

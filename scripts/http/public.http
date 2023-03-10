@@ -15,6 +15,9 @@
 
 # @name createDomain
 
+# Request for ephemeral
+# curl -u "$CREDS" "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/create-domain-ipa-payload.json
+
 POST {{schema}}://{{host}}{{basepath}}/domains
 X-Rh-Identity: {{x-rh-identity}}
 Content-Type: {{contentType}}
@@ -38,6 +41,9 @@ Content-Type: {{contentType}}
 
 # @name listDomains
 
+# Request for ephemeral
+# curl -u "$CREDS" "${BASE_URL}/domains"
+
 GET http://{{host}}{{basepath}}/domains?offset=0&limit=10
 X-Rh-Identity: {{x-rh-identity}}
 Content-Type: {{contentType}}
@@ -45,6 +51,9 @@ Content-Type: {{contentType}}
 ### Get last created Todo
 
 # @name getDomain
+
+# Request for ephemeral
+# curl -u "$CREDS" "${BASE_URL}/domains/${UUID}"
 
 GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
 X-Rh-Identity: {{x-rh-identity}}
