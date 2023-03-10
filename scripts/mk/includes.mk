@@ -28,10 +28,10 @@ include scripts/mk/gojsonschema.mk
 include scripts/mk/yq.mk
 # include scripts/mk/gen-api.mk
 include scripts/mk/go-rules.mk
+include scripts/mk/plantuml.mk
 include scripts/mk/api-doc.mk
 include scripts/mk/db.mk
 include scripts/mk/printvars.mk
-include scripts/mk/plantuml.mk
 # include scripts/mk/swag.mk
 include scripts/mk/lint.mk
 include scripts/mk/meta-docker.mk
