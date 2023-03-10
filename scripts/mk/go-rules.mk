@@ -36,6 +36,7 @@ build-all: ## Generate code and build binaries
 	$(MAKE) generate-api
 	$(MAKE) generate-event
 	$(MAKE) generate-mock
+	$(MAKE) generate-diagrams
 	$(MAKE) build
 
 # Meta rule to add dependency on the binaries generated
