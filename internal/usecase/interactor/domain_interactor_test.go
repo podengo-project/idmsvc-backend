@@ -243,3 +243,155 @@ func TestHelperDomainTypeToUint(t *testing.T) {
 	result = helperDomainTypeToUint(public.CreateDomainDomainTypeIpa)
 	assert.Equal(t, model.DomainTypeIpa, result)
 }
+
+func TestFillCert(t *testing.T) {
+	notValidBefore := time.Now()
+	notValidAfter := time.Now().Add(time.Hour * 24)
+
+	type TestCaseGiven struct {
+		To   *model.IpaCert
+		From *api_public.CreateDomainIpaCert
+	}
+	type TestCaseExpected struct {
+		Err error
+		To  model.IpaCert
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+
+	testCases := []TestCase{
+		{
+			Name: "'to' cannot be nil",
+			Given: TestCaseGiven{
+				To:   nil,
+				From: nil,
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'to' cannot be nil"),
+				To:  model.IpaCert{},
+			},
+		},
+		{
+			Name: "'from' cannot be nil",
+			Given: TestCaseGiven{
+				To:   &model.IpaCert{},
+				From: nil,
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'from' cannot be nil"),
+				To:  model.IpaCert{},
+			},
+		},
+
+		{
+			Name: "Fill all the fields",
+			Given: TestCaseGiven{
+				To: &model.IpaCert{},
+				From: &api_public.CreateDomainIpaCert{
+					Nickname:       pointy.String("Nickname"),
+					Issuer:         pointy.String("Issuer"),
+					Subject:        pointy.String("Subject"),
+					NotValidBefore: &notValidBefore,
+					NotValidAfter:  &notValidAfter,
+					SerialNumber:   pointy.String("1"),
+					Pem:            pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"),
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				To: model.IpaCert{
+					Nickname:       "Nickname",
+					Issuer:         "Issuer",
+					Subject:        "Subject",
+					NotValidBefore: notValidBefore,
+					NotValidAfter:  notValidAfter,
+					SerialNumber:   "1",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+			},
+		},
+		{
+			Name: "Fill empty all the fields",
+			Given: TestCaseGiven{
+				To: &model.IpaCert{
+					Nickname:       "Nickname",
+					Issuer:         "Issuer",
+					Subject:        "Subject",
+					NotValidBefore: notValidBefore,
+					NotValidAfter:  notValidAfter,
+					SerialNumber:   "1",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+				From: &api_public.CreateDomainIpaCert{
+					Nickname:       nil,
+					Issuer:         nil,
+					Subject:        nil,
+					NotValidBefore: nil,
+					NotValidAfter:  nil,
+					SerialNumber:   nil,
+					Pem:            nil,
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				To: model.IpaCert{
+					Nickname:       "",
+					Issuer:         "",
+					Subject:        "",
+					NotValidBefore: time.Time{},
+					NotValidAfter:  time.Time{},
+					SerialNumber:   "",
+					Pem:            "",
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		obj := domainInteractor{}
+		err := obj.FillCert(testCase.Given.To, testCase.Given.From)
+		if testCase.Expected.Err != nil {
+			assert.EqualError(t, err, testCase.Expected.Err.Error())
+		} else {
+			assert.Equal(t, testCase.Expected.To.Nickname, testCase.Given.To.Nickname)
+			assert.Equal(t, testCase.Expected.To.Issuer, testCase.Given.To.Issuer)
+			assert.Equal(t, testCase.Expected.To.Subject, testCase.Given.To.Subject)
+			assert.Equal(t, testCase.Expected.To.NotValidBefore, testCase.Given.To.NotValidBefore)
+			assert.Equal(t, testCase.Expected.To.NotValidAfter, testCase.Given.To.NotValidAfter)
+			assert.Equal(t, testCase.Expected.To.SerialNumber, testCase.Given.To.SerialNumber)
+			assert.Equal(t, testCase.Expected.To.Pem, testCase.Given.To.Pem)
+		}
+	}
+}
+
+func TestFillServer(t *testing.T) {
+	var (
+		err error
+	)
+	obj := domainInteractor{}
+
+	err = obj.FillServer(nil, nil)
+	assert.EqualError(t, err, "'to' cannot be nil")
+
+	err = obj.FillServer(&model.IpaServer{}, nil)
+	assert.EqualError(t, err, "'from' cannot be nil")
+
+	to := model.IpaServer{}
+	err = obj.FillServer(&to, &api_public.CreateDomainIpaServer{
+		Fqdn:                "server1.mydomain.example",
+		RhsmId:              "001a2314-bf37-11ed-a42a-482ae3863d30",
+		PkinitServer:        true,
+		CaServer:            true,
+		HccEnrollmentServer: true,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "server1.mydomain.example", to.FQDN)
+	assert.Equal(t, "001a2314-bf37-11ed-a42a-482ae3863d30", to.RHSMId)
+	assert.Equal(t, true, to.PKInitServer)
+	assert.Equal(t, true, to.CaServer)
+	assert.Equal(t, true, to.HCCEnrollmentServer)
+}
