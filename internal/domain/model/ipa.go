@@ -1,6 +1,13 @@
 package model
 
-import "gorm.io/gorm"
+import (
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/openlyinc/pointy"
+	"gorm.io/gorm"
+)
 
 // See: https://gorm.io/docs/models.html
 
@@ -11,25 +18,50 @@ type Ipa struct {
 	//      related with this Ipa entry?
 	// NOTE Thinking about this as a comma separated list
 	//      of servers
-	Servers      []IpaServer `gorm:"foreignKey:id"`
-	RealmName    *string
-	RealmDomains string
+	Servers         []IpaServer `gorm:"foreignKey:id"`
+	RealmName       *string
+	RealmDomains    string
+	Token           *string
+	TokenExpiration *time.Time
 
 	Domain Domain `gorm:"foreignKey:id"`
 }
 
+// Set by the default tokenExpiration to 24hours once it is created
+var tokenExpirationDuration time.Duration = time.Hour * 24
+
+func SetDefaultTokenExpiration(d time.Duration) {
+	tokenExpirationDuration = d
+}
+
+func DefaultTokenExpiration() time.Duration {
+	return tokenExpirationDuration
+}
+
+func (i *Ipa) BeforeCreate(tx *gorm.DB) (err error) {
+	if i == nil {
+		return fmt.Errorf("'BeforeCreate' cannot be invoked on nil")
+	}
+	tokenExpiration := &time.Time{}
+	*tokenExpiration = time.Now().Add(tokenExpirationDuration)
+	i.Token = pointy.String(uuid.NewString())
+	i.TokenExpiration = tokenExpiration
+
+	return nil
+}
+
 func (i *Ipa) AfterCreate(tx *gorm.DB) (err error) {
 	if i == nil {
-		return nil
+		return fmt.Errorf("'AfterCreate' cannot be invoked on nil")
 	}
 	if i.CaCerts != nil {
-		for _, cert := range i.CaCerts {
-			cert.IpaID = i.ID
+		for idx := range i.CaCerts {
+			i.CaCerts[idx].IpaID = i.ID
 		}
 	}
 	if i.Servers != nil {
-		for _, server := range i.Servers {
-			server.IpaID = i.ID
+		for idx := range i.Servers {
+			i.Servers[idx].IpaID = i.ID
 		}
 	}
 	return nil
