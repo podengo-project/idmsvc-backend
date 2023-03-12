@@ -94,10 +94,10 @@ func TestCreate(t *testing.T) {
 					DomainName:            "domain.example",
 					DomainType:            api_public.CreateDomainDomainTypeIpa,
 					Ipa: api_public.CreateDomainIpa{
-						RealmName:  "DOMAIN.EXAMPLE",
-						CaCerts:    []api_public.CreateDomainIpaCert{},
-						Servers:    &[]api_public.CreateDomainIpaServer{},
-						RealmNames: []string{},
+						RealmName:    "DOMAIN.EXAMPLE",
+						CaCerts:      []api_public.CreateDomainIpaCert{},
+						Servers:      &[]api_public.CreateDomainIpaServer{},
+						RealmDomains: []string{},
 					},
 				},
 			},
@@ -109,10 +109,10 @@ func TestCreate(t *testing.T) {
 					DomainType:            pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
-						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
-						CaCerts:    []model.IpaCert{},
-						Servers:    []model.IpaServer{},
-						RealmNames: "",
+						RealmName:    pointy.String("DOMAIN.EXAMPLE"),
+						CaCerts:      []model.IpaCert{},
+						Servers:      []model.IpaServer{},
+						RealmDomains: "",
 					},
 				},
 			},
@@ -156,7 +156,7 @@ func TestCreate(t *testing.T) {
 								RhsmId:              rhsmId,
 							},
 						},
-						RealmNames: []string{
+						RealmDomains: []string{
 							"server1.domain.example",
 							"server2.domain.example",
 						},
@@ -192,7 +192,7 @@ func TestCreate(t *testing.T) {
 								RHSMId:              rhsmId,
 							},
 						},
-						RealmNames: "server1.domain.example,server2.domain.example",
+						RealmDomains: "server1.domain.example,server2.domain.example",
 					},
 				},
 			},
@@ -226,8 +226,8 @@ func TestCreate(t *testing.T) {
 				testCase.Expected.Out.IpaDomain.Servers,
 				data.IpaDomain.Servers)
 			assert.Equal(t,
-				testCase.Expected.Out.IpaDomain.RealmNames,
-				data.IpaDomain.RealmNames)
+				testCase.Expected.Out.IpaDomain.RealmDomains,
+				data.IpaDomain.RealmDomains)
 		}
 	}
 }

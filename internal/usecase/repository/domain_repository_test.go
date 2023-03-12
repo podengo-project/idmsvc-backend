@@ -63,10 +63,40 @@ func (s *Suite) TestCreate() {
 				CreatedAt: currentTime,
 				UpdatedAt: currentTime,
 			},
-			RealmName:  pointy.String("DOMAIN.EXAMPLE"),
-			CaCerts:    []model.IpaCert{},
-			Servers:    []model.IpaServer{},
-			RealmNames: "domain.example",
+			RealmName: pointy.String("DOMAIN.EXAMPLE"),
+			CaCerts: []model.IpaCert{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+					},
+					IpaID:          1,
+					Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
+					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+					SerialNumber:   "1",
+					NotValidBefore: currentTime,
+					NotValidAfter:  currentTime,
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+			},
+			Servers: []model.IpaServer{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+					},
+					IpaID:               1,
+					FQDN:                "server1.mydomain.example",
+					RHSMId:              "87353f5c-c05c-11ed-9a9b-482ae3863d30",
+					HCCEnrollmentServer: true,
+					PKInitServer:        true,
+					CaServer:            true,
+				},
+			},
+			RealmDomains: "domain.example",
 		},
 	}
 
@@ -86,17 +116,51 @@ func (s *Suite) TestCreate() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_names","id") VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT ("id") DO UPDATE SET "id"="excluded"."id" RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
 		WithArgs(
 			data.IpaDomain.Model.CreatedAt,
 			data.IpaDomain.Model.UpdatedAt,
 			nil,
 
 			data.IpaDomain.RealmName,
-			data.IpaDomain.RealmNames,
+			data.IpaDomain.RealmDomains,
 			data.IpaDomain.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.IpaDomain.ID))
+
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+		WithArgs(
+			data.IpaDomain.CaCerts[0].CreatedAt,
+			data.IpaDomain.CaCerts[0].UpdatedAt,
+			nil,
+
+			data.IpaDomain.CaCerts[0].IpaID,
+			data.IpaDomain.CaCerts[0].Issuer,
+			data.IpaDomain.CaCerts[0].Nickname,
+			data.IpaDomain.CaCerts[0].NotValidAfter,
+			data.IpaDomain.CaCerts[0].NotValidBefore,
+			data.IpaDomain.CaCerts[0].Pem,
+			data.IpaDomain.CaCerts[0].SerialNumber,
+			data.IpaDomain.CaCerts[0].Subject,
+			data.IpaDomain.CaCerts[0].ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.IpaDomain.CaCerts[0].ID))
+
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","ca_server","hcc_enrollment_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)).
+		WithArgs(
+			data.IpaDomain.Servers[0].CreatedAt,
+			data.IpaDomain.Servers[0].UpdatedAt,
+			nil,
+
+			data.IpaDomain.Servers[0].IpaID,
+			data.IpaDomain.Servers[0].FQDN,
+			data.IpaDomain.Servers[0].RHSMId,
+			data.IpaDomain.Servers[0].CaServer,
+			data.IpaDomain.Servers[0].HCCEnrollmentServer,
+			data.IpaDomain.Servers[0].PKInitServer,
+			data.IpaDomain.Servers[0].ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.IpaDomain.Servers[0].ID))
 
 	err := s.repository.Create(s.DB, orgId, &data)
 	require.NoError(t, err)

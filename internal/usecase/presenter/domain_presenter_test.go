@@ -64,10 +64,10 @@ func TestGet(t *testing.T) {
 					DomainType:            pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
-						RealmName:  pointy.String("DOMAIN.EXAMPLE"),
-						CaCerts:    []model.IpaCert{},
-						Servers:    []model.IpaServer{},
-						RealmNames: "domain.example",
+						RealmName:    pointy.String("DOMAIN.EXAMPLE"),
+						CaCerts:      []model.IpaCert{},
+						Servers:      []model.IpaServer{},
+						RealmDomains: "domain.example",
 					},
 				},
 			},
@@ -79,10 +79,10 @@ func TestGet(t *testing.T) {
 					DomainName:            "domain.example",
 					DomainType:            public.DomainResponseDomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					Ipa: public.DomainResponseIpa{
-						RealmName:  "DOMAIN.EXAMPLE",
-						CaCerts:    []public.DomainResponseIpaCert{},
-						Servers:    []public.DomainResponseIpaServer{},
-						RealmNames: []string{"domain.example"},
+						RealmName:    "DOMAIN.EXAMPLE",
+						CaCerts:      []public.DomainResponseIpaCert{},
+						Servers:      []public.DomainResponseIpaServer{},
+						RealmDomains: []string{"domain.example"},
 					},
 				},
 			},
@@ -206,21 +206,6 @@ func TestCreate(t *testing.T) {
 			},
 		},
 		{
-			Name: "CaCerts is nil",
-			Given: &model.Domain{
-				AutoEnrollmentEnabled: pointy.Bool(true),
-				DomainName:            pointy.String("domain.example"),
-				DomainType:            pointy.Uint(model.DomainTypeIpa),
-				IpaDomain: &model.Ipa{
-					CaCerts: nil,
-				},
-			},
-			Expected: TestCaseExpected{
-				Response: nil,
-				Err:      fmt.Errorf("CaCerts cannot be nil"),
-			},
-		},
-		{
 			Name: "RealmName is nil",
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
@@ -228,12 +213,27 @@ func TestCreate(t *testing.T) {
 				DomainType:            pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
 					RealmName: nil,
-					CaCerts:   []model.IpaCert{},
 				},
 			},
 			Expected: TestCaseExpected{
 				Response: nil,
 				Err:      fmt.Errorf("RealmName cannot be nil"),
+			},
+		},
+		{
+			Name: "CaCerts is nil",
+			Given: &model.Domain{
+				AutoEnrollmentEnabled: pointy.Bool(true),
+				DomainName:            pointy.String("domain.example"),
+				DomainType:            pointy.Uint(model.DomainTypeIpa),
+				IpaDomain: &model.Ipa{
+					RealmName: pointy.String("DOMAIN.EXAMPLE"),
+					CaCerts:   nil,
+				},
+			},
+			Expected: TestCaseExpected{
+				Response: nil,
+				Err:      fmt.Errorf("CaCerts cannot be nil"),
 			},
 		},
 		{
