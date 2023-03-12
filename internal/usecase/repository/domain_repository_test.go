@@ -45,6 +45,7 @@ func (s *Suite) TestCreate() {
 	testUuid := uuid.New()
 	t := s.Suite.T()
 	currentTime := time.Now()
+	tokenExpiration := currentTime.Add(time.Hour * 24)
 	var data model.Domain = model.Domain{
 		Model: gorm.Model{
 			ID:        1,
@@ -96,7 +97,9 @@ func (s *Suite) TestCreate() {
 					CaServer:            true,
 				},
 			},
-			RealmDomains: "domain.example",
+			RealmDomains:    "domain.example",
+			Token:           pointy.String("02794e8e-bdcd-11ed-a269-482ae3863d30"),
+			TokenExpiration: &tokenExpiration,
 		},
 	}
 
@@ -116,7 +119,7 @@ func (s *Suite) TestCreate() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
 		WithArgs(
 			data.IpaDomain.Model.CreatedAt,
 			data.IpaDomain.Model.UpdatedAt,
@@ -124,6 +127,8 @@ func (s *Suite) TestCreate() {
 
 			data.IpaDomain.RealmName,
 			data.IpaDomain.RealmDomains,
+			data.IpaDomain.Token,
+			data.IpaDomain.TokenExpiration,
 			data.IpaDomain.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.IpaDomain.ID))

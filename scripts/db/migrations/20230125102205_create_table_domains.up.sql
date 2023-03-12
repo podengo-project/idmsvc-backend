@@ -32,7 +32,9 @@ CREATE TABLE IF NOT EXISTS ipas (
     --      See: https://gorm.io/docs/delete.html
     deleted_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
     realm_name VARCHAR(253) NOT NULL,
-    realm_domains TEXT NOT NULL
+    realm_domains TEXT NOT NULL,
+    token VARCHAR(256) DEFAULT NULL,
+    token_expiration TIMESTAMP WITH TIME ZONE DEFAULT NULL
 );
 
 ALTER TABLE ipas

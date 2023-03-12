@@ -2,9 +2,11 @@ package repository
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/repository"
+	"github.com/openlyinc/pointy"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -56,18 +58,22 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 		if err = db.Omit(clause.Associations).Create(data.IpaDomain).Error; err != nil {
 			return err
 		}
-		for _, cert := range data.IpaDomain.CaCerts {
-			cert.IpaID = data.IpaDomain.ID
-			if err = db.Create(&cert).Error; err != nil {
+		for idx := range data.IpaDomain.CaCerts {
+			data.IpaDomain.CaCerts[idx].IpaID = data.IpaDomain.ID
+			if err = db.Create(&data.IpaDomain.CaCerts[idx]).Error; err != nil {
 				return err
 			}
 		}
-		for _, server := range data.IpaDomain.Servers {
-			server.IpaID = data.IpaDomain.ID
-			if err = db.Create(&server).Error; err != nil {
+		for idx := range data.IpaDomain.Servers {
+			data.IpaDomain.Servers[idx].IpaID = data.IpaDomain.ID
+			if err = db.Create(&data.IpaDomain.Servers[idx]).Error; err != nil {
 				return err
 			}
 		}
+		tokenExpiration := &time.Time{}
+		*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration())
+		data.IpaDomain.TokenExpiration = tokenExpiration
+		data.IpaDomain.Token = pointy.String(model.GenerateToken(32))
 	default:
 		return fmt.Errorf("'DomainType' is not valid")
 	}
