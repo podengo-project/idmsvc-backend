@@ -61,3 +61,18 @@ func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
 
 	return nil
 }
+
+func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
+	if d.DomainType == nil {
+		return nil
+	}
+	switch *d.DomainType {
+	case DomainTypeIpa:
+		{
+			if d.IpaDomain != nil {
+				d.IpaDomain.ID = d.ID
+			}
+		}
+	}
+	return nil
+}
