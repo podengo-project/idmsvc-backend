@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/handler"
+	"github.com/hmsidm/internal/infrastructure/logger"
 	"github.com/hmsidm/internal/infrastructure/router"
 	"github.com/hmsidm/internal/infrastructure/service"
 	"github.com/hmsidm/internal/metrics"
@@ -28,8 +28,8 @@ type apiService struct {
 	logger zerolog.Logger
 }
 
-func NewApi(ctx context.Context, wg *sync.WaitGroup, config *config.Config, app handler.Application, metrics *metrics.Metrics) service.ApplicationService {
-	if config == nil {
+func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app handler.Application, metrics *metrics.Metrics) service.ApplicationService {
+	if cfg == nil {
 		panic("config is nil")
 	}
 	if wg == nil {
@@ -39,8 +39,8 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, config *config.Config, app 
 	result := &apiService{}
 	result.context, result.cancel = context.WithCancel(ctx)
 	result.waitGroup = wg
-	result.logger = zerolog.New(os.Stderr)
-	result.config = config
+	result.logger = logger.NewApiLogger(cfg)
+	result.config = cfg
 	routerConfig := router.RouterConfig{
 		Version:     "1.0",
 		PublicPath:  "/api/hmsidm",
@@ -53,10 +53,10 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, config *config.Config, app 
 		metrics,
 	)
 	result.echo.HideBanner = true
-	if result.config.Logging.Level == "debug" {
+	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		result.echo.Debug = true
 	}
-	if result.config.Logging.Level == "debug" {
+	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		routes := result.echo.Routes()
 		log.Debug().Msg("Printing routes")
 		for idx, route := range routes {

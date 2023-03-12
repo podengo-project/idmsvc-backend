@@ -1,5 +1,7 @@
 logging:
-  level: debug
+  level: info   # The normal level in production
+  # level: trace  # Will display the sql statements, usefult for development
+  # level: debug
   # Set to false to get a json output for the log
   console: True
 

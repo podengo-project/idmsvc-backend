@@ -9,6 +9,7 @@ import (
 
 	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/infrastructure/datastore"
+	"github.com/hmsidm/internal/infrastructure/logger"
 	impl_service "github.com/hmsidm/internal/infrastructure/service/impl"
 )
 
@@ -29,6 +30,7 @@ func startSignalHandler(c context.Context) (context.Context, context.CancelFunc)
 func main() {
 	wg := &sync.WaitGroup{}
 	cfg := config.Get()
+	logger.InitLogger(cfg)
 	db := datastore.NewDB(cfg)
 	defer datastore.Close(db)
 

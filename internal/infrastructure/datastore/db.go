@@ -8,11 +8,10 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/hmsidm/internal/config"
-	gormzerolog "github.com/mpalmer/gorm-zerolog"
+	"github.com/hmsidm/internal/infrastructure/logger"
 	"github.com/rs/zerolog/log"
 	pg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 const DbMigrationPath = "./scripts/db/migrations"
@@ -34,21 +33,21 @@ func getUrl(config *config.Config) string {
 	)
 }
 
-func NewDB(config *config.Config) (db *gorm.DB) {
+func NewDB(cfg *config.Config) (db *gorm.DB) {
 	var err error
-	dbUrl := getUrl(config)
+	dbUrl := getUrl(cfg)
+
 	log.Debug().Msgf("connecting to database with dsn: %s", dbUrl)
 	if db, err = gorm.Open(pg.Open(dbUrl),
 		&gorm.Config{
-			Logger:                 gormzerolog.Logger{},
+			Logger:                 logger.NewGormLog(cfg),
 			SkipDefaultTransaction: true,
 			// CreateBatchSize:        50,
 		}); err != nil {
 		log.Error().Msgf("Error creating database connector: %s", err.Error())
 		return nil
 	}
-	// FIXME clean-up the below
-	db.Logger = db.Logger.LogMode(logger.Silent)
+	// FIXME clean-up the below block
 	var tables []string
 	if err := db.Table("information_schema.tables").Where("table_schema = ?", "public").Pluck("table_name", &tables).Error; err != nil {
 		panic(err)
