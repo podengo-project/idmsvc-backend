@@ -1,8 +1,11 @@
 package model
 
 import (
+	"crypto/rand"
 	"fmt"
 	"time"
+
+	b64 "encoding/base64"
 
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
@@ -36,6 +39,18 @@ func SetDefaultTokenExpiration(d time.Duration) {
 
 func DefaultTokenExpiration() time.Duration {
 	return tokenExpirationDuration
+}
+
+func GenerateToken(length int) string {
+	if length <= 0 {
+		return ""
+	}
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+	sEnc := b64.StdEncoding.EncodeToString([]byte(b))
+	return sEnc
 }
 
 func (i *Ipa) BeforeCreate(tx *gorm.DB) (err error) {

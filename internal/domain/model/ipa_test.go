@@ -1,6 +1,7 @@
 package model
 
 import (
+	b64 "encoding/base64"
 	"testing"
 	"time"
 
@@ -83,4 +84,12 @@ func TestAfterCreate(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, uint(1), entity.CaCerts[0].IpaID)
 	assert.Equal(t, uint(1), entity.Servers[0].IpaID)
+}
+
+func TestGenerateToken(t *testing.T) {
+	assert.Equal(t, "", GenerateToken(-1))
+	assert.Equal(t, "", GenerateToken(0))
+	token := GenerateToken(12)
+	bytes, _ := b64.StdEncoding.DecodeString(token)
+	assert.Equal(t, 12, len(bytes))
 }
