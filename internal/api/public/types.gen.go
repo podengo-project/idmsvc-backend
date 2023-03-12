@@ -65,11 +65,11 @@ type CreateDomainIpa struct {
 	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
 	CaCerts []CreateDomainIpaCert `json:"ca_certs"`
 
+	// RealmDomains TODO What is the meaning of this field.
+	RealmDomains []string `json:"realm_domains"`
+
 	// RealmName The kerberos realm name associated to the IPA domain.
 	RealmName string `json:"realm_name"`
-
-	// RealmNames TODO What is the meaning of this field.
-	RealmNames []string `json:"realm_names"`
 
 	// Servers List of auto-enrollment enabled servers for this domain.
 	Servers *[]CreateDomainIpaServer `json:"servers,omitempty"`
@@ -124,11 +124,11 @@ type DomainResponseIpa struct {
 	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
 	CaCerts []DomainResponseIpaCert `json:"ca_certs"`
 
+	// RealmDomains List of realm associated to the IPA domain.
+	RealmDomains []string `json:"realm_domains"`
+
 	// RealmName The kerberos realm name associated to this IPA domain.
 	RealmName string `json:"realm_name"`
-
-	// RealmNames List of realm associated to the IPA domain.
-	RealmNames []string `json:"realm_names"`
 
 	// Servers List of auto-enrollment enabled servers for this domain.
 	Servers []DomainResponseIpaServer `json:"servers"`

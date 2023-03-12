@@ -545,13 +545,16 @@ components:
                     items:
                         $ref: "#/components/schemas/CreateDomainIpaCert"
                     example:
-                        - nickname: "MYDOMAIN.EXAMPLE IPA CA"
-                          issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"
-                          subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"
-                          serial_number": "1"
-                          not_valid_before": "2023-01-31T13:23:36"
-                          not_valid_after": "2023-01-31T13:23:36"
-                          pem": "-----BEGIN CERTIFICATE-----\nMIIE...\n-----END CERTIFICATE-----"
+                        - nickname: MYDOMAIN.EXAMPLE IPA CA
+                          issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                          subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                          serial_number: "1"
+                          not_valid_before: 2023-01-31T13:23:36
+                          not_valid_after: 2023-01-31T13:23:36
+                          pem": |-
+                              -----BEGIN CERTIFICATE-----
+                              MIIE...
+                              -----END CERTIFICATE-----
             example:
                 realm_name: IPA.EXAMPLE
                 ca_list: base64
@@ -824,7 +827,7 @@ components:
             required:
                 - ca_certs
                 - realm_name
-                - realm_names
+                - realm_domains
             type: object
             properties:
                 servers:
@@ -855,7 +858,7 @@ components:
                     description: The kerberos realm name associated to the IPA domain.
                     type: string
                     example: MYDOMAIN.EXAMPLE
-                realm_names:
+                realm_domains:
                     description: TODO What is the meaning of this field.
                     type: array
                     items:
@@ -928,7 +931,7 @@ components:
                 - ca_certs
                 - servers
                 - realm_name
-                - realm_names
+                - realm_domains
             type: object
             properties:
                 servers:
@@ -959,7 +962,7 @@ components:
                     description: The kerberos realm name associated to this IPA domain.
                     type: string
                     example: MYDOMAIN.EXAMPLE
-                realm_names:
+                realm_domains:
                     description: List of realm associated to the IPA domain.
                     type: array
                     items:
