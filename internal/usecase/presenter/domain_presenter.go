@@ -85,30 +85,42 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	}
 	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
 
-	if domain.IpaDomain == nil {
-		return nil, fmt.Errorf("IpaDomain cannot be nil")
-	}
-	if domain.IpaDomain.CaCerts == nil {
-		return nil, fmt.Errorf("CaCerts cannot be nil")
-	}
-	output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
-	for i, cert := range domain.IpaDomain.CaCerts {
-		p.FillCert(&output.Ipa.CaCerts[i], &cert)
-	}
+	switch *domain.DomainType {
+	case model.DomainTypeIpa:
+		{
+			if domain.IpaDomain == nil {
+				return nil, fmt.Errorf("IpaDomain cannot be nil")
+			}
+			if domain.IpaDomain.RealmName == nil {
+				return nil, fmt.Errorf("RealmName cannot be nil")
+			}
+			if domain.IpaDomain.CaCerts == nil {
+				return nil, fmt.Errorf("CaCerts cannot be nil")
+			}
+			if domain.IpaDomain.Servers == nil {
+				return nil, fmt.Errorf("Servers cannot be nil")
+			}
 
-	if domain.IpaDomain.RealmName == nil {
-		return nil, fmt.Errorf("RealmName cannot be nil")
-	}
-	output.Ipa.RealmName = *domain.IpaDomain.RealmName
+			output.Ipa.RealmName = *domain.IpaDomain.RealmName
+			output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
+			for i, cert := range domain.IpaDomain.CaCerts {
+				p.FillCert(&output.Ipa.CaCerts[i], &cert)
+			}
 
-	if domain.IpaDomain.Servers == nil {
-		return nil, fmt.Errorf("Servers cannot be nil")
+			output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
+			for i, server := range domain.IpaDomain.Servers {
+				p.FillServer(&output.Ipa.Servers[i], &server)
+			}
+			if domain.IpaDomain.RealmDomains == "" {
+				output.Ipa.RealmDomains = []string{}
+			} else {
+				output.Ipa.RealmDomains = strings.Split(domain.IpaDomain.RealmDomains, ",")
+			}
+
+		}
+	default:
+		return nil, fmt.Errorf("'DomainType' is not valid")
 	}
-	output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
-	for i, server := range domain.IpaDomain.Servers {
-		p.FillServer(&output.Ipa.Servers[i], &server)
-	}
-	output.Ipa.RealmNames = strings.Split(domain.IpaDomain.RealmNames, ",")
 
 	return output, nil
 }
@@ -165,35 +177,43 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	}
 	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
 
-	if domain.IpaDomain == nil {
-		return nil, fmt.Errorf("IpaDomain cannot be nil")
-	}
-	if domain.IpaDomain.CaCerts == nil {
-		return nil, fmt.Errorf("CaCerts cannot be nil")
-	}
-	output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
-	for i, cert := range domain.IpaDomain.CaCerts {
-		if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
-			return nil, err
+	switch *domain.DomainType {
+	case model.DomainTypeIpa:
+		if domain.IpaDomain == nil {
+			return nil, fmt.Errorf("IpaDomain cannot be nil")
+		}
+		if domain.IpaDomain.CaCerts == nil {
+			return nil, fmt.Errorf("CaCerts cannot be nil")
+		}
+		output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
+		for i, cert := range domain.IpaDomain.CaCerts {
+			if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
+				return nil, err
+			}
 		}
 
-	}
-
-	if domain.IpaDomain.RealmName == nil {
-		return nil, fmt.Errorf("RealmName cannot be nil")
-	}
-	output.Ipa.RealmName = *domain.IpaDomain.RealmName
-
-	if domain.IpaDomain.Servers == nil {
-		return nil, fmt.Errorf("Servers cannot be nil")
-	}
-	output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
-	for i, server := range domain.IpaDomain.Servers {
-		if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
-			return nil, err
+		if domain.IpaDomain.RealmName == nil {
+			return nil, fmt.Errorf("RealmName cannot be nil")
 		}
+		output.Ipa.RealmName = *domain.IpaDomain.RealmName
+
+		if domain.IpaDomain.Servers == nil {
+			return nil, fmt.Errorf("Servers cannot be nil")
+		}
+		output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
+		for i, server := range domain.IpaDomain.Servers {
+			if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
+				return nil, err
+			}
+		}
+		if domain.IpaDomain.RealmDomains == "" {
+			output.Ipa.RealmDomains = []string{}
+		} else {
+			output.Ipa.RealmDomains = strings.Split(domain.IpaDomain.RealmDomains, ",")
+		}
+	default:
+		return nil, fmt.Errorf("'DomainType' is not valid")
 	}
-	output.Ipa.RealmNames = strings.Split(domain.IpaDomain.RealmNames, ",")
 
 	return output, nil
 }

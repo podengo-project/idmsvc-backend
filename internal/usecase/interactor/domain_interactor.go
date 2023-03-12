@@ -127,9 +127,7 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	if body.Ipa.Servers != nil {
 		domain.IpaDomain.Servers = make([]model.IpaServer, len(*body.Ipa.Servers))
 		for idx, server := range *body.Ipa.Servers {
-			if err := i.FillServer(&domain.IpaDomain.Servers[idx], &server); err != nil {
-				return "", nil, err
-			}
+			i.FillServer(&domain.IpaDomain.Servers[idx], &server)
 		}
 	} else {
 		domain.IpaDomain.Servers = []model.IpaServer{}
@@ -142,10 +140,10 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	} else {
 		domain.IpaDomain.CaCerts = []model.IpaCert{}
 	}
-	if body.Ipa.RealmNames == nil {
-		domain.IpaDomain.RealmNames = ""
+	if body.Ipa.RealmDomains == nil {
+		domain.IpaDomain.RealmDomains = ""
 	} else {
-		domain.IpaDomain.RealmNames = strings.Join(body.Ipa.RealmNames, ",")
+		domain.IpaDomain.RealmDomains = strings.Join(body.Ipa.RealmDomains, ",")
 	}
 	return identity.OrgID, domain, nil
 }

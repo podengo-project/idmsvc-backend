@@ -6,6 +6,7 @@ import (
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/repository"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type domainRepository struct{}
@@ -42,25 +43,33 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 		return fmt.Errorf("data.IpaDomain is nil")
 	}
 	data.OrgId = orgId
-	err = db.Create(data).Error
+	err = db.Omit(clause.Associations).Create(data).Error
 	if err != nil {
 		return err
 	}
-	data.IpaDomain.Model.ID = data.ID
-	// if err = db.Create(data.IpaDomain).Error; err != nil {
-	// 	return err
-	// }
-	for _, cert := range data.IpaDomain.CaCerts {
-		cert.IpaID = data.IpaDomain.ID
-		if err = db.Create(&cert).Error; err != nil {
-			return err
-		}
+	if data.DomainType == nil {
+		return fmt.Errorf("'DomainType' cannot be nil")
 	}
-	for _, server := range data.IpaDomain.Servers {
-		server.IpaID = data.IpaDomain.ID
-		if err = db.Create(&server).Error; err != nil {
+	switch *data.DomainType {
+	case model.DomainTypeIpa:
+		data.IpaDomain.Model.ID = data.ID
+		if err = db.Omit(clause.Associations).Create(data.IpaDomain).Error; err != nil {
 			return err
 		}
+		for _, cert := range data.IpaDomain.CaCerts {
+			cert.IpaID = data.IpaDomain.ID
+			if err = db.Create(&cert).Error; err != nil {
+				return err
+			}
+		}
+		for _, server := range data.IpaDomain.Servers {
+			server.IpaID = data.IpaDomain.ID
+			if err = db.Create(&server).Error; err != nil {
+				return err
+			}
+		}
+	default:
+		return fmt.Errorf("'DomainType' is not valid")
 	}
 	return nil
 }
