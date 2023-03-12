@@ -269,7 +269,7 @@ func TestCreate(t *testing.T) {
 				Response: &public.DomainResponse{
 					DomainName:            "domain.example",
 					AutoEnrollmentEnabled: true,
-					DomainType:            "ipa",
+					DomainType:            model.DomainTypeIpaString,
 					DomainUuid:            "00000000-0000-0000-0000-000000000000",
 					Ipa: public.DomainResponseIpa{
 						RealmName: "DOMAIN.EXAMPLE",
