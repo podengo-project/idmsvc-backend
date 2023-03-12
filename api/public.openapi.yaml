@@ -967,6 +967,18 @@ components:
                     type: array
                     items:
                         type: string
+                token:
+                    description: >-
+                        One time token returned when the domain is created to let to
+                        register
+
+                        an IPA domain by using hcc-ipa agent.
+                    type: string
+                    example: ccab7b91-f79a-4e65-9cef-1560ffa36230
+                token_expiration:
+                    format: date-time
+                    description: When expire the one time token.
+                    type: string
             additionalProperties: false
             example: >-
                 {

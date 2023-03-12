@@ -132,6 +132,13 @@ type DomainResponseIpa struct {
 
 	// Servers List of auto-enrollment enabled servers for this domain.
 	Servers []DomainResponseIpaServer `json:"servers"`
+
+	// Token One time token returned when the domain is created to let to register
+	// an IPA domain by using hcc-ipa agent.
+	Token *string `json:"token,omitempty"`
+
+	// TokenExpiration When expire the one time token.
+	TokenExpiration *time.Time `json:"token_expiration,omitempty"`
 }
 
 // DomainResponseIpaCert Represent a certificate item in the cacerts list for the Ipa domain type.
