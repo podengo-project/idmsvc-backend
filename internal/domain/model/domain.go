@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,6 +15,9 @@ const (
 	DomainTypeIpa
 	// DomainTypeAzure
 	// DomainTypeActiveDirector
+
+	DomainTypeIpaString       = "ipa"
+	DomainTypeUndefinedString = ""
 )
 
 // NOTE https://samu.space/uuids-with-postgres-and-gorm/
@@ -36,15 +40,15 @@ type Domain struct {
 func DomainTypeString(data uint) string {
 	switch data {
 	case DomainTypeIpa:
-		return "ipa"
+		return DomainTypeIpaString
 	default:
-		return ""
+		return DomainTypeUndefinedString
 	}
 }
 
 func DomainTypeUint(data string) uint {
 	switch data {
-	case "ipa":
+	case DomainTypeIpaString:
 		return DomainTypeIpa
 	default:
 		return DomainTypeUndefined
@@ -64,7 +68,7 @@ func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
 
 func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 	if d.DomainType == nil {
-		return nil
+		return fmt.Errorf("'DomainType' cannot be nil")
 	}
 	switch *d.DomainType {
 	case DomainTypeIpa:
