@@ -53,6 +53,7 @@ func (p domainPresenter) FillServer(to *public.DomainResponseIpaServer, from *mo
 	to.Fqdn = from.FQDN
 	to.CaServer = from.CaServer
 	to.HccEnrollmentServer = from.HCCEnrollmentServer
+	to.HccUpdateServer = from.HCCUpdateServer
 	to.PkinitServer = from.PKInitServer
 	to.RhsmId = from.RHSMId
 	return nil
