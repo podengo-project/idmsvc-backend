@@ -13,6 +13,7 @@ import (
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/repository"
 	"github.com/hmsidm/internal/test"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -99,7 +100,7 @@ func (s *Suite) TestCreate() {
 					CaServer:            true,
 				},
 			},
-			RealmDomains:    "domain.example",
+			RealmDomains:    pq.StringArray{"domain.example"},
 			Token:           pointy.String(token),
 			TokenExpiration: tokenExpiration,
 		},

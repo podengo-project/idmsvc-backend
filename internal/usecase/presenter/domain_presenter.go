@@ -8,7 +8,6 @@ package presenter
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hmsidm/internal/api/public"
@@ -112,10 +111,10 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 			for i, server := range domain.IpaDomain.Servers {
 				p.FillServer(&output.Ipa.Servers[i], &server)
 			}
-			if domain.IpaDomain.RealmDomains == "" {
+			if domain.IpaDomain.RealmDomains == nil {
 				output.Ipa.RealmDomains = []string{}
 			} else {
-				output.Ipa.RealmDomains = strings.Split(domain.IpaDomain.RealmDomains, ",")
+				output.Ipa.RealmDomains = domain.IpaDomain.RealmDomains
 			}
 			if domain.IpaDomain.Token != nil && *domain.IpaDomain.Token != "" {
 				output.Ipa.Token = pointy.String(*domain.IpaDomain.Token)
@@ -215,10 +214,10 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 				return nil, err
 			}
 		}
-		if domain.IpaDomain.RealmDomains == "" {
+		if domain.IpaDomain.RealmDomains == nil {
 			output.Ipa.RealmDomains = []string{}
 		} else {
-			output.Ipa.RealmDomains = strings.Split(domain.IpaDomain.RealmDomains, ",")
+			output.Ipa.RealmDomains = domain.IpaDomain.RealmDomains
 		}
 	default:
 		return nil, fmt.Errorf("'DomainType' is not valid")

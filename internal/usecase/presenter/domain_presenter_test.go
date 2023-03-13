@@ -9,6 +9,7 @@ import (
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/presenter"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -67,7 +68,7 @@ func TestGet(t *testing.T) {
 						RealmName:    pointy.String("DOMAIN.EXAMPLE"),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
-						RealmDomains: "domain.example",
+						RealmDomains: pq.StringArray{"domain.example"},
 					},
 				},
 			},

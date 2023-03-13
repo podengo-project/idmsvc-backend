@@ -2,7 +2,6 @@ package interactor
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hmsidm/internal/api/public"
@@ -141,9 +140,9 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 		domain.IpaDomain.CaCerts = []model.IpaCert{}
 	}
 	if body.Ipa.RealmDomains == nil {
-		domain.IpaDomain.RealmDomains = ""
+		domain.IpaDomain.RealmDomains = []string{}
 	} else {
-		domain.IpaDomain.RealmDomains = strings.Join(body.Ipa.RealmDomains, ",")
+		domain.IpaDomain.RealmDomains = body.Ipa.RealmDomains
 	}
 	return identity.OrgID, domain, nil
 }

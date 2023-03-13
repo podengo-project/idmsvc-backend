@@ -10,6 +10,7 @@ import (
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/interactor"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
@@ -112,7 +113,7 @@ func TestCreate(t *testing.T) {
 						RealmName:    pointy.String("DOMAIN.EXAMPLE"),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
-						RealmDomains: "",
+						RealmDomains: pq.StringArray{},
 					},
 				},
 			},
@@ -192,7 +193,7 @@ func TestCreate(t *testing.T) {
 								RHSMId:              rhsmId,
 							},
 						},
-						RealmDomains: "server1.domain.example,server2.domain.example",
+						RealmDomains: pq.StringArray{"server1.domain.example", "server2.domain.example"},
 					},
 				},
 			},

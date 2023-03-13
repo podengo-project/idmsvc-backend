@@ -8,6 +8,7 @@ import (
 	b64 "encoding/base64"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"gorm.io/gorm"
 )
@@ -23,7 +24,7 @@ type Ipa struct {
 	//      of servers
 	Servers         []IpaServer `gorm:"foreignKey:id"`
 	RealmName       *string
-	RealmDomains    string
+	RealmDomains    pq.StringArray `gorm:"type:text[]"`
 	Token           *string
 	TokenExpiration *time.Time
 
