@@ -318,6 +318,7 @@ paths:
                                           rhsm_id: 547ce70c-9eb5-4783-a619-086aa26f88e5
                                           ca_server: true
                                           hcc_enrollment_server: true
+                                          hcc_update_server: true
                                           pkinit_server: true
                                     ca_certs:
                                         - nickname: MYDOMAIN.EXAMPLE IPA CA
@@ -873,6 +874,7 @@ components:
                       "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
                       "ca_server": true,
                       "hcc_enrollment_server": true,
+                      "hcc_update_server": true,
                       "pkinit_server": true
                     }
                   ],
@@ -891,39 +893,6 @@ components:
                     "ipahcc.test"
                   ]
                 }
-        CreateDomainIpaServer:
-            title: Root Type for CreateDomainIpaServer
-            description: Server schema for an entry into the Ipa domain type.
-            required:
-                - ca_server
-                - fqdn
-                - hcc_enrollment_server
-                - pkinit_server
-                - rhsm_id
-            type: object
-            properties:
-                fqdn:
-                    type: string
-                    example: server1.mydomain.example
-                rhsm_id:
-                    type: string
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server:
-                    type: boolean
-                    example: true
-                hcc_enrollment_server:
-                    type: boolean
-                    example: true
-                pkinit_server:
-                    type: boolean
-                    example: true
-            additionalProperties: false
-            example:
-                fqdn: ipaserver.mydomain.example
-                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server: true
-                hcc_enrollment_server: true
-                pkinit_server: true
         DomainResponseIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
@@ -988,6 +957,7 @@ components:
                       "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
                       "ca_server": true,
                       "hcc_enrollment_server": true,
+                      "hcc_update_server": true,
                       "pkinit_server": true
                     }
                   ],
@@ -1010,6 +980,7 @@ components:
                 - ca_server
                 - fqdn
                 - hcc_enrollment_server
+                - hcc_update_server
                 - pkinit_server
                 - rhsm_id
             type: object
@@ -1026,6 +997,9 @@ components:
                 hcc_enrollment_server:
                     type: boolean
                     example: true
+                hcc_update_server:
+                    type: boolean
+                    example: true
                 pkinit_server:
                     type: boolean
                     example: true
@@ -1035,6 +1009,45 @@ components:
                 rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
                 ca_server: true
                 hcc_enrollment_server: true
+                hcc_update_server: true
+                pkinit_server: true
+        CreateDomainIpaServer:
+            title: Root Type for CreateDomainIpaServer
+            description: Server schema for an entry into the Ipa domain type.
+            required:
+                - ca_server
+                - fqdn
+                - hcc_enrollment_server
+                - hcc_update_server
+                - pkinit_server
+                - rhsm_id
+            type: object
+            properties:
+                fqdn:
+                    type: string
+                    example: server1.mydomain.example
+                rhsm_id:
+                    type: string
+                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server:
+                    type: boolean
+                    example: true
+                hcc_enrollment_server:
+                    type: boolean
+                    example: true
+                hcc_update_server:
+                    type: boolean
+                    example: true
+                pkinit_server:
+                    type: boolean
+                    example: true
+            additionalProperties: false
+            example:
+                fqdn: ipaserver.mydomain.example
+                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server: true
+                hcc_enrollment_server: true
+                hcc_update_server: true
                 pkinit_server: true
     responses:
         CreateDomainResponse:

@@ -91,6 +91,7 @@ type CreateDomainIpaServer struct {
 	CaServer            bool   `json:"ca_server"`
 	Fqdn                string `json:"fqdn"`
 	HccEnrollmentServer bool   `json:"hcc_enrollment_server"`
+	HccUpdateServer     bool   `json:"hcc_update_server"`
 	PkinitServer        bool   `json:"pkinit_server"`
 	RhsmId              string `json:"rhsm_id"`
 }
@@ -157,6 +158,7 @@ type DomainResponseIpaServer struct {
 	CaServer            bool   `json:"ca_server"`
 	Fqdn                string `json:"fqdn"`
 	HccEnrollmentServer bool   `json:"hcc_enrollment_server"`
+	HccUpdateServer     bool   `json:"hcc_update_server"`
 	PkinitServer        bool   `json:"pkinit_server"`
 	RhsmId              string `json:"rhsm_id"`
 }
