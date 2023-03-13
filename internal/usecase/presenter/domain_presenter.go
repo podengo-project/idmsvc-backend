@@ -9,6 +9,7 @@ package presenter
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -115,6 +116,14 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 				output.Ipa.RealmDomains = []string{}
 			} else {
 				output.Ipa.RealmDomains = strings.Split(domain.IpaDomain.RealmDomains, ",")
+			}
+			if domain.IpaDomain.Token != nil && *domain.IpaDomain.Token != "" {
+				output.Ipa.Token = pointy.String(*domain.IpaDomain.Token)
+			}
+			if domain.IpaDomain.TokenExpiration != nil && (*domain.IpaDomain.TokenExpiration != time.Time{}) {
+				expiration := &time.Time{}
+				*expiration = *domain.IpaDomain.TokenExpiration
+				output.Ipa.TokenExpiration = expiration
 			}
 
 		}
