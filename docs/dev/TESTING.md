@@ -124,6 +124,24 @@ launch are the expected ones, given the input data.
 To check that, `sqlmock` is used. This allow to launch unit
 tests without a database up and running.
 
+Below an example preparing a mock which envolve a dynamic time.Time field (at: `internal/usecase/repository/domain_repository.go`)
+
+```golang
+s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
+		WithArgs(
+			data.IpaDomain.Model.CreatedAt,
+			data.IpaDomain.Model.UpdatedAt,
+			nil,
+
+			data.IpaDomain.RealmName,
+			data.IpaDomain.RealmDomains,
+			data.IpaDomain.Token,
+			sqlmock.AnyArg(),
+			data.IpaDomain.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.IpaDomain.ID))
+```
+
 References:
 
 - https://medium.com/@rosaniline/unit-testing-gorm-with-go-sqlmock-in-go-93cbce1f6b5b
