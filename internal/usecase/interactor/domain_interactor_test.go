@@ -153,6 +153,7 @@ func TestCreate(t *testing.T) {
 								Fqdn:                "server1.domain.example",
 								CaServer:            true,
 								HccEnrollmentServer: true,
+								HccUpdateServer:     true,
 								PkinitServer:        true,
 								RhsmId:              rhsmId,
 							},
@@ -189,6 +190,7 @@ func TestCreate(t *testing.T) {
 								FQDN:                "server1.domain.example",
 								CaServer:            true,
 								HCCEnrollmentServer: true,
+								HCCUpdateServer:     true,
 								PKInitServer:        true,
 								RHSMId:              rhsmId,
 							},
@@ -388,6 +390,7 @@ func TestFillServer(t *testing.T) {
 		PkinitServer:        true,
 		CaServer:            true,
 		HccEnrollmentServer: true,
+		HccUpdateServer:     true,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, "server1.mydomain.example", to.FQDN)
@@ -395,4 +398,5 @@ func TestFillServer(t *testing.T) {
 	assert.Equal(t, true, to.PKInitServer)
 	assert.Equal(t, true, to.CaServer)
 	assert.Equal(t, true, to.HCCEnrollmentServer)
+	assert.Equal(t, true, to.HCCUpdateServer)
 }

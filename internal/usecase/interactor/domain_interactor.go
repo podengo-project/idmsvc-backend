@@ -86,6 +86,7 @@ func (i domainInteractor) FillServer(to *model.IpaServer, from *api_public.Creat
 	to.FQDN = from.Fqdn
 	to.CaServer = from.CaServer
 	to.HCCEnrollmentServer = from.HccEnrollmentServer
+	to.HCCUpdateServer = from.HccUpdateServer
 	to.PKInitServer = from.PkinitServer
 	to.RHSMId = from.RhsmId
 	return nil
