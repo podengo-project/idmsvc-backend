@@ -908,7 +908,6 @@ components:
                     type: array
                     items:
                         $ref: "#/components/schemas/DomainResponseIpaServer"
-                    example: '["server1.mydomain.example","server2.mydomain.example"]'
                 ca_certs:
                     description: A base64 representation of all the list of chain of certificates,
                         including the server ca.
