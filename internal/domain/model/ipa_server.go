@@ -11,7 +11,7 @@ type IpaServer struct {
 	RHSMId              string `gorm:"unique;column:rhsm_id"`
 	CaServer            bool
 	HCCEnrollmentServer bool
-	HCCUpdateServer     string
+	HCCUpdateServer     bool
 	PKInitServer        bool
 
 	Ipa Ipa
