@@ -121,6 +121,7 @@ func (s *Suite) TestCreate() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
 
+	// https://github.com/DATA-DOG/go-sqlmock#matching-arguments-like-timetime
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
 		WithArgs(
 			data.IpaDomain.Model.CreatedAt,
@@ -130,7 +131,7 @@ func (s *Suite) TestCreate() {
 			data.IpaDomain.RealmName,
 			data.IpaDomain.RealmDomains,
 			data.IpaDomain.Token,
-			data.IpaDomain.TokenExpiration,
+			sqlmock.AnyArg(),
 			data.IpaDomain.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.IpaDomain.ID))
@@ -153,7 +154,7 @@ func (s *Suite) TestCreate() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.IpaDomain.CaCerts[0].ID))
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","ca_server","hcc_enrollment_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
 		WithArgs(
 			data.IpaDomain.Servers[0].CreatedAt,
 			data.IpaDomain.Servers[0].UpdatedAt,
@@ -164,6 +165,7 @@ func (s *Suite) TestCreate() {
 			data.IpaDomain.Servers[0].RHSMId,
 			data.IpaDomain.Servers[0].CaServer,
 			data.IpaDomain.Servers[0].HCCEnrollmentServer,
+			data.IpaDomain.Servers[0].HCCUpdateServer,
 			data.IpaDomain.Servers[0].PKInitServer,
 			data.IpaDomain.Servers[0].ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
