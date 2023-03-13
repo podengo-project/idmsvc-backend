@@ -6,7 +6,6 @@ import (
 
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/repository"
-	"github.com/openlyinc/pointy"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -55,6 +54,9 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	switch *data.DomainType {
 	case model.DomainTypeIpa:
 		data.IpaDomain.Model.ID = data.ID
+		tokenExpiration := &time.Time{}
+		*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration())
+		data.IpaDomain.TokenExpiration = tokenExpiration
 		if err = db.Omit(clause.Associations).Create(data.IpaDomain).Error; err != nil {
 			return err
 		}
@@ -70,10 +72,6 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 				return err
 			}
 		}
-		tokenExpiration := &time.Time{}
-		*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration())
-		data.IpaDomain.TokenExpiration = tokenExpiration
-		data.IpaDomain.Token = pointy.String(model.GenerateToken(32))
 	default:
 		return fmt.Errorf("'DomainType' is not valid")
 	}

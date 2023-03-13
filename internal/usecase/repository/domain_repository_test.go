@@ -42,10 +42,12 @@ func (s *Suite) TearDownSuite() {
 
 func (s *Suite) TestCreate() {
 	orgId := "12345"
+	token := uuid.NewString()
+	tokenExpiration := &time.Time{}
+	*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration())
 	testUuid := uuid.New()
 	t := s.Suite.T()
 	currentTime := time.Now()
-	tokenExpiration := currentTime.Add(time.Hour * 24)
 	var data model.Domain = model.Domain{
 		Model: gorm.Model{
 			ID:        1,
@@ -98,8 +100,8 @@ func (s *Suite) TestCreate() {
 				},
 			},
 			RealmDomains:    "domain.example",
-			Token:           pointy.String("02794e8e-bdcd-11ed-a269-482ae3863d30"),
-			TokenExpiration: &tokenExpiration,
+			Token:           pointy.String(token),
+			TokenExpiration: tokenExpiration,
 		},
 	}
 
