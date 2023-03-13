@@ -35,6 +35,7 @@ Content-Type: {{contentType}}
         "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
         "ca_server": true,
         "hcc_enrollment_server": true,
+        "hcc_update_server": true,
         "pkinit_server": true
       }
     ],
@@ -113,6 +114,7 @@ Content-Type: {{contentType}}
       "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
       "ca_server": true,
       "hcc_enrollment_server": true,
+      "hcc_update_server": true,
       "pkinit_server": true
     }
   ],
