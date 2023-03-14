@@ -5,6 +5,8 @@ skinparam handwritten true
 actor Administrator as Administrator
 participant "Ipa Server" as ipa_server
 participant "idm-domains-backend" as hmsidm_backend
+participant "Host Inventory\nService" as hbi
+participant "RBAC\nService" as rbac
 
 
 
@@ -27,15 +29,31 @@ X-Rh-Insights-Request-Id: kjasdf01
 }
 end note
 
+' RBAC Checks
 hmsidm_backend -> rbac: (2) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
 hmsidm_backend <-- rbac: (3) (http) ACL list for the current user
 note left rbac
 The communication between services will be encrypted by TLS in a near future
 See: ADR-18 at https://issues.redhat.com/browse/ADR-18
 end note
+note right hmsidm_backend
+Check for 'hmsidm:domains:write_ipa' permission is granted
+end note
+
+
+' Check host in host inventory
+hmsidm_backend -> hbi: (4) (http) GET /api/inventory/v1/hosts?filter[system_profile][owner_id]={:subscription_manager_id}
+note left hbi
+X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
+X-Rh-Insights-Request-Id: kjasdf01
+end note
+hmsidm_backend <-- hbi: (5) (http) List of hosts
+note right hmsidm_backend
+TODO Add response example here
+end note
 
 alt domain created
-Administrator <-- hmsidm_backend: (4) (https) 201 Created
+Administrator <-- hmsidm_backend: (6) (https) 201 Created
 note right Administrator
 {
     "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
@@ -64,8 +82,8 @@ end group
 
 
 group Populate domains data from IPA Server
-Administrator -> ipa_server: (5) (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
-ipa_server -> hmsidm_backend: (6) (https) PUT /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/ipa
+Administrator -> ipa_server: (7) (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 Iesah0IengaeFah6Cienai4tooph5Eiv
+ipa_server -> hmsidm_backend: (8) (https) PUT /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/ipa
 note left hmsidm_backend
 Here it is used an X-Rh-Identity header resulting
 from the certificate issued for the host by RHSM.
@@ -126,11 +144,11 @@ X-Rh-Idm-Registration-Token: Iesah0IengaeFah6Cienai4tooph5Eiv
     ]
 }
 end note
-hmsidm_backend -> rbac: (7) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
-hmsidm_backend <-- rbac: (8) (http) ACL list for the current user
+hmsidm_backend -> rbac: (9) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (10) (http) ACL list for the current user
 
 alt IPA data updated
-ipa_server <-- hmsidm_backend: (9) (https) 200 Ok
+ipa_server <-- hmsidm_backend: (11) (https) 200 Ok
 note right ipa_server
 {
     "realm_name": "MYDOMAIN.EXAMPLE",
@@ -188,20 +206,20 @@ end group
 
 
 group Get Domain information (UI)
-Administrator -> hmsidm_backend: (10) (https) GET /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
+Administrator -> hmsidm_backend: (12) (https) GET /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
 note left hmsidm_backend
 X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
 X-Rh-Insights-Request-Id: kjasdf01
 end note
+
+hmsidm_backend -> rbac: (13) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (14) (http) ACL list for the current user
 note right hmsidm_backend
-Check for 'hmsidm:domains:read' permission
+Check for 'hmsidm:domains:read' permission is granted
 end note
 
-hmsidm_backend -> rbac: (11) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
-hmsidm_backend <-- rbac: (12) (http) ACL list for the current user
-
 alt 200 Ok
-Administrator <-- hmsidm_backend: (13) 200 Ok
+Administrator <-- hmsidm_backend: (15) 200 Ok
 note right Administrator
 {
     "doman_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",

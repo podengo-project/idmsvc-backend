@@ -49,3 +49,45 @@ About permissions:
   - hmsidm:domains:read
 - Domain Server Agent (role), assigned to the RHSM certificate:
   - hmsidm:domains_ipa:write
+
+## Manual requests
+
+1. Generate a token at: https://access.redhat.com/management/api
+   ```
+   OFFLINE_TOKEN="<your offline generated token>"
+   ```
+2. Get an access token by:
+   ```
+   ACCESS_TOKEN="$(curl "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token" -d grant_type=refresh_token -d client_id=rhsm-api -d refresh_token="$OFFLINE_TOKEN" | jq -r '."access_token"')"
+   ```
+3. Check the API by:
+   ```
+   curl -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://console.redhat.com/api/inventory/v1/hosts"
+   ```
+
+> API Documentation at: https://console.redhat.com/docs/api
+
+### Inventory
+
+**Server**
+
+Once the host is registered with rhc you can find information at: <TODO json file>
+
+**Host VM**
+
+Once the host is registered with rhc you can find information at: <TODO json file>
+
+----
+
+Check the host by:
+
+```
+curl -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://console.redhat.com/api/inventory/v1/hosts?registered_with=insights&"
+```
+
+## References
+
+- [ipa-hcc repository](https://gitlab.cee.redhat.com/identity-management/idmocp/ipa-hcc).
+- [Red Hat Insights API Cheat Sheet](https://developers.redhat.com/cheat-sheets/red-hat-insights-api-cheat-sheet).
+- [Red Hat CRC Platform API Documentation](https://console.redhat.com/docs/api).
+- [Inventory API Documentation](https://console.redhat.com/docs/api/inventory/v1).
