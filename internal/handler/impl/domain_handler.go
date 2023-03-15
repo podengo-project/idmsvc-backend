@@ -14,7 +14,10 @@ import (
 
 // List Domains
 // (GET /domains)
-func (a *application) ListDomains(ctx echo.Context, params public.ListDomainsParams) error {
+func (a *application) ListDomains(
+	ctx echo.Context,
+	params public.ListDomainsParams,
+) error {
 	var (
 		err    error
 		data   []model.Domain
@@ -25,13 +28,19 @@ func (a *application) ListDomains(ctx echo.Context, params public.ListDomainsPar
 		tx     *gorm.DB
 	)
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
-	if orgId, offset, limit, err = a.domain.interactor.List(&params); err != nil {
+	orgId, offset, limit, err = a.domain.interactor.List(&params);
+	if err != nil {
 		return err
 	}
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
-	if data, err = a.domain.repository.FindAll(tx, orgId, int64(offset), int32(limit)); err != nil {
+	if data, err = a.domain.repository.FindAll(
+		tx,
+		orgId,
+		int64(offset),
+		int32(limit),
+	); err != nil {
 		tx.Rollback()
 		return err
 	}
@@ -39,7 +48,13 @@ func (a *application) ListDomains(ctx echo.Context, params public.ListDomainsPar
 		return tx.Error
 	}
 	// TODO Read prefix from configuration
-	if output, err = a.domain.presenter.List("/api/hmsidm/v1", int64(offset), int32(limit), data); err != nil {
+	output, err = a.domain.presenter.List(
+		"/api/hmsidm/v1",
+		int64(offset),
+		int32(limit),
+		data,
+	);
+	if err != nil {
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)
@@ -47,7 +62,11 @@ func (a *application) ListDomains(ctx echo.Context, params public.ListDomainsPar
 
 // Return a Domain resource
 // (GET /domains/{id})
-func (a *application) ReadDomain(ctx echo.Context, uuid string, params public.ReadDomainParams) error {
+func (a *application) ReadDomain(
+	ctx echo.Context,
+	uuid string,
+	params public.ReadDomainParams,
+) error {
 	var (
 		err    error
 		data   model.Domain
@@ -140,7 +159,10 @@ func (a *application) ReadDomain(ctx echo.Context, uuid string, params public.Re
 
 // Create a Todo resource
 // (POST /todo)
-func (a *application) CreateDomain(ctx echo.Context, params public.CreateDomainParams) error {
+func (a *application) CreateDomain(
+	ctx echo.Context,
+	params public.CreateDomainParams,
+) error {
 	var (
 		err    error
 		input  public.CreateDomain
@@ -156,6 +178,7 @@ func (a *application) CreateDomain(ctx echo.Context, params public.CreateDomainP
 	if orgId, data, err = a.domain.interactor.Create(&params, &input); err != nil {
 		return err
 	}
+
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
@@ -174,7 +197,11 @@ func (a *application) CreateDomain(ctx echo.Context, params public.CreateDomainP
 
 // Delete a Todo resource
 // (POST /todo)
-func (a *application) DeleteDomain(ctx echo.Context, uuid string, params public.DeleteDomainParams) error {
+func (a *application) DeleteDomain(
+	ctx echo.Context,
+	uuid string,
+	params public.DeleteDomainParams,
+) error {
 	var (
 		err         error
 		tx          *gorm.DB
@@ -198,13 +225,22 @@ func (a *application) DeleteDomain(ctx echo.Context, uuid string, params public.
 }
 
 // TODO Document this method
-func (a *application) HostConf(ctx echo.Context, fqdn string, params public.HostConfParams) error {
+func (a *application) HostConf(
+	ctx echo.Context,
+	fqdn string,
+	params public.HostConfParams,
+) error {
 	// TODO Implement this endpoint
 	return http.ErrNotSupported
 }
 
 // TODO Document this method
-func (a *application) CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string, params public.CheckHostParams) error {
+func (a *application) CheckHost(
+	ctx echo.Context,
+	subscriptionManagerId string,
+	fqdn string,
+	params public.CheckHostParams,
+) error {
 	// TODO Implement this endpoint
 	return http.ErrNotSupported
 }
