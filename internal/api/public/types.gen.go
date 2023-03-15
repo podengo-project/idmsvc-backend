@@ -243,6 +243,18 @@ type PaginationMeta struct {
 	Count *int32 `json:"count,omitempty"`
 }
 
+// RegisterDomainIpa Options for ipa domains
+type RegisterDomainIpa struct {
+	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
+	CaCerts []CreateDomainIpaCert `json:"ca_certs"`
+
+	// RealmDomains TODO What is the meaning of this field.
+	RealmDomains []string `json:"realm_domains"`
+
+	// Servers List of auto-enrollment enabled servers for this domain.
+	Servers *[]CreateDomainIpaServer `json:"servers,omitempty"`
+}
+
 // CreateDomainIpaResponse A domain resource
 type CreateDomainIpaResponse = DomainResponse
 
@@ -319,7 +331,7 @@ type RegisterIpaDomainParams struct {
 	XRhIdentity string `json:"X-Rh-Identity"`
 
 	// XRhInsightsRequestId Request id
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 
 	// XRhIDMRegistrationToken One time use token to register ipa information.
 	XRhIDMRegistrationToken string `json:"X-Rh-IDM-Registration-Token"`
@@ -341,7 +353,7 @@ type CheckHostJSONRequestBody = CheckHosts
 type CreateDomainJSONRequestBody = CreateDomain
 
 // RegisterIpaDomainJSONRequestBody defines body for RegisterIpaDomain for application/json ContentType.
-type RegisterIpaDomainJSONRequestBody = CreateDomainIpa
+type RegisterIpaDomainJSONRequestBody = RegisterDomainIpa
 
 // HostConfJSONRequestBody defines body for HostConf for application/json ContentType.
 type HostConfJSONRequestBody = HostConf

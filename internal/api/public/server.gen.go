@@ -29,7 +29,7 @@ type ServerInterface interface {
 	// (GET /domains/{uuid})
 	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
 	// Register an IPA domain.
-	// (PUT /domains/{uuid}/ipa)
+	// (PUT /domains/{uuid}/ipa/register)
 	RegisterIpaDomain(ctx echo.Context, uuid string, params RegisterIpaDomainParams) error
 	// Get host vm information.
 	// (POST /host-conf/{fqdn})
@@ -357,7 +357,7 @@ func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
 	}
-	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
 		n := len(valueList)
@@ -370,7 +370,9 @@ func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = &XRhInsightsRequestId
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
 	}
 	// ------------- Required header parameter "X-Rh-IDM-Registration-Token" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-IDM-Registration-Token")]; found {
@@ -483,7 +485,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/domains", wrapper.CreateDomain)
 	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
 	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
-	router.PUT(baseURL+"/domains/:uuid/ipa", wrapper.RegisterIpaDomain)
+	router.PUT(baseURL+"/domains/:uuid/ipa/register", wrapper.RegisterIpaDomain)
 	router.POST(baseURL+"/host-conf/:fqdn", wrapper.HostConf)
 
 }

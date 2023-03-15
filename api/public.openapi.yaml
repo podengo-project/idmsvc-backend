@@ -301,15 +301,17 @@ paths:
                   type: string
               in: header
               required: false
-    "/domains/{uuid}/ipa":
-        summary: IPA domain details.
-        description: Set, read or update the IPA domain details.
+    "/domains/{uuid}/ipa/register":
+        summary: Register an IPA domain information.
+        description: First registration to update the IPA domain information.
         put:
             requestBody:
+                description: Information for an IPA domain so it is updated from the ipa-hcc
+                    agent.
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/CreateDomainIpa"
+                            $ref: "#/components/schemas/RegisterDomainIpa"
                         examples:
                             set ipa domain information:
                                 value:
@@ -336,7 +338,6 @@ paths:
                 required: true
             tags:
                 - ipa
-                - resources
             responses:
                 "200":
                     $ref: "#/components/responses/CreateDomainIpaResponse"
@@ -366,7 +367,7 @@ paths:
               schema:
                   type: string
               in: header
-              required: false
+              required: true
             - name: X-Rh-IDM-Registration-Token
               description: One time use token to register ipa information.
               schema:
@@ -1048,6 +1049,71 @@ components:
                 hcc_enrollment_server: true
                 hcc_update_server: true
                 pkinit_server: true
+        RegisterDomainIpa:
+            title: Root Type for ResponseIpaObject
+            description: Options for ipa domains
+            required:
+                - ca_certs
+                - realm_domains
+            type: object
+            properties:
+                servers:
+                    description: List of auto-enrollment enabled servers for this domain.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/CreateDomainIpaServer"
+                    example: '["server1.mydomain.example","server2.mydomain.example"]'
+                ca_certs:
+                    description: A base64 representation of all the list of chain of certificates,
+                        including the server ca.
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/CreateDomainIpaCert"
+                    example: >-
+                        [
+                          {
+                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                            "serial_number": "1",
+                            "not_valid_before": "2023-01-31T13:23:36Z",
+                            "not_valid_after": "2023-01-31T13:23:36Z"
+                            "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+                          }
+                        ]
+                realm_domains:
+                    description: TODO What is the meaning of this field.
+                    type: array
+                    items:
+                        type: string
+            additionalProperties: false
+            example: >-
+                {
+                  "servers": [
+                    {
+                      "fqdn": "ipaserver.mydomain.example",
+                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+                      "ca_server": true,
+                      "hcc_enrollment_server": true,
+                      "hcc_update_server": true,
+                      "pkinit_server": true
+                    }
+                  ],
+                  "cacerts": [
+                    {
+                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+                      "serial_number": "1",
+                      "not_valid_before": "2023-01-31T13:23:36Z",
+                      "not_valid_after": "2023-01-31T13:23:36Z"
+                      "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+                    }
+                  ],
+                  "realm_domains": [
+                    "ipahcc.test"
+                  ]
+                }
     responses:
         CreateDomainResponse:
             content:
