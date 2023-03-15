@@ -137,6 +137,7 @@ MOCK_DIRS := internal/api/private \
 	internal/interface/interactor \
 	internal/interface/presenter \
 	internal/interface/event \
+	internal/interface/client \
 	internal/handler \
 	internal/infrastructure/service \
 	internal/infrastructure/event \
