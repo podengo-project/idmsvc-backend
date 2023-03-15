@@ -26,6 +26,7 @@ type Config struct {
 	Kafka      Kafka
 	Cloudwatch Cloudwatch
 	Metrics    Metrics
+	Clients    Clients
 }
 
 type Web struct {
@@ -114,6 +115,11 @@ type Metrics struct {
 	Port int `mapstructure:"port"`
 }
 
+type Clients struct {
+	// Define the base url for the host inventory service
+	HostInventoryBaseUrl string `mapstructure:"host_inventory_base_url"`
+}
+
 var config *Config = nil
 
 func setDefaults(v *viper.Viper) {
@@ -132,6 +138,9 @@ func setDefaults(v *viper.Viper) {
 
 	// Miscelanea
 	v.SetDefault("logging.level", "info")
+
+	// Clients
+	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
 }
 
 func setClowderConfiguration(v *viper.Viper) {

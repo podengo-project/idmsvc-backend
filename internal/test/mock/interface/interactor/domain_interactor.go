@@ -135,6 +135,36 @@ func (_m *DomainInteractor) List(params *public.ListDomainsParams) (string, int,
 	return r0, r1, r2, r3
 }
 
+// RegisterIpa provides a mock function with given fields: params, body
+func (_m *DomainInteractor) RegisterIpa(params *public.RegisterIpaDomainParams, body *public.RegisterDomainIpa) (string, *model.Ipa, error) {
+	ret := _m.Called(params, body)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*public.RegisterIpaDomainParams, *public.RegisterDomainIpa) string); ok {
+		r0 = rf(params, body)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.Ipa
+	if rf, ok := ret.Get(1).(func(*public.RegisterIpaDomainParams, *public.RegisterDomainIpa) *model.Ipa); ok {
+		r1 = rf(params, body)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.Ipa)
+		}
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(*public.RegisterIpaDomainParams, *public.RegisterDomainIpa) error); ok {
+		r2 = rf(params, body)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 type mockConstructorTestingTNewDomainInteractor interface {
 	mock.TestingT
 	Cleanup(func())

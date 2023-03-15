@@ -28,7 +28,7 @@ func (a *application) ListDomains(
 		tx     *gorm.DB
 	)
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
-	orgId, offset, limit, err = a.domain.interactor.List(&params);
+	orgId, offset, limit, err = a.domain.interactor.List(&params)
 	if err != nil {
 		return err
 	}
@@ -53,7 +53,7 @@ func (a *application) ListDomains(
 		int64(offset),
 		int32(limit),
 		data,
-	);
+	)
 	if err != nil {
 		return err
 	}
@@ -247,6 +247,70 @@ func (a *application) CheckHost(
 
 // Register an IPA domain.
 // (PUT /domains/{uuid}/ipa)
-func (a *application) RegisterIpaDomain(ctx echo.Context, uuid string, params public.RegisterIpaDomainParams) error {
+func (a *application) RegisterIpaDomain(
+	ctx echo.Context,
+	uuid string,
+	params public.RegisterIpaDomainParams,
+) error {
+	var (
+		err   error
+		input public.RegisterDomainIpa
+		data  *model.Domain
+		// ipa   *model.Ipa
+		orgId string
+		tx    *gorm.DB
+		fqdn  string
+		// hostList []client.Host
+	)
+	if err = ctx.Bind(&input); err != nil {
+		return err
+	}
+	orgId, _, err = a.domain.interactor.RegisterIpa(&params, &input)
+	if err != nil {
+		return err
+	}
+	if tx = a.db.Begin(); tx.Error != nil {
+		return tx.Error
+	}
+
+	// Load Domain data
+	data, err = a.findIpaById(tx, orgId, uuid)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Check token
+	err = a.checkToken(params.XRhIDMRegistrationToken, data.IpaDomain)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// TODO Check the source host exists in HBI
+	// FIXME Set the value from the unencoded and unmarshalled Identity
+	subscription_manager_id := ""
+	fqdn, err = a.checkSubscriptionIdWithInventory(params.XRhIdentity, subscription_manager_id)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Check cn from x-rh-identity host against the Domain.IpaDomain.Servers slice
+	err = a.checkEnrollmentIpaServer(fqdn, data.IpaDomain)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// TODO Write data into the database using the 'repository' component
+
+	// if tx.Commit(); tx.Error != nil {
+	// 	return tx.Error
+	// }
+
+	// TODO Translate the business component representation into the API
+	// output payload
+
 	return http.ErrNotSupported
 }

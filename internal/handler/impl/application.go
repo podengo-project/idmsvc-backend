@@ -3,6 +3,7 @@ package impl
 import (
 	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/handler"
+	"github.com/hmsidm/internal/interface/client"
 	"github.com/hmsidm/internal/interface/interactor"
 	"github.com/hmsidm/internal/interface/presenter"
 	"github.com/hmsidm/internal/interface/repository"
@@ -20,13 +21,14 @@ type domainComponent struct {
 }
 
 type application struct {
-	config  *config.Config
-	metrics *metrics.Metrics
-	domain  domainComponent
-	db      *gorm.DB
+	config    *config.Config
+	metrics   *metrics.Metrics
+	domain    domainComponent
+	db        *gorm.DB
+	inventory client.HostInventory
 }
 
-func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics) handler.Application {
+func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client.HostInventory) handler.Application {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -47,5 +49,6 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics) handler.
 			repository: r,
 			presenter:  p,
 		},
+		inventory: inventory,
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/hmsidm/internal/handler/impl"
 	"github.com/hmsidm/internal/metrics"
 	"github.com/hmsidm/internal/test"
+	"github.com/hmsidm/internal/test/mock/interface/client"
 	"github.com/labstack/echo/v4"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
@@ -27,6 +28,7 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
+	inventory := client.NewHostInventory(t)
 
 	cfg := config.Get()
 	_, db, err = test.NewSqlMock(&gorm.Session{})
@@ -36,7 +38,7 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	// FIXME Refactor and encapsulate routerConfig in a factory function
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
-		Handlers:   impl.NewHandler(cfg, db, metrics),
+		Handlers:   impl.NewHandler(cfg, db, metrics, inventory),
 	}
 	routerWrongConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
@@ -93,7 +95,7 @@ func TestNewGroupPublic(t *testing.T) {
 			"DELETE": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
 		},
 
-		appPrefix + appName + versionFull + "/domains/:uuid/ipa": {
+		appPrefix + appName + versionFull + "/domains/:uuid/ipa/register": {
 			"PUT": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).RegisterIpaDomain-fm",
 		},
 
@@ -138,6 +140,8 @@ func TestNewGroupPublic(t *testing.T) {
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
+	inventory := client.NewHostInventory(t)
+	require.NotNil(t, inventory)
 
 	cfg := config.Get()
 	_, db, err = test.NewSqlMock(&gorm.Session{})
@@ -148,7 +152,7 @@ func TestNewGroupPublic(t *testing.T) {
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
 		Version:    "1.0",
-		Handlers:   impl.NewHandler(cfg, db, metrics),
+		Handlers:   impl.NewHandler(cfg, db, metrics, inventory),
 	}
 
 	e := echo.New()

@@ -7,6 +7,7 @@ import (
 	"github.com/hmsidm/internal/config"
 	handler_impl "github.com/hmsidm/internal/handler/impl"
 	"github.com/hmsidm/internal/infrastructure/service"
+	"github.com/hmsidm/internal/interface/client"
 	"github.com/hmsidm/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/gorm"
@@ -23,7 +24,7 @@ type svcApplication struct {
 	// AdditionalService service.ApplicationService
 }
 
-func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB) service.ApplicationService {
+func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB, inventory client.HostInventory) service.ApplicationService {
 	if ctx == nil {
 		panic("ctx is nil")
 	}
@@ -46,7 +47,7 @@ func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config,
 	metrics := metrics.NewMetrics(reg)
 
 	// Create application handlers
-	handler := handler_impl.NewHandler(s.Config, db, metrics)
+	handler := handler_impl.NewHandler(s.Config, db, metrics, inventory)
 
 	// Create Metrics service
 	s.Metrics = NewMetrics(s.Context, s.WaitGroup, s.Config, handler)

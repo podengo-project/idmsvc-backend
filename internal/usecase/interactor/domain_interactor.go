@@ -8,6 +8,7 @@ import (
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/interactor"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 )
 
@@ -236,4 +237,77 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 	}
 
 	return identity.OrgID, uuid, nil
+}
+
+// TODO Document method
+func (i domainInteractor) RegisterIpa(params *api_public.RegisterIpaDomainParams, body *public.RegisterIpaDomainJSONRequestBody) (string, *model.Ipa, error) {
+	if params == nil {
+		return "", nil, fmt.Errorf("'params' cannot be nil")
+	}
+	identity, err := DecodeIdentity(params.XRhIdentity)
+	if err != nil {
+		return "", nil, err
+	}
+	orgId := identity.Internal.OrgID
+
+	// Read the body payload
+	domainIpa := &model.Ipa{}
+	// TODO Update api schema for this endpoint to don't include RealmName
+
+	if body.RealmDomains == nil {
+		domainIpa.RealmDomains = pq.StringArray{}
+	} else {
+		domainIpa.RealmDomains = make(pq.StringArray, len(body.RealmDomains))
+		domainIpa.RealmDomains = append(
+			domainIpa.RealmDomains,
+			body.RealmDomains...,
+		)
+	}
+
+	// Certificate list
+	if body.CaCerts == nil {
+		domainIpa.CaCerts = []model.IpaCert{}
+	} else {
+		domainIpa.CaCerts = make([]model.IpaCert, len(body.CaCerts))
+		for idx, cert := range body.CaCerts {
+			if cert.Nickname != nil {
+				domainIpa.CaCerts[idx].Nickname = *cert.Nickname
+			}
+			if cert.Issuer != nil {
+				domainIpa.CaCerts[idx].Issuer = *cert.Issuer
+			}
+			if cert.Subject != nil {
+				domainIpa.CaCerts[idx].Subject = *cert.Subject
+			}
+			if cert.SerialNumber != nil {
+				domainIpa.CaCerts[idx].SerialNumber = *cert.SerialNumber
+			}
+			if cert.NotValidBefore != nil {
+				domainIpa.CaCerts[idx].NotValidBefore = *cert.NotValidBefore
+			}
+			if cert.NotValidAfter != nil {
+				domainIpa.CaCerts[idx].NotValidAfter = *cert.NotValidAfter
+			}
+			if cert.Pem != nil {
+				domainIpa.CaCerts[idx].Pem = *cert.Pem
+			}
+		}
+	}
+
+	// Server list
+	if body.Servers == nil {
+		domainIpa.Servers = []model.IpaServer{}
+	} else {
+		// FIXME Set body.Servers as required into the openapi specification
+		domainIpa.Servers = make([]model.IpaServer, len(*body.Servers))
+		for idx, server := range *body.Servers {
+			domainIpa.Servers[idx].FQDN = server.Fqdn
+			domainIpa.Servers[idx].RHSMId = server.RhsmId
+			domainIpa.Servers[idx].PKInitServer = server.PkinitServer
+			domainIpa.Servers[idx].HCCEnrollmentServer = server.HccEnrollmentServer
+			domainIpa.Servers[idx].HCCUpdateServer = server.HccUpdateServer
+		}
+	}
+
+	return orgId, domainIpa, nil
 }

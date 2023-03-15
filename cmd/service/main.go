@@ -11,6 +11,7 @@ import (
 	"github.com/hmsidm/internal/infrastructure/datastore"
 	"github.com/hmsidm/internal/infrastructure/logger"
 	impl_service "github.com/hmsidm/internal/infrastructure/service/impl"
+	"github.com/hmsidm/internal/usecase/client"
 )
 
 func startSignalHandler(c context.Context) (context.Context, context.CancelFunc) {
@@ -35,7 +36,8 @@ func main() {
 	defer datastore.Close(db)
 
 	ctx, cancel := startSignalHandler(context.Background())
-	s := impl_service.NewApplication(ctx, wg, cfg, db)
+	inventory := client.NewHostInventory(cfg)
+	s := impl_service.NewApplication(ctx, wg, cfg, db, inventory)
 	if e := s.Start(); e != nil {
 		panic(e)
 	}
