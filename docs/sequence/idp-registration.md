@@ -38,10 +38,10 @@
   is returned.
 * (12) The administrator come back to the UI and request the
   information for the domain by `GET /api/hmsidm/v1/domains/<domain_uuid>`.
-* (11) idm-domains-backend request ACL for the current x-rh-identity.
-* (12) rbac service return the ACL list.
+* (13) idm-domains-backend request ACL for the current x-rh-identity.
+* (14) rbac service return the ACL list.
   * Check the `hmsidm:domain:read` permission exists into the list.
-* (13) The domain resource is returned and it contains all the updated information.
+* (15) The domain resource is returned and it contains all the updated information.
   If the RBAC check fails then a **403 Forbidden** response is returned.
   If no domain information is found for the current organization
   a **404 Not Found** response is returned.
@@ -56,22 +56,47 @@ About permissions:
 - Domain Server Agent (role), assigned to the RHSM certificate:
   - hmsidm:domains_ipa:write
 
-## Manual requests
+## Manual requests - Stage
 
-1. Generate a token at: https://access.redhat.com/management/api
+1. Generate a token at: https://access.stage.redhat.com/management/api
    ```
    OFFLINE_TOKEN="<your offline generated token>"
    ```
 2. Get an access token by:
    ```
-   ACCESS_TOKEN="$(curl "https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token" -d grant_type=refresh_token -d client_id=rhsm-api -d refresh_token="$OFFLINE_TOKEN" | jq -r '."access_token"')"
+   ACCESS_TOKEN="$(curl "https://sso.stage.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token" -d grant_type=refresh_token -d client_id=rhsm-api -d refresh_token="$OFFLINE_TOKEN" | jq -r '."access_token"')"
    ```
 3. Check the API by:
    ```
-   curl -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://console.redhat.com/api/inventory/v1/hosts"
+   curl -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://console.stage.redhat.com/api/inventory/v1/hosts"
+   ```
+   > Be aware your HTTPS_PROXY environment variable point out to the right place
+4. From the ipa server host, retrieve the CN field by:
+   ```
+   kinit admin
+   CN="$( ipa host-show server.hmsidm-dev.test | grep RHSM | awk -F ":" '{print $2}' | awk -F "," '{print $2}' | awk -F "=" '{print $2}' )"
+   ```
+5. Launch the request against the insights inventory by:
+   ```
+   curl -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://console.stage.redhat.com/api/inventory/v1/hosts?filter\[system_profile\]\[owner_id\]=${CN}" | jq 
    ```
 
-> API Documentation at: https://console.redhat.com/docs/api
+```
+# Request by fqdn
+
+The below could return more than one record.
+
+curl -s -H "Authorization: Bearer ${ACCESS_TOKEN}" "https://console.stage.redhat.com/api/inventory/v1/hosts?fqdn=server.hmsidm-dev.test"
+
+# Request by the CN of the x-rh-identity
+curl -X 'GET' \
+  "https://console.stage.redhat.com/api/inventory/v1/hosts?filter\[system_profile\]\[owner_id\]=${CN}" \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
+```
+
+> API Documentation at: https://console.stage.redhat.com/docs/api
+> Inventory API Documentation at: https://console.stage.redhat.com/docs/api/inventory
 
 ### Inventory
 

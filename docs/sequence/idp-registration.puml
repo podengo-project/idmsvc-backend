@@ -134,6 +134,7 @@ N2RjYjRjLThhZjEtNDBkZC04NzhlLTYwYzc0NGVkZGRkMCIKICAgIH0sCiAgICAidHlwZSI6ICJT
 eXN0ZW0iCiAgfQp9Cg==
 X-Rh-Insights-Request-Id: kjasdf02
 X-Rh-Idm-Registration-Token: Iesah0IengaeFah6Cienai4tooph5Eiv
+X-Rh-IDM-FQDN: server.hmsidm-dev.test
 
 {
     "servers": [
@@ -163,16 +164,84 @@ X-Rh-Idm-Registration-Token: Iesah0IengaeFah6Cienai4tooph5Eiv
 end note
 hmsidm_backend -> rbac: (7) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
 hmsidm_backend <-- rbac: (8) (http) ACL list for the current user
+note right hmsidm_backend
+{
+  "meta": {
+    "count": 1,
+    "limit": 1,
+    "offset": 0
+  },
+  "links": {
+    "first": "/api/rbac/v1/access/?application=hmsidm&limit=1&offset=0",
+    "next": null,
+    "previous": null,
+    "last": "/api/rbac/v1/access/?application=hmsidm&limit=1&offset=0"
+  },
+  "data": [
+    {
+      "resourceDefinitions": [],
+      "permission": "hmsidm:domains_ipa_register:write"
+    },
+  ]
+}
+end note
 
 ' Check host in host inventory
-hmsidm_backend -> hbi: (9) (http) GET /api/inventory/v1/hosts?filter[system_profile][owner_id]={:subscription_manager_id}
+hmsidm_backend -> hbi: (9) (http) GET /api/inventory/v1/hosts?filter\[system_profile\]\[owner_id\]={x-rh-identity.system["cn"]}
 note left hbi
 X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
 X-Rh-Insights-Request-Id: kjasdf01
 end note
 hmsidm_backend <-- hbi: (10) (http) List of hosts
 note right hmsidm_backend
-TODO Add response example here
+{
+  "total": 1,
+  "count": 1,
+  "page": 1,
+  "per_page": 50,
+  "results": [
+    {
+      "insights_id": "6fe8800e-f466-48ee-af72-e01b9e0b074d",
+      "subscription_manager_id": "4fa04772-6ee1-4898-85dc-abcddb29de35",
+      "satellite_id": null,
+      "bios_uuid": "c100e4e5-ae6f-4c20-a9c6-ef636c4b287d",
+      "ip_addresses": [
+        "10.0.197.223"
+      ],
+      "fqdn": "server.hmsidm-dev.test",
+      "mac_addresses": [
+        "fa:16:3e:fe:b6:e2",
+        "00:00:00:00:00:00"
+      ],
+      "provider_id": null,
+      "provider_type": null,
+      "id": "48ce8457-2f82-4af2-9bf1-74359ed2ffd8",
+      "account": "11474377",
+      "org_id": "16768564",
+      "display_name": "server.hmsidm-dev.test",
+      "ansible_host": null,
+      "facts": [],
+      "reporter": "cloud-connector",
+      "per_reporter_staleness": {
+        "cloud-connector": {
+          "check_in_succeeded": true,
+          "stale_timestamp": "2023-03-17T11:00:39+00:00",
+          "last_check_in": "2023-03-16T09:00:40.280344+00:00"
+        },
+        "puptoo": {
+          "check_in_succeeded": true,
+          "stale_timestamp": "2023-03-17T14:00:38.919595+00:00",
+          "last_check_in": "2023-03-16T09:00:39.173849+00:00"
+        }
+      },
+      "stale_timestamp": "2023-03-17T11:00:39+00:00",
+      "stale_warning_timestamp": "2023-03-24T11:00:39+00:00",
+      "culled_timestamp": "2023-03-31T11:00:39+00:00",
+      "created": "2023-03-16T09:00:39.190043+00:00",
+      "updated": "2023-03-16T09:00:40.280626+00:00"
+    }
+  ]
+}
 end note
 
 
