@@ -1,5 +1,7 @@
 package client
 
+import "github.com/google/uuid"
+
 // HostInventory represent the client to reach
 // out the host inventory service and abstract
 // the necessary operations.
@@ -12,9 +14,9 @@ type HostInventory interface {
 // inventory service when requesting a filtered /hosts
 // request.
 type InventoryHost struct {
-	ID                    string `json:"id"`
-	SubscriptionManagerId string `json:"subscription_manager_id"`
-	FQDN                  string `json:"fqdn"`
+	ID                    uuid.UUID `json:"id"`
+	SubscriptionManagerId uuid.UUID `json:"subscription_manager_id"`
+	FQDN                  string    `json:"fqdn"`
 }
 
 // InventoryHostPage represent a paginated list of results

@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	api_header "github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/infrastructure/middleware"
@@ -24,12 +25,13 @@ func newMockInventoryServer(
 	iden *identity.Identity,
 	status int,
 	body string,
+	requestHeaders map[string]string,
 ) (
 	*echo.Echo,
 	echo.Context,
 	*httptest.ResponseRecorder,
 ) {
-	requestHeaders := map[string]string{
+	rh := map[string]string{
 		"X-Rh-Identity": api_header.EncodeIdentity(iden),
 	}
 	return test_client.NewHandlerTester(t,
@@ -38,7 +40,7 @@ func newMockInventoryServer(
 		"/api/inventory/v1/hosts",
 		nil,
 		"",
-		requestHeaders,
+		rh,
 		status,
 		body,
 		nil,
@@ -140,7 +142,8 @@ func TestGetHostByCN(t *testing.T) {
 		fqdn  = "server.hmsidm-dev.test"
 	)
 	cfg := config.Config{}
-	// e, ctx, rec := newMockInventoryServer(t,
+
+	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/cert.json
 	iden := identity.Identity{
 		OrgID: orgId,
 		Type:  "System",
@@ -153,27 +156,18 @@ func TestGetHostByCN(t *testing.T) {
 		&iden,
 		http.StatusOK,
 		helperBodySuccess(id, orgId, fqdn, cn),
+		nil,
 	)
 	defer e.Shutdown(context.Background())
 
-	// TODO Call the echo handler using the context
-	// sqlMock, db, err := test.NewSqlMock(nil)
-	// _, db, err := test.NewSqlMock(nil)
-	// require.NoError(t, err)
-	// app := impl.NewHandler(&cfg, db, nil, NewHostInventory(&cfg))
-	// h := public.ServerInterfaceWrapper{
-	// 	Handler: app,
-	// }
-
-	// err = h.RegisterIpaDomain(ctx)
 	cfg.Clients.HostInventoryBaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
 	cli := NewHostInventory(&cfg)
 	host, err := cli.GetHostByCN(api_header.EncodeIdentity(&iden), cn)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
 	assert.Equal(t, client.InventoryHost{
-		ID:                    id,
-		SubscriptionManagerId: cn,
+		ID:                    uuid.MustParse(id),
+		SubscriptionManagerId: uuid.MustParse(cn),
 		FQDN:                  fqdn,
 	}, host)
 }
@@ -203,16 +197,17 @@ func TestGetHostByCNErrors(t *testing.T) {
 		&iden,
 		http.StatusBadRequest,
 		"",
+		nil,
 	)
 	defer e.Shutdown(context.Background())
 
 	// Failure because a wrong base url
-	cfg.Clients.HostInventoryBaseUrl = fmt.Sprintf("httpvf://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	cfg.Clients.HostInventoryBaseUrl = fmt.Sprintf("lhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
 	cli := NewHostInventory(&cfg)
 	host, err := cli.GetHostByCN(api_header.EncodeIdentity(&iden), cn)
 	require.EqualError(t,
 		err,
-		fmt.Sprintf("Get \"httpvf://localhost:%s/api/inventory/v1/hosts?filter%%5Bsystem_profile%%5D%%5Bowner_id%%5D=c91e72f6-c518-11ed-bd88-482ae3863d30\": unsupported protocol scheme \"httpvf\"",
+		fmt.Sprintf("Get \"lhost:%s/api/inventory/v1/hosts?filter%%5Bsystem_profile%%5D%%5Bowner_id%%5D=c91e72f6-c518-11ed-bd88-482ae3863d30\": unsupported protocol scheme \"lhost\"",
 			readPort(
 				e.Listener.
 					Addr().
@@ -222,12 +217,23 @@ func TestGetHostByCNErrors(t *testing.T) {
 	)
 	assert.Equal(t, client.InventoryHost{}, host)
 
+	// Failure request because wrong Location header parsing
+	// (forcing req.Do operation to fail)
+	cfg.Clients.HostInventoryBaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	cli = NewHostInventory(&cfg)
+	host, err = cli.GetHostByCN(api_header.EncodeIdentity(&iden), cn)
+	require.EqualError(t,
+		err,
+		"400 Bad Request",
+	)
+	assert.Equal(t, client.InventoryHost{}, host)
+
 	// Error unmarshalling the body response
-	// for GET /api/inventory/v1/hosts
 	e, _, _ = newMockInventoryServer(t,
 		&iden,
-		http.StatusBadRequest,
+		http.StatusOK,
 		"{",
+		nil,
 	)
 	defer e.Shutdown(context.Background())
 	// Error unmarshalling response
@@ -235,7 +241,23 @@ func TestGetHostByCNErrors(t *testing.T) {
 	t.Logf("Listening for: %s", cfg.Clients.HostInventoryBaseUrl)
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeIdentity(&iden), cn)
-	require.EqualError(t, err, "400 Bad Request")
+	require.EqualError(t, err, "unexpected end of JSON input")
+	assert.Equal(t, client.InventoryHost{}, host)
+
+	// Force 'Failed to look up'
+	e, _, _ = newMockInventoryServer(t,
+		&iden,
+		http.StatusOK,
+		helperBodyEmpty(),
+		nil,
+	)
+	defer e.Shutdown(context.Background())
+	// Error unmarshalling response
+	cfg.Clients.HostInventoryBaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	t.Logf("Listening for: %s", cfg.Clients.HostInventoryBaseUrl)
+	cli = NewHostInventory(&cfg)
+	host, err = cli.GetHostByCN(api_header.EncodeIdentity(&iden), cn)
+	require.EqualError(t, err, fmt.Sprintf("Failed to look up 'cn=%s'", cn))
 	assert.Equal(t, client.InventoryHost{}, host)
 
 }
