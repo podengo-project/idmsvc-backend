@@ -4,6 +4,7 @@ import (
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
+	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 
 type DomainInteractor interface {
@@ -11,5 +12,5 @@ type DomainInteractor interface {
 	Delete(uuid string, params *api_public.DeleteDomainParams) (string, string, error)
 	List(params *api_public.ListDomainsParams) (orgId string, offset int, limit int, err error)
 	GetById(uuid string, params *public.ReadDomainParams) (string, string, error)
-	RegisterIpa(params *api_public.RegisterIpaDomainParams, body *api_public.RegisterDomainIpa) (string, *model.Ipa, error)
+	RegisterIpa(iden *identity.Identity, params *api_public.RegisterIpaDomainParams, body *api_public.RegisterDomainIpa) (string, *model.Ipa, error)
 }

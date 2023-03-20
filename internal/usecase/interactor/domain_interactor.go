@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/interactor"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 
 type domainInteractor struct{}
@@ -111,7 +113,7 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	//       the interactors
 
 	domain := &model.Domain{}
-	identity, err := DecodeIdentity(string(params.XRhIdentity))
+	identity, err := header.DecodeIdentity(string(params.XRhIdentity))
 	if err != nil {
 		return "", nil, err
 	}
@@ -196,7 +198,7 @@ func (i domainInteractor) Delete(uuid string, params *api_public.DeleteDomainPar
 	if params == nil {
 		return "", "", fmt.Errorf("'params' cannot be nil")
 	}
-	identity, err := DecodeIdentity(string(params.XRhIdentity))
+	identity, err := header.DecodeIdentity(string(params.XRhIdentity))
 	if err != nil {
 		return "", "", err
 	}
@@ -218,7 +220,7 @@ func (i domainInteractor) List(params *api_public.ListDomainsParams) (orgId stri
 	} else {
 		limit = *params.Limit
 	}
-	identity, err := DecodeIdentity(string(params.XRhIdentity))
+	identity, err := header.DecodeIdentity(string(params.XRhIdentity))
 	if err != nil {
 		return "", -1, -1, err
 	}
@@ -231,7 +233,7 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 		return "", "", fmt.Errorf("'in' cannot be an empty string")
 	}
 
-	identity, err := DecodeIdentity(string(params.XRhIdentity))
+	identity, err := header.DecodeIdentity(string(params.XRhIdentity))
 	if err != nil {
 		return "", "", err
 	}
@@ -239,16 +241,24 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 	return identity.OrgID, uuid, nil
 }
 
-// TODO Document method
-func (i domainInteractor) RegisterIpa(params *api_public.RegisterIpaDomainParams, body *public.RegisterIpaDomainJSONRequestBody) (string, *model.Ipa, error) {
+// RegisterIpa translates the API input format into the business
+// data models for the PUT /domains/{uuid}/ipa/register endpoint.
+// params contains the header parameters.
+// body contains the input payload.
+// Return the orgId and the business model for Ipa information,
+// when success translation, else it returns empty string for orgId,
+// nil for the Ipa data, and an error filled.
+func (i domainInteractor) RegisterIpa(iden *identity.Identity, params *api_public.RegisterIpaDomainParams, body *public.RegisterIpaDomainJSONRequestBody) (string, *model.Ipa, error) {
+	if iden == nil {
+		return "", nil, fmt.Errorf("'iden' cannot be nil")
+	}
 	if params == nil {
 		return "", nil, fmt.Errorf("'params' cannot be nil")
 	}
-	identity, err := DecodeIdentity(params.XRhIdentity)
-	if err != nil {
-		return "", nil, err
+	if body == nil {
+		return "", nil, fmt.Errorf("'body' cannot be nil")
 	}
-	orgId := identity.Internal.OrgID
+	orgId := iden.Internal.OrgID
 
 	// Read the body payload
 	domainIpa := &model.Ipa{}
@@ -257,7 +267,7 @@ func (i domainInteractor) RegisterIpa(params *api_public.RegisterIpaDomainParams
 	if body.RealmDomains == nil {
 		domainIpa.RealmDomains = pq.StringArray{}
 	} else {
-		domainIpa.RealmDomains = make(pq.StringArray, len(body.RealmDomains))
+		domainIpa.RealmDomains = make(pq.StringArray, 0)
 		domainIpa.RealmDomains = append(
 			domainIpa.RealmDomains,
 			body.RealmDomains...,
@@ -304,6 +314,7 @@ func (i domainInteractor) RegisterIpa(params *api_public.RegisterIpaDomainParams
 			domainIpa.Servers[idx].FQDN = server.Fqdn
 			domainIpa.Servers[idx].RHSMId = server.RhsmId
 			domainIpa.Servers[idx].PKInitServer = server.PkinitServer
+			domainIpa.Servers[idx].CaServer = server.CaServer
 			domainIpa.Servers[idx].HCCEnrollmentServer = server.HccEnrollmentServer
 			domainIpa.Servers[idx].HCCUpdateServer = server.HccUpdateServer
 		}

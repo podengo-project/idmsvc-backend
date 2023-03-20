@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -81,7 +82,7 @@ func TestCreate(t *testing.T) {
 			Name: "success case",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{
-					XRhIdentity: EncodeIdentity(
+					XRhIdentity: header.EncodeIdentity(
 						&identity.Identity{
 							OrgID: "12345",
 							Internal: identity.Internal{
@@ -122,7 +123,7 @@ func TestCreate(t *testing.T) {
 			Name: "success case - not empty ca list",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{
-					XRhIdentity: EncodeIdentity(
+					XRhIdentity: header.EncodeIdentity(
 						&identity.Identity{
 							OrgID: "12345",
 							Internal: identity.Internal{
@@ -399,4 +400,214 @@ func TestFillServer(t *testing.T) {
 	assert.Equal(t, true, to.CaServer)
 	assert.Equal(t, true, to.HCCEnrollmentServer)
 	assert.Equal(t, true, to.HCCUpdateServer)
+}
+
+func TestRegisterIpa(t *testing.T) {
+	const (
+		cn        = "21258fc8-c755-11ed-afc4-482ae3863d30"
+		requestID = "TW9uIE1hciAyMCAyMDo1Mzoz"
+		token     = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
+		rhsmId    = "cf26cd96-c75d-11ed-ae20-482ae3863d30"
+	)
+	var (
+		idenSystem = &identity.Identity{
+			Type: "System",
+			System: identity.System{
+				CommonName: cn,
+				CertType:   "system",
+			},
+		}
+		idenSystemBase64 = header.EncodeIdentity(idenSystem)
+		params           = &api_public.RegisterIpaDomainParams{
+			XRhIdentity:             idenSystemBase64,
+			XRhInsightsRequestId:    requestID,
+			XRhIDMRegistrationToken: token,
+		}
+		notValidBefore = time.Now().UTC()
+		notValidAfter  = notValidBefore.Add(24 * time.Hour)
+	)
+	type TestCaseGiven struct {
+		Iden   *identity.Identity
+		Params *api_public.RegisterIpaDomainParams
+		Body   *public.RegisterIpaDomainJSONRequestBody
+	}
+	type TestCaseExpected struct {
+		OrgId  string
+		Output *model.Ipa
+		Error  error
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+	testCases := []TestCase{
+		{
+			Name: "iden is nil",
+			Given: TestCaseGiven{
+				Iden:   nil,
+				Params: nil,
+				Body:   nil,
+			},
+			Expected: TestCaseExpected{
+				OrgId:  "",
+				Output: nil,
+				Error:  fmt.Errorf("'iden' cannot be nil"),
+			},
+		},
+		{
+			Name: "param is nil",
+			Given: TestCaseGiven{
+				Iden:   idenSystem,
+				Params: nil,
+				Body:   nil,
+			},
+			Expected: TestCaseExpected{
+				OrgId:  "",
+				Output: nil,
+				Error:  fmt.Errorf("'params' cannot be nil"),
+			},
+		},
+		{
+			Name: "body is nil",
+			Given: TestCaseGiven{
+				Iden:   idenSystem,
+				Params: params,
+				Body:   nil,
+			},
+			Expected: TestCaseExpected{
+				OrgId:  "",
+				Output: nil,
+				Error:  fmt.Errorf("'body' cannot be nil"),
+			},
+		},
+		{
+			Name: "Empty slices",
+			Given: TestCaseGiven{
+				Iden:   idenSystem,
+				Params: params,
+				Body: &api_public.RegisterDomainIpa{
+					RealmDomains: nil,
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId: "",
+				Output: &model.Ipa{
+					CaCerts:      []model.IpaCert{},
+					Servers:      []model.IpaServer{},
+					RealmDomains: pq.StringArray{},
+				},
+				Error: nil,
+			},
+		},
+		{
+			Name: "RealmDomains with some content",
+			Given: TestCaseGiven{
+				Iden:   idenSystem,
+				Params: params,
+				Body: &api_public.RegisterDomainIpa{
+					RealmDomains: []string{"server.domain.example"},
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId: "",
+				Output: &model.Ipa{
+					CaCerts:      []model.IpaCert{},
+					Servers:      []model.IpaServer{},
+					RealmDomains: pq.StringArray{"server.domain.example"},
+				},
+				Error: nil,
+			},
+		},
+		{
+			Name: "CaCerts with some content",
+			Given: TestCaseGiven{
+				Iden:   idenSystem,
+				Params: params,
+				Body: &api_public.RegisterDomainIpa{
+					CaCerts: []api_public.CreateDomainIpaCert{
+						{
+							Nickname:       pointy.String("MYDOMAIN.EXAMPLE IPA CA"),
+							SerialNumber:   pointy.String("1"),
+							Issuer:         pointy.String("CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"),
+							Subject:        pointy.String("CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"),
+							NotValidBefore: &notValidBefore,
+							NotValidAfter:  &notValidAfter,
+							Pem:            pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"),
+						},
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId: "",
+				Output: &model.Ipa{
+					CaCerts: []model.IpaCert{
+						{
+							Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
+							SerialNumber:   "1",
+							Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+							Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+							NotValidBefore: notValidBefore,
+							NotValidAfter:  notValidAfter,
+							Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+						},
+					},
+					Servers:      []model.IpaServer{},
+					RealmDomains: pq.StringArray{},
+				},
+				Error: nil,
+			},
+		},
+		{
+			Name: "Servers as some content",
+			Given: TestCaseGiven{
+				Iden:   idenSystem,
+				Params: params,
+				Body: &api_public.RegisterDomainIpa{
+					Servers: &[]api_public.CreateDomainIpaServer{
+						{
+							Fqdn:                "server.mydomain.example",
+							RhsmId:              rhsmId,
+							CaServer:            true,
+							PkinitServer:        true,
+							HccEnrollmentServer: true,
+							HccUpdateServer:     true,
+						},
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId: "",
+				Output: &model.Ipa{
+					CaCerts: []model.IpaCert{},
+					Servers: []model.IpaServer{
+						{
+							FQDN:                "server.mydomain.example",
+							RHSMId:              rhsmId,
+							CaServer:            true,
+							HCCEnrollmentServer: true,
+							HCCUpdateServer:     true,
+							PKInitServer:        true,
+						},
+					},
+					RealmDomains: pq.StringArray{},
+				},
+				Error: nil,
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		i := NewDomainInteractor()
+		orgId, output, err := i.RegisterIpa(testCase.Given.Iden, testCase.Given.Params, testCase.Given.Body)
+		if testCase.Expected.Error != nil {
+			assert.EqualError(t, err, testCase.Expected.Error.Error())
+			assert.Equal(t, testCase.Expected.OrgId, orgId)
+			assert.Equal(t, testCase.Expected.Output, output)
+		} else {
+			require.NoError(t, err)
+			assert.Equal(t, testCase.Expected.OrgId, orgId)
+			assert.Equal(t, testCase.Expected.Output, output)
+		}
+	}
 }
