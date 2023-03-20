@@ -9,6 +9,7 @@ import (
 
 	b64 "encoding/base64"
 
+	"github.com/hmsidm/internal/api/header"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/openlyinc/pointy"
@@ -21,7 +22,7 @@ import (
 
 const testPath = "/test"
 
-func helperCreatePredicate(username string) Predicate {
+func helperCreatePredicate(username string) IdentityPredicate {
 	return func(data *identity.Identity) error {
 		if data == nil {
 			return fmt.Errorf("data is nil")
@@ -33,12 +34,13 @@ func helperCreatePredicate(username string) Predicate {
 	}
 }
 
-func helperNewEchoEnforceIdentity(middleware echo.MiddlewareFunc) *echo.Echo {
+func helperNewEchoEnforceIdentity(m echo.MiddlewareFunc) *echo.Echo {
 	e := echo.New()
 	h := func(c echo.Context) error {
 		return c.String(http.StatusOK, "Ok")
 	}
-	e.Use(middleware)
+	e.Use(CreateContext())
+	e.Use(m)
 	e.Add("GET", testPath, h)
 
 	return e
@@ -173,8 +175,9 @@ func TestEnforceIdentity(t *testing.T) {
 	// Get echo instance with the middleware and one predicate for test it
 	e := helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig(nil).
-				Add(
+			NewIdentityConfig().
+				SetSkipper(nil).
+				AddPredicate(
 					"test-predicate",
 					helperCreatePredicate("test-fail-predicate"),
 				),
@@ -196,6 +199,43 @@ func TestEnforceIdentity(t *testing.T) {
 	}
 }
 
+func TestEnforceIdentityNoDomainContext(t *testing.T) {
+	e := echo.New()
+	h := func(c echo.Context) error {
+		return c.String(http.StatusOK, "Ok")
+	}
+	e.Use(
+		EnforceIdentityWithConfig(
+			NewIdentityConfig().
+				SetSkipper(nil).
+				AddPredicate(
+					"test-predicate",
+					helperCreatePredicate("test-fail-predicate"),
+				),
+		),
+	)
+	e.Add("GET", testPath, h)
+
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/test", nil)
+	iden := header.EncodeIdentity(&identity.Identity{})
+	req.Header.Add("X-Rh-Identity", iden)
+	e.ServeHTTP(res, req)
+
+	// Check expectations
+	data, err := ioutil.ReadAll(res.Body)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusInternalServerError, res.Code)
+	assert.Equal(t,
+		fmt.Sprintf(
+			`{"message":"%s"}
+`,
+			http.StatusText(http.StatusInternalServerError),
+		),
+		string(data),
+	)
+}
+
 func TestEnforceIdentitySkipper(t *testing.T) {
 	var (
 		e    *echo.Echo
@@ -208,7 +248,8 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	// When skipper return false, as no x-rh-identity provided, will return unauthorized
 	e = helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig(helperSkipper(false)),
+			NewIdentityConfig().
+				SetSkipper(helperSkipper(false)),
 		),
 	)
 	res = httptest.NewRecorder()
@@ -223,7 +264,8 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	// When skipper return true the middleware does not process the header or the predicates
 	e = helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig(helperSkipper(true)),
+			NewIdentityConfig().
+				SetSkipper(helperSkipper(true)),
 		),
 	)
 	res = httptest.NewRecorder()
