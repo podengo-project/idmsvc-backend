@@ -1,14 +1,18 @@
-package interactor
+package header
 
 import (
-	"fmt"
-
 	b64 "encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 
+// DecodeIdentity from a base64 representation and return
+// the unmarshaled value.
+// data is the base64 x-rh-identity header representation.
+// Return the identity unmarshalled on success and nil, else
+// nil and an error.
 func DecodeIdentity(data string) (*identity.Identity, error) {
 	if data == "" {
 		return nil, fmt.Errorf("X-Rh-Identity content cannot be an empty string")
@@ -29,6 +33,11 @@ func DecodeIdentity(data string) (*identity.Identity, error) {
 	return identity, nil
 }
 
+// EncodeIdentity serializes the data in a base64 of the
+// json representation.
+// data is the Identity struct to be encoded.
+// Return empty if the process fails, or the base64
+// representation of the identity.Identity provided.
 func EncodeIdentity(data *identity.Identity) string {
 	if data == nil {
 		return ""
