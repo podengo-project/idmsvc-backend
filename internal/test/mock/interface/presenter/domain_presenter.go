@@ -83,6 +83,29 @@ func (_m *DomainPresenter) List(prefix string, offset int64, count int32, data [
 	return r0, r1
 }
 
+// RegisterIpa provides a mock function with given fields: domain
+func (_m *DomainPresenter) RegisterIpa(domain *model.Ipa) (*public.DomainResponseIpa, error) {
+	ret := _m.Called(domain)
+
+	var r0 *public.DomainResponseIpa
+	if rf, ok := ret.Get(0).(func(*model.Ipa) *public.DomainResponseIpa); ok {
+		r0 = rf(domain)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*public.DomainResponseIpa)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Ipa) error); ok {
+		r1 = rf(domain)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewDomainPresenter interface {
 	mock.TestingT
 	Cleanup(func())

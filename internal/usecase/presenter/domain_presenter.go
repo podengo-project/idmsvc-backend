@@ -227,6 +227,86 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	return output, nil
 }
 
+// registerIpaCaCerts translate the list of certificates
+// for the RegisterIpa operation.
+// ipa the Ipa instance from the business model.
+// output the DomainResponseIpa schema representation
+// to be filled.
+// Return nil if the information is translated properly
+// else return an error.
+func (p domainPresenter) registerIpaCaCerts(ipa *model.Ipa, output *public.DomainResponseIpa) error {
+	if ipa == nil {
+		return nil
+	}
+	if ipa.CaCerts == nil {
+		return nil
+	}
+	if output == nil {
+		return nil
+	}
+	output.CaCerts = make([]public.DomainResponseIpaCert, len(ipa.CaCerts))
+	for i := range ipa.CaCerts {
+		err := p.FillCert(&output.CaCerts[i], &ipa.CaCerts[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// registerIpaServers translate the list of servers
+// for the RegisterIpa operation.
+// ipa the Ipa instance from the business model.
+// output the DomainResponseIpa schema representation
+// to be filled.
+// Return nil if the information is translated properly
+// else return an error.
+func (p domainPresenter) registerIpaServers(ipa *model.Ipa, output *public.DomainResponseIpa) error {
+	if ipa.Servers != nil {
+		output.Servers = make([]public.DomainResponseIpaServer, len(ipa.Servers))
+		for i := range ipa.Servers {
+			err := p.FillServer(&output.Servers[i], &ipa.Servers[i])
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// RegisterIpa translate model.Ipa instance to DomainResponseIpa
+// representation for the API response.
+// ipa Not nil reference to the model.Ipa to represent.
+// Return a reference to a DomainResponseIpa and nil error for
+// a success translation, else nil and an error with the details.
+func (p domainPresenter) RegisterIpa(ipa *model.Ipa) (output *public.DomainResponseIpa, err error) {
+	if ipa == nil {
+		return nil, fmt.Errorf("'ipa' cannot be nil")
+	}
+	output = &public.DomainResponseIpa{}
+	output.Token = nil
+	output.TokenExpiration = nil
+	if ipa.RealmName != nil {
+		output.RealmName = *ipa.RealmName
+	}
+
+	if ipa.RealmDomains != nil {
+		output.RealmDomains = append([]string{}, ipa.RealmDomains...)
+	}
+
+	err = p.registerIpaCaCerts(ipa, output)
+	if err != nil {
+		return nil, err
+	}
+
+	err = p.registerIpaServers(ipa, output)
+	if err != nil {
+		return nil, err
+	}
+
+	return output, nil
+}
+
 // func (p todoPresenter) PartialUpdate(in *model.Todo, out *public.Todo) error {
 // 	if in == nil {
 // 		return fmt.Errorf("'in' cannot be nil")

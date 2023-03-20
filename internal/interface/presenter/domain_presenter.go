@@ -11,4 +11,5 @@ type DomainPresenter interface {
 	Get(domain *model.Domain) (*public.ReadDomainResponse, error)
 	// PartialUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
 	// FullUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
+	RegisterIpa(domain *model.Ipa) (*public.DomainResponseIpa, error)
 }
