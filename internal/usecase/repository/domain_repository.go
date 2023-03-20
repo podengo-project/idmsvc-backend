@@ -33,6 +33,32 @@ func (r *domainRepository) FindAll(db *gorm.DB, orgId string, offset int64, coun
 	return
 }
 
+func (r *domainRepository) createIpaDomain(db *gorm.DB, domainID uint, data *model.Ipa) (err error) {
+	if data == nil {
+		return fmt.Errorf("'data' of type '*model.Ipa' is nil")
+	}
+	data.Model.ID = domainID
+	tokenExpiration := &time.Time{}
+	*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration()).UTC()
+	data.TokenExpiration = tokenExpiration
+	if err = db.Omit(clause.Associations).Create(data).Error; err != nil {
+		return err
+	}
+	for idx := range data.CaCerts {
+		data.CaCerts[idx].IpaID = data.ID
+		if err = db.Create(&data.CaCerts[idx]).Error; err != nil {
+			return err
+		}
+	}
+	for idx := range data.Servers {
+		data.Servers[idx].IpaID = data.ID
+		if err = db.Create(&data.Servers[idx]).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain) (err error) {
 	if db == nil {
 		return fmt.Errorf("db is nil")
@@ -40,37 +66,19 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	if data == nil {
 		return fmt.Errorf("data is nil")
 	}
-	if data.IpaDomain == nil {
-		return fmt.Errorf("data.IpaDomain is nil")
+	if data.DomainType == nil {
+		return fmt.Errorf("'DomainType' cannot be nil")
 	}
 	data.OrgId = orgId
 	err = db.Omit(clause.Associations).Create(data).Error
 	if err != nil {
 		return err
 	}
-	if data.DomainType == nil {
-		return fmt.Errorf("'DomainType' cannot be nil")
-	}
 	switch *data.DomainType {
 	case model.DomainTypeIpa:
-		data.IpaDomain.Model.ID = data.ID
-		tokenExpiration := &time.Time{}
-		*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration())
-		data.IpaDomain.TokenExpiration = tokenExpiration
-		if err = db.Omit(clause.Associations).Create(data.IpaDomain).Error; err != nil {
+		err = r.createIpaDomain(db, data.ID, data.IpaDomain)
+		if err != nil {
 			return err
-		}
-		for idx := range data.IpaDomain.CaCerts {
-			data.IpaDomain.CaCerts[idx].IpaID = data.IpaDomain.ID
-			if err = db.Create(&data.IpaDomain.CaCerts[idx]).Error; err != nil {
-				return err
-			}
-		}
-		for idx := range data.IpaDomain.Servers {
-			data.IpaDomain.Servers[idx].IpaID = data.IpaDomain.ID
-			if err = db.Create(&data.IpaDomain.Servers[idx]).Error; err != nil {
-				return err
-			}
 		}
 	default:
 		return fmt.Errorf("'DomainType' is not valid")
@@ -107,20 +115,27 @@ func (r *domainRepository) getColumnsToUpdate(data *model.Domain) []string {
 // 	return *data, nil
 // }
 
-// func (r *domainRepository) Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
-// 	if db == nil {
-// 		return model.Domain{}, fmt.Errorf("db is nil")
-// 	}
-// 	if data == nil {
-// 		return model.Domain{}, fmt.Errorf("data is nil")
-// 	}
-// 	data.OrgId = orgId
-// 	cols := []string{"id"}
-// 	if err = db.Model(data).Select(cols).Updates(*data).Error; err != nil {
-// 		return model.Domain{}, err
-// 	}
-// 	return *data, nil
-// }
+// Update save the Domain record into the database. It only update
+// data for the current organization.
+func (r *domainRepository) Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
+	if db == nil {
+		return model.Domain{}, fmt.Errorf("'db' cannot be nil")
+	}
+	if orgId == "" {
+		return model.Domain{}, fmt.Errorf("'orgId' cannot be an empty string")
+	}
+	if data == nil {
+		return model.Domain{}, fmt.Errorf("'data' is nil")
+	}
+	data.OrgId = orgId
+	output = *data
+	cols := []string{"id"}
+	err = db.Model(&output).Select(cols).Updates(output).Error
+	if err != nil {
+		return model.Domain{}, err
+	}
+	return output, nil
+}
 
 // See: https://gorm.io/docs/query.html
 // TODO Document the method
@@ -154,13 +169,13 @@ func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (e
 		count int64
 	)
 	if db == nil {
-		return fmt.Errorf("db is nil")
+		return fmt.Errorf("'db' is nil")
 	}
 	if orgId == "" {
-		return fmt.Errorf("orgId cannot be an empty string")
+		return fmt.Errorf("'orgId' cannot be an empty string")
 	}
 	if uuid == "" {
-		return fmt.Errorf("uuid cannot be an empty string")
+		return fmt.Errorf("'uuid' cannot be an empty string")
 	}
 	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgId, uuid).Count(&count).Error; err != nil {
 		return err

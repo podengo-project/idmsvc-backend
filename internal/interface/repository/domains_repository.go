@@ -12,4 +12,5 @@ type DomainRepository interface {
 	// Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
 	FindById(db *gorm.DB, orgId string, uuid string) (output model.Domain, err error)
 	DeleteById(db *gorm.DB, orgId string, uuid string) (err error)
+	Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
 }
