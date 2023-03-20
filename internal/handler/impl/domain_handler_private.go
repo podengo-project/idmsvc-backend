@@ -26,6 +26,13 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, uuid string) (data 
 	return data, nil
 }
 
+// checkToken verifies that the provided token is valid based on the token
+// stored into the database Ipa record.
+// token is the token we received into the http request for PUT
+// /domains/{uuid}/ipa/register
+// ipa is the database ipa entity that contains the token information.
+// Return nil if the check is successful, else an error with the detailed
+// causes.
 func (a *application) checkToken(token string, ipa *model.Ipa) error {
 	if token == "" {
 		return fmt.Errorf("'token' cannot be empty")
@@ -48,24 +55,54 @@ func (a *application) checkToken(token string, ipa *model.Ipa) error {
 	return nil
 }
 
-func (a *application) checkSubscriptionIdWithInventory(xrhiden string, subscription_manager_id string) (string, error) {
-	hostList, err := a.inventory.ListHost(xrhiden)
-	if err != nil {
-		return "", err
+// existsHostInServers verify that the given fqdn exists into the list of
+// IpaServer.
+// fqdn is the fqdn of the host to check.
+// servers is the slice of IpaServer that is defined for the IPA domain.
+// Return nil if the fqdn succesfully match with some item into the list of
+// servers, else return an error.
+func (a *application) existsHostInServers(
+	fqdn string,
+	servers []model.IpaServer,
+) error {
+	if servers == nil {
+		return fmt.Errorf("'servers' cannot be nil")
 	}
-	for _, host := range hostList {
-		if host.SubscriptionManagerId == subscription_manager_id {
-			return host.FQDN, nil
-		}
-	}
-	return "", fmt.Errorf("'subscription_manager_id' not found")
-}
 
-func (a *application) checkEnrollmentIpaServer(fqdn string, ipa *model.Ipa) error {
-	for _, item := range ipa.Servers {
-		if item.FQDN == fqdn && item.HCCEnrollmentServer {
+	for i := range servers {
+		if servers[i].FQDN == fqdn {
 			return nil
 		}
 	}
-	return fmt.Errorf("IPA server not found or not enabled to register")
+
+	return fmt.Errorf("'fqdn' not found into the list of IPA servers")
+}
+
+// fillIpaDomain is a helper function to copy Ipa domain
+// data between structures, to be used at register IPA domain endpoint.
+// target is the destination Ipa structure, it cannot be nil.
+// source is the source Ipa structure, it cannot be nil.
+// Return nil if it is copied succesfully, else an error.
+func (a *application) fillIpaDomain(
+	target *model.Ipa,
+	source *model.Ipa,
+) error {
+	if source == nil {
+		return fmt.Errorf("'target' cannot be nil")
+	}
+	if target == nil {
+		return fmt.Errorf("'source' cannot be nil")
+	}
+
+	target.CaCerts = source.CaCerts
+	for i := range source.CaCerts {
+		target.CaCerts[i].IpaID = target.ID
+	}
+	target.RealmDomains = source.RealmDomains
+	target.Servers = source.Servers
+	for i := range source.Servers {
+		target.Servers[i].IpaID = target.ID
+	}
+
+	return nil
 }

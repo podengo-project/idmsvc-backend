@@ -5,6 +5,8 @@ import (
 
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
+	"github.com/hmsidm/internal/infrastructure/middleware"
+	"github.com/hmsidm/internal/interface/client"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -245,27 +247,39 @@ func (a *application) CheckHost(
 	return http.ErrNotSupported
 }
 
-// Register an IPA domain.
-// (PUT /domains/{uuid}/ipa)
+// RegisterIpaDomain (PUT /domains/{uuid}/ipa) initialize the
+// IPA domain information into the database. This requires
+// a valid X-Rh-IDM-Token. The token is removed when the
+// operation is success. Only update information that
+// belong to the current organization stored into the
+// X-Rh-Identity header, and the host associated to the
+// CN is checked against the host inventory, and the list
+// of servers into the IPA domain.
+// ctx the echo context for the request.
+// uuid the domain uuid that identify
+// params contains the x-rh-identity, x-rh-insights-request-id
+// and x-rh-idm-token header contents.
 func (a *application) RegisterIpaDomain(
 	ctx echo.Context,
 	uuid string,
 	params public.RegisterIpaDomainParams,
 ) error {
 	var (
-		err   error
-		input public.RegisterDomainIpa
-		data  *model.Domain
-		// ipa   *model.Ipa
-		orgId string
-		tx    *gorm.DB
-		fqdn  string
-		// hostList []client.Host
+		err       error
+		input     public.RegisterDomainIpa
+		data      *model.Domain
+		host      client.InventoryHost
+		ipa       *model.Ipa
+		orgId     string
+		tx        *gorm.DB
+		output    *public.DomainResponseIpa
+		domainCtx middleware.DomainContextInterface
 	)
+	domainCtx = ctx.(middleware.DomainContextInterface)
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	orgId, _, err = a.domain.interactor.RegisterIpa(&params, &input)
+	orgId, ipa, err = a.domain.interactor.RegisterIpa(domainCtx.Identity(), &params, &input)
 	if err != nil {
 		return err
 	}
@@ -290,27 +304,42 @@ func (a *application) RegisterIpaDomain(
 	// TODO Check the source host exists in HBI
 	// FIXME Set the value from the unencoded and unmarshalled Identity
 	subscription_manager_id := ""
-	fqdn, err = a.checkSubscriptionIdWithInventory(params.XRhIdentity, subscription_manager_id)
+	host, err = a.inventory.GetHostByCN(params.XRhIdentity, subscription_manager_id)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	// Check cn from x-rh-identity host against the Domain.IpaDomain.Servers slice
-	err = a.checkEnrollmentIpaServer(fqdn, data.IpaDomain)
+	err = a.existsHostInServers(host.FQDN, ipa.Servers)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	// TODO Write data into the database using the 'repository' component
+	// data.IpaDomain = &model.Ipa{}
+	err = a.fillIpaDomain(data.IpaDomain, ipa)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	data.IpaDomain.Token = nil
+	data.IpaDomain.TokenExpiration = nil
 
-	// if tx.Commit(); tx.Error != nil {
-	// 	return tx.Error
-	// }
+	*data, err = a.domain.repository.Update(tx, orgId, data)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
 
-	// TODO Translate the business component representation into the API
-	// output payload
+	err = tx.Commit().Error
+	if err != nil {
+		return tx.Error
+	}
 
-	return http.ErrNotSupported
+	output, err = a.domain.presenter.RegisterIpa(data.IpaDomain)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, *output)
 }
