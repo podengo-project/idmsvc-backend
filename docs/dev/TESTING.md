@@ -227,12 +227,39 @@ as expected:
 	}
 ```
 
+## Testing client components
+
+Client components represent the integration with third party
+services that we use by http requests. The intention to
+create a specific package for them (and interface) is to
+provide a way to mock them into the handler (see next
+section).
+
+How work the internals for this? The basic is by starting
+a service for the test which will return an expected
+status code and body response to some request, so when
+our client component that we are developing will get
+that response, and we can check if for that given
+pre-defined response it behaves as expected.
+
+To make life easier, some code has been created
+at: `./internal/test/client/server.go` which prepare
+an echo instance for it.
+
+For the inventory host client component has been
+created some helper which wrap the above to use
+only the arguments we need. See the tests for
+inventory client component at:
+`./internal/usecase/client/host_inventory_test.go`.
+
 ## TODO Unit test for a handler
 
 FIXME It was seen that could be complicated to
       define a helper function to check specific
       handlers without start the whole service,
       so this part would need some refactor.
+
+See: `internal/test/client/server.go`
 
 ## References
 

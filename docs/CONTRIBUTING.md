@@ -16,7 +16,7 @@ The repository is using [Github flow](https://docs.github.com/en/get-started/qui
 - Check it deploys and works in ephemeral by: `make ephemeral-deploy`
 - Add unit tests, if your change add a new interface, generate the mocks.
   by `make generate-mocks`; they will be generated at `internal/test/mock`
-  package.
+  package. See [TESTING.md](./dev/TESTING.md).
 - Check unit tests and linters are pasing by `make test lint`
 - Rebase and push your changes, and create a MR or PR.
 - Update changes from the review until you get an ACK.
