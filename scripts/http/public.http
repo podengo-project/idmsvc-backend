@@ -20,6 +20,7 @@
 
 POST {{schema}}://{{host}}{{basepath}}/domains
 X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Insights-Request-Id: post_domains
 Content-Type: {{contentType}}
 
 {
@@ -59,8 +60,11 @@ Content-Type: {{contentType}}
 
 ### Create with no certs nor servers nor realm_domains
 
+# @name createDomain
+
 POST {{schema}}://{{host}}{{basepath}}/domains
 X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Insights-Request-Id: post_domains
 Content-Type: {{contentType}}
 
 {
@@ -86,6 +90,7 @@ Content-Type: {{contentType}}
 
 GET http://{{host}}{{basepath}}/domains?offset=0&limit=10
 X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Insights-Request-Id: get_domains
 Content-Type: {{contentType}}
 
 ### Get last created Todo
@@ -97,14 +102,16 @@ Content-Type: {{contentType}}
 
 GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
 X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Insights-Request-Id: get_domains_uuid
 Content-Type: {{contentType}}
 
 
 ### Register IPA domain information
 
-PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/ipa
+PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/ipa/register
 X-Rh-Identity: {{x-rh-identity}}
-X-Rh-IDM-Registration-Token: {{x-rh-idm-registration-token}}
+X-Rh-IDM-Registration-Token: {{createDomain.response.body.ipa.token}}
+X-Rh-Insights-Request-Id: put_domains_ipa_register
 Content-Type: {{contentType}}
 
 {
@@ -160,16 +167,19 @@ Content-Type: {{contentType}}
 
 DELETE http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
 X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Insights-Request-Id: delete_domains
 Content-Type: {{contentType}}
 
 ### HostConf
-POST http://{{host}}{{basepath}}/hostconf/{{fqdn}}
+POST http://{{host}}{{basepath}}/host-conf/{{fqdn}}
 X-Rh-Identity: TODO Fill a test certificate value
+X-Rh-Insights-Request-Id: post_host_conf
 Content-Type: {{contentType}}
 
 
 ### CheckHost
-POST http://{{host}}{{basepath}}/check_host/{{subscription_manager_id}}/{{fqdn}}
+POST http://{{host}}{{basepath}}/check-host/{{subscription_manager_id}}/{{fqdn}}
 X-Rh-Identity: TODO Fill a test certificate value
+X-Rh-Insights-Request-Id: post_check_host
 Content-Type: {{contentType}}
 
