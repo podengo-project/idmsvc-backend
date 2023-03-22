@@ -4,6 +4,21 @@
 # TODO To be defined as the infrastructure is added
 version: "2.4"
 services:
+  mock:
+    # https://github.com/mock-server/mockserver
+    # https://www.mock-server.com/
+    image: docker.io/mockserver/mockserver:5.14.0
+    command: -logLevel DEBUG -serverPort 8010
+    environment:
+      MOCKSERVER_LOG_LEVEL: DEBUG
+      MOCKSERVER_MAX_EXPECTATIONS: 100
+      MOCKSERVER_MAX_HEADER_SIZE: 16384
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/expectationInitialiser.json
+    ports:
+      - 8010:8010
+    # volumes:
+    #   - ../test/mock/inventory/config:/config:ro,z
+
   database:
     image: docker.io/postgres:13
     environment:
@@ -80,4 +95,3 @@ services:
 volumes:
   database:
   zookeeper:
-
