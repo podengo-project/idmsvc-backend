@@ -49,7 +49,7 @@ func (a *application) checkToken(token string, ipa *model.Ipa) error {
 	if *ipa.Token != token {
 		return echo.NewHTTPError(http.StatusBadRequest, "OTP token does not match")
 	}
-	if ipa.TokenExpiration.After(time.Now()) {
+	if ipa.TokenExpiration.Before(time.Now()) {
 		return echo.NewHTTPError(http.StatusBadRequest, "OTP token expired")
 	}
 	return nil

@@ -116,8 +116,12 @@ type Metrics struct {
 }
 
 type Clients struct {
+	Inventory InventoryClient
+}
+
+type InventoryClient struct {
 	// Define the base url for the host inventory service
-	HostInventoryBaseUrl string `mapstructure:"host_inventory_base_url"`
+	BaseUrl string `mapstructure:"base_url"`
 }
 
 var config *Config = nil

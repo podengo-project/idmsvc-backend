@@ -59,3 +59,7 @@ kafka:
 metrics:
   path: "/metrics"
   port: 9000
+
+clients:
+  inventory:
+    base_url: http://localhost:8010/api/inventory/v1

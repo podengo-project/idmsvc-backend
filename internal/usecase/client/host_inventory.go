@@ -20,7 +20,7 @@ type hostInventory struct {
 // Return an instance that accomplish HostInventory interface.
 func NewHostInventory(cfg *config.Config) interface_client.HostInventory {
 	return &hostInventory{
-		baseURL: cfg.Clients.HostInventoryBaseUrl,
+		baseURL: cfg.Clients.Inventory.BaseUrl,
 	}
 }
 
@@ -31,7 +31,7 @@ func NewHostInventory(cfg *config.Config) interface_client.HostInventory {
 // x-rh-identity header.
 // Return the host matched and nil if the operation is successful, else it
 // returns an empty host struct and an error with the details.
-func (c *hostInventory) GetHostByCN(iden string, cn string) (
+func (c *hostInventory) GetHostByCN(iden string, requestId string, cn string) (
 	interface_client.InventoryHost,
 	error,
 ) {
@@ -47,6 +47,7 @@ func (c *hostInventory) GetHostByCN(iden string, cn string) (
 		return interface_client.InventoryHost{}, err
 	}
 	req.Header.Add("X-Rh-Identity", iden)
+	req.Header.Add("X-Rh-Insights-Request-Id", requestId)
 	resp, err := client.Do(req)
 	if err != nil {
 		return interface_client.InventoryHost{}, err
@@ -68,6 +69,11 @@ func (c *hostInventory) GetHostByCN(iden string, cn string) (
 	if page.Total != 1 {
 		return interface_client.InventoryHost{},
 			fmt.Errorf("Failed to look up 'cn=%s'", cn)
+	}
+
+	if page.Results[0].SubscriptionManagerId != cn {
+		return interface_client.InventoryHost{},
+			fmt.Errorf("Looked up 'cn=%s' does not match", cn)
 	}
 	return page.Results[0], nil
 }
