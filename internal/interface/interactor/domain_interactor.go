@@ -12,5 +12,5 @@ type DomainInteractor interface {
 	Delete(uuid string, params *api_public.DeleteDomainParams) (string, string, error)
 	List(params *api_public.ListDomainsParams) (orgId string, offset int, limit int, err error)
 	GetById(uuid string, params *public.ReadDomainParams) (string, string, error)
-	RegisterIpa(iden *identity.Identity, params *api_public.RegisterIpaDomainParams, body *api_public.RegisterDomainIpa) (string, *model.Ipa, error)
+	RegisterIpa(xrhid *identity.XRHID, params *api_public.RegisterIpaDomainParams, body *api_public.RegisterDomainIpa) (string, *model.Ipa, error)
 }

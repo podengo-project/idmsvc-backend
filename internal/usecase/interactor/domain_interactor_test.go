@@ -82,11 +82,13 @@ func TestCreate(t *testing.T) {
 			Name: "success case",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{
-					XRhIdentity: header.EncodeIdentity(
-						&identity.Identity{
-							OrgID: "12345",
-							Internal: identity.Internal{
+					XRhIdentity: header.EncodeXRHID(
+						&identity.XRHID{
+							Identity: identity.Identity{
 								OrgID: "12345",
+								Internal: identity.Internal{
+									OrgID: "12345",
+								},
 							},
 						},
 					),
@@ -123,11 +125,13 @@ func TestCreate(t *testing.T) {
 			Name: "success case - not empty ca list",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{
-					XRhIdentity: header.EncodeIdentity(
-						&identity.Identity{
-							OrgID: "12345",
-							Internal: identity.Internal{
+					XRhIdentity: header.EncodeXRHID(
+						&identity.XRHID{
+							Identity: identity.Identity{
 								OrgID: "12345",
+								Internal: identity.Internal{
+									OrgID: "12345",
+								},
 							},
 						},
 					),
@@ -410,16 +414,18 @@ func TestRegisterIpa(t *testing.T) {
 		rhsmId    = "cf26cd96-c75d-11ed-ae20-482ae3863d30"
 	)
 	var (
-		idenSystem = &identity.Identity{
-			Type: "System",
-			System: identity.System{
-				CommonName: cn,
-				CertType:   "system",
+		xrhidSystem = identity.XRHID{
+			Identity: identity.Identity{
+				Type: "System",
+				System: identity.System{
+					CommonName: cn,
+					CertType:   "system",
+				},
 			},
 		}
-		idenSystemBase64 = header.EncodeIdentity(idenSystem)
-		params           = &api_public.RegisterIpaDomainParams{
-			XRhIdentity:             idenSystemBase64,
+		xrhidSystemBase64 = header.EncodeXRHID(&xrhidSystem)
+		params            = &api_public.RegisterIpaDomainParams{
+			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIDMRegistrationToken: token,
 		}
@@ -427,7 +433,7 @@ func TestRegisterIpa(t *testing.T) {
 		notValidAfter  = notValidBefore.Add(24 * time.Hour)
 	)
 	type TestCaseGiven struct {
-		Iden   *identity.Identity
+		XRHID  *identity.XRHID
 		Params *api_public.RegisterIpaDomainParams
 		Body   *public.RegisterIpaDomainJSONRequestBody
 	}
@@ -443,22 +449,22 @@ func TestRegisterIpa(t *testing.T) {
 	}
 	testCases := []TestCase{
 		{
-			Name: "iden is nil",
+			Name: "xrhid is nil",
 			Given: TestCaseGiven{
-				Iden:   nil,
+				XRHID:  nil,
 				Params: nil,
 				Body:   nil,
 			},
 			Expected: TestCaseExpected{
 				OrgId:  "",
 				Output: nil,
-				Error:  fmt.Errorf("'iden' cannot be nil"),
+				Error:  fmt.Errorf("'xrhid' cannot be nil"),
 			},
 		},
 		{
 			Name: "param is nil",
 			Given: TestCaseGiven{
-				Iden:   idenSystem,
+				XRHID:  &xrhidSystem,
 				Params: nil,
 				Body:   nil,
 			},
@@ -471,7 +477,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "body is nil",
 			Given: TestCaseGiven{
-				Iden:   idenSystem,
+				XRHID:  &xrhidSystem,
 				Params: params,
 				Body:   nil,
 			},
@@ -484,7 +490,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "Empty slices",
 			Given: TestCaseGiven{
-				Iden:   idenSystem,
+				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomainIpa{
 					RealmDomains: nil,
@@ -503,7 +509,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "RealmDomains with some content",
 			Given: TestCaseGiven{
-				Iden:   idenSystem,
+				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomainIpa{
 					RealmDomains: []string{"server.domain.example"},
@@ -522,7 +528,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "CaCerts with some content",
 			Given: TestCaseGiven{
-				Iden:   idenSystem,
+				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomainIpa{
 					CaCerts: []api_public.CreateDomainIpaCert{
@@ -561,7 +567,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "Servers as some content",
 			Given: TestCaseGiven{
-				Iden:   idenSystem,
+				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomainIpa{
 					Servers: &[]api_public.CreateDomainIpaServer{
@@ -599,7 +605,7 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		i := NewDomainInteractor()
-		orgId, output, err := i.RegisterIpa(testCase.Given.Iden, testCase.Given.Params, testCase.Given.Body)
+		orgId, output, err := i.RegisterIpa(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Error != nil {
 			assert.EqualError(t, err, testCase.Expected.Error.Error())
 			assert.Equal(t, testCase.Expected.OrgId, orgId)
