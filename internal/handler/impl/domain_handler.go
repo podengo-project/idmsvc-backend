@@ -279,7 +279,7 @@ func (a *application) RegisterIpaDomain(
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	orgId, ipa, err = a.domain.interactor.RegisterIpa(domainCtx.Identity(), &params, &input)
+	orgId, ipa, err = a.domain.interactor.RegisterIpa(domainCtx.XRHID(), &params, &input)
 	if err != nil {
 		return err
 	}
@@ -303,8 +303,13 @@ func (a *application) RegisterIpaDomain(
 
 	// TODO Check the source host exists in HBI
 	// FIXME Set the value from the unencoded and unmarshalled Identity
-	subscription_manager_id := ""
-	host, err = a.inventory.GetHostByCN(params.XRhIdentity, subscription_manager_id)
+	xrhid := domainCtx.XRHID()
+	if xrhid == nil {
+		tx.Rollback()
+		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
+	}
+	subscription_manager_id := xrhid.Identity.System.CommonName
+	host, err = a.inventory.GetHostByCN(params.XRhIdentity, params.XRhInsightsRequestId, subscription_manager_id)
 	if err != nil {
 		tx.Rollback()
 		return err
