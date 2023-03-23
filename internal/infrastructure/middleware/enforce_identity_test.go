@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	b64 "encoding/base64"
-
 	"github.com/hmsidm/internal/api/header"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
@@ -16,18 +14,16 @@ import (
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"encoding/json"
 )
 
 const testPath = "/test"
 
 func helperCreatePredicate(username string) IdentityPredicate {
-	return func(data *identity.Identity) error {
+	return func(data *identity.XRHID) error {
 		if data == nil {
-			return fmt.Errorf("data is nil")
+			return fmt.Errorf("'data' is nil")
 		}
-		if data.User.Username == username {
+		if data.Identity.User.Username == username {
 			return fmt.Errorf("username='%s' is not accepted", username)
 		}
 		return nil
@@ -46,47 +42,43 @@ func helperNewEchoEnforceIdentity(m echo.MiddlewareFunc) *echo.Echo {
 	return e
 }
 
-func helperEncodeIdentity(id identity.Identity) string {
-	if bytes, err := json.Marshal(id); err == nil {
-		sEnc := b64.StdEncoding.EncodeToString(bytes)
-		return sEnc
-	}
-	return ""
-}
-
 // FIXME
-func helperGenerateUserIdentity(orgId string, username string) identity.Identity {
-	return identity.Identity{
-		AccountNumber: "12345",
-		OrgID:         orgId,
-		Internal: identity.Internal{
-			OrgID: orgId,
-		},
-		Type: "User",
-		User: identity.User{
-			Username: username,
-			UserID:   "12345",
-			Active:   true,
-			Internal: true,
-			OrgAdmin: true,
-			Locale:   "en",
+func helperGenerateUserIdentity(orgId string, username string) *identity.XRHID {
+	return &identity.XRHID{
+		Identity: identity.Identity{
+			AccountNumber: "12345",
+			OrgID:         orgId,
+			Internal: identity.Internal{
+				OrgID: orgId,
+			},
+			Type: "User",
+			User: identity.User{
+				Username: username,
+				UserID:   "12345",
+				Active:   true,
+				Internal: true,
+				OrgAdmin: true,
+				Locale:   "en",
+			},
 		},
 	}
 }
 
-func helperGenerateCertificateIdentity(orgId string, subjectDN string, issuerDN string) identity.Identity {
-	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/jwt.json
-	return identity.Identity{
-		AccountNumber: "11111",
-		OrgID:         orgId,
-		Internal: identity.Internal{
-			OrgID: orgId,
-		},
-		Type:     "Certificate",
-		AuthType: "basic-auth",
-		X509: identity.X509{
-			SubjectDN: subjectDN,
-			IssuerDN:  issuerDN,
+func helperGenerateSystemIdentity(orgId string, commonName string) *identity.XRHID {
+	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/cert.json
+	return &identity.XRHID{
+		Identity: identity.Identity{
+			OrgID:         orgId,
+			AccountNumber: "11111",
+			AuthType:      "cert-auth",
+			Type:          "System",
+			Internal: identity.Internal{
+				OrgID: orgId,
+			},
+			System: identity.System{
+				CommonName: commonName,
+				CertType:   "system",
+			},
 		},
 	}
 }
@@ -149,7 +141,7 @@ func TestEnforceIdentity(t *testing.T) {
 		{
 			Name: "x-rh-identity fail predicates",
 			Given: pointy.String(
-				helperEncodeIdentity(
+				header.EncodeXRHID(
 					helperGenerateUserIdentity("12345", "test-fail-predicate"),
 				),
 			),
@@ -161,8 +153,20 @@ func TestEnforceIdentity(t *testing.T) {
 		{
 			Name: "x-rh-identity pass predicates",
 			Given: pointy.String(
-				helperEncodeIdentity(
+				header.EncodeXRHID(
 					helperGenerateUserIdentity("12345", "testuser"),
+				),
+			),
+			Expected: TestCaseExpected{
+				Code: http.StatusOK,
+				Body: "Ok",
+			},
+		},
+		{
+			Name: "x-rh-identity pass predicates",
+			Given: pointy.String(
+				header.EncodeXRHID(
+					helperGenerateSystemIdentity("12345", "testuser"),
 				),
 			),
 			Expected: TestCaseExpected{
@@ -184,6 +188,7 @@ func TestEnforceIdentity(t *testing.T) {
 		),
 	)
 	for _, testCase := range testCases {
+		t.Log(testCase.Name)
 		res := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 		if testCase.Given != nil {
@@ -218,7 +223,7 @@ func TestEnforceIdentityNoDomainContext(t *testing.T) {
 
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	iden := header.EncodeIdentity(&identity.Identity{})
+	iden := header.EncodeXRHID(&identity.XRHID{})
 	req.Header.Add("X-Rh-Identity", iden)
 	e.ServeHTTP(res, req)
 

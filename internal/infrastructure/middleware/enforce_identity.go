@@ -18,7 +18,7 @@ const headerXRhIdentity = "X-Rh-Identity"
 //	context
 
 // Represent t
-type IdentityPredicate func(data *identity.Identity) error
+type IdentityPredicate func(data *identity.XRHID) error
 
 // identityConfig Represent the configuration for this middleware
 // enforcement.
@@ -70,7 +70,7 @@ func (ic *identityConfig) AddPredicate(key string, predicate IdentityPredicate) 
 // data is the reference to the identity.Identity data.
 // Return nil on success or an error with additional
 // information about the predicate failure.
-func IdentityAlwaysTrue(data *identity.Identity) error {
+func IdentityAlwaysTrue(data *identity.XRHID) error {
 	return nil
 }
 
@@ -88,7 +88,7 @@ func IdentityAlwaysTrue(data *identity.Identity) error {
 // Return an echo middleware function.
 func EnforceIdentityWithConfig(config *identityConfig) func(echo.HandlerFunc) echo.HandlerFunc {
 	if config == nil {
-		panic("config cannot be nil")
+		panic("'config' cannot be nil")
 	}
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -97,35 +97,35 @@ func EnforceIdentityWithConfig(config *identityConfig) func(echo.HandlerFunc) ec
 			}
 			cc, ok := c.(DomainContextInterface)
 			if !ok {
-				c.Logger().Error("Expected a 'Interface'")
+				c.Logger().Error("Expected a 'DomainContextInterface'")
 				return echo.ErrInternalServerError
 			}
-			b64Identity := cc.Request().Header.Get(headerXRhIdentity)
-			if b64Identity == "" {
+			b64XRHID := cc.Request().Header.Get(headerXRhIdentity)
+			if b64XRHID == "" {
 				cc.Logger().Error("%s not present", headerXRhIdentity)
 				return echo.ErrUnauthorized
 			}
-			stringIdentity, err := base64.StdEncoding.DecodeString(b64Identity)
+			stringXRHID, err := base64.StdEncoding.DecodeString(b64XRHID)
 			if err != nil {
 				cc.Logger().Error(err)
 				return echo.ErrUnauthorized
 			}
-			var data *identity.Identity = &identity.Identity{}
-			if err := json.Unmarshal([]byte(stringIdentity), data); err != nil {
+			xrhid := &identity.XRHID{}
+			if err := json.Unmarshal([]byte(stringXRHID), xrhid); err != nil {
 				cc.Logger().Error(err)
 				return echo.ErrUnauthorized
 			}
 
 			// All the predicates should return true
 			for _, predicate := range config.predicates {
-				if err := predicate(data); err != nil {
+				if err := predicate(xrhid); err != nil {
 					if err != nil {
 						cc.Logger().Error(err)
 					}
 					return echo.ErrUnauthorized
 				}
 			}
-			cc.SetIdentity(data)
+			cc.SetXRHID(xrhid)
 			return next(c)
 		}
 	}

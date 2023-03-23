@@ -26,15 +26,17 @@ func TestSetIdentityIdentity(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/test", strings.NewReader(""))
 	rec := httptest.NewRecorder()
 	ctx := NewContext(e.NewContext(req, rec))
-	iden := &identity.Identity{
-		OrgID:         "11111",
-		Type:          "System",
-		AccountNumber: "123",
-		System: identity.System{
-			CommonName: "a6355a76-c6e8-11ed-8aed-482ae3863d30",
-			CertType:   "system",
+	xrhid := &identity.XRHID{
+		Identity: identity.Identity{
+			OrgID:         "11111",
+			Type:          "System",
+			AccountNumber: "123",
+			System: identity.System{
+				CommonName: "a6355a76-c6e8-11ed-8aed-482ae3863d30",
+				CertType:   "system",
+			},
 		},
 	}
-	ctx.SetIdentity(iden)
-	assert.Equal(t, iden, ctx.Identity())
+	ctx.SetXRHID(xrhid)
+	assert.Equal(t, xrhid, ctx.XRHID())
 }

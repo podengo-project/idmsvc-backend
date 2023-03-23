@@ -8,40 +8,40 @@ import (
 // Represent the custom context for our backend service
 type domainContext struct {
 	echo.Context
-	identity *identity.Identity
+	xrhid *identity.XRHID
 }
 
 // Define the interface for our custom context.
 type DomainContextInterface interface {
 	echo.Context
-	SetIdentity(iden *identity.Identity)
-	Identity() *identity.Identity
+	SetXRHID(iden *identity.XRHID)
+	XRHID() *identity.XRHID
 }
 
 // NewContext create our custom context
 func NewContext(c echo.Context) DomainContextInterface {
 	return &domainContext{
-		Context:  c,
-		identity: nil,
+		Context: c,
+		xrhid:   nil,
 	}
 }
 
-// SetIdentity set the unmarshalled identity to the context
+// SetXRHID set the unmarshalled identity to the context
 // so it can be retrieved without repeating all the operations
 // to parse it.
 // iden is a reference to the identity.Identity structure to
 // store into the context. If it is nil, nothing is made.
 // Return the DomainContext updated.
-func (c *domainContext) SetIdentity(iden *identity.Identity) {
-	if iden != nil {
-		c.identity = iden
+func (c *domainContext) SetXRHID(xrhid *identity.XRHID) {
+	if xrhid != nil {
+		c.xrhid = xrhid
 	}
 }
 
-// Identity retrieve the unserialized identity header from the request context
+// XRHID retrieve the unserialized identity header from the request context
 // Return the reference to the identity.Identity from the request context.
-func (c *domainContext) Identity() *identity.Identity {
-	return c.identity
+func (c *domainContext) XRHID() *identity.XRHID {
+	return c.xrhid
 }
 
 // CreateContext is a middleware that create the IDM context
