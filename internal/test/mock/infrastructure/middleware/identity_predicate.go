@@ -14,11 +14,11 @@ type IdentityPredicate struct {
 }
 
 // Execute provides a mock function with given fields: data
-func (_m *IdentityPredicate) Execute(data *identity.Identity) error {
+func (_m *IdentityPredicate) Execute(data *identity.XRHID) error {
 	ret := _m.Called(data)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*identity.Identity) error); ok {
+	if rf, ok := ret.Get(0).(func(*identity.XRHID) error); ok {
 		r0 = rf(data)
 	} else {
 		r0 = ret.Error(0)

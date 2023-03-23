@@ -12,20 +12,20 @@ type HostInventory struct {
 	mock.Mock
 }
 
-// GetHostByCN provides a mock function with given fields: iden, cn
-func (_m *HostInventory) GetHostByCN(iden string, cn string) (client.InventoryHost, error) {
-	ret := _m.Called(iden, cn)
+// GetHostByCN provides a mock function with given fields: iden, requestId, cn
+func (_m *HostInventory) GetHostByCN(iden string, requestId string, cn string) (client.InventoryHost, error) {
+	ret := _m.Called(iden, requestId, cn)
 
 	var r0 client.InventoryHost
-	if rf, ok := ret.Get(0).(func(string, string) client.InventoryHost); ok {
-		r0 = rf(iden, cn)
+	if rf, ok := ret.Get(0).(func(string, string, string) client.InventoryHost); ok {
+		r0 = rf(iden, requestId, cn)
 	} else {
 		r0 = ret.Get(0).(client.InventoryHost)
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(iden, cn)
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(iden, requestId, cn)
 	} else {
 		r1 = ret.Error(1)
 	}

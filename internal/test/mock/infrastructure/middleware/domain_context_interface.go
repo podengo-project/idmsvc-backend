@@ -259,22 +259,6 @@ func (_m *DomainContextInterface) Handler() echo.HandlerFunc {
 	return r0
 }
 
-// Identity provides a mock function with given fields:
-func (_m *DomainContextInterface) Identity() *identity.Identity {
-	ret := _m.Called()
-
-	var r0 *identity.Identity
-	if rf, ok := ret.Get(0).(func() *identity.Identity); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*identity.Identity)
-		}
-	}
-
-	return r0
-}
-
 // Inline provides a mock function with given fields: file, name
 func (_m *DomainContextInterface) Inline(file string, name string) error {
 	ret := _m.Called(file, name)
@@ -652,11 +636,6 @@ func (_m *DomainContextInterface) SetHandler(h echo.HandlerFunc) {
 	_m.Called(h)
 }
 
-// SetIdentity provides a mock function with given fields: iden
-func (_m *DomainContextInterface) SetIdentity(iden *identity.Identity) {
-	_m.Called(iden)
-}
-
 // SetLogger provides a mock function with given fields: l
 func (_m *DomainContextInterface) SetLogger(l echo.Logger) {
 	_m.Called(l)
@@ -697,6 +676,11 @@ func (_m *DomainContextInterface) SetRequest(r *http.Request) {
 // SetResponse provides a mock function with given fields: r
 func (_m *DomainContextInterface) SetResponse(r *echo.Response) {
 	_m.Called(r)
+}
+
+// SetXRHID provides a mock function with given fields: iden
+func (_m *DomainContextInterface) SetXRHID(iden *identity.XRHID) {
+	_m.Called(iden)
 }
 
 // Stream provides a mock function with given fields: code, contentType, r
@@ -778,6 +762,22 @@ func (_m *DomainContextInterface) XMLPretty(code int, i interface{}, indent stri
 		r0 = rf(code, i, indent)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// XRHID provides a mock function with given fields:
+func (_m *DomainContextInterface) XRHID() *identity.XRHID {
+	ret := _m.Called()
+
+	var r0 *identity.XRHID
+	if rf, ok := ret.Get(0).(func() *identity.XRHID); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*identity.XRHID)
+		}
 	}
 
 	return r0

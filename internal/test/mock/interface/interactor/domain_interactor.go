@@ -138,20 +138,20 @@ func (_m *DomainInteractor) List(params *public.ListDomainsParams) (string, int,
 	return r0, r1, r2, r3
 }
 
-// RegisterIpa provides a mock function with given fields: iden, params, body
-func (_m *DomainInteractor) RegisterIpa(iden *identity.Identity, params *public.RegisterIpaDomainParams, body *public.RegisterDomainIpa) (string, *model.Ipa, error) {
-	ret := _m.Called(iden, params, body)
+// RegisterIpa provides a mock function with given fields: xrhid, params, body
+func (_m *DomainInteractor) RegisterIpa(xrhid *identity.XRHID, params *public.RegisterIpaDomainParams, body *public.RegisterDomainIpa) (string, *model.Ipa, error) {
+	ret := _m.Called(xrhid, params, body)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*identity.Identity, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) string); ok {
-		r0 = rf(iden, params, body)
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) string); ok {
+		r0 = rf(xrhid, params, body)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *model.Ipa
-	if rf, ok := ret.Get(1).(func(*identity.Identity, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) *model.Ipa); ok {
-		r1 = rf(iden, params, body)
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) *model.Ipa); ok {
+		r1 = rf(xrhid, params, body)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.Ipa)
@@ -159,8 +159,8 @@ func (_m *DomainInteractor) RegisterIpa(iden *identity.Identity, params *public.
 	}
 
 	var r2 error
-	if rf, ok := ret.Get(2).(func(*identity.Identity, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) error); ok {
-		r2 = rf(iden, params, body)
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) error); ok {
+		r2 = rf(xrhid, params, body)
 	} else {
 		r2 = ret.Error(2)
 	}
