@@ -19,10 +19,18 @@ type DomainContextInterface interface {
 }
 
 // NewContext create our custom context
+// Return an initialized
 func NewContext(c echo.Context) DomainContextInterface {
 	return &domainContext{
 		Context: c,
 		xrhid:   nil,
+	}
+}
+
+func orgFallback(data *identity.XRHID) {
+	// See: https://github.com/RedHatInsights/identity/blob/main/identity.go#L164
+	if data != nil && data.Identity.OrgID == "" && data.Identity.Internal.OrgID != "" {
+		data.Identity.OrgID = data.Identity.Internal.OrgID
 	}
 }
 
@@ -34,6 +42,7 @@ func NewContext(c echo.Context) DomainContextInterface {
 // Return the DomainContext updated.
 func (c *domainContext) SetXRHID(xrhid *identity.XRHID) {
 	if xrhid != nil {
+		orgFallback(xrhid)
 		c.xrhid = xrhid
 	}
 }
