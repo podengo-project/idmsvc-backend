@@ -3,6 +3,7 @@ package middleware
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
@@ -16,8 +17,6 @@ const headerXRhIdentity = "X-Rh-Identity"
 //
 //	so that the predicate has information about the http Request
 //	context
-
-// Represent t
 type IdentityPredicate func(data *identity.XRHID) error
 
 // identityConfig Represent the configuration for this middleware
@@ -30,6 +29,17 @@ type identityConfig struct {
 	// return error for the request.
 	predicates map[string]IdentityPredicate
 }
+
+var (
+	systemEnforceRoutes = []string{
+		"/api/hmsidm/v1/domains/:uuid/ipa/register",
+		"/api/hmsidm/v1/domains/:uuid/ipa/update",
+	}
+	userEnforceRoutes = []string{
+		"/api/hmsidm/v1/domains",
+		"/api/hmsidm/v1/domains/:uuid",
+	}
+)
 
 // NewIdentityConfig creates a new identityConfig for the
 // EnforcementIdentity middleware.
@@ -74,9 +84,84 @@ func IdentityAlwaysTrue(data *identity.XRHID) error {
 	return nil
 }
 
-// FIXME Add user enforcement predicate
+// EnforceUserPredicate is a predicate that enforce identity
+// is a user and some additional checks for a user identity.
+// data is the XRHID to enforce.
+// Return nil if the enforce is passed, else details about the
+// enforce process.
+func EnforceUserPredicate(data *identity.XRHID) error {
+	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/basic.json
+	if data == nil {
+		return fmt.Errorf("'data' cannot be nil")
+	}
+	if data.Identity.Type != "User" {
+		return fmt.Errorf("'Identity.Type' is not 'User'")
+	}
+	if !data.Identity.User.Active {
+		return fmt.Errorf("'Identity.User.Active' is not true")
+	}
+	if data.Identity.User.UserID == "" {
+		return fmt.Errorf("'Identity.User.UserID' cannot be empty")
+	}
+	if data.Identity.User.Username == "" {
+		return fmt.Errorf("'Identity.User.Username' cannot be empty")
+	}
+	return nil
+}
 
-// FIXME Add cert enforcement predicate
+// EnforceSystemPredicate is a predicate that enforce identity
+// is a system and some additional checks for a user identity.
+// data is the XRHID to enforce.
+// Return nil if the enforce is passed, else details about the
+// enforce process.
+func EnforceSystemPredicate(data *identity.XRHID) error {
+	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/cert.json
+	if data == nil {
+		return fmt.Errorf("'data' cannot be nil")
+	}
+	if data.Identity.Type != "System" {
+		return fmt.Errorf("'Identity.Type' must be 'System'")
+	}
+	if data.Identity.System.CertType != "system" {
+		return fmt.Errorf("'Identity.System.CertType' is not 'system'")
+	}
+	if data.Identity.System.CommonName == "" {
+		return fmt.Errorf("'Identity.System.CommonName' is empty")
+	}
+	return nil
+}
+
+// SkipperUserPredicate applied when using EnforceUserPredicate.
+// ctx is the request context.
+// Return true if enforce identity is skipped, else false.
+func SkipperUserPredicate(ctx echo.Context) bool {
+	route := ctx.Path()
+	// it is not expected a big number of routes, but if that were
+	// the case into the future, it is more efficient to check
+	// directly against a hashmap instead of traversing the slice
+	for i := range userEnforceRoutes {
+		if route == userEnforceRoutes[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// SkipperSystemPredicate applied when using EnforceSystemPredicate.
+// ctx is the request context.
+// Return true if enforce identity is skipped, else false.
+func SkipperSystemPredicate(ctx echo.Context) bool {
+	route := ctx.Path()
+	// it is not expected a big number of routes, but if that were
+	// the case into the future, it is more efficient to check
+	// directly against a hashmap instead of traversing the slice
+	for i := range systemEnforceRoutes {
+		if route == systemEnforceRoutes[i] {
+			return false
+		}
+	}
+	return true
+}
 
 // EnforceIdentityWithConfig instantiate a EnforceIdentity middleware
 // for the configuration provided. This middleware depends on

@@ -282,3 +282,234 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
 }
+
+func helperNewContextForSkipper(route string, method string, path string, headers map[string]string) echo.Context {
+	// See: https://echo.labstack.com/guide/testing/
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath(route)
+	return c
+}
+
+func TestSkipperUSer(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    string
+		Expected bool
+	}
+	testCases := []TestCase{}
+	for i := range userEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("No skip userEnforceRoutes[%d]", i),
+			Given:    userEnforceRoutes[i],
+			Expected: false,
+		})
+	}
+	for i := range systemEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip systemEnforceRoutes[%d]", i),
+			Given:    systemEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for _, testCase := range testCases {
+		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
+		result := SkipperUserPredicate(ctx)
+		assert.Equal(t, testCase.Expected, result)
+	}
+}
+
+func TestSkipperSystem(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    string
+		Expected bool
+	}
+	testCases := []TestCase{}
+	for i := range systemEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("No skip systemEnforceRoutes[%d]", i),
+			Given:    systemEnforceRoutes[i],
+			Expected: false,
+		})
+	}
+	for i := range userEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip userEnforceRoutes[%d]", i),
+			Given:    userEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for _, testCase := range testCases {
+		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
+		result := SkipperSystemPredicate(ctx)
+		assert.Equal(t, testCase.Expected, result)
+	}
+}
+
+func TestEnforceUserPredicate(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    *identity.XRHID
+		Expected error
+	}
+	testCases := []TestCase{
+		{
+			Name:     "nil argument",
+			Given:    nil,
+			Expected: fmt.Errorf("'data' cannot be nil"),
+		},
+		{
+			Name: "Identity type is not 'User'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+				},
+			},
+			Expected: fmt.Errorf("'Identity.Type' is not 'User'"),
+		},
+		{
+			Name: "Identity with disabled user",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+					User: identity.User{
+						Active: false,
+					},
+				},
+			},
+			Expected: fmt.Errorf("'Identity.User.Active' is not true"),
+		},
+		{
+			Name: "'UserID' is empty",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+					User: identity.User{
+						Active: true,
+						UserID: "",
+					},
+				},
+			},
+			Expected: fmt.Errorf("'Identity.User.UserID' cannot be empty"),
+		},
+		{
+			Name: "'UserName' is empty",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+					User: identity.User{
+						Active:   true,
+						UserID:   "jdoe",
+						Username: "",
+					},
+				},
+			},
+			Expected: fmt.Errorf("'Identity.User.Username' cannot be empty"),
+		},
+		{
+			Name: "Success case",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+					User: identity.User{
+						Active:   true,
+						UserID:   "jdoe",
+						Username: "jdoe",
+					},
+				},
+			},
+			Expected: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		err := EnforceUserPredicate(testCase.Given)
+		if testCase.Expected != nil {
+			require.NotNil(t, err)
+			assert.EqualError(t, err, testCase.Expected.Error())
+		} else {
+			assert.Nil(t, err)
+		}
+	}
+}
+
+func TestEnforceSystemPredicate(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    *identity.XRHID
+		Expected error
+	}
+	testCases := []TestCase{
+		{
+			Name:     "nil argument",
+			Given:    nil,
+			Expected: fmt.Errorf("'data' cannot be nil"),
+		},
+		{
+			Name: "'Identity' type is not 'System'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+				},
+			},
+			Expected: fmt.Errorf("'Identity.Type' must be 'System'"),
+		},
+		{
+			Name: "'CertType' is not 'system'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+					System: identity.System{
+						CertType: "anothevalue",
+					},
+				},
+			},
+			Expected: fmt.Errorf("'Identity.System.CertType' is not 'system'"),
+		},
+		{
+			Name: "'CommonName' is empty",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+					System: identity.System{
+						CertType:   "system",
+						CommonName: "",
+					},
+				},
+			},
+			Expected: fmt.Errorf("'Identity.System.CommonName' is empty"),
+		},
+		{
+			Name: "Success case",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+					System: identity.System{
+						CertType:   "system",
+						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
+					},
+				},
+			},
+			Expected: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		err := EnforceSystemPredicate(testCase.Given)
+		if testCase.Expected != nil {
+			require.NotNil(t, err)
+			assert.EqualError(t, err, testCase.Expected.Error())
+		} else {
+			assert.Nil(t, err)
+		}
+	}
+}
