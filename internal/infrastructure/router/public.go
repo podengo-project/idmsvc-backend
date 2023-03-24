@@ -21,8 +21,12 @@ func newGroupPublic(e *echo.Group, c RouterConfig, metrics *metrics.Metrics) *ec
 
 	// Set up middlewares
 	e.Use(middleware.CreateContext())
-	// FIXME Add the necessary predicates to enforcethe identity
-	e.Use(middleware.EnforceIdentityWithConfig(middleware.NewIdentityConfig()))
+	e.Use(middleware.EnforceIdentityWithConfig(middleware.NewIdentityConfig().
+		SetSkipper(middleware.SkipperUserPredicate).
+		AddPredicate("user-predicate", middleware.EnforceUserPredicate)))
+	e.Use(middleware.EnforceIdentityWithConfig(middleware.NewIdentityConfig().
+		SetSkipper(middleware.SkipperSystemPredicate).
+		AddPredicate("system-predicate", middleware.EnforceSystemPredicate)))
 	e.Use(middleware.MetricsMiddlewareWithConfig(&middleware.MetricsConfig{
 		Metrics: metrics,
 	}))
