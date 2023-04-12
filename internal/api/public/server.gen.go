@@ -391,6 +391,23 @@ func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-IDM-Registration-Token is required, but not found"))
 	}
+	// ------------- Required header parameter "X-Rh-Idm-Version" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Idm-Version")]; found {
+		var XRhIdmVersion string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Idm-Version, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Idm-Version", runtime.ParamLocationHeader, valueList[0], &XRhIdmVersion)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Idm-Version: %s", err))
+		}
+
+		params.XRhIdmVersion = XRhIdmVersion
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Idm-Version is required, but not found"))
+	}
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.RegisterIpaDomain(ctx, uuid, params)

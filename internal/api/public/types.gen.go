@@ -335,6 +335,9 @@ type RegisterIpaDomainParams struct {
 
 	// XRhIDMRegistrationToken One time use token to register ipa information.
 	XRhIDMRegistrationToken string `json:"X-Rh-IDM-Registration-Token"`
+
+	// XRhIdmVersion ipa-hcc agent version
+	XRhIdmVersion string `json:"X-Rh-Idm-Version"`
 }
 
 // HostConfParams defines parameters for HostConf.

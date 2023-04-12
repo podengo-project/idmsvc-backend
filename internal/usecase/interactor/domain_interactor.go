@@ -248,17 +248,23 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) RegisterIpa(xrhid *identity.XRHID, params *api_public.RegisterIpaDomainParams, body *public.RegisterIpaDomainJSONRequestBody) (string, *model.Ipa, error) {
+func (i domainInteractor) RegisterIpa(xrhid *identity.XRHID, params *api_public.RegisterIpaDomainParams, body *public.RegisterIpaDomainJSONRequestBody) (string, *header.XRHIDMVersion, *model.Ipa, error) {
 	if xrhid == nil {
-		return "", nil, fmt.Errorf("'xrhid' cannot be nil")
+		return "", nil, nil, fmt.Errorf("'xrhid' cannot be nil")
 	}
 	if params == nil {
-		return "", nil, fmt.Errorf("'params' cannot be nil")
+		return "", nil, nil, fmt.Errorf("'params' cannot be nil")
 	}
 	if body == nil {
-		return "", nil, fmt.Errorf("'body' cannot be nil")
+		return "", nil, nil, fmt.Errorf("'body' cannot be nil")
 	}
 	orgId := xrhid.Identity.Internal.OrgID
+
+	// Retrieve the ipa-hcc version information
+	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
+	if clientVersion == nil {
+		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+	}
 
 	// Read the body payload
 	domainIpa := &model.Ipa{}
@@ -273,7 +279,7 @@ func (i domainInteractor) RegisterIpa(xrhid *identity.XRHID, params *api_public.
 	// Server list
 	i.registerIpaServers(body, domainIpa)
 
-	return orgId, domainIpa, nil
+	return orgId, clientVersion, domainIpa, nil
 }
 
 func (i domainInteractor) registerIpaRealmDomains(body *public.RegisterIpaDomainJSONRequestBody, domainIpa *model.Ipa) {

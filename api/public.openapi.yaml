@@ -383,6 +383,12 @@ paths:
                   type: string
               in: path
               required: true
+            - name: X-Rh-Idm-Version
+              description: ipa-hcc agent version
+              schema:
+                  type: string
+              in: header
+              required: true
 components:
     schemas:
         Error:

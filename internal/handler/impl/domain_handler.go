@@ -3,6 +3,7 @@ package impl
 import (
 	"net/http"
 
+	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/infrastructure/middleware"
@@ -265,39 +266,40 @@ func (a *application) RegisterIpaDomain(
 	params public.RegisterIpaDomainParams,
 ) error {
 	var (
-		err       error
-		input     public.RegisterDomainIpa
-		data      *model.Domain
-		host      client.InventoryHost
-		ipa       *model.Ipa
-		orgId     string
-		tx        *gorm.DB
-		output    *public.DomainResponseIpa
-		domainCtx middleware.DomainContextInterface
+		err           error
+		input         public.RegisterDomainIpa
+		data          *model.Domain
+		host          client.InventoryHost
+		ipa           *model.Ipa
+		orgId         string
+		tx            *gorm.DB
+		output        *public.DomainResponseIpa
+		domainCtx     middleware.DomainContextInterface
+		clientVersion *header.XRHIDMVersion
 	)
 	domainCtx = ctx.(middleware.DomainContextInterface)
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	orgId, ipa, err = a.domain.interactor.RegisterIpa(domainCtx.XRHID(), &params, &input)
+	orgId, clientVersion, ipa, err = a.domain.interactor.RegisterIpa(domainCtx.XRHID(), &params, &input)
 	if err != nil {
 		return err
 	}
+	ctx.Logger().Info("ipa-hcc", clientVersion.IPAHCCVersion, "ipa", clientVersion.IPAVersion)
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
+	defer tx.Rollback()
 
 	// Load Domain data
 	data, err = a.findIpaById(tx, orgId, uuid)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	// Check token
 	err = a.checkToken(params.XRhIDMRegistrationToken, data.IpaDomain)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
@@ -305,26 +307,22 @@ func (a *application) RegisterIpaDomain(
 	// FIXME Set the value from the unencoded and unmarshalled Identity
 	xrhid := domainCtx.XRHID()
 	if xrhid == nil {
-		tx.Rollback()
 		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
 	}
 	subscription_manager_id := xrhid.Identity.System.CommonName
 	host, err = a.inventory.GetHostByCN(params.XRhIdentity, params.XRhInsightsRequestId, subscription_manager_id)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	err = a.existsHostInServers(host.FQDN, ipa.Servers)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
 	// data.IpaDomain = &model.Ipa{}
 	err = a.fillIpaDomain(data.IpaDomain, ipa)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	data.IpaDomain.Token = nil
@@ -332,7 +330,6 @@ func (a *application) RegisterIpaDomain(
 
 	*data, err = a.domain.repository.Update(tx, orgId, data)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
