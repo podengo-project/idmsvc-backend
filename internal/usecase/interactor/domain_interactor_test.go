@@ -423,11 +423,21 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 		}
-		xrhidSystemBase64 = header.EncodeXRHID(&xrhidSystem)
-		params            = &api_public.RegisterIpaDomainParams{
+		clientVersionParsed = &header.XRHIDMVersion{
+			IPAHCCVersion: "0.7",
+			IPAVersion:    "4.10.0-8.el9_1",
+		}
+		xrhidSystemBase64     = header.EncodeXRHID(&xrhidSystem)
+		paramsNoClientVersion = &api_public.RegisterIpaDomainParams{
 			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIDMRegistrationToken: token,
+		}
+		params = &api_public.RegisterIpaDomainParams{
+			XRhIdentity:             xrhidSystemBase64,
+			XRhInsightsRequestId:    requestID,
+			XRhIDMRegistrationToken: token,
+			XRhIdmVersion:           "eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEifQo=",
 		}
 		notValidBefore = time.Now().UTC()
 		notValidAfter  = notValidBefore.Add(24 * time.Hour)
@@ -438,9 +448,10 @@ func TestRegisterIpa(t *testing.T) {
 		Body   *public.RegisterIpaDomainJSONRequestBody
 	}
 	type TestCaseExpected struct {
-		OrgId  string
-		Output *model.Ipa
-		Error  error
+		OrgId         string
+		ClientVersion *header.XRHIDMVersion
+		Output        *model.Ipa
+		Error         error
 	}
 	type TestCase struct {
 		Name     string
@@ -456,9 +467,10 @@ func TestRegisterIpa(t *testing.T) {
 				Body:   nil,
 			},
 			Expected: TestCaseExpected{
-				OrgId:  "",
-				Output: nil,
-				Error:  fmt.Errorf("'xrhid' cannot be nil"),
+				OrgId:         "",
+				ClientVersion: nil,
+				Output:        nil,
+				Error:         fmt.Errorf("'xrhid' cannot be nil"),
 			},
 		},
 		{
@@ -469,9 +481,10 @@ func TestRegisterIpa(t *testing.T) {
 				Body:   nil,
 			},
 			Expected: TestCaseExpected{
-				OrgId:  "",
-				Output: nil,
-				Error:  fmt.Errorf("'params' cannot be nil"),
+				OrgId:         "",
+				ClientVersion: nil,
+				Output:        nil,
+				Error:         fmt.Errorf("'params' cannot be nil"),
 			},
 		},
 		{
@@ -482,9 +495,24 @@ func TestRegisterIpa(t *testing.T) {
 				Body:   nil,
 			},
 			Expected: TestCaseExpected{
-				OrgId:  "",
-				Output: nil,
-				Error:  fmt.Errorf("'body' cannot be nil"),
+				OrgId:         "",
+				ClientVersion: nil,
+				Output:        nil,
+				Error:         fmt.Errorf("'body' cannot be nil"),
+			},
+		},
+		{
+			Name: "No X-Rh-IDM-Version",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidSystem,
+				Params: paramsNoClientVersion,
+				Body:   nil,
+			},
+			Expected: TestCaseExpected{
+				OrgId:         "",
+				ClientVersion: nil,
+				Output:        nil,
+				Error:         fmt.Errorf("'body' cannot be nil"),
 			},
 		},
 		{
@@ -497,7 +525,8 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 			Expected: TestCaseExpected{
-				OrgId: "",
+				OrgId:         "",
+				ClientVersion: clientVersionParsed,
 				Output: &model.Ipa{
 					CaCerts:      []model.IpaCert{},
 					Servers:      []model.IpaServer{},
@@ -516,7 +545,8 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 			Expected: TestCaseExpected{
-				OrgId: "",
+				OrgId:         "",
+				ClientVersion: clientVersionParsed,
 				Output: &model.Ipa{
 					CaCerts:      []model.IpaCert{},
 					Servers:      []model.IpaServer{},
@@ -545,7 +575,8 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 			Expected: TestCaseExpected{
-				OrgId: "",
+				OrgId:         "",
+				ClientVersion: clientVersionParsed,
 				Output: &model.Ipa{
 					CaCerts: []model.IpaCert{
 						{
@@ -583,7 +614,8 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 			Expected: TestCaseExpected{
-				OrgId: "",
+				OrgId:         "",
+				ClientVersion: clientVersionParsed,
 				Output: &model.Ipa{
 					CaCerts: []model.IpaCert{},
 					Servers: []model.IpaServer{
@@ -605,15 +637,17 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		i := NewDomainInteractor()
-		orgId, output, err := i.RegisterIpa(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
+		orgId, clientVersion, output, err := i.RegisterIpa(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Error != nil {
 			assert.EqualError(t, err, testCase.Expected.Error.Error())
 			assert.Equal(t, testCase.Expected.OrgId, orgId)
 			assert.Equal(t, testCase.Expected.Output, output)
+			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
 		} else {
 			require.NoError(t, err)
 			assert.Equal(t, testCase.Expected.OrgId, orgId)
 			assert.Equal(t, testCase.Expected.Output, output)
+			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
 		}
 	}
 }

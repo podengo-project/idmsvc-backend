@@ -12,6 +12,8 @@
 @fqdn = host1.domain.example
 @subscription_manager_id = 6f324116-b3d2-11ed-8a37-482ae3863d30
 @domain_uuid = b93b186b-8fd8-4978-a241-2ab0c3734136
+# X-Rh-IDM-Version = base64 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' 
+@x-rh-idm-version = eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEifQo=
 
 ###
 
@@ -138,6 +140,7 @@ PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid
 X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-IDM-Registration-Token: {{createDomain.response.body.ipa.token}}
 X-Rh-Insights-Request-Id: put_domains_ipa_register
+X-Rh-IDM-Version: {{x-rh-idm-version}}
 Content-Type: {{contentType}}
 
 {
