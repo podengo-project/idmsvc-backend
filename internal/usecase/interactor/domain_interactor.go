@@ -120,6 +120,8 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	domain.OrgId = xrhid.Identity.OrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
 	domain.DomainName = pointy.String(body.DomainName)
+	// FIXME Refactor API to add title
+	domain.Title = pointy.String("")
 	domain.Description = pointy.String(body.DomainDescription)
 	domain.Type = pointy.Uint(helperDomainTypeToUint(body.DomainType))
 
