@@ -320,7 +320,6 @@ func (a *application) RegisterIpaDomain(
 		return err
 	}
 
-	// data.IpaDomain = &model.Ipa{}
 	err = a.fillIpaDomain(data.IpaDomain, ipa)
 	if err != nil {
 		return err

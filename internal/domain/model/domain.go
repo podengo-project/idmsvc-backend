@@ -31,8 +31,9 @@ type Domain struct {
 	OrgId                 string
 	DomainUuid            uuid.UUID `gorm:"unique"`
 	DomainName            *string
-	DomainDescription     *string
-	DomainType            *uint
+	Title                 *string
+	Description           *string
+	Type                  *uint
 	AutoEnrollmentEnabled *bool
 	IpaDomain             *Ipa `gorm:"foreignKey:id"`
 }
@@ -67,10 +68,10 @@ func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
-	if d.DomainType == nil {
+	if d.Type == nil {
 		return fmt.Errorf("'DomainType' cannot be nil")
 	}
-	switch *d.DomainType {
+	switch *d.Type {
 	case DomainTypeIpa:
 		{
 			if d.IpaDomain != nil {

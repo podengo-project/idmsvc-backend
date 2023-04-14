@@ -66,7 +66,7 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	if data == nil {
 		return fmt.Errorf("data is nil")
 	}
-	if data.DomainType == nil {
+	if data.Type == nil {
 		return fmt.Errorf("'DomainType' cannot be nil")
 	}
 	data.OrgId = orgId
@@ -74,7 +74,7 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	if err != nil {
 		return err
 	}
-	switch *data.DomainType {
+	switch *data.Type {
 	case model.DomainTypeIpa:
 		err = r.createIpaDomain(db, data.ID, data.IpaDomain)
 		if err != nil {
@@ -94,7 +94,7 @@ func (r *domainRepository) getColumnsToUpdate(data *model.Domain) []string {
 	if data.DomainName != nil {
 		cols = append(cols, "domain_name")
 	}
-	if data.DomainType != nil {
+	if data.Type != nil {
 		cols = append(cols, "domain_type")
 	}
 	return cols
@@ -129,8 +129,8 @@ func (r *domainRepository) Update(db *gorm.DB, orgId string, data *model.Domain)
 	}
 	data.OrgId = orgId
 	output = *data
-	cols := []string{"id"}
-	err = db.Model(&output).Select(cols).Updates(output).Error
+	// cols := []string{"id"}
+	err = db.Model(&output).Updates(output).Error
 	if err != nil {
 		return model.Domain{}, err
 	}
@@ -150,7 +150,7 @@ func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (out
 	if count == 0 {
 		return model.Domain{}, fmt.Errorf("Not found")
 	}
-	if output.DomainType != nil && *output.DomainType == model.DomainTypeIpa {
+	if output.Type != nil && *output.Type == model.DomainTypeIpa {
 		output.IpaDomain = &model.Ipa{}
 		if err = db.Preload("CaCerts").Preload("Servers").First(output.IpaDomain, "id = ?", output.ID).Count(&count).Error; err != nil {
 			return model.Domain{}, err

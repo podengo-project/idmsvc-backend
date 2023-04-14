@@ -16,7 +16,7 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, uuid string) (data 
 	if err != nil {
 		return nil, err
 	}
-	if *data.DomainType != model.DomainTypeIpa {
+	if *data.Type != model.DomainTypeIpa {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "Wrong domain type")
 	}
 

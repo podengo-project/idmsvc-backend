@@ -81,12 +81,14 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	}
 	output.DomainName = *domain.DomainName
 
-	if domain.DomainType == nil {
+	if domain.Type == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
+	output.DomainType = public.DomainResponseDomainType(
+		model.DomainTypeString(*domain.Type),
+	)
 
-	switch *domain.DomainType {
+	switch *domain.Type {
 	case model.DomainTypeIpa:
 		{
 			if domain.IpaDomain == nil {
@@ -155,7 +157,7 @@ func (p domainPresenter) List(prefix string, offset int64, count int32, data []m
 	for idx, item := range data {
 		output.Data[idx].AutoEnrollmentEnabled = pointy.Bool(*item.AutoEnrollmentEnabled)
 		output.Data[idx].DomainName = pointy.String(*item.DomainName)
-		output.Data[idx].DomainType = pointy.String(model.DomainTypeString(*item.DomainType))
+		output.Data[idx].DomainType = pointy.String(model.DomainTypeString(*item.Type))
 		output.Data[idx].DomainUuid = pointy.String(item.DomainUuid.String())
 	}
 	return output, nil
@@ -181,12 +183,12 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	}
 	output.DomainName = *domain.DomainName
 
-	if domain.DomainType == nil {
+	if domain.Type == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.DomainType))
+	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.Type))
 
-	switch *domain.DomainType {
+	switch *domain.Type {
 	case model.DomainTypeIpa:
 		if domain.IpaDomain == nil {
 			return nil, fmt.Errorf("IpaDomain cannot be nil")

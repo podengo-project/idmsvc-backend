@@ -120,8 +120,8 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	domain.OrgId = xrhid.Identity.OrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
 	domain.DomainName = pointy.String(body.DomainName)
-	domain.DomainDescription = pointy.String(body.DomainDescription)
-	domain.DomainType = pointy.Uint(helperDomainTypeToUint(body.DomainType))
+	domain.Description = pointy.String(body.DomainDescription)
+	domain.Type = pointy.Uint(helperDomainTypeToUint(body.DomainType))
 
 	domain.IpaDomain = &model.Ipa{}
 	if body.Ipa.RealmName != "" {
