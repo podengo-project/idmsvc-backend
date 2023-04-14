@@ -266,7 +266,7 @@ func (s *Suite) TestCreateErrors() {
 	assert.Equal(t, "an error happened", err.Error())
 
 	err = s.repository.Create(s.DB, orgID, &domainTypeIsNil)
-	assert.EqualError(t, err, "'DomainType' cannot be nil")
+	assert.EqualError(t, err, "'Type' cannot be nil")
 
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
 		WithArgs(
@@ -286,7 +286,7 @@ func (s *Suite) TestCreateErrors() {
 			sqlmock.NewRows([]string{"id"}).
 				AddRow(uint(1)))
 	err = s.repository.Create(s.DB, orgID, &ipaDomainTypeIsNotValid)
-	assert.EqualError(t, err, "'DomainType' is not valid")
+	assert.EqualError(t, err, "'Type' is not valid")
 }
 
 func (s *Suite) TestCreateIpaDomain() {
