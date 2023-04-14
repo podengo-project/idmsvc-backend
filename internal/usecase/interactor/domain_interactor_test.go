@@ -110,7 +110,7 @@ func TestCreate(t *testing.T) {
 				Out: &model.Domain{
 					OrgId:                 "12345",
 					DomainName:            pointy.String("domain.example"),
-					DomainType:            pointy.Uint(model.DomainTypeIpa),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("DOMAIN.EXAMPLE"),
@@ -175,7 +175,7 @@ func TestCreate(t *testing.T) {
 				Out: &model.Domain{
 					OrgId:                 "12345",
 					DomainName:            pointy.String("domain.example"),
-					DomainType:            pointy.Uint(model.DomainTypeIpa),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("DOMAIN.EXAMPLE"),
@@ -223,7 +223,7 @@ func TestCreate(t *testing.T) {
 			assert.Equal(t, *testCase.Expected.Out.AutoEnrollmentEnabled, *data.AutoEnrollmentEnabled)
 			assert.Equal(t, testCase.Expected.Out.OrgId, data.OrgId)
 			assert.Equal(t, *testCase.Expected.Out.DomainName, *data.DomainName)
-			assert.Equal(t, *testCase.Expected.Out.DomainType, *data.DomainType)
+			assert.Equal(t, *testCase.Expected.Out.Type, *data.Type)
 			assert.Equal(t,
 				*testCase.Expected.Out.IpaDomain.RealmName,
 				*data.IpaDomain.RealmName)

@@ -62,7 +62,7 @@ func TestGet(t *testing.T) {
 					OrgId:                 "12345",
 					DomainUuid:            testUuid,
 					DomainName:            pointy.String("domain.example"),
-					DomainType:            pointy.Uint(model.DomainTypeIpa),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("DOMAIN.EXAMPLE"),
@@ -174,7 +174,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            nil,
+				Type:                  nil,
 			},
 			Expected: TestCaseExpected{
 				Response: nil,
@@ -186,7 +186,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            nil,
+				Type:                  nil,
 			},
 			Expected: TestCaseExpected{
 				Response: nil,
@@ -198,7 +198,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            pointy.Uint(model.DomainTypeIpa),
+				Type:                  pointy.Uint(model.DomainTypeIpa),
 				IpaDomain:             nil,
 			},
 			Expected: TestCaseExpected{
@@ -211,7 +211,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            pointy.Uint(model.DomainTypeIpa),
+				Type:                  pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
 					RealmName: nil,
 				},
@@ -226,7 +226,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            pointy.Uint(model.DomainTypeIpa),
+				Type:                  pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
 					RealmName: pointy.String("DOMAIN.EXAMPLE"),
 					CaCerts:   nil,
@@ -242,7 +242,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            pointy.Uint(model.DomainTypeIpa),
+				Type:                  pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
 					RealmName: pointy.String("DOMAIN.EXAMPLE"),
 					CaCerts:   []model.IpaCert{},
@@ -259,7 +259,7 @@ func TestCreate(t *testing.T) {
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
-				DomainType:            pointy.Uint(model.DomainTypeIpa),
+				Type:                  pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
 					RealmName: pointy.String("DOMAIN.EXAMPLE"),
 					CaCerts:   []model.IpaCert{},

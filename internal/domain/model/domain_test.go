@@ -41,7 +41,7 @@ func TestDomainAfterCreate(t *testing.T) {
 		Model: gorm.Model{
 			ID: 1,
 		},
-		DomainType: pointy.Uint(DomainTypeIpa),
+		Type: pointy.Uint(DomainTypeIpa),
 		IpaDomain: &Ipa{
 			Model: gorm.Model{
 				ID: 0,
