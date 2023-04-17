@@ -85,6 +85,20 @@ func (_m *DomainRepository) FindById(db *gorm.DB, orgId string, uuid string) (mo
 	return r0, r1
 }
 
+// RhelIdmClearToken provides a mock function with given fields: db, orgId, uuid
+func (_m *DomainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid string) error {
+	ret := _m.Called(db, orgId, uuid)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB, string, string) error); ok {
+		r0 = rf(db, orgId, uuid)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: db, orgId, data
 func (_m *DomainRepository) Update(db *gorm.DB, orgId string, data *model.Domain) (model.Domain, error) {
 	ret := _m.Called(db, orgId, data)

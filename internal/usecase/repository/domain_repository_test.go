@@ -496,6 +496,273 @@ func (s *Suite) TestUpdateErrors() {
 	assert.Equal(t, data.Model.ID, outputData.Model.ID)
 
 }
+
+func (s *Suite) TestRhelIdmClearToken() {
+	var (
+		err error
+	)
+	t := s.Suite.T()
+	currentTime := time.Now()
+	mismatchOrgID := "22222"
+	orgID := "11111"
+	uuidString := "3bccb88e-dd25-11ed-99e0-482ae3863d30"
+	subscriptionManagerID := "fe106208-dd32-11ed-aa87-482ae3863d30"
+	data := model.Domain{
+		Model: gorm.Model{
+			ID:        1,
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
+			DeletedAt: gorm.DeletedAt{},
+		},
+		OrgId:                 orgID,
+		DomainUuid:            uuid.MustParse(uuidString),
+		DomainName:            pointy.String("mydomain.example"),
+		Title:                 pointy.String("My Domain Example"),
+		Description:           pointy.String("Description of My Domain Example"),
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+		IpaDomain: &model.Ipa{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+				DeletedAt: gorm.DeletedAt{},
+			},
+			RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
+			CaCerts: []model.IpaCert{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:          1,
+					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+					Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
+					NotValidAfter:  currentTime.Add(24 * time.Hour),
+					NotValidBefore: currentTime,
+					SerialNumber:   "1",
+					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----",
+				},
+			},
+			Servers: []model.IpaServer{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:               1,
+					FQDN:                "server1.mydomain.example",
+					RHSMId:              subscriptionManagerID,
+					CaServer:            true,
+					HCCEnrollmentServer: true,
+					HCCUpdateServer:     true,
+					PKInitServer:        true,
+				},
+			},
+			RealmDomains: pq.StringArray{"mydomain.example"},
+		},
+	}
+
+	err = s.repository.RhelIdmClearToken(nil, "", "")
+	assert.EqualError(t, err, "'db' is nil")
+
+	err = s.repository.RhelIdmClearToken(s.DB, "", "")
+	assert.EqualError(t, err, "'orgId' is empty")
+
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, "")
+	assert.EqualError(t, err, "'uuid' is empty")
+
+	s.mock.MatchExpectationsInOrder(true)
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(
+			orgID,
+			uuidString,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{
+				"id", "created_at", "updated_at", "deleted_at",
+				"org_id", "domain_uuid", "domain_name", "title",
+				"description", "type", "auto_enrollment_enabled",
+			}).
+				AddRow(
+					1,
+					data.CreatedAt,
+					data.UpdatedAt,
+					nil,
+
+					mismatchOrgID,
+					data.DomainUuid,
+					*data.DomainName,
+					*data.Title,
+					*data.Description,
+					*data.Type,
+					*data.AutoEnrollmentEnabled,
+				))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT 1`)).
+		WithArgs(
+			orgID,
+			uuidString,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"count"}).
+				AddRow(
+					1,
+				))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"realm_name", "realm_names", "token", "token_expiration",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				data.IpaDomain.RealmName,
+				data.IpaDomain.RealmDomains,
+				data.IpaDomain.Token,
+				data.IpaDomain.TokenExpiration,
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"realm_name", "realm_names", "token", "token_expiration",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				data.IpaDomain.RealmName,
+				data.IpaDomain.RealmDomains,
+				data.IpaDomain.Token,
+				data.IpaDomain.TokenExpiration,
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"ipa_id", "fqdn", "rhsm_id",
+			"ca_server", "hcc_enrollment_server", "hcc_update_server",
+			"pk_init_server",
+		}))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL LIMIT 1`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
+	assert.EqualError(t, err, "'OrgId' mistmatch")
+
+	// Success scenario
+	s.mock.MatchExpectationsInOrder(true)
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(
+			orgID,
+			uuidString,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{
+				"id", "created_at", "updated_at", "deleted_at",
+				"org_id", "domain_uuid", "domain_name", "title",
+				"description", "type", "auto_enrollment_enabled",
+			}).
+				AddRow(
+					1,
+					data.CreatedAt,
+					data.UpdatedAt,
+					nil,
+
+					orgID,
+					data.DomainUuid,
+					*data.DomainName,
+					*data.Title,
+					*data.Description,
+					*data.Type,
+					*data.AutoEnrollmentEnabled,
+				))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT 1`)).
+		WithArgs(
+			orgID,
+			uuidString,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"count"}).
+				AddRow(
+					1,
+				))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"realm_name", "realm_names", "token", "token_expiration",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				data.IpaDomain.RealmName,
+				data.IpaDomain.RealmDomains,
+				data.IpaDomain.Token,
+				data.IpaDomain.TokenExpiration,
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"realm_name", "realm_names", "token", "token_expiration",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				data.IpaDomain.RealmName,
+				data.IpaDomain.RealmDomains,
+				data.IpaDomain.Token,
+				data.IpaDomain.TokenExpiration,
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"ipa_id", "fqdn", "rhsm_id",
+			"ca_server", "hcc_enrollment_server", "hcc_update_server",
+			"pk_init_server",
+		}))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL LIMIT 1`)).
+		WithArgs(data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "ipas" SET "token"=$1 WHERE id = $2`)).
+		WithArgs(
+			nil,
+			data.IpaDomain.ID,
+		).
+		WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "ipas" SET "token_expiration"=$1 WHERE id = $2`)).
+		WithArgs(
+			nil,
+			data.IpaDomain.ID,
+		).
+		WillReturnResult(
+			sqlmock.NewResult(1, 1),
+		)
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
+	assert.NoError(t, err)
+}
+
 func TestSuite(t *testing.T) {
 	suite.Run(t, new(Suite))
 }
