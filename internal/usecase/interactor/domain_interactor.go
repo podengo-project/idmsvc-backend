@@ -91,7 +91,7 @@ func (i domainInteractor) FillServer(to *model.IpaServer, from *api_public.Creat
 	to.HCCEnrollmentServer = from.HccEnrollmentServer
 	to.HCCUpdateServer = from.HccUpdateServer
 	to.PKInitServer = from.PkinitServer
-	to.RHSMId = from.RhsmId
+	to.RHSMId = from.SubscriptionManagerId
 	return nil
 }
 
@@ -243,14 +243,15 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 	return xrhid.Identity.OrgID, uuid, nil
 }
 
-// RegisterIpa translates the API input format into the business
-// data models for the PUT /domains/{uuid}/ipa/register endpoint.
+// Register translates the API input format into the business
+// data models for the PUT /domains/{uuid}/register endpoint.
 // params contains the header parameters.
 // body contains the input payload.
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) RegisterIpa(xrhid *identity.XRHID, params *api_public.RegisterIpaDomainParams, body *public.RegisterIpaDomainJSONRequestBody) (string, *header.XRHIDMVersion, *model.Ipa, error) {
+func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.RegisterDomain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+	var err error
 	if xrhid == nil {
 		return "", nil, nil, fmt.Errorf("'xrhid' cannot be nil")
 	}
@@ -269,9 +270,23 @@ func (i domainInteractor) RegisterIpa(xrhid *identity.XRHID, params *api_public.
 	}
 
 	// Read the body payload
-	domainIpa := &model.Ipa{}
-	// TODO Update api schema for this endpoint to don't include RealmName
+	domain := &model.Domain{}
+	switch body.Type {
+	case api_public.RhelIdm:
+		domain.Type = pointy.Uint(model.DomainTypeIpa)
+		domain.IpaDomain = &model.Ipa{}
+		err = i.registerIpa(body, domain.IpaDomain)
+	default:
+		err = fmt.Errorf("Type='%s' is invalid", body.Type)
+	}
+	if err != nil {
+		return "", nil, nil, err
+	}
 
+	return orgId, clientVersion, domain, nil
+}
+
+func (i domainInteractor) registerIpa(body *public.RegisterDomain, domainIpa *model.Ipa) error {
 	// Translate realm domains
 	i.registerIpaRealmDomains(body, domainIpa)
 
@@ -281,29 +296,29 @@ func (i domainInteractor) RegisterIpa(xrhid *identity.XRHID, params *api_public.
 	// Server list
 	i.registerIpaServers(body, domainIpa)
 
-	return orgId, clientVersion, domainIpa, nil
+	return nil
 }
 
-func (i domainInteractor) registerIpaRealmDomains(body *public.RegisterIpaDomainJSONRequestBody, domainIpa *model.Ipa) {
-	if body.RealmDomains == nil {
+func (i domainInteractor) registerIpaRealmDomains(body *public.RegisterDomain, domainIpa *model.Ipa) {
+	if body.RhelIdm.RealmDomains == nil {
 		domainIpa.RealmDomains = pq.StringArray{}
 		return
 	}
 	domainIpa.RealmDomains = make(pq.StringArray, 0)
 	domainIpa.RealmDomains = append(
 		domainIpa.RealmDomains,
-		body.RealmDomains...,
+		body.RhelIdm.RealmDomains...,
 	)
 }
 
-func (i domainInteractor) registerIpaCaCerts(body *public.RegisterIpaDomainJSONRequestBody, domainIpa *model.Ipa) {
-	if body.CaCerts == nil {
+func (i domainInteractor) registerIpaCaCerts(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
+	if body.RhelIdm.CaCerts == nil {
 		domainIpa.CaCerts = []model.IpaCert{}
 		return
 	}
-	domainIpa.CaCerts = make([]model.IpaCert, len(body.CaCerts))
-	for idx := range body.CaCerts {
-		i.registerIpaCaCertOne(&domainIpa.CaCerts[idx], &body.CaCerts[idx])
+	domainIpa.CaCerts = make([]model.IpaCert, len(body.RhelIdm.CaCerts))
+	for idx := range body.RhelIdm.CaCerts {
+		i.registerIpaCaCertOne(&domainIpa.CaCerts[idx], &body.RhelIdm.CaCerts[idx])
 	}
 }
 
@@ -331,16 +346,16 @@ func (i domainInteractor) registerIpaCaCertOne(caCert *model.IpaCert, cert *api_
 	}
 }
 
-func (i domainInteractor) registerIpaServers(body *public.RegisterIpaDomainJSONRequestBody, domainIpa *model.Ipa) {
-	if body.Servers == nil {
+func (i domainInteractor) registerIpaServers(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
+	if body.RhelIdm.Servers == nil {
 		domainIpa.Servers = []model.IpaServer{}
 		return
 	}
 	// FIXME Set body.Servers as required into the openapi specification
-	domainIpa.Servers = make([]model.IpaServer, len(*body.Servers))
-	for idx, server := range *body.Servers {
+	domainIpa.Servers = make([]model.IpaServer, len(body.RhelIdm.Servers))
+	for idx, server := range body.RhelIdm.Servers {
 		domainIpa.Servers[idx].FQDN = server.Fqdn
-		domainIpa.Servers[idx].RHSMId = server.RhsmId
+		domainIpa.Servers[idx].RHSMId = server.SubscriptionManagerId
 		domainIpa.Servers[idx].PKInitServer = server.PkinitServer
 		domainIpa.Servers[idx].CaServer = server.CaServer
 		domainIpa.Servers[idx].HCCEnrollmentServer = server.HccEnrollmentServer

@@ -32,8 +32,8 @@ type identityConfig struct {
 
 var (
 	systemEnforceRoutes = []string{
-		"/api/hmsidm/v1/domains/:uuid/ipa/register",
-		"/api/hmsidm/v1/domains/:uuid/ipa/update",
+		"/api/hmsidm/v1/domains/:uuid/register",
+		"/api/hmsidm/v1/domains/:uuid/update",
 	}
 	userEnforceRoutes = []string{
 		"/api/hmsidm/v1/domains",

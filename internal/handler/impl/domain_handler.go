@@ -7,7 +7,6 @@ import (
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/infrastructure/middleware"
-	"github.com/hmsidm/internal/interface/client"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -198,8 +197,8 @@ func (a *application) CreateDomain(
 	return ctx.JSON(http.StatusCreated, *output)
 }
 
-// Delete a Todo resource
-// (POST /todo)
+// Delete a Domain resource
+// (DELETE /domains/{uuid})
 func (a *application) DeleteDomain(
 	ctx echo.Context,
 	uuid string,
@@ -260,20 +259,20 @@ func (a *application) CheckHost(
 // uuid the domain uuid that identify
 // params contains the x-rh-identity, x-rh-insights-request-id
 // and x-rh-idm-token header contents.
-func (a *application) RegisterIpaDomain(
+func (a *application) RegisterDomain(
 	ctx echo.Context,
 	uuid string,
-	params public.RegisterIpaDomainParams,
+	params public.RegisterDomainParams,
 ) error {
 	var (
-		err           error
-		input         public.RegisterDomainIpa
-		data          *model.Domain
-		host          client.InventoryHost
-		ipa           *model.Ipa
+		err   error
+		input public.RegisterDomain
+		data  *model.Domain
+		// host          client.InventoryHost
+		domain        *model.Domain
 		orgId         string
 		tx            *gorm.DB
-		output        *public.DomainResponseIpa
+		output        *public.DomainResponse
 		domainCtx     middleware.DomainContextInterface
 		clientVersion *header.XRHIDMVersion
 	)
@@ -281,25 +280,35 @@ func (a *application) RegisterIpaDomain(
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	orgId, clientVersion, ipa, err = a.domain.interactor.RegisterIpa(domainCtx.XRHID(), &params, &input)
+	orgId, clientVersion, domain, err = a.domain.interactor.Register(
+		domainCtx.XRHID(),
+		&params,
+		&input,
+	)
 	if err != nil {
 		return err
 	}
-	ctx.Logger().Info("ipa-hcc", clientVersion.IPAHCCVersion, "ipa", clientVersion.IPAVersion)
+	ctx.Logger().Info(
+		"ipa-hcc",
+		clientVersion.IPAHCCVersion,
+		"ipa",
+		clientVersion.IPAVersion,
+	)
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
 	defer tx.Rollback()
 
 	// Load Domain data
-	data, err = a.findIpaById(tx, orgId, uuid)
-	if err != nil {
+	if data, err = a.findIpaById(tx, orgId, uuid); err != nil {
 		return err
 	}
 
 	// Check token
-	err = a.checkToken(params.XRhIDMRegistrationToken, data.IpaDomain)
-	if err != nil {
+	if err = a.checkToken(
+		params.XRhIDMRegistrationToken,
+		data.IpaDomain,
+	); err != nil {
 		return err
 	}
 
@@ -309,36 +318,37 @@ func (a *application) RegisterIpaDomain(
 	if xrhid == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
 	}
-	subscription_manager_id := xrhid.Identity.System.CommonName
-	host, err = a.inventory.GetHostByCN(params.XRhIdentity, params.XRhInsightsRequestId, subscription_manager_id)
-	if err != nil {
-		return err
-	}
+	// subscription_manager_id := xrhid.Identity.System.CommonName
+	// if host, err = a.inventory.GetHostByCN(
+	// 	params.XRhIdentity,
+	// 	params.XRhInsightsRequestId,
+	// 	subscription_manager_id,
+	// ); err != nil {
+	// 	return err
+	// }
 
-	err = a.existsHostInServers(host.FQDN, ipa.Servers)
-	if err != nil {
-		return err
-	}
+	// if err = a.existsHostInServers(
+	// 	host.FQDN,
+	// 	domain.IpaDomain.Servers,
+	// ); err != nil {
+	// 	return err
+	// }
 
-	err = a.fillIpaDomain(data.IpaDomain, ipa)
-	if err != nil {
+	if err = a.fillIpaDomain(data.IpaDomain, domain.IpaDomain); err != nil {
 		return err
 	}
 	data.IpaDomain.Token = nil
 	data.IpaDomain.TokenExpiration = nil
 
-	*data, err = a.domain.repository.Update(tx, orgId, data)
-	if err != nil {
+	if *data, err = a.domain.repository.Update(tx, orgId, data); err != nil {
 		return err
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
+	if err = tx.Commit().Error; err != nil {
 		return tx.Error
 	}
 
-	output, err = a.domain.presenter.RegisterIpa(data.IpaDomain)
-	if err != nil {
+	if output, err = a.domain.presenter.Register(data); err != nil {
 		return err
 	}
 

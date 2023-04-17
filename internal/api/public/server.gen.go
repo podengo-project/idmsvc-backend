@@ -29,8 +29,8 @@ type ServerInterface interface {
 	// (GET /domains/{uuid})
 	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
 	// Register an IPA domain.
-	// (PUT /domains/{uuid}/ipa/register)
-	RegisterIpaDomain(ctx echo.Context, uuid string, params RegisterIpaDomainParams) error
+	// (PUT /domains/{uuid}/register)
+	RegisterDomain(ctx echo.Context, uuid string, params RegisterDomainParams) error
 	// Get host vm information.
 	// (POST /host-conf/{fqdn})
 	HostConf(ctx echo.Context, fqdn string, params HostConfParams) error
@@ -323,8 +323,8 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	return err
 }
 
-// RegisterIpaDomain converts echo context to params.
-func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
+// RegisterDomain converts echo context to params.
+func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
 	var uuid string
@@ -337,7 +337,7 @@ func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
 	ctx.Set(X_rh_identityScopes, []string{""})
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params RegisterIpaDomainParams
+	var params RegisterDomainParams
 
 	headers := ctx.Request().Header
 	// ------------- Required header parameter "X-Rh-Identity" -------------
@@ -410,7 +410,7 @@ func (w *ServerInterfaceWrapper) RegisterIpaDomain(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.RegisterIpaDomain(ctx, uuid, params)
+	err = w.Handler.RegisterDomain(ctx, uuid, params)
 	return err
 }
 
@@ -502,7 +502,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.POST(baseURL+"/domains", wrapper.CreateDomain)
 	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
 	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
-	router.PUT(baseURL+"/domains/:uuid/ipa/register", wrapper.RegisterIpaDomain)
+	router.PUT(baseURL+"/domains/:uuid/register", wrapper.RegisterDomain)
 	router.POST(baseURL+"/host-conf/:fqdn", wrapper.HostConf)
 
 }

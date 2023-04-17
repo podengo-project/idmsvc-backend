@@ -29,7 +29,8 @@ Content-Type: {{contentType}}
 
 {
   "domain_name": "mydomain.example",
-  "domain_description": "My human readable domain description",
+  "title": "My Domain Example",
+  "description": "My human readable domain description",
   "domain_type": "ipa",
   "auto_enrollment_enabled": true,
   "ipa": {

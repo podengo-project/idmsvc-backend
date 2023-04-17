@@ -24,7 +24,7 @@ func NewDomainPresenter() presenter.DomainPresenter {
 	return domainPresenter{}
 }
 
-func (p domainPresenter) FillCert(to *public.DomainResponseIpaCert, from *model.IpaCert) error {
+func (p domainPresenter) FillCert(to *public.DomainIpaCert, from *model.IpaCert) error {
 	if to == nil {
 		return fmt.Errorf("'to' cannot be nil")
 	}
@@ -42,7 +42,7 @@ func (p domainPresenter) FillCert(to *public.DomainResponseIpaCert, from *model.
 	return nil
 }
 
-func (p domainPresenter) FillServer(to *public.DomainResponseIpaServer, from *model.IpaServer) error {
+func (p domainPresenter) FillServer(to *public.DomainIpaServer, from *model.IpaServer) error {
 	if to == nil {
 		return fmt.Errorf("'to' cannot be nil")
 	}
@@ -55,7 +55,7 @@ func (p domainPresenter) FillServer(to *public.DomainResponseIpaServer, from *mo
 	to.HccEnrollmentServer = from.HCCEnrollmentServer
 	to.HccUpdateServer = from.HCCUpdateServer
 	to.PkinitServer = from.PKInitServer
-	to.RhsmId = from.RHSMId
+	to.SubscriptionManagerId = from.RHSMId
 	return nil
 }
 
@@ -84,7 +84,7 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 	if domain.Type == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = public.DomainResponseDomainType(
+	output.Type = public.DomainResponseType(
 		model.DomainTypeString(*domain.Type),
 	)
 
@@ -105,12 +105,12 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainRespo
 			}
 
 			output.Ipa.RealmName = *domain.IpaDomain.RealmName
-			output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
+			output.Ipa.CaCerts = make([]public.DomainIpaCert, len(domain.IpaDomain.CaCerts))
 			for i, cert := range domain.IpaDomain.CaCerts {
 				p.FillCert(&output.Ipa.CaCerts[i], &cert)
 			}
 
-			output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
+			output.Ipa.Servers = make([]public.DomainIpaServer, len(domain.IpaDomain.Servers))
 			for i, server := range domain.IpaDomain.Servers {
 				p.FillServer(&output.Ipa.Servers[i], &server)
 			}
@@ -186,7 +186,7 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	if domain.Type == nil {
 		return nil, fmt.Errorf("DomainType cannot be nil")
 	}
-	output.DomainType = public.DomainResponseDomainType(model.DomainTypeString(*domain.Type))
+	output.Type = public.DomainResponseType(model.DomainTypeString(*domain.Type))
 
 	switch *domain.Type {
 	case model.DomainTypeIpa:
@@ -196,7 +196,7 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 		if domain.IpaDomain.CaCerts == nil {
 			return nil, fmt.Errorf("CaCerts cannot be nil")
 		}
-		output.Ipa.CaCerts = make([]public.DomainResponseIpaCert, len(domain.IpaDomain.CaCerts))
+		output.Ipa.CaCerts = make([]public.DomainIpaCert, len(domain.IpaDomain.CaCerts))
 		for i, cert := range domain.IpaDomain.CaCerts {
 			if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
 				return nil, err
@@ -211,7 +211,7 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 		if domain.IpaDomain.Servers == nil {
 			return nil, fmt.Errorf("Servers cannot be nil")
 		}
-		output.Ipa.Servers = make([]public.DomainResponseIpaServer, len(domain.IpaDomain.Servers))
+		output.Ipa.Servers = make([]public.DomainIpaServer, len(domain.IpaDomain.Servers))
 		for i, server := range domain.IpaDomain.Servers {
 			if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
 				return nil, err
@@ -230,25 +230,29 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 }
 
 // registerIpaCaCerts translate the list of certificates
-// for the RegisterIpa operation.
+// for the Register operation.
 // ipa the Ipa instance from the business model.
 // output the DomainResponseIpa schema representation
 // to be filled.
 // Return nil if the information is translated properly
 // else return an error.
-func (p domainPresenter) registerIpaCaCerts(ipa *model.Ipa, output *public.DomainResponseIpa) error {
-	if ipa == nil {
+func (p domainPresenter) registerIpaCaCerts(domain *model.Domain, output *public.RegisterDomainResponse) error {
+	if domain == nil {
 		return nil
 	}
+	if domain.IpaDomain == nil {
+		return nil
+	}
+	ipa := domain.IpaDomain
 	if ipa.CaCerts == nil {
 		return nil
 	}
 	if output == nil {
 		return nil
 	}
-	output.CaCerts = make([]public.DomainResponseIpaCert, len(ipa.CaCerts))
+	output.Ipa.CaCerts = make([]public.DomainIpaCert, len(ipa.CaCerts))
 	for i := range ipa.CaCerts {
-		err := p.FillCert(&output.CaCerts[i], &ipa.CaCerts[i])
+		err := p.FillCert(&output.Ipa.CaCerts[i], &ipa.CaCerts[i])
 		if err != nil {
 			return err
 		}
@@ -257,17 +261,24 @@ func (p domainPresenter) registerIpaCaCerts(ipa *model.Ipa, output *public.Domai
 }
 
 // registerIpaServers translate the list of servers
-// for the RegisterIpa operation.
+// for the Register operation.
 // ipa the Ipa instance from the business model.
 // output the DomainResponseIpa schema representation
 // to be filled.
 // Return nil if the information is translated properly
 // else return an error.
-func (p domainPresenter) registerIpaServers(ipa *model.Ipa, output *public.DomainResponseIpa) error {
+func (p domainPresenter) registerIpaServers(domain *model.Domain, output *public.RegisterDomainResponse) error {
+	if domain == nil {
+		return fmt.Errorf("'domain' is nil")
+	}
+	ipa := domain.IpaDomain
+	if ipa == nil {
+		return fmt.Errorf("'IpaDomain' is nil")
+	}
 	if ipa.Servers != nil {
-		output.Servers = make([]public.DomainResponseIpaServer, len(ipa.Servers))
+		output.Ipa.Servers = make([]public.DomainIpaServer, len(ipa.Servers))
 		for i := range ipa.Servers {
-			err := p.FillServer(&output.Servers[i], &ipa.Servers[i])
+			err := p.FillServer(&output.Ipa.Servers[i], &ipa.Servers[i])
 			if err != nil {
 				return err
 			}
@@ -276,37 +287,85 @@ func (p domainPresenter) registerIpaServers(ipa *model.Ipa, output *public.Domai
 	return nil
 }
 
-// RegisterIpa translate model.Ipa instance to DomainResponseIpa
+// Register translate model.Ipa instance to DomainResponseIpa
 // representation for the API response.
-// ipa Not nil reference to the model.Ipa to represent.
+// domain Not nil reference to the model.Ipa to represent.
 // Return a reference to a DomainResponseIpa and nil error for
 // a success translation, else nil and an error with the details.
-func (p domainPresenter) RegisterIpa(ipa *model.Ipa) (output *public.DomainResponseIpa, err error) {
-	if ipa == nil {
+func (p domainPresenter) Register(
+	domain *model.Domain,
+) (output *public.RegisterDomainResponse, err error) {
+	if domain == nil {
 		return nil, fmt.Errorf("'ipa' cannot be nil")
 	}
-	output = &public.DomainResponseIpa{}
-	output.Token = nil
-	output.TokenExpiration = nil
-	if ipa.RealmName != nil {
-		output.RealmName = *ipa.RealmName
+	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
+		return nil, fmt.Errorf("'domain.Type' is invalid")
 	}
-
-	if ipa.RealmDomains != nil {
-		output.RealmDomains = append([]string{}, ipa.RealmDomains...)
+	output = &public.RegisterDomainResponse{}
+	if err = p.registerFillDomainData(domain, output); err != nil {
+		return nil, err
 	}
-
-	err = p.registerIpaCaCerts(ipa, output)
+	switch *domain.Type {
+	case model.DomainTypeIpa:
+		output.Type = model.DomainTypeIpaString
+		err = p.registerIpa(domain, output)
+	default:
+		err = fmt.Errorf("'domain.Type=%d' not supported", *domain.Type)
+	}
 	if err != nil {
 		return nil, err
 	}
-
-	err = p.registerIpaServers(ipa, output)
-	if err != nil {
-		return nil, err
-	}
-
 	return output, nil
+}
+
+func (p domainPresenter) registerFillDomainData(
+	domain *model.Domain,
+	output *public.RegisterDomainResponse,
+) (err error) {
+	if domain == nil {
+		return fmt.Errorf("'domain' is nil")
+	}
+	if output == nil {
+		return fmt.Errorf("'output' is nil")
+	}
+	if domain.AutoEnrollmentEnabled != nil {
+		output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
+	}
+	if domain.DomainName != nil {
+		output.DomainName = *domain.DomainName
+	}
+	if domain.Title != nil {
+		output.Title = *domain.Title
+	}
+	if domain.Description != nil {
+		output.Description = *domain.Description
+	}
+	return nil
+}
+
+func (p domainPresenter) registerIpa(
+	domain *model.Domain,
+	output *public.RegisterDomainResponse,
+) (err error) {
+	if domain.IpaDomain.RealmName != nil {
+		output.Ipa.RealmName = *domain.IpaDomain.RealmName
+	}
+
+	if domain.IpaDomain.RealmDomains != nil {
+		output.Ipa.RealmDomains = append([]string{}, domain.IpaDomain.RealmDomains...)
+	}
+
+	err = p.registerIpaCaCerts(domain, output)
+	if err != nil {
+		return err
+	}
+
+	err = p.registerIpaServers(domain, output)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // func (p todoPresenter) PartialUpdate(in *model.Todo, out *public.Todo) error {
