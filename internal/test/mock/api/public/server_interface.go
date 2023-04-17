@@ -98,12 +98,12 @@ func (_m *ServerInterface) ReadDomain(ctx echo.Context, uuid string, params publ
 	return r0
 }
 
-// RegisterIpaDomain provides a mock function with given fields: ctx, uuid, params
-func (_m *ServerInterface) RegisterIpaDomain(ctx echo.Context, uuid string, params public.RegisterIpaDomainParams) error {
+// RegisterDomain provides a mock function with given fields: ctx, uuid, params
+func (_m *ServerInterface) RegisterDomain(ctx echo.Context, uuid string, params public.RegisterDomainParams) error {
 	ret := _m.Called(ctx, uuid, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, string, public.RegisterIpaDomainParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, string, public.RegisterDomainParams) error); ok {
 		r0 = rf(ctx, uuid, params)
 	} else {
 		r0 = ret.Error(0)

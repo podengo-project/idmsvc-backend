@@ -5,7 +5,7 @@
 @contentType = application/json
 @createdAt = {{$datetime iso8601}}
 @modifiedBy = {{$processEnv USERNAME}}
-@x-rh-identity = eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjExMTExIiwiZW1wbG95ZWVfYWNjb3VudF9udW1iZXIiOiIyMjIyMiIsIm9yZ19pZCI6IjEyMzQ1IiwiaW50ZXJuYWwiOnsib3JnX2lkIjoiMTIzNDUifSwidXNlciI6eyJ1c2VybmFtZSI6Impkb2UiLCJlbWFpbCI6Impkb2VAZXhhbXBsZS5jb20iLCJmaXJzdF9uYW1lIjoiSm9obiIsImxhc3RfbmFtZSI6IkRvZSIsImlzX2FjdGl2ZSI6dHJ1ZSwiaXNfb3JnX2FkbWluIjp0cnVlLCJpc19pbnRlcm5hbCI6dHJ1ZSwibG9jYWxlIjoiZW4iLCJ1c2VyX2lkIjoiMTk4NzM0OCJ9LCJzeXN0ZW0iOnt9LCJhc3NvY2lhdGUiOnsiUm9sZSI6bnVsbCwiZW1haWwiOiIiLCJnaXZlbk5hbWUiOiIiLCJyaGF0VVVJRCI6IiIsInN1cm5hbWUiOiIifSwieDUwOSI6eyJzdWJqZWN0X2RuIjoiIiwiaXNzdWVyX2RuIjoiIn0sInR5cGUiOiJVc2VyIiwiYXV0aF90eXBlIjoiIn19Cg==
+@x-rh-identity-user = eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjExMTExIiwiZW1wbG95ZWVfYWNjb3VudF9udW1iZXIiOiIyMjIyMiIsIm9yZ19pZCI6IjEyMzQ1IiwiaW50ZXJuYWwiOnsib3JnX2lkIjoiMTIzNDUifSwidXNlciI6eyJ1c2VybmFtZSI6Impkb2UiLCJlbWFpbCI6Impkb2VAZXhhbXBsZS5jb20iLCJmaXJzdF9uYW1lIjoiSm9obiIsImxhc3RfbmFtZSI6IkRvZSIsImlzX2FjdGl2ZSI6dHJ1ZSwiaXNfb3JnX2FkbWluIjp0cnVlLCJpc19pbnRlcm5hbCI6dHJ1ZSwibG9jYWxlIjoiZW4iLCJ1c2VyX2lkIjoiMTk4NzM0OCJ9LCJzeXN0ZW0iOnt9LCJhc3NvY2lhdGUiOnsiUm9sZSI6bnVsbCwiZW1haWwiOiIiLCJnaXZlbk5hbWUiOiIiLCJyaGF0VVVJRCI6IiIsInN1cm5hbWUiOiIifSwieDUwOSI6eyJzdWJqZWN0X2RuIjoiIiwiaXNzdWVyX2RuIjoiIn0sInR5cGUiOiJVc2VyIiwiYXV0aF90eXBlIjoiIn19Cg==
 @x-rh-identity-system = ewogICJpZGVudGl0eSI6IHsKICAgICJhY2NvdW50X251bWJlciI6ICIxMTExMSIsCiAgICAiYXV0aF90eXBlIjogImNlcnQtYXV0aCIsCiAgICAiaW50ZXJuYWwiOiB7CiAgICAgICJhdXRoX3RpbWUiOiA5MDAsCiAgICAgICJjcm9zc19hY2Nlc3MiOiBmYWxzZSwKICAgICAgIm9yZ19pZCI6ICIxMjM0NSIKICAgIH0sCiAgICAib3JnX2lkIjogIjEyMzQ1IiwKICAgICJzeXN0ZW0iOiB7CiAgICAgICJjZXJ0X3R5cGUiOiAic3lzdGVtIiwKICAgICAgImNuIjogIjZmMzI0MTE2LWIzZDItMTFlZC04YTM3LTQ4MmFlMzg2M2QzMCIKICAgIH0sCiAgICAidHlwZSI6ICJTeXN0ZW0iCiAgfSwKICAiZW50aXRsZW1lbnRzIjogewogICAgImFuc2libGUiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgImNvc3RfbWFuYWdlbWVudCI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAiaW5zaWdodHMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgImludGVybmFsIjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAibWlncmF0aW9ucyI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAib3BlbnNoaWZ0IjogewogICAgICAiaXNfZW50aXRsZWQiOiB0cnVlLAogICAgICAiaXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJyaGVsIjogewogICAgICAiaXNfZW50aXRsZWQiOiB0cnVlLAogICAgICAiaXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJyaG9hbSI6IHsKICAgICAgImlzX2VudGl0bGVkIjogZmFsc2UsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInJob2RzIjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAicmhvc2FrIjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAic2V0dGluZ3MiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInNtYXJ0X21hbmFnZW1lbnQiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInN1YnNjcmlwdGlvbnMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInVzZXJfcHJlZmVyZW5jZXMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9CiAgfQp9Cg==
 @x-rh-idm-registration-token = OTU0YTBiYWUtYmYyNi0xMWVkLWE1Y2EtNDgyYWUzODYzZDMwCg==
 @basepath = /api/hmsidm/v1
@@ -23,7 +23,7 @@
 # curl -u "$CREDS" "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/create-domain-ipa-payload.json
 
 POST {{schema}}://{{host}}{{basepath}}/domains
-X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: post_domains
 Content-Type: {{contentType}}
 
@@ -68,7 +68,7 @@ Content-Type: {{contentType}}
 # @name createDomain
 
 POST {{schema}}://{{host}}{{basepath}}/domains
-X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: post_domains
 Content-Type: {{contentType}}
 
@@ -94,7 +94,7 @@ Content-Type: {{contentType}}
 # curl -u "$CREDS" "${BASE_URL}/domains"
 
 GET http://{{host}}{{basepath}}/domains?offset=0&limit=10
-X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: get_domains
 Content-Type: {{contentType}}
 
@@ -106,7 +106,7 @@ Content-Type: {{contentType}}
 # curl -u "$CREDS" "${BASE_URL}/domains/${UUID}"
 
 GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
-X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: get_domains_uuid
 Content-Type: {{contentType}}
 
@@ -137,44 +137,52 @@ Content-Type: application/json; charset=urf-8
 
 # @name registerIpaDomain
 
-PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/ipa/register
+PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/register
 X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-IDM-Registration-Token: {{createDomain.response.body.ipa.token}}
-X-Rh-Insights-Request-Id: put_domains_ipa_register
+X-Rh-Insights-Request-Id: put_domains_register
 X-Rh-IDM-Version: {{x-rh-idm-version}}
 Content-Type: {{contentType}}
 
 {
-  "servers": [
-    {
-      "fqdn": "ipaserver.mydomain.example",
-      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
-      "ca_server": true,
-      "hcc_enrollment_server": true,
-      "hcc_update_server": true,
-      "pkinit_server": true
-    }
-  ],
-  "ca_certs": [
-    {
-      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-      "serial_number": "1",
-      "not_valid_before": "2023-01-31T13:23:36Z",
-      "not_valid_after": "2023-01-31T13:23:36Z",
-      "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
-    }
-  ],
-  "realm_domains": [
-    "mydomain.example"
-  ]
+  "domain_name": "mydomain.example",
+  "title": "Human readable title",
+  "description": "My human friendly description",
+  "auto_enrollment_enabled": true,
+  "type": "rhel-idm",
+  "rhel-idm": {
+    "realm_name": "MYDOMAIN.EXAMPLE",
+    "servers": [
+      {
+        "fqdn": "ipaserver.mydomain.example",
+        "subscription_manager_id": "{{subscription_manager_id}}",
+        "ca_server": true,
+        "hcc_enrollment_server": true,
+        "hcc_update_server": true,
+        "pkinit_server": true
+      }
+    ],
+    "ca_certs": [
+      {
+        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "serial_number": "1",
+        "not_valid_before": "2023-01-31T13:23:36Z",
+        "not_valid_after": "2023-01-31T13:23:36Z",
+        "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
+      }
+    ],
+    "realm_domains": [
+      "mydomain.example"
+    ]
+  }
 }
 
 ### Partial Update Todo
 
 # PATCH http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
-# X-Rh-Identity: {{x-rh-identity}}
+# X-Rh-Identity: {{x-rh-identity-user}}
 # Content-Type: {{contentType}}
 
 # {
@@ -184,7 +192,7 @@ Content-Type: {{contentType}}
 ### Update Domain
 
 # PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
-# X-Rh-Identity: {{x-rh-identity}}
+# X-Rh-Identity: {{x-rh-identity-user}}
 # Content-Type: {{contentType}}
 
 # {
@@ -196,20 +204,20 @@ Content-Type: {{contentType}}
 ### Delete Domain
 
 DELETE http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
-X-Rh-Identity: {{x-rh-identity}}
+X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: delete_domains
 Content-Type: {{contentType}}
 
 ### HostConf
 POST http://{{host}}{{basepath}}/host-conf/{{fqdn}}
-X-Rh-Identity: TODO Fill a test certificate value
+X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-Insights-Request-Id: post_host_conf
 Content-Type: {{contentType}}
 
 
 ### CheckHost
 POST http://{{host}}{{basepath}}/check-host/{{subscription_manager_id}}/{{fqdn}}
-X-Rh-Identity: TODO Fill a test certificate value
+X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-Insights-Request-Id: post_check_host
 Content-Type: {{contentType}}
 

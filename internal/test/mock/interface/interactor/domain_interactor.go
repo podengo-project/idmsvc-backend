@@ -3,6 +3,7 @@
 package interactor
 
 import (
+	header "github.com/hmsidm/internal/api/header"
 	identity "github.com/redhatinsights/platform-go-middlewares/identity"
 
 	mock "github.com/stretchr/testify/mock"
@@ -138,34 +139,43 @@ func (_m *DomainInteractor) List(params *public.ListDomainsParams) (string, int,
 	return r0, r1, r2, r3
 }
 
-// RegisterIpa provides a mock function with given fields: xrhid, params, body
-func (_m *DomainInteractor) RegisterIpa(xrhid *identity.XRHID, params *public.RegisterIpaDomainParams, body *public.RegisterDomainIpa) (string, *model.Ipa, error) {
+// Register provides a mock function with given fields: xrhid, params, body
+func (_m *DomainInteractor) Register(xrhid *identity.XRHID, params *public.RegisterDomainParams, body *public.RegisterDomain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	ret := _m.Called(xrhid, params, body)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) string); ok {
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) string); ok {
 		r0 = rf(xrhid, params, body)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *model.Ipa
-	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) *model.Ipa); ok {
+	var r1 *header.XRHIDMVersion
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) *header.XRHIDMVersion); ok {
 		r1 = rf(xrhid, params, body)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.Ipa)
+			r1 = ret.Get(1).(*header.XRHIDMVersion)
 		}
 	}
 
-	var r2 error
-	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.RegisterIpaDomainParams, *public.RegisterDomainIpa) error); ok {
+	var r2 *model.Domain
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) *model.Domain); ok {
 		r2 = rf(xrhid, params, body)
 	} else {
-		r2 = ret.Error(2)
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.Domain)
+		}
 	}
 
-	return r0, r1, r2
+	var r3 error
+	if rf, ok := ret.Get(3).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) error); ok {
+		r3 = rf(xrhid, params, body)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
 }
 
 type mockConstructorTestingTNewDomainInteractor interface {

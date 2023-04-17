@@ -155,12 +155,12 @@ func TestCreate(t *testing.T) {
 						},
 						Servers: &[]api_public.CreateDomainIpaServer{
 							{
-								Fqdn:                "server1.domain.example",
-								CaServer:            true,
-								HccEnrollmentServer: true,
-								HccUpdateServer:     true,
-								PkinitServer:        true,
-								RhsmId:              rhsmId,
+								Fqdn:                  "server1.domain.example",
+								CaServer:              true,
+								HccEnrollmentServer:   true,
+								HccUpdateServer:       true,
+								PkinitServer:          true,
+								SubscriptionManagerId: rhsmId,
 							},
 						},
 						RealmDomains: []string{
@@ -390,12 +390,12 @@ func TestFillServer(t *testing.T) {
 
 	to := model.IpaServer{}
 	err = obj.FillServer(&to, &api_public.CreateDomainIpaServer{
-		Fqdn:                "server1.mydomain.example",
-		RhsmId:              "001a2314-bf37-11ed-a42a-482ae3863d30",
-		PkinitServer:        true,
-		CaServer:            true,
-		HccEnrollmentServer: true,
-		HccUpdateServer:     true,
+		Fqdn:                  "server1.mydomain.example",
+		SubscriptionManagerId: "001a2314-bf37-11ed-a42a-482ae3863d30",
+		PkinitServer:          true,
+		CaServer:              true,
+		HccEnrollmentServer:   true,
+		HccUpdateServer:       true,
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, "server1.mydomain.example", to.FQDN)
@@ -428,12 +428,12 @@ func TestRegisterIpa(t *testing.T) {
 			IPAVersion:    "4.10.0-8.el9_1",
 		}
 		xrhidSystemBase64     = header.EncodeXRHID(&xrhidSystem)
-		paramsNoClientVersion = &api_public.RegisterIpaDomainParams{
+		paramsNoClientVersion = &api_public.RegisterDomainParams{
 			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIDMRegistrationToken: token,
 		}
-		params = &api_public.RegisterIpaDomainParams{
+		params = &api_public.RegisterDomainParams{
 			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIDMRegistrationToken: token,
@@ -444,13 +444,13 @@ func TestRegisterIpa(t *testing.T) {
 	)
 	type TestCaseGiven struct {
 		XRHID  *identity.XRHID
-		Params *api_public.RegisterIpaDomainParams
-		Body   *public.RegisterIpaDomainJSONRequestBody
+		Params *api_public.RegisterDomainParams
+		Body   *public.RegisterDomain
 	}
 	type TestCaseExpected struct {
 		OrgId         string
 		ClientVersion *header.XRHIDMVersion
-		Output        *model.Ipa
+		Output        *model.Domain
 		Error         error
 	}
 	type TestCase struct {
@@ -520,17 +520,23 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomainIpa{
-					RealmDomains: nil,
+				Body: &api_public.RegisterDomain{
+					Type: api_public.RhelIdm,
+					RhelIdm: api_public.RegisterDomainIpa{
+						RealmDomains: nil,
+					},
 				},
 			},
 			Expected: TestCaseExpected{
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
-				Output: &model.Ipa{
-					CaCerts:      []model.IpaCert{},
-					Servers:      []model.IpaServer{},
-					RealmDomains: pq.StringArray{},
+				Output: &model.Domain{
+					Type: pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						CaCerts:      []model.IpaCert{},
+						Servers:      []model.IpaServer{},
+						RealmDomains: pq.StringArray{},
+					},
 				},
 				Error: nil,
 			},
@@ -540,17 +546,23 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomainIpa{
-					RealmDomains: []string{"server.domain.example"},
+				Body: &api_public.RegisterDomain{
+					Type: api_public.RhelIdm,
+					RhelIdm: api_public.RegisterDomainIpa{
+						RealmDomains: []string{"server.domain.example"},
+					},
 				},
 			},
 			Expected: TestCaseExpected{
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
-				Output: &model.Ipa{
-					CaCerts:      []model.IpaCert{},
-					Servers:      []model.IpaServer{},
-					RealmDomains: pq.StringArray{"server.domain.example"},
+				Output: &model.Domain{
+					Type: pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						CaCerts:      []model.IpaCert{},
+						Servers:      []model.IpaServer{},
+						RealmDomains: pq.StringArray{"server.domain.example"},
+					},
 				},
 				Error: nil,
 			},
@@ -560,16 +572,19 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomainIpa{
-					CaCerts: []api_public.CreateDomainIpaCert{
-						{
-							Nickname:       pointy.String("MYDOMAIN.EXAMPLE IPA CA"),
-							SerialNumber:   pointy.String("1"),
-							Issuer:         pointy.String("CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"),
-							Subject:        pointy.String("CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"),
-							NotValidBefore: &notValidBefore,
-							NotValidAfter:  &notValidAfter,
-							Pem:            pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"),
+				Body: &api_public.RegisterDomain{
+					Type: api_public.RhelIdm,
+					RhelIdm: api_public.RegisterDomainIpa{
+						CaCerts: []api_public.CreateDomainIpaCert{
+							{
+								Nickname:       pointy.String("MYDOMAIN.EXAMPLE IPA CA"),
+								SerialNumber:   pointy.String("1"),
+								Issuer:         pointy.String("CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"),
+								Subject:        pointy.String("CN=Certificate Authority,O=MYDOMAIN.EXAMPLE"),
+								NotValidBefore: &notValidBefore,
+								NotValidAfter:  &notValidAfter,
+								Pem:            pointy.String("-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"),
+							},
 						},
 					},
 				},
@@ -577,20 +592,23 @@ func TestRegisterIpa(t *testing.T) {
 			Expected: TestCaseExpected{
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
-				Output: &model.Ipa{
-					CaCerts: []model.IpaCert{
-						{
-							Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
-							SerialNumber:   "1",
-							Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-							Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-							NotValidBefore: notValidBefore,
-							NotValidAfter:  notValidAfter,
-							Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				Output: &model.Domain{
+					Type: pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						CaCerts: []model.IpaCert{
+							{
+								Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
+								SerialNumber:   "1",
+								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								NotValidBefore: notValidBefore,
+								NotValidAfter:  notValidAfter,
+								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+							},
 						},
+						Servers:      []model.IpaServer{},
+						RealmDomains: pq.StringArray{},
 					},
-					Servers:      []model.IpaServer{},
-					RealmDomains: pq.StringArray{},
 				},
 				Error: nil,
 			},
@@ -600,15 +618,18 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomainIpa{
-					Servers: &[]api_public.CreateDomainIpaServer{
-						{
-							Fqdn:                "server.mydomain.example",
-							RhsmId:              rhsmId,
-							CaServer:            true,
-							PkinitServer:        true,
-							HccEnrollmentServer: true,
-							HccUpdateServer:     true,
+				Body: &api_public.RegisterDomain{
+					Type: api_public.RhelIdm,
+					RhelIdm: api_public.RegisterDomainIpa{
+						Servers: []api_public.CreateDomainIpaServer{
+							{
+								Fqdn:                  "server.mydomain.example",
+								SubscriptionManagerId: rhsmId,
+								CaServer:              true,
+								PkinitServer:          true,
+								HccEnrollmentServer:   true,
+								HccUpdateServer:       true,
+							},
 						},
 					},
 				},
@@ -616,19 +637,22 @@ func TestRegisterIpa(t *testing.T) {
 			Expected: TestCaseExpected{
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
-				Output: &model.Ipa{
-					CaCerts: []model.IpaCert{},
-					Servers: []model.IpaServer{
-						{
-							FQDN:                "server.mydomain.example",
-							RHSMId:              rhsmId,
-							CaServer:            true,
-							HCCEnrollmentServer: true,
-							HCCUpdateServer:     true,
-							PKInitServer:        true,
+				Output: &model.Domain{
+					Type: pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						CaCerts: []model.IpaCert{},
+						Servers: []model.IpaServer{
+							{
+								FQDN:                "server.mydomain.example",
+								RHSMId:              rhsmId,
+								CaServer:            true,
+								HCCEnrollmentServer: true,
+								HCCUpdateServer:     true,
+								PKInitServer:        true,
+							},
 						},
+						RealmDomains: pq.StringArray{},
 					},
-					RealmDomains: pq.StringArray{},
 				},
 				Error: nil,
 			},
@@ -637,7 +661,7 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		i := NewDomainInteractor()
-		orgId, clientVersion, output, err := i.RegisterIpa(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
+		orgId, clientVersion, output, err := i.Register(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Error != nil {
 			assert.EqualError(t, err, testCase.Expected.Error.Error())
 			assert.Equal(t, testCase.Expected.OrgId, orgId)

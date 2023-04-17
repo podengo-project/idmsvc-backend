@@ -83,21 +83,21 @@ func (_m *DomainPresenter) List(prefix string, offset int64, count int32, data [
 	return r0, r1
 }
 
-// RegisterIpa provides a mock function with given fields: domain
-func (_m *DomainPresenter) RegisterIpa(domain *model.Ipa) (*public.DomainResponseIpa, error) {
+// Register provides a mock function with given fields: domain
+func (_m *DomainPresenter) Register(domain *model.Domain) (*public.DomainResponse, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.DomainResponseIpa
-	if rf, ok := ret.Get(0).(func(*model.Ipa) *public.DomainResponseIpa); ok {
+	var r0 *public.DomainResponse
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.DomainResponse); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.DomainResponseIpa)
+			r0 = ret.Get(0).(*public.DomainResponse)
 		}
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(*model.Ipa) error); ok {
+	if rf, ok := ret.Get(1).(func(*model.Domain) error); ok {
 		r1 = rf(domain)
 	} else {
 		r1 = ret.Error(1)

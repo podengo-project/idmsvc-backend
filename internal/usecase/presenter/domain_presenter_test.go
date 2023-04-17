@@ -78,11 +78,11 @@ func TestGet(t *testing.T) {
 					AutoEnrollmentEnabled: true,
 					DomainUuid:            testUuid.String(),
 					DomainName:            "domain.example",
-					DomainType:            public.DomainResponseDomainType(model.DomainTypeString(model.DomainTypeIpa)),
+					Type:                  public.DomainResponseType(model.DomainTypeString(model.DomainTypeIpa)),
 					Ipa: public.DomainResponseIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
-						CaCerts:      []public.DomainResponseIpaCert{},
-						Servers:      []public.DomainResponseIpaServer{},
+						CaCerts:      []public.DomainIpaCert{},
+						Servers:      []public.DomainIpaServer{},
 						RealmDomains: []string{"domain.example"},
 					},
 				},
@@ -106,8 +106,8 @@ func TestGet(t *testing.T) {
 				testCase.Expected.Output.DomainName,
 				output.DomainName)
 			assert.Equal(t,
-				testCase.Expected.Output.DomainType,
-				output.DomainType)
+				testCase.Expected.Output.Type,
+				output.Type)
 			assert.Equal(t,
 				testCase.Expected.Output.AutoEnrollmentEnabled,
 				output.AutoEnrollmentEnabled)
@@ -270,12 +270,12 @@ func TestCreate(t *testing.T) {
 				Response: &public.DomainResponse{
 					DomainName:            "domain.example",
 					AutoEnrollmentEnabled: true,
-					DomainType:            model.DomainTypeIpaString,
+					Type:                  model.DomainTypeIpaString,
 					DomainUuid:            "00000000-0000-0000-0000-000000000000",
 					Ipa: public.DomainResponseIpa{
 						RealmName: "DOMAIN.EXAMPLE",
-						CaCerts:   []public.DomainResponseIpaCert{},
-						Servers:   []public.DomainResponseIpaServer{},
+						CaCerts:   []public.DomainIpaCert{},
+						Servers:   []public.DomainIpaServer{},
 					},
 				},
 				Err: nil,
@@ -293,7 +293,7 @@ func TestCreate(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, testCase.Expected.Response.DomainName, response.DomainName)
 			assert.Equal(t, testCase.Expected.Response.AutoEnrollmentEnabled, response.AutoEnrollmentEnabled)
-			assert.Equal(t, testCase.Expected.Response.DomainType, response.DomainType)
+			assert.Equal(t, testCase.Expected.Response.Type, response.Type)
 			assert.Equal(t, testCase.Expected.Response.DomainUuid, response.DomainUuid)
 			assert.Equal(t, testCase.Expected.Response.Ipa.CaCerts, response.Ipa.CaCerts)
 			assert.Equal(t, testCase.Expected.Response.Ipa.Servers, response.Ipa.Servers)
@@ -307,12 +307,12 @@ func TestFillCert(t *testing.T) {
 	notValidBefore := time.Now()
 	notValidAfter := notValidBefore.Add(time.Hour * 24)
 	type TestCaseGiven struct {
-		To   *public.DomainResponseIpaCert
+		To   *public.DomainIpaCert
 		From *model.IpaCert
 	}
 	type TestCaseExpected struct {
 		Err error
-		To  public.DomainResponseIpaCert
+		To  public.DomainIpaCert
 	}
 	type TestCase struct {
 		Name     string
@@ -325,23 +325,23 @@ func TestFillCert(t *testing.T) {
 			Given: TestCaseGiven{},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("'to' cannot be nil"),
-				To:  public.DomainResponseIpaCert{},
+				To:  public.DomainIpaCert{},
 			},
 		},
 		{
 			Name: "'from' is nil",
 			Given: TestCaseGiven{
-				To: &public.DomainResponseIpaCert{},
+				To: &public.DomainIpaCert{},
 			},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("'from' cannot be nil"),
-				To:  public.DomainResponseIpaCert{},
+				To:  public.DomainIpaCert{},
 			},
 		},
 		{
 			Name: "Success copy",
 			Given: TestCaseGiven{
-				To: &public.DomainResponseIpaCert{},
+				To: &public.DomainIpaCert{},
 				From: &model.IpaCert{
 					Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
 					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
@@ -354,7 +354,7 @@ func TestFillCert(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
-				To: public.DomainResponseIpaCert{
+				To: public.DomainIpaCert{
 					Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
 					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
 					NotValidBefore: notValidBefore,
@@ -383,12 +383,12 @@ func TestFillCert(t *testing.T) {
 
 func TestFillServer(t *testing.T) {
 	type TestCaseGiven struct {
-		To   *public.DomainResponseIpaServer
+		To   *public.DomainIpaServer
 		From *model.IpaServer
 	}
 	type TestCaseExpected struct {
 		Err error
-		To  public.DomainResponseIpaServer
+		To  public.DomainIpaServer
 	}
 	type TestCase struct {
 		Name     string
@@ -401,23 +401,23 @@ func TestFillServer(t *testing.T) {
 			Given: TestCaseGiven{},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("'to' cannot be nil"),
-				To:  public.DomainResponseIpaServer{},
+				To:  public.DomainIpaServer{},
 			},
 		},
 		{
 			Name: "'from' is nil",
 			Given: TestCaseGiven{
-				To: &public.DomainResponseIpaServer{},
+				To: &public.DomainIpaServer{},
 			},
 			Expected: TestCaseExpected{
 				Err: fmt.Errorf("'from' cannot be nil"),
-				To:  public.DomainResponseIpaServer{},
+				To:  public.DomainIpaServer{},
 			},
 		},
 		{
 			Name: "Success copy",
 			Given: TestCaseGiven{
-				To: &public.DomainResponseIpaServer{},
+				To: &public.DomainIpaServer{},
 				From: &model.IpaServer{
 					FQDN:                "server1.mydomain.example",
 					RHSMId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
@@ -429,13 +429,13 @@ func TestFillServer(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
-				To: public.DomainResponseIpaServer{
-					Fqdn:                "server1.mydomain.example",
-					RhsmId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
-					CaServer:            true,
-					HccEnrollmentServer: true,
-					HccUpdateServer:     true,
-					PkinitServer:        true,
+				To: public.DomainIpaServer{
+					Fqdn:                  "server1.mydomain.example",
+					SubscriptionManagerId: "547ce70c-9eb5-4783-a619-086aa26f88e5",
+					CaServer:              true,
+					HccEnrollmentServer:   true,
+					HccUpdateServer:       true,
+					PkinitServer:          true,
 				},
 			},
 		},
@@ -462,21 +462,25 @@ func TestRegisterIpaCaCerts(t *testing.T) {
 	p := &domainPresenter{}
 	notValidBefore := time.Now()
 	notValidAfter := notValidBefore.Add(time.Hour * 24)
-	ipa := model.Ipa{
-		CaCerts: []model.IpaCert{
-			{
-				Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
-				Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-				NotValidBefore: notValidBefore.UTC(),
-				NotValidAfter:  notValidAfter.UTC(),
-				SerialNumber:   "1",
-				Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-				Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+	ipa := model.Domain{
+		IpaDomain: &model.Ipa{
+			CaCerts: []model.IpaCert{
+				{
+					Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
+					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+					NotValidBefore: notValidBefore.UTC(),
+					NotValidAfter:  notValidAfter.UTC(),
+					SerialNumber:   "1",
+					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
 			},
 		},
 	}
-	ipaNilCerts := model.Ipa{}
-	output := public.DomainResponseIpa{}
+	ipaNilCerts := model.Domain{
+		IpaDomain: &model.Ipa{},
+	}
+	output := public.DomainResponse{}
 
 	err = p.registerIpaCaCerts(nil, &output)
 	assert.NoError(t, err)
@@ -489,25 +493,25 @@ func TestRegisterIpaCaCerts(t *testing.T) {
 
 	err = p.registerIpaCaCerts(&ipa, &output)
 	assert.NoError(t, err)
-	assert.Equal(t, ipa.CaCerts[0].Nickname, output.CaCerts[0].Nickname)
-	assert.Equal(t, ipa.CaCerts[0].Issuer, output.CaCerts[0].Issuer)
-	assert.Equal(t, ipa.CaCerts[0].NotValidAfter, output.CaCerts[0].NotValidAfter)
-	assert.Equal(t, ipa.CaCerts[0].NotValidBefore, output.CaCerts[0].NotValidBefore)
-	assert.Equal(t, ipa.CaCerts[0].SerialNumber, output.CaCerts[0].SerialNumber)
-	assert.Equal(t, ipa.CaCerts[0].Subject, output.CaCerts[0].Subject)
-	assert.Equal(t, ipa.CaCerts[0].Pem, output.CaCerts[0].Pem)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Nickname, output.Ipa.CaCerts[0].Nickname)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Issuer, output.Ipa.CaCerts[0].Issuer)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidAfter, output.Ipa.CaCerts[0].NotValidAfter)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidBefore, output.Ipa.CaCerts[0].NotValidBefore)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].SerialNumber, output.Ipa.CaCerts[0].SerialNumber)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Subject, output.Ipa.CaCerts[0].Subject)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Pem, output.Ipa.CaCerts[0].Pem)
 }
 
 func TestRegisterIpa(t *testing.T) {
 	tokenExpiration := &time.Time{}
 	*tokenExpiration = time.Now()
 	type TestCaseExpected struct {
-		Ipa *public.DomainResponseIpa
-		Err error
+		Domain *public.DomainResponse
+		Err    error
 	}
 	type TestCase struct {
 		Name     string
-		Given    *model.Ipa
+		Given    *model.Domain
 		Expected TestCaseExpected
 	}
 	testCases := []TestCase{
@@ -515,44 +519,22 @@ func TestRegisterIpa(t *testing.T) {
 			Name:  "ipa is nil",
 			Given: nil,
 			Expected: TestCaseExpected{
-				Ipa: nil,
+				Domain: &public.DomainResponse{
+					Ipa: public.DomainResponseIpa{},
+				},
 				Err: fmt.Errorf("'ipa' cannot be nil"),
 			},
 		},
 		{
 			Name: "Success case",
-			Given: &model.Ipa{
-				RealmName:       pointy.String("mydomain.example"),
-				Token:           pointy.String("71ad4978-c768-11ed-ad69-482ae3863d30"),
-				TokenExpiration: tokenExpiration,
-				RealmDomains:    pq.StringArray{"server.mydomain.example"},
-				CaCerts: []model.IpaCert{
-					{
-						Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
-						Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-						Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-						SerialNumber: "1",
-						Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-					},
-				},
-				Servers: []model.IpaServer{
-					{
-						FQDN:                "server.mydomain.example",
-						RHSMId:              "c4a80438-c768-11ed-a60e-482ae3863d30",
-						PKInitServer:        true,
-						CaServer:            true,
-						HCCEnrollmentServer: true,
-						HCCUpdateServer:     true,
-					},
-				},
-			},
-			Expected: TestCaseExpected{
-				Ipa: &public.DomainResponseIpa{
-					RealmName:       "mydomain.example",
-					Token:           nil,
-					TokenExpiration: nil,
+			Given: &model.Domain{
+				Type: pointy.Uint(model.DomainTypeIpa),
+				IpaDomain: &model.Ipa{
+					RealmName:       pointy.String("mydomain.example"),
+					Token:           pointy.String("71ad4978-c768-11ed-ad69-482ae3863d30"),
+					TokenExpiration: tokenExpiration,
 					RealmDomains:    pq.StringArray{"server.mydomain.example"},
-					CaCerts: []public.DomainResponseIpaCert{
+					CaCerts: []model.IpaCert{
 						{
 							Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
 							Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
@@ -561,14 +543,43 @@ func TestRegisterIpa(t *testing.T) {
 							Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 						},
 					},
-					Servers: []public.DomainResponseIpaServer{
+					Servers: []model.IpaServer{
 						{
-							Fqdn:                "server.mydomain.example",
-							RhsmId:              "c4a80438-c768-11ed-a60e-482ae3863d30",
-							PkinitServer:        true,
+							FQDN:                "server.mydomain.example",
+							RHSMId:              "c4a80438-c768-11ed-a60e-482ae3863d30",
+							PKInitServer:        true,
 							CaServer:            true,
-							HccEnrollmentServer: true,
-							HccUpdateServer:     true,
+							HCCEnrollmentServer: true,
+							HCCUpdateServer:     true,
+						},
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				Domain: &public.DomainResponse{
+					Ipa: public.DomainResponseIpa{
+						RealmName:       "mydomain.example",
+						Token:           nil,
+						TokenExpiration: nil,
+						RealmDomains:    pq.StringArray{"server.mydomain.example"},
+						CaCerts: []public.DomainIpaCert{
+							{
+								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
+								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								SerialNumber: "1",
+								Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+							},
+						},
+						Servers: []public.DomainIpaServer{
+							{
+								Fqdn:                  "server.mydomain.example",
+								SubscriptionManagerId: "c4a80438-c768-11ed-a60e-482ae3863d30",
+								PkinitServer:          true,
+								CaServer:              true,
+								HccEnrollmentServer:   true,
+								HccUpdateServer:       true,
+							},
 						},
 					},
 				},
@@ -579,25 +590,25 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		p := NewDomainPresenter()
-		ipa, err := p.RegisterIpa(testCase.Given)
+		ipa, err := p.Register(testCase.Given)
 		if testCase.Expected.Err != nil {
 			assert.EqualError(t, err, testCase.Expected.Err.Error())
 			assert.Nil(t, ipa)
 		} else {
 			assert.NoError(t, err)
 			require.NotNil(t, ipa)
-			assert.Equal(t, testCase.Expected.Ipa.RealmName, ipa.RealmName)
-			require.Equal(t, len(testCase.Expected.Ipa.RealmDomains), len(ipa.RealmDomains))
-			for i := range ipa.RealmDomains {
-				assert.Equal(t, testCase.Expected.Ipa.RealmDomains[i], ipa.RealmDomains[i])
+			assert.Equal(t, testCase.Expected.Domain.Ipa.RealmName, ipa.Ipa.RealmName)
+			require.Equal(t, len(testCase.Expected.Domain.Ipa.RealmDomains), len(ipa.Ipa.RealmDomains))
+			for i := range ipa.Ipa.RealmDomains {
+				assert.Equal(t, testCase.Expected.Domain.Ipa.RealmDomains[i], ipa.Ipa.RealmDomains[i])
 			}
-			require.Equal(t, len(testCase.Expected.Ipa.CaCerts), len(ipa.CaCerts))
-			for i := range ipa.CaCerts {
-				assert.Equal(t, testCase.Expected.Ipa.CaCerts[i], ipa.CaCerts[i])
+			require.Equal(t, len(testCase.Expected.Domain.Ipa.CaCerts), len(ipa.Ipa.CaCerts))
+			for i := range ipa.Ipa.CaCerts {
+				assert.Equal(t, testCase.Expected.Domain.Ipa.CaCerts[i], ipa.Ipa.CaCerts[i])
 			}
-			require.Equal(t, len(testCase.Expected.Ipa.Servers), len(ipa.Servers))
-			for i := range ipa.Servers {
-				assert.Equal(t, testCase.Expected.Ipa.Servers[i], ipa.Servers[i])
+			require.Equal(t, len(testCase.Expected.Domain.Ipa.Servers), len(ipa.Ipa.Servers))
+			for i := range ipa.Ipa.Servers {
+				assert.Equal(t, testCase.Expected.Domain.Ipa.Servers[i], ipa.Ipa.Servers[i])
 			}
 		}
 	}
