@@ -188,3 +188,42 @@ func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (e
 	}
 	return nil
 }
+
+func (r *domainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid string) (err error) {
+	if db == nil {
+		return fmt.Errorf("'db' is nil")
+	}
+	if orgId == "" {
+		return fmt.Errorf("'orgId' is empty")
+	}
+	if uuid == "" {
+		return fmt.Errorf("'uuid' is empty")
+	}
+	var dataDomain model.Domain
+	if dataDomain, err = r.FindById(db, orgId, uuid); err != nil {
+		return err
+	}
+	if dataDomain.OrgId != orgId {
+		return fmt.Errorf("'OrgId' mistmatch")
+	}
+	switch *dataDomain.Type {
+	case model.DomainTypeIpa:
+		if err = db.Table("ipas").
+			Where("id = ?", dataDomain.IpaDomain.Model.ID).
+			Update("token", nil).
+			Error; err != nil {
+			return err
+		}
+		if err = db.Table("ipas").
+			Where("id = ?", dataDomain.IpaDomain.Model.ID).
+			Update("token_expiration", nil).
+			Error; err != nil {
+			return err
+		}
+
+	default:
+		return fmt.Errorf("'Type=%d' invalid", *dataDomain.Type)
+	}
+
+	return nil
+}

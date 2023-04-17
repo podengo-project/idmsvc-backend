@@ -344,6 +344,10 @@ func (a *application) RegisterDomain(
 		return err
 	}
 
+	if err = a.domain.repository.RhelIdmClearToken(tx, orgId, uuid); err != nil {
+		return err
+	}
+
 	if err = tx.Commit().Error; err != nil {
 		return tx.Error
 	}
