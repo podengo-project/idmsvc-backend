@@ -253,13 +253,13 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.RegisterDomain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var err error
 	if xrhid == nil {
-		return "", nil, nil, fmt.Errorf("'xrhid' cannot be nil")
+		return "", nil, nil, fmt.Errorf("'xrhid' is nil")
 	}
 	if params == nil {
-		return "", nil, nil, fmt.Errorf("'params' cannot be nil")
+		return "", nil, nil, fmt.Errorf("'params' is nil")
 	}
 	if body == nil {
-		return "", nil, nil, fmt.Errorf("'body' cannot be nil")
+		return "", nil, nil, fmt.Errorf("'body' is nil")
 	}
 	orgId := xrhid.Identity.Internal.OrgID
 
