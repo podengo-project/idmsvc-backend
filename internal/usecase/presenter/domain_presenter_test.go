@@ -50,7 +50,7 @@ func TestGet(t *testing.T) {
 				Input: nil,
 			},
 			Expected: TestCaseExpected{
-				Err:    fmt.Errorf("'domain' cannot be nil"),
+				Err:    fmt.Errorf("'domain' is nil"),
 				Output: nil,
 			},
 		},
@@ -480,16 +480,22 @@ func TestRegisterIpaCaCerts(t *testing.T) {
 	ipaNilCerts := model.Domain{
 		IpaDomain: &model.Ipa{},
 	}
+	ipaNil := model.Domain{
+		IpaDomain: nil,
+	}
 	output := public.DomainResponse{}
 
 	err = p.registerIpaCaCerts(nil, &output)
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "'domain' is nil")
 
-	err = p.registerIpaCaCerts(&ipa, nil)
-	assert.NoError(t, err)
+	err = p.registerIpaCaCerts(&ipaNil, nil)
+	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
 
 	err = p.registerIpaCaCerts(&ipaNilCerts, nil)
-	assert.NoError(t, err)
+	assert.EqualError(t, err, "'ipa.CaCerts' is nil")
+
+	err = p.registerIpaCaCerts(&ipa, nil)
+	assert.EqualError(t, err, "'output' is nil")
 
 	err = p.registerIpaCaCerts(&ipa, &output)
 	assert.NoError(t, err)
@@ -500,6 +506,50 @@ func TestRegisterIpaCaCerts(t *testing.T) {
 	assert.Equal(t, ipa.IpaDomain.CaCerts[0].SerialNumber, output.Ipa.CaCerts[0].SerialNumber)
 	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Subject, output.Ipa.CaCerts[0].Subject)
 	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Pem, output.Ipa.CaCerts[0].Pem)
+}
+
+func TestRegisterIpaServers(t *testing.T) {
+	var (
+		err error
+	)
+	err = domainPresenter{}.registerIpaServers(nil, nil)
+	assert.EqualError(t, err, "'domain' is nil")
+
+	domain := &model.Domain{}
+	err = domainPresenter{}.registerIpaServers(domain, nil)
+	assert.EqualError(t, err, "'IpaDomain' is nil")
+
+	domain.IpaDomain = &model.Ipa{}
+	err = domainPresenter{}.registerIpaServers(domain, nil)
+	assert.EqualError(t, err, "'output' is nil")
+
+	output := public.RegisterDomainResponse{}
+	err = domainPresenter{}.registerIpaServers(domain, &output)
+	assert.NoError(t, err)
+
+	domain.IpaDomain.Servers = append(domain.IpaDomain.Servers, model.IpaServer{})
+	err = domainPresenter{}.registerIpaServers(domain, &output)
+	assert.NoError(t, err)
+}
+
+func TestGuardsRegisterIpa(t *testing.T) {
+	var (
+		err error
+	)
+	err = domainPresenter{}.registerIpa(nil, nil)
+	assert.EqualError(t, err, "'domain' is nil")
+
+	domain := &model.Domain{}
+	err = domainPresenter{}.registerIpa(domain, nil)
+	assert.EqualError(t, err, "'domain.Type' is invalid")
+
+	domain.Type = pointy.Uint(model.DomainTypeIpa)
+	err = domainPresenter{}.registerIpa(domain, nil)
+	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
+
+	domain.IpaDomain = &model.Ipa{}
+	err = domainPresenter{}.registerIpa(domain, nil)
+	assert.EqualError(t, err, "'output' is nil")
 }
 
 func TestRegisterIpa(t *testing.T) {
@@ -516,13 +566,13 @@ func TestRegisterIpa(t *testing.T) {
 	}
 	testCases := []TestCase{
 		{
-			Name:  "ipa is nil",
+			Name:  "domain is nil",
 			Given: nil,
 			Expected: TestCaseExpected{
 				Domain: &public.DomainResponse{
 					Ipa: public.DomainResponseIpa{},
 				},
-				Err: fmt.Errorf("'ipa' cannot be nil"),
+				Err: fmt.Errorf("'domain' is nil"),
 			},
 		},
 		{
@@ -612,4 +662,51 @@ func TestRegisterIpa(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestRegister(t *testing.T) {
+	var (
+		err    error
+		output *public.RegisterDomainResponse
+	)
+	p := NewDomainPresenter()
+
+	output, err = p.Register(nil)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain' is nil")
+
+	domain := &model.Domain{}
+	output, err = p.Register(domain)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain.Type' is invalid")
+
+	domain.Type = pointy.Uint(model.DomainTypeIpa)
+	output, err = p.Register(domain)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
+}
+
+func TestRegisterFillDomainData(t *testing.T) {
+	var (
+		err error
+	)
+	p := domainPresenter{}
+	err = p.registerFillDomainData(nil, nil)
+	assert.EqualError(t, err, "'domain' is nil")
+
+	domain := &model.Domain{}
+	err = p.registerFillDomainData(domain, nil)
+	assert.EqualError(t, err, "'output' is nil")
+
+	output := public.RegisterDomainResponse{}
+	domain.AutoEnrollmentEnabled = pointy.Bool(true)
+	domain.DomainName = pointy.String("mydomain.example")
+	domain.Title = pointy.String("My Domain Example")
+	domain.Description = pointy.String("My Domain Example Description")
+	err = p.registerFillDomainData(domain, &output)
+	assert.NoError(t, err)
+	assert.Equal(t, true, output.AutoEnrollmentEnabled)
+	assert.Equal(t, "mydomain.example", output.DomainName)
+	assert.Equal(t, "My Domain Example", output.Title)
+	assert.Equal(t, "My Domain Example Description", output.Description)
 }

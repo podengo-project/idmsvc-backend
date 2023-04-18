@@ -74,9 +74,17 @@ vendor: ## Generate vendor/ directory populated with the dependencies
 # generated.
 # Exclude /vendor in case it exists
 # Exclude /internal/interface directories because only contain interfaces
+TEST_GREP_FILTER := -v \
+  -e /vendor/ \
+  -e /internal/test/mock \
+  -e /internal/interface/ \
+  -e /internal/api/metrics \
+  -e /internal/api/private \
+  -e /internal/api/public
+
 .PHONY: test
 test: ## Run tests
-	go test -coverprofile="coverage.out" -covermode count $(MOD_VENDOR) $(shell go list ./... | grep -v -e /vendor/ -e /internal/test/mock -e /internal/interface/ -e /internal/api/ )
+	go test -coverprofile="coverage.out" -covermode count $(MOD_VENDOR) $(shell go list ./... | grep $(TEST_GREP_FILTER) )
 
 .PHONY: test-ci
 test-ci: ## Run tests for ci

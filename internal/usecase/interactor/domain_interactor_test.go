@@ -470,7 +470,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'xrhid' cannot be nil"),
+				Error:         fmt.Errorf("'xrhid' is nil"),
 			},
 		},
 		{
@@ -484,7 +484,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'params' cannot be nil"),
+				Error:         fmt.Errorf("'params' is nil"),
 			},
 		},
 		{
@@ -498,7 +498,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'body' cannot be nil"),
+				Error:         fmt.Errorf("'body' is nil"),
 			},
 		},
 		{
@@ -506,13 +506,32 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: paramsNoClientVersion,
-				Body:   nil,
+				Body:   &api_public.RegisterDomain{},
 			},
 			Expected: TestCaseExpected{
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'body' cannot be nil"),
+				Error:         fmt.Errorf("'X-Rh-Idm-Version' is invalid"),
+			},
+		},
+		{
+			Name: "Type is invalid",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidSystem,
+				Params: params,
+				Body: &api_public.RegisterDomain{
+					Type: "somethingwrong",
+					RhelIdm: api_public.RegisterDomainIpa{
+						RealmDomains: nil,
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId:         "",
+				ClientVersion: nil,
+				Output:        nil,
+				Error:         fmt.Errorf("Type='somethingwrong' is invalid"),
 			},
 		},
 		{

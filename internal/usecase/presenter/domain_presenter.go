@@ -166,7 +166,7 @@ func (p domainPresenter) List(prefix string, offset int64, count int32, data []m
 // TODO Document the method
 func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, error) {
 	if domain == nil {
-		return nil, fmt.Errorf("'domain' cannot be nil")
+		return nil, fmt.Errorf("'domain' is nil")
 	}
 	output := &public.ReadDomainResponse{}
 	// TODO Maybe some nil values should be considered as a no valid response?
@@ -174,27 +174,27 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	output.DomainUuid = domain.DomainUuid.String()
 
 	if domain.AutoEnrollmentEnabled == nil {
-		return nil, fmt.Errorf("AutoenrollmentEnabled cannot be nil")
+		return nil, fmt.Errorf("'AutoenrollmentEnabled' is nil")
 	}
 	output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
 
 	if domain.DomainName == nil {
-		return nil, fmt.Errorf("DomainName cannot be nil")
+		return nil, fmt.Errorf("'DomainName' is nil")
 	}
 	output.DomainName = *domain.DomainName
 
 	if domain.Type == nil {
-		return nil, fmt.Errorf("DomainType cannot be nil")
+		return nil, fmt.Errorf("'DomainType' is nil")
 	}
 	output.Type = public.DomainResponseType(model.DomainTypeString(*domain.Type))
 
 	switch *domain.Type {
 	case model.DomainTypeIpa:
 		if domain.IpaDomain == nil {
-			return nil, fmt.Errorf("IpaDomain cannot be nil")
+			return nil, fmt.Errorf("'IpaDomain' is nil")
 		}
 		if domain.IpaDomain.CaCerts == nil {
-			return nil, fmt.Errorf("CaCerts cannot be nil")
+			return nil, fmt.Errorf("'CaCerts' is nil")
 		}
 		output.Ipa.CaCerts = make([]public.DomainIpaCert, len(domain.IpaDomain.CaCerts))
 		for i, cert := range domain.IpaDomain.CaCerts {
@@ -204,12 +204,12 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 		}
 
 		if domain.IpaDomain.RealmName == nil {
-			return nil, fmt.Errorf("RealmName cannot be nil")
+			return nil, fmt.Errorf("'RealmName' is nil")
 		}
 		output.Ipa.RealmName = *domain.IpaDomain.RealmName
 
 		if domain.IpaDomain.Servers == nil {
-			return nil, fmt.Errorf("Servers cannot be nil")
+			return nil, fmt.Errorf("'Servers' is nil")
 		}
 		output.Ipa.Servers = make([]public.DomainIpaServer, len(domain.IpaDomain.Servers))
 		for i, server := range domain.IpaDomain.Servers {
@@ -238,17 +238,17 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 // else return an error.
 func (p domainPresenter) registerIpaCaCerts(domain *model.Domain, output *public.RegisterDomainResponse) error {
 	if domain == nil {
-		return nil
+		return fmt.Errorf("'domain' is nil")
 	}
 	if domain.IpaDomain == nil {
-		return nil
+		return fmt.Errorf("'domain.IpaDomain' is nil")
 	}
 	ipa := domain.IpaDomain
 	if ipa.CaCerts == nil {
-		return nil
+		return fmt.Errorf("'ipa.CaCerts' is nil")
 	}
 	if output == nil {
-		return nil
+		return fmt.Errorf("'output' is nil")
 	}
 	output.Ipa.CaCerts = make([]public.DomainIpaCert, len(ipa.CaCerts))
 	for i := range ipa.CaCerts {
@@ -275,6 +275,9 @@ func (p domainPresenter) registerIpaServers(domain *model.Domain, output *public
 	if ipa == nil {
 		return fmt.Errorf("'IpaDomain' is nil")
 	}
+	if output == nil {
+		return fmt.Errorf("'output' is nil")
+	}
 	if ipa.Servers != nil {
 		output.Ipa.Servers = make([]public.DomainIpaServer, len(ipa.Servers))
 		for i := range ipa.Servers {
@@ -296,7 +299,7 @@ func (p domainPresenter) Register(
 	domain *model.Domain,
 ) (output *public.RegisterDomainResponse, err error) {
 	if domain == nil {
-		return nil, fmt.Errorf("'ipa' cannot be nil")
+		return nil, fmt.Errorf("'domain' is nil")
 	}
 	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
 		return nil, fmt.Errorf("'domain.Type' is invalid")
@@ -310,7 +313,7 @@ func (p domainPresenter) Register(
 		output.Type = model.DomainTypeIpaString
 		err = p.registerIpa(domain, output)
 	default:
-		err = fmt.Errorf("'domain.Type=%d' not supported", *domain.Type)
+		err = fmt.Errorf("'domain.Type=%d' is unsupported", *domain.Type)
 	}
 	if err != nil {
 		return nil, err
@@ -347,6 +350,18 @@ func (p domainPresenter) registerIpa(
 	domain *model.Domain,
 	output *public.RegisterDomainResponse,
 ) (err error) {
+	if domain == nil {
+		return fmt.Errorf("'domain' is nil")
+	}
+	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
+		return fmt.Errorf("'domain.Type' is invalid")
+	}
+	if domain.IpaDomain == nil {
+		return fmt.Errorf("'domain.IpaDomain' is nil")
+	}
+	if output == nil {
+		return fmt.Errorf("'output' is nil")
+	}
 	if domain.IpaDomain.RealmName != nil {
 		output.Ipa.RealmName = *domain.IpaDomain.RealmName
 	}

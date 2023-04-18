@@ -6,21 +6,29 @@ import (
 )
 
 type XRHIDMVersion struct {
-	IPAHCCVersion string `json:"ipa-hcc"`
-	IPAVersion    string `json:"ipa"`
+	IPAHCCVersion      string `json:"ipa-hcc"`
+	IPAVersion         string `json:"ipa"`
+	OSReleaseID        string `json:"os-release-id"`
+	OSReleaseVersionID string `json:"os-release-version-id"`
 }
 
 // NewXRHIDMVersion create a new XRHIDMVersion from the arguments.
 // IpaHccVersion is the ipa-hcc client version.
 // IpaVersion is the rhel-idm version.
+// OSReleaseID identifies the operating
+// system. See: https://www.freedesktop.org/software/systemd/man/os-release.html#ID=
+// OSReleaseVersionID identifies the operating system
+// version. See: https://www.freedesktop.org/software/systemd/man/os-release.html#VERSION_ID=
 // Return a filled structure or nil if something is wrong.
-func NewXRHIDMVersion(IpaHccVersion string, IpaVersion string) *XRHIDMVersion {
-	if IpaHccVersion == "" || IpaVersion == "" {
+func NewXRHIDMVersion(IpaHccVersion string, IpaVersion string, OSReleaseID string, OSReleaseVersionID string) *XRHIDMVersion {
+	if IpaHccVersion == "" || IpaVersion == "" || OSReleaseID == "" || OSReleaseVersionID == "" {
 		return nil
 	}
 	return &XRHIDMVersion{
-		IPAHCCVersion: IpaHccVersion,
-		IPAVersion:    IpaVersion,
+		IPAHCCVersion:      IpaHccVersion,
+		IPAVersion:         IpaVersion,
+		OSReleaseID:        OSReleaseID,
+		OSReleaseVersionID: OSReleaseVersionID,
 	}
 }
 

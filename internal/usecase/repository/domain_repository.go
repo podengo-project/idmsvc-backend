@@ -86,20 +86,6 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	return nil
 }
 
-func (r *domainRepository) getColumnsToUpdate(data *model.Domain) []string {
-	cols := []string{"id"}
-	if data.AutoEnrollmentEnabled != nil {
-		cols = append(cols, "auto_enrollment_enabled")
-	}
-	if data.DomainName != nil {
-		cols = append(cols, "domain_name")
-	}
-	if data.Type != nil {
-		cols = append(cols, "domain_type")
-	}
-	return cols
-}
-
 // func (r *domainRepository) PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
 // 	if db == nil {
 // 		return model.Domain{}, fmt.Errorf("db is nil")
