@@ -16,7 +16,7 @@ const (
 	// DomainTypeAzure
 	// DomainTypeActiveDirector
 
-	DomainTypeIpaString       = "ipa"
+	DomainTypeIpaString       = "rhel-idm"
 	DomainTypeUndefinedString = ""
 )
 
