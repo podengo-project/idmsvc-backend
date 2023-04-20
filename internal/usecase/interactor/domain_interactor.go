@@ -271,13 +271,18 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 
 	// Read the body payload
 	domain := &model.Domain{}
+	domain.OrgId = orgId
+	domain.Title = pointy.String(body.Title)
+	domain.Description = pointy.String(body.Description)
+	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
+	domain.DomainName = pointy.String(body.DomainName)
 	switch body.Type {
 	case api_public.RhelIdm:
 		domain.Type = pointy.Uint(model.DomainTypeIpa)
 		domain.IpaDomain = &model.Ipa{}
 		err = i.registerIpa(body, domain.IpaDomain)
 	default:
-		err = fmt.Errorf("Type='%s' is invalid", body.Type)
+		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
 	}
 	if err != nil {
 		return "", nil, nil, err
@@ -287,6 +292,8 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 }
 
 func (i domainInteractor) registerIpa(body *public.RegisterDomain, domainIpa *model.Ipa) error {
+	domainIpa.RealmName = pointy.String(body.RhelIdm.RealmName)
+
 	// Translate realm domains
 	i.registerIpaRealmDomains(body, domainIpa)
 

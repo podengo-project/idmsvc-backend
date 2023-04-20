@@ -293,6 +293,10 @@ func (a *application) RegisterDomain(
 		clientVersion.IPAHCCVersion,
 		"ipa",
 		clientVersion.IPAVersion,
+		"os-release-id",
+		clientVersion.OSReleaseID,
+		"os-release-version-id",
+		clientVersion.OSReleaseVersionID,
 	)
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
@@ -314,10 +318,10 @@ func (a *application) RegisterDomain(
 
 	// TODO Check the source host exists in HBI
 	// FIXME Set the value from the unencoded and unmarshalled Identity
-	xrhid := domainCtx.XRHID()
-	if xrhid == nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
-	}
+	// xrhid := domainCtx.XRHID()
+	// if xrhid == nil {
+	// 	return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
+	// }
 	// subscription_manager_id := xrhid.Identity.System.CommonName
 	// if host, err = a.inventory.GetHostByCN(
 	// 	params.XRhIdentity,
@@ -334,7 +338,7 @@ func (a *application) RegisterDomain(
 	// 	return err
 	// }
 
-	if err = a.fillIpaDomain(data.IpaDomain, domain.IpaDomain); err != nil {
+	if err = a.fillDomain(data, domain); err != nil {
 		return err
 	}
 	data.IpaDomain.Token = nil

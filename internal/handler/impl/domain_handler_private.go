@@ -7,6 +7,7 @@ import (
 
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/labstack/echo/v4"
+	"github.com/openlyinc/pointy"
 	"gorm.io/gorm"
 )
 
@@ -83,9 +84,9 @@ func (a *application) existsHostInServers(
 // target is the destination Ipa structure, it cannot be nil.
 // source is the source Ipa structure, it cannot be nil.
 // Return nil if it is copied succesfully, else an error.
-func (a *application) fillIpaDomain(
-	target *model.Ipa,
-	source *model.Ipa,
+func (a *application) fillDomain(
+	target *model.Domain,
+	source *model.Domain,
 ) error {
 	if source == nil {
 		return fmt.Errorf("'target' cannot be nil")
@@ -93,16 +94,53 @@ func (a *application) fillIpaDomain(
 	if target == nil {
 		return fmt.Errorf("'source' cannot be nil")
 	}
+	if source.Type == nil {
+		return fmt.Errorf("'Type' is nil")
+	}
+	if source.AutoEnrollmentEnabled != nil {
+		target.AutoEnrollmentEnabled = pointy.Bool(*source.AutoEnrollmentEnabled)
+	}
+	target.DomainUuid = source.DomainUuid
+	if source.DomainName != nil {
+		target.DomainName = pointy.String(*source.DomainName)
+	}
+	if source.Title != nil {
+		target.Title = pointy.String(*source.Title)
+	}
+	if source.Description != nil {
+		target.Description = pointy.String(*source.Description)
+	}
+	target.OrgId = source.OrgId
+	if source.Type != nil {
+		target.Type = pointy.Uint(*source.Type)
+	}
 
-	target.CaCerts = source.CaCerts
+	switch *target.Type {
+	case model.DomainTypeIpa:
+		if source.IpaDomain == nil {
+			return fmt.Errorf("'source.IpaDomain' is nil")
+		}
+		target.IpaDomain = &model.Ipa{}
+		return a.fillDomainIpa(target.IpaDomain, source.IpaDomain)
+	default:
+		return fmt.Errorf("'model.DomainTypeIpa' ")
+	}
+}
+
+func (a *application) fillDomainIpa(target *model.Ipa, source *model.Ipa) error {
+	if source.RealmName != nil {
+		target.RealmName = pointy.String(*source.RealmName)
+	}
+	target.CaCerts = make([]model.IpaCert, len(source.CaCerts))
 	for i := range source.CaCerts {
+		target.CaCerts[i] = source.CaCerts[i]
 		target.CaCerts[i].IpaID = target.ID
 	}
-	target.RealmDomains = source.RealmDomains
-	target.Servers = source.Servers
+	target.Servers = make([]model.IpaServer, len(source.Servers))
 	for i := range source.Servers {
+		target.Servers[i] = source.Servers[i]
 		target.Servers[i].IpaID = target.ID
 	}
-
+	target.RealmDomains = source.RealmDomains
 	return nil
 }

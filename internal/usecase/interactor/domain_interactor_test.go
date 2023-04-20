@@ -412,11 +412,13 @@ func TestRegisterIpa(t *testing.T) {
 		requestID = "TW9uIE1hciAyMCAyMDo1Mzoz"
 		token     = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
 		rhsmId    = "cf26cd96-c75d-11ed-ae20-482ae3863d30"
+		orgID     = "12345"
 	)
 	var (
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{
-				Type: "System",
+				OrgID: orgID,
+				Type:  "System",
 				System: identity.System{
 					CommonName: cn,
 					CertType:   "system",
@@ -531,7 +533,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("Type='somethingwrong' is invalid"),
+				Error:         fmt.Errorf("'Type=somethingwrong' is invalid"),
 			},
 		},
 		{
@@ -540,9 +542,12 @@ func TestRegisterIpa(t *testing.T) {
 				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomain{
-					Type: api_public.RhelIdm,
+					Title:       "My Example Domain",
+					Description: "My Example Domain Description",
+					DomainName:  "mydomain.example",
+					Type:        api_public.RhelIdm,
 					RhelIdm: api_public.RegisterDomainIpa{
-						RealmDomains: nil,
+						RealmName: "",
 					},
 				},
 			},
@@ -550,8 +555,47 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					Type: pointy.Uint(model.DomainTypeIpa),
+					DomainName:            pointy.String("mydomain.example"),
+					Title:                 pointy.String("My Example Domain"),
+					Description:           pointy.String("My Example Domain Description"),
+					AutoEnrollmentEnabled: pointy.Bool(false),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
+						RealmName:    pointy.String(""),
+						CaCerts:      []model.IpaCert{},
+						Servers:      []model.IpaServer{},
+						RealmDomains: pq.StringArray{},
+					},
+				},
+				Error: nil,
+			},
+		},
+		{
+			Name: "Empty slices and RealmName filled",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidSystem,
+				Params: params,
+				Body: &api_public.RegisterDomain{
+					Title:       "My Example Domain",
+					Description: "My Example Domain Description",
+					DomainName:  "mydomain.example",
+					Type:        api_public.RhelIdm,
+					RhelIdm: api_public.RegisterDomainIpa{
+						RealmName: "MYDOMAIN.EXAMPLE",
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId:         "",
+				ClientVersion: clientVersionParsed,
+				Output: &model.Domain{
+					DomainName:            pointy.String("mydomain.example"),
+					Title:                 pointy.String("My Example Domain"),
+					Description:           pointy.String("My Example Domain Description"),
+					AutoEnrollmentEnabled: pointy.Bool(false),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
 						RealmDomains: pq.StringArray{},
@@ -566,8 +610,12 @@ func TestRegisterIpa(t *testing.T) {
 				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomain{
-					Type: api_public.RhelIdm,
+					Title:       "My Example Domain",
+					Description: "My Example Domain Description",
+					DomainName:  "mydomain.example",
+					Type:        api_public.RhelIdm,
 					RhelIdm: api_public.RegisterDomainIpa{
+						RealmName:    "MYDOMAIN.EXAMPLE",
 						RealmDomains: []string{"server.domain.example"},
 					},
 				},
@@ -576,8 +624,13 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					Type: pointy.Uint(model.DomainTypeIpa),
+					DomainName:            pointy.String("mydomain.example"),
+					Title:                 pointy.String("My Example Domain"),
+					Description:           pointy.String("My Example Domain Description"),
+					AutoEnrollmentEnabled: pointy.Bool(false),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
+						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
 						RealmDomains: pq.StringArray{"server.domain.example"},
@@ -592,8 +645,12 @@ func TestRegisterIpa(t *testing.T) {
 				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomain{
-					Type: api_public.RhelIdm,
+					Title:       "My Example Domain",
+					Description: "My Example Domain Description",
+					DomainName:  "mydomain.example",
+					Type:        api_public.RhelIdm,
 					RhelIdm: api_public.RegisterDomainIpa{
+						RealmName: "MYDOMAIN.EXAMPLE",
 						CaCerts: []api_public.CreateDomainIpaCert{
 							{
 								Nickname:       pointy.String("MYDOMAIN.EXAMPLE IPA CA"),
@@ -612,8 +669,13 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					Type: pointy.Uint(model.DomainTypeIpa),
+					DomainName:            pointy.String("mydomain.example"),
+					Title:                 pointy.String("My Example Domain"),
+					Description:           pointy.String("My Example Domain Description"),
+					AutoEnrollmentEnabled: pointy.Bool(false),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
+						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
 						CaCerts: []model.IpaCert{
 							{
 								Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
@@ -638,8 +700,12 @@ func TestRegisterIpa(t *testing.T) {
 				XRHID:  &xrhidSystem,
 				Params: params,
 				Body: &api_public.RegisterDomain{
-					Type: api_public.RhelIdm,
+					Title:       "My Example Domain",
+					Description: "My Example Domain Description",
+					DomainName:  "mydomain.example",
+					Type:        api_public.RhelIdm,
 					RhelIdm: api_public.RegisterDomainIpa{
+						RealmName: "MYDOMAIN.EXAMPLE",
 						Servers: []api_public.CreateDomainIpaServer{
 							{
 								Fqdn:                  "server.mydomain.example",
@@ -657,9 +723,14 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					Type: pointy.Uint(model.DomainTypeIpa),
+					DomainName:            pointy.String("mydomain.example"),
+					Title:                 pointy.String("My Example Domain"),
+					Description:           pointy.String("My Example Domain Description"),
+					AutoEnrollmentEnabled: pointy.Bool(false),
+					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
-						CaCerts: []model.IpaCert{},
+						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
+						CaCerts:   []model.IpaCert{},
 						Servers: []model.IpaServer{
 							{
 								FQDN:                "server.mydomain.example",

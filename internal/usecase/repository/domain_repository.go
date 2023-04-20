@@ -67,7 +67,7 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 		return fmt.Errorf("data is nil")
 	}
 	if data.Type == nil {
-		return fmt.Errorf("'Type' cannot be nil")
+		return fmt.Errorf("'Type' is nil")
 	}
 	data.OrgId = orgId
 	err = db.Omit(clause.Associations).Create(data).Error
@@ -81,7 +81,7 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 			return err
 		}
 	default:
-		return fmt.Errorf("'Type' is not valid")
+		return fmt.Errorf("'Type' is invalid")
 	}
 	return nil
 }
@@ -115,7 +115,6 @@ func (r *domainRepository) Update(db *gorm.DB, orgId string, data *model.Domain)
 	}
 	data.OrgId = orgId
 	output = *data
-	// cols := []string{"id"}
 	err = db.Model(&output).Updates(output).Error
 	if err != nil {
 		return model.Domain{}, err

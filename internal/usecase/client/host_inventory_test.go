@@ -44,7 +44,8 @@ func newMockInventoryServer(
 		body,
 		nil,
 		middleware.CreateContext(),
-		middleware.EnforceIdentityWithConfig(middleware.NewIdentityConfig()),
+		middleware.EnforceIdentityWithConfig(
+			&middleware.IdentityConfig{}),
 	)
 }
 

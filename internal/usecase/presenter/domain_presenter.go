@@ -229,67 +229,6 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 	return output, nil
 }
 
-// registerIpaCaCerts translate the list of certificates
-// for the Register operation.
-// ipa the Ipa instance from the business model.
-// output the DomainResponseIpa schema representation
-// to be filled.
-// Return nil if the information is translated properly
-// else return an error.
-func (p domainPresenter) registerIpaCaCerts(domain *model.Domain, output *public.RegisterDomainResponse) error {
-	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
-	}
-	if domain.IpaDomain == nil {
-		return fmt.Errorf("'domain.IpaDomain' is nil")
-	}
-	ipa := domain.IpaDomain
-	if ipa.CaCerts == nil {
-		return fmt.Errorf("'ipa.CaCerts' is nil")
-	}
-	if output == nil {
-		return fmt.Errorf("'output' is nil")
-	}
-	output.Ipa.CaCerts = make([]public.DomainIpaCert, len(ipa.CaCerts))
-	for i := range ipa.CaCerts {
-		err := p.FillCert(&output.Ipa.CaCerts[i], &ipa.CaCerts[i])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// registerIpaServers translate the list of servers
-// for the Register operation.
-// ipa the Ipa instance from the business model.
-// output the DomainResponseIpa schema representation
-// to be filled.
-// Return nil if the information is translated properly
-// else return an error.
-func (p domainPresenter) registerIpaServers(domain *model.Domain, output *public.RegisterDomainResponse) error {
-	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
-	}
-	ipa := domain.IpaDomain
-	if ipa == nil {
-		return fmt.Errorf("'IpaDomain' is nil")
-	}
-	if output == nil {
-		return fmt.Errorf("'output' is nil")
-	}
-	if ipa.Servers != nil {
-		output.Ipa.Servers = make([]public.DomainIpaServer, len(ipa.Servers))
-		for i := range ipa.Servers {
-			err := p.FillServer(&output.Ipa.Servers[i], &ipa.Servers[i])
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
 // Register translate model.Ipa instance to DomainResponseIpa
 // representation for the API response.
 // domain Not nil reference to the model.Ipa to represent.
@@ -305,9 +244,7 @@ func (p domainPresenter) Register(
 		return nil, fmt.Errorf("'domain.Type' is invalid")
 	}
 	output = &public.RegisterDomainResponse{}
-	if err = p.registerFillDomainData(domain, output); err != nil {
-		return nil, err
-	}
+	p.registerFillDomainData(domain, output)
 	switch *domain.Type {
 	case model.DomainTypeIpa:
 		output.Type = model.DomainTypeIpaString
@@ -319,68 +256,6 @@ func (p domainPresenter) Register(
 		return nil, err
 	}
 	return output, nil
-}
-
-func (p domainPresenter) registerFillDomainData(
-	domain *model.Domain,
-	output *public.RegisterDomainResponse,
-) (err error) {
-	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
-	}
-	if output == nil {
-		return fmt.Errorf("'output' is nil")
-	}
-	if domain.AutoEnrollmentEnabled != nil {
-		output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
-	}
-	if domain.DomainName != nil {
-		output.DomainName = *domain.DomainName
-	}
-	if domain.Title != nil {
-		output.Title = *domain.Title
-	}
-	if domain.Description != nil {
-		output.Description = *domain.Description
-	}
-	return nil
-}
-
-func (p domainPresenter) registerIpa(
-	domain *model.Domain,
-	output *public.RegisterDomainResponse,
-) (err error) {
-	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
-	}
-	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
-		return fmt.Errorf("'domain.Type' is invalid")
-	}
-	if domain.IpaDomain == nil {
-		return fmt.Errorf("'domain.IpaDomain' is nil")
-	}
-	if output == nil {
-		return fmt.Errorf("'output' is nil")
-	}
-	if domain.IpaDomain.RealmName != nil {
-		output.Ipa.RealmName = *domain.IpaDomain.RealmName
-	}
-
-	if domain.IpaDomain.RealmDomains != nil {
-		output.Ipa.RealmDomains = append([]string{}, domain.IpaDomain.RealmDomains...)
-	}
-
-	err = p.registerIpaCaCerts(domain, output)
-	if err != nil {
-		return err
-	}
-
-	err = p.registerIpaServers(domain, output)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // func (p todoPresenter) PartialUpdate(in *model.Todo, out *public.Todo) error {

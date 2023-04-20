@@ -198,6 +198,7 @@ func (s *Suite) TestCreateErrors() {
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
 			DomainName:            pointy.String("domain.example"),
+			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  pointy.Uint(model.DomainTypeIpa),
 			AutoEnrollmentEnabled: pointy.Bool(true),
@@ -215,6 +216,7 @@ func (s *Suite) TestCreateErrors() {
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
 			DomainName:            pointy.String("domain.example"),
+			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  nil,
 			AutoEnrollmentEnabled: pointy.Bool(true),
@@ -229,6 +231,7 @@ func (s *Suite) TestCreateErrors() {
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
 			DomainName:            pointy.String("domain.example"),
+			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  pointy.Uint(1000),
 			AutoEnrollmentEnabled: pointy.Bool(true),
@@ -266,7 +269,7 @@ func (s *Suite) TestCreateErrors() {
 	assert.Equal(t, "an error happened", err.Error())
 
 	err = s.repository.Create(s.DB, orgID, &domainTypeIsNil)
-	assert.EqualError(t, err, "'Type' cannot be nil")
+	assert.EqualError(t, err, "'Type' is nil")
 
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
 		WithArgs(
@@ -286,7 +289,7 @@ func (s *Suite) TestCreateErrors() {
 			sqlmock.NewRows([]string{"id"}).
 				AddRow(uint(1)))
 	err = s.repository.Create(s.DB, orgID, &ipaDomainTypeIsNotValid)
-	assert.EqualError(t, err, "'Type' is not valid")
+	assert.EqualError(t, err, "'Type' is invalid")
 }
 
 func (s *Suite) TestCreateIpaDomain() {
@@ -413,6 +416,7 @@ func (s *Suite) TestUpdateErrors() {
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
 			DomainName:            pointy.String("domain.example"),
+			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  pointy.Uint(model.DomainTypeIpa),
 			AutoEnrollmentEnabled: pointy.Bool(true),
@@ -440,7 +444,7 @@ func (s *Suite) TestUpdateErrors() {
 	assert.EqualError(t, err, "'data' is nil")
 
 	s.mock.MatchExpectationsInOrder(true)
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "id"=$1,"created_at"=$2,"updated_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE "domains"."deleted_at" IS NULL AND "id" = $10`)).
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "id"=$1,"created_at"=$2,"updated_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"title"=$7,"description"=$8,"type"=$9,"auto_enrollment_enabled"=$10 WHERE "domains"."deleted_at" IS NULL AND "id" = $11`)).
 		WithArgs(
 			data.ID,
 			sqlmock.AnyArg(),
@@ -448,6 +452,7 @@ func (s *Suite) TestUpdateErrors() {
 			data.OrgId,
 			data.DomainUuid,
 			data.DomainName,
+			data.Title,
 			data.Description,
 			data.Type,
 			data.AutoEnrollmentEnabled,
@@ -460,7 +465,7 @@ func (s *Suite) TestUpdateErrors() {
 
 	s.mock.MatchExpectationsInOrder(true)
 	// UPDATE "domains"
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "id"=$1,"created_at"=$2,"updated_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE "domains"."deleted_at" IS NULL AND "id" = $10`)).
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "id"=$1,"created_at"=$2,"updated_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"title"=$7,"description"=$8,"type"=$9,"auto_enrollment_enabled"=$10 WHERE "domains"."deleted_at" IS NULL AND "id" = $11`)).
 		WithArgs(
 			data.ID,
 			sqlmock.AnyArg(),
@@ -468,6 +473,7 @@ func (s *Suite) TestUpdateErrors() {
 			data.OrgId,
 			data.DomainUuid,
 			data.DomainName,
+			data.Title,
 			data.Description,
 			data.Type,
 			data.AutoEnrollmentEnabled,
@@ -494,7 +500,6 @@ func (s *Suite) TestUpdateErrors() {
 	outputData, err = s.repository.Update(s.DB, orgID, &data)
 	assert.NoError(t, err)
 	assert.Equal(t, data.Model.ID, outputData.Model.ID)
-
 }
 
 func (s *Suite) TestRhelIdmClearToken() {
