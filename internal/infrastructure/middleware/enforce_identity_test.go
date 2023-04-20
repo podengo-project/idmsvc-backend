@@ -179,14 +179,12 @@ func TestEnforceIdentity(t *testing.T) {
 	// Get echo instance with the middleware and one predicate for test it
 	e := helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig().
-				SetSkipper(nil).
-				AddPredicate(
-					"test-predicate",
-					helperCreatePredicate("test-fail-predicate"),
-				),
-		),
-	)
+			&IdentityConfig{
+				Predicates: map[string]IdentityPredicate{
+					"test-fail-predicate": helperCreatePredicate("test-fail-predicate"),
+				},
+			},
+		))
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		res := httptest.NewRecorder()
@@ -211,14 +209,12 @@ func TestEnforceIdentityNoDomainContext(t *testing.T) {
 	}
 	e.Use(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig().
-				SetSkipper(nil).
-				AddPredicate(
-					"test-predicate",
-					helperCreatePredicate("test-fail-predicate"),
-				),
-		),
-	)
+			&IdentityConfig{
+				Predicates: map[string]IdentityPredicate{
+					"test-fail-predicate": helperCreatePredicate("test-fail-predicate"),
+				},
+			},
+		))
 	e.Add("GET", testPath, h)
 
 	res := httptest.NewRecorder()
@@ -253,8 +249,9 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	// When skipper return false, as no x-rh-identity provided, will return unauthorized
 	e = helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig().
-				SetSkipper(helperSkipper(false)),
+			&IdentityConfig{
+				Skipper: helperSkipper(false),
+			},
 		),
 	)
 	res = httptest.NewRecorder()
@@ -269,8 +266,9 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	// When skipper return true the middleware does not process the header or the predicates
 	e = helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
-			NewIdentityConfig().
-				SetSkipper(helperSkipper(true)),
+			&IdentityConfig{
+				Skipper: helperSkipper(true),
+			},
 		),
 	)
 	res = httptest.NewRecorder()
@@ -281,76 +279,6 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
-}
-
-func helperNewContextForSkipper(route string, method string, path string, headers map[string]string) echo.Context {
-	// See: https://echo.labstack.com/guide/testing/
-	e := echo.New()
-	req := httptest.NewRequest(http.MethodPost, path, nil)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	for key, value := range headers {
-		req.Header.Set(key, value)
-	}
-	rec := httptest.NewRecorder()
-	c := e.NewContext(req, rec)
-	c.SetPath(route)
-	return c
-}
-
-func TestSkipperUSer(t *testing.T) {
-	type TestCase struct {
-		Name     string
-		Given    string
-		Expected bool
-	}
-	testCases := []TestCase{}
-	for i := range userEnforceRoutes {
-		testCases = append(testCases, TestCase{
-			Name:     fmt.Sprintf("No skip userEnforceRoutes[%d]", i),
-			Given:    userEnforceRoutes[i],
-			Expected: false,
-		})
-	}
-	for i := range systemEnforceRoutes {
-		testCases = append(testCases, TestCase{
-			Name:     fmt.Sprintf("Skip systemEnforceRoutes[%d]", i),
-			Given:    systemEnforceRoutes[i],
-			Expected: true,
-		})
-	}
-	for _, testCase := range testCases {
-		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
-		result := SkipperUserPredicate(ctx)
-		assert.Equal(t, testCase.Expected, result)
-	}
-}
-
-func TestSkipperSystem(t *testing.T) {
-	type TestCase struct {
-		Name     string
-		Given    string
-		Expected bool
-	}
-	testCases := []TestCase{}
-	for i := range systemEnforceRoutes {
-		testCases = append(testCases, TestCase{
-			Name:     fmt.Sprintf("No skip systemEnforceRoutes[%d]", i),
-			Given:    systemEnforceRoutes[i],
-			Expected: false,
-		})
-	}
-	for i := range userEnforceRoutes {
-		testCases = append(testCases, TestCase{
-			Name:     fmt.Sprintf("Skip userEnforceRoutes[%d]", i),
-			Given:    userEnforceRoutes[i],
-			Expected: true,
-		})
-	}
-	for _, testCase := range testCases {
-		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
-		result := SkipperSystemPredicate(ctx)
-		assert.Equal(t, testCase.Expected, result)
-	}
 }
 
 func TestEnforceUserPredicate(t *testing.T) {

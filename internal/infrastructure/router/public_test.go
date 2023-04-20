@@ -1,6 +1,9 @@
 package router
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/hmsidm/internal/config"
@@ -14,6 +17,20 @@ import (
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
+
+func helperNewContextForSkipper(route string, method string, path string, headers map[string]string) echo.Context {
+	// See: https://echo.labstack.com/guide/testing/
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodPost, path, nil)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+	for key, value := range headers {
+		req.Header.Set(key, value)
+	}
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath(route)
+	return c
+}
 
 func TestNewGroupPublicPanics(t *testing.T) {
 	var (
@@ -170,5 +187,61 @@ func TestNewGroupPublic(t *testing.T) {
 		name, okMethod := methods[route.Method]
 		assert.Truef(t, okMethod, "method=%s not found into the expected ones for the path=%s", route.Method, route.Path)
 		assert.Equalf(t, name, route.Name, "handler for path=%s method=%s does not match", route.Path, route.Method)
+	}
+}
+
+func TestSkipperUSer(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    string
+		Expected bool
+	}
+	testCases := []TestCase{}
+	for i := range userEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("No skip userEnforceRoutes[%d]", i),
+			Given:    userEnforceRoutes[i],
+			Expected: false,
+		})
+	}
+	for i := range systemEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip systemEnforceRoutes[%d]", i),
+			Given:    systemEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for _, testCase := range testCases {
+		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
+		result := skipperUserPredicate(ctx)
+		assert.Equal(t, testCase.Expected, result)
+	}
+}
+
+func TestSkipperSystem(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    string
+		Expected bool
+	}
+	testCases := []TestCase{}
+	for i := range systemEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("No skip systemEnforceRoutes[%d]", i),
+			Given:    systemEnforceRoutes[i],
+			Expected: false,
+		})
+	}
+	for i := range userEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip userEnforceRoutes[%d]", i),
+			Given:    userEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for _, testCase := range testCases {
+		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
+		result := skipperSystemPredicate(ctx)
+		assert.Equal(t, testCase.Expected, result)
 	}
 }

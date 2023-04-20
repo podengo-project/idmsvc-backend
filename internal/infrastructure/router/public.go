@@ -8,38 +8,104 @@ import (
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
 
+var userEnforceRoutes = []string{
+	"/api/hmsidm/v1/domains",
+	"/api/hmsidm/v1/domains/:uuid",
+}
+
+var systemEnforceRoutes = []string{
+	"/api/hmsidm/v1/domains/:uuid/register",
+	"/api/hmsidm/v1/domains/:uuid/update",
+}
+
 func newGroupPublic(e *echo.Group, c RouterConfig, metrics *metrics.Metrics) *echo.Group {
 	if e == nil {
-		panic("no echo group was specified")
+		panic("echo group is nil")
 	}
 	if metrics == nil {
-		panic("no metrics was specified")
+		panic("'metrics' is nil")
 	}
 	if c.Handlers == nil {
-		panic("handlers not specified in the router configuration")
+		panic("'handlers' is nil")
 	}
 
-	// Set up middlewares
-	e.Use(middleware.CreateContext())
-	e.Use(middleware.EnforceIdentityWithConfig(middleware.NewIdentityConfig().
-		SetSkipper(middleware.SkipperUserPredicate).
-		AddPredicate("user-predicate", middleware.EnforceUserPredicate)))
-	e.Use(middleware.EnforceIdentityWithConfig(middleware.NewIdentityConfig().
-		SetSkipper(middleware.SkipperSystemPredicate).
-		AddPredicate("system-predicate", middleware.EnforceSystemPredicate)))
-	e.Use(middleware.MetricsMiddlewareWithConfig(&middleware.MetricsConfig{
-		Metrics: metrics,
-	}))
-	e.Use(echo_middleware.Secure())
-	// TODO Check if this is made by 3scale
-	// e.Use(middleware.CORSWithConfig(middleware.CORSConfig{}))
-	e.Use(echo_middleware.RequestIDWithConfig(echo_middleware.RequestIDConfig{
-		TargetHeader: "X-Rh-Insights-Request-Id", // TODO Check this name is the expected
-	}))
-	// FIXME Investigate why is failing when it is uncommented
-	// e.Use(middleware.NewApiServiceValidator())
+	// Initialize middlewares
+	systemIdentityMiddleware := middleware.EnforceIdentityWithConfig(
+		&middleware.IdentityConfig{
+			Skipper: skipperSystemPredicate,
+			Predicates: map[string]middleware.IdentityPredicate{
+				"system-identity": middleware.EnforceSystemPredicate,
+			},
+		},
+	)
+	userIdentityMiddleware := middleware.EnforceIdentityWithConfig(
+		&middleware.IdentityConfig{
+			Skipper: skipperUserPredicate,
+			Predicates: map[string]middleware.IdentityPredicate{
+				"user-identity": middleware.EnforceUserPredicate,
+			},
+		},
+	)
+	metricsMiddleware := middleware.MetricsMiddlewareWithConfig(
+		&middleware.MetricsConfig{
+			Metrics: metrics,
+		},
+	)
+	requestIDMiddleware := echo_middleware.RequestIDWithConfig(
+		echo_middleware.RequestIDConfig{
+			TargetHeader: "X-Rh-Insights-Request-Id", // TODO Check this name is the expected
+		},
+	)
+
+	// Wire the middlewares
+	e.Use(
+		middleware.CreateContext(),
+		systemIdentityMiddleware,
+		userIdentityMiddleware,
+		metricsMiddleware,
+		echo_middleware.Secure(),
+		// TODO Check if this is made by 3scale
+		// middleware.CORSWithConfig(middleware.CORSConfig{}),
+		requestIDMiddleware,
+		// FIXME Investigate why is failing when it is uncommented
+		// middleware.NewApiServiceValidator(),
+	)
 
 	// Setup routes
 	public.RegisterHandlersWithBaseURL(e, c.Handlers, "")
 	return e
+}
+
+// skipperUserPredicate applied when using EnforceUserPredicate.
+// ctx is the request context.
+// Return true if enforce identity is skipped, else false.
+func skipperUserPredicate(ctx echo.Context) bool {
+
+	route := ctx.Path()
+	// it is not expected a big number of routes, but if that were
+	// the case into the future, it is more efficient to check
+	// directly against a hashmap instead of traversing the slice
+	for i := range userEnforceRoutes {
+		if route == userEnforceRoutes[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// skipperSystemPredicate applied when using EnforceSystemPredicate.
+// ctx is the request context.
+// Return true if enforce identity is skipped, else false.
+func skipperSystemPredicate(ctx echo.Context) bool {
+	// Read the route path __pattern__ that matched this request
+	route := ctx.Path()
+	// it is not expected a big number of routes, but if that were
+	// the case into the future, it is more efficient to check
+	// directly against a hashmap instead of traversing the slice
+	for i := range systemEnforceRoutes {
+		if route == systemEnforceRoutes[i] {
+			return false
+		}
+	}
+	return true
 }

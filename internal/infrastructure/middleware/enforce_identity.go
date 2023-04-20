@@ -19,60 +19,15 @@ const headerXRhIdentity = "X-Rh-Identity"
 //	context
 type IdentityPredicate func(data *identity.XRHID) error
 
-// identityConfig Represent the configuration for this middleware
+// IdentityConfig Represent the configuration for this middleware
 // enforcement.
-type identityConfig struct {
+type IdentityConfig struct {
 	// Skipper function to skip for some request if necessary
-	skipper echo_middleware.Skipper
+	Skipper echo_middleware.Skipper
 	// Map of predicates to be applied, all the predicates must
 	// return true, if any of them fail, the enforcement will
 	// return error for the request.
-	predicates map[string]IdentityPredicate
-}
-
-var (
-	systemEnforceRoutes = []string{
-		"/api/hmsidm/v1/domains/:uuid/register",
-		"/api/hmsidm/v1/domains/:uuid/update",
-	}
-	userEnforceRoutes = []string{
-		"/api/hmsidm/v1/domains",
-		"/api/hmsidm/v1/domains/:uuid",
-	}
-)
-
-// NewIdentityConfig creates a new identityConfig for the
-// EnforcementIdentity middleware.
-// Return an identityConfig structure to configure the
-// middleware.
-func NewIdentityConfig() *identityConfig {
-	return &identityConfig{
-		predicates: map[string]IdentityPredicate{},
-	}
-}
-
-// SetSkipper set a skipper function for the middleware.
-// skipper is the function which check by using the current
-// request context to check if the current request will be
-// processed by this middleware.
-// Return the identityConfig updated.
-func (ic *identityConfig) SetSkipper(skipper echo_middleware.Skipper) *identityConfig {
-	ic.skipper = skipper
-	return ic
-}
-
-// AddPredicate add a predicate function to check the IdentityEnforcement,
-// by allowing reuse the same middleware for different enforcements. We can
-// add several functions, but if a key collide, the predicate will be overrided.
-// key that will be associated to this predicate, it is used to report to the
-// log which predicate failed.
-// predicate is the check function to be added.
-// Return the identityConfig updated.
-func (ic *identityConfig) AddPredicate(key string, predicate IdentityPredicate) *identityConfig {
-	if predicate != nil {
-		ic.predicates[key] = predicate
-	}
-	return ic
+	Predicates map[string]IdentityPredicate
 }
 
 // IdentityAlwaysTrue is a predicate that always return nil
@@ -131,38 +86,6 @@ func EnforceSystemPredicate(data *identity.XRHID) error {
 	return nil
 }
 
-// SkipperUserPredicate applied when using EnforceUserPredicate.
-// ctx is the request context.
-// Return true if enforce identity is skipped, else false.
-func SkipperUserPredicate(ctx echo.Context) bool {
-	route := ctx.Path()
-	// it is not expected a big number of routes, but if that were
-	// the case into the future, it is more efficient to check
-	// directly against a hashmap instead of traversing the slice
-	for i := range userEnforceRoutes {
-		if route == userEnforceRoutes[i] {
-			return false
-		}
-	}
-	return true
-}
-
-// SkipperSystemPredicate applied when using EnforceSystemPredicate.
-// ctx is the request context.
-// Return true if enforce identity is skipped, else false.
-func SkipperSystemPredicate(ctx echo.Context) bool {
-	route := ctx.Path()
-	// it is not expected a big number of routes, but if that were
-	// the case into the future, it is more efficient to check
-	// directly against a hashmap instead of traversing the slice
-	for i := range systemEnforceRoutes {
-		if route == systemEnforceRoutes[i] {
-			return false
-		}
-	}
-	return true
-}
-
 // EnforceIdentityWithConfig instantiate a EnforceIdentity middleware
 // for the configuration provided. This middleware depends on
 // NewContext middleware. If the request pass the enforcement
@@ -171,47 +94,58 @@ func SkipperSystemPredicate(ctx echo.Context) bool {
 // config is the configuration with the skipper and predicates
 // to be used for the middleware.
 // Return an echo middleware function.
-func EnforceIdentityWithConfig(config *identityConfig) func(echo.HandlerFunc) echo.HandlerFunc {
+func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) echo.HandlerFunc {
 	if config == nil {
-		panic("'config' cannot be nil")
+		panic("'config' is nil")
 	}
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if config.skipper != nil && config.skipper(c) {
+			var (
+				xrhid *identity.XRHID
+				err   error
+			)
+			if config.Skipper != nil && config.Skipper(c) {
 				return next(c)
 			}
 			cc, ok := c.(DomainContextInterface)
 			if !ok {
-				c.Logger().Error("Expected a 'DomainContextInterface'")
+				c.Logger().Error("'DomainContextInterface' is expected")
 				return echo.ErrInternalServerError
 			}
-			b64XRHID := cc.Request().Header.Get(headerXRhIdentity)
-			if b64XRHID == "" {
-				cc.Logger().Error("%s not present", headerXRhIdentity)
-				return echo.ErrUnauthorized
-			}
-			stringXRHID, err := base64.StdEncoding.DecodeString(b64XRHID)
-			if err != nil {
-				cc.Logger().Error(err)
-				return echo.ErrUnauthorized
-			}
-			xrhid := &identity.XRHID{}
-			if err := json.Unmarshal([]byte(stringXRHID), xrhid); err != nil {
+			if xrhid, err = decodeXRHID(
+				cc.Request().Header.Get(headerXRhIdentity),
+			); err != nil {
 				cc.Logger().Error(err)
 				return echo.ErrUnauthorized
 			}
 
-			// All the predicates should return true
-			for _, predicate := range config.predicates {
-				if err := predicate(xrhid); err != nil {
-					if err != nil {
-						cc.Logger().Error(err)
-					}
+			// The predicate must return no error, otherwise
+			// the request is not authorised.
+			for key, predicate := range config.Predicates {
+				if err = predicate(xrhid); err != nil {
+					cc.Logger().Error(fmt.Errorf("'%s' IdentityPredicate failed: %w", key, err))
 					return echo.ErrUnauthorized
 				}
 			}
+
+			// Set the unserialized Identity into the request context
 			cc.SetXRHID(xrhid)
 			return next(c)
 		}
 	}
+}
+
+func decodeXRHID(b64XRHID string) (*identity.XRHID, error) {
+	if b64XRHID == "" {
+		return nil, fmt.Errorf("%s not present", headerXRhIdentity)
+	}
+	stringXRHID, err := base64.StdEncoding.DecodeString(b64XRHID)
+	if err != nil {
+		return nil, err
+	}
+	xrhid := &identity.XRHID{}
+	if err := json.Unmarshal([]byte(stringXRHID), xrhid); err != nil {
+		return nil, err
+	}
+	return xrhid, nil
 }
