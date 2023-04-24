@@ -65,14 +65,16 @@ func (_m *DomainRepository) FindAll(db *gorm.DB, orgId string, offset int64, cou
 }
 
 // FindById provides a mock function with given fields: db, orgId, uuid
-func (_m *DomainRepository) FindById(db *gorm.DB, orgId string, uuid string) (model.Domain, error) {
+func (_m *DomainRepository) FindById(db *gorm.DB, orgId string, uuid string) (*model.Domain, error) {
 	ret := _m.Called(db, orgId, uuid)
 
-	var r0 model.Domain
-	if rf, ok := ret.Get(0).(func(*gorm.DB, string, string) model.Domain); ok {
+	var r0 *model.Domain
+	if rf, ok := ret.Get(0).(func(*gorm.DB, string, string) *model.Domain); ok {
 		r0 = rf(db, orgId, uuid)
 	} else {
-		r0 = ret.Get(0).(model.Domain)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Domain)
+		}
 	}
 
 	var r1 error
@@ -100,24 +102,17 @@ func (_m *DomainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid st
 }
 
 // Update provides a mock function with given fields: db, orgId, data
-func (_m *DomainRepository) Update(db *gorm.DB, orgId string, data *model.Domain) (model.Domain, error) {
+func (_m *DomainRepository) Update(db *gorm.DB, orgId string, data *model.Domain) error {
 	ret := _m.Called(db, orgId, data)
 
-	var r0 model.Domain
-	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain) model.Domain); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain) error); ok {
 		r0 = rf(db, orgId, data)
 	} else {
-		r0 = ret.Get(0).(model.Domain)
+		r0 = ret.Error(0)
 	}
 
-	var r1 error
-	if rf, ok := ret.Get(1).(func(*gorm.DB, string, *model.Domain) error); ok {
-		r1 = rf(db, orgId, data)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 type mockConstructorTestingTNewDomainRepository interface {

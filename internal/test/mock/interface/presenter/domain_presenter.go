@@ -15,15 +15,15 @@ type DomainPresenter struct {
 }
 
 // Create provides a mock function with given fields: domain
-func (_m *DomainPresenter) Create(domain *model.Domain) (*public.DomainResponse, error) {
+func (_m *DomainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.DomainResponse
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.DomainResponse); ok {
+	var r0 *public.Domain
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.Domain); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.DomainResponse)
+			r0 = ret.Get(0).(*public.Domain)
 		}
 	}
 
@@ -38,15 +38,15 @@ func (_m *DomainPresenter) Create(domain *model.Domain) (*public.DomainResponse,
 }
 
 // Get provides a mock function with given fields: domain
-func (_m *DomainPresenter) Get(domain *model.Domain) (*public.DomainResponse, error) {
+func (_m *DomainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.DomainResponse
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.DomainResponse); ok {
+	var r0 *public.Domain
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.Domain); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.DomainResponse)
+			r0 = ret.Get(0).(*public.Domain)
 		}
 	}
 
@@ -84,15 +84,15 @@ func (_m *DomainPresenter) List(prefix string, offset int64, count int32, data [
 }
 
 // Register provides a mock function with given fields: domain
-func (_m *DomainPresenter) Register(domain *model.Domain) (*public.DomainResponse, error) {
+func (_m *DomainPresenter) Register(domain *model.Domain) (*public.Domain, error) {
 	ret := _m.Called(domain)
 
-	var r0 *public.DomainResponse
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.DomainResponse); ok {
+	var r0 *public.Domain
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.Domain); ok {
 		r0 = rf(domain)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.DomainResponse)
+			r0 = ret.Get(0).(*public.Domain)
 		}
 	}
 
