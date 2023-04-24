@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS domains (
 
     org_id      VARCHAR(255) NOT NULL,
     domain_uuid UUID UNIQUE NOT NULL,
-    domain_name VARCHAR(253) NOT NULL,
+    domain_name VARCHAR(253),
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     type INT NOT NULL,

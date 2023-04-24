@@ -69,7 +69,7 @@ func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
 
 func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 	if d.Type == nil {
-		return fmt.Errorf("'DomainType' cannot be nil")
+		return fmt.Errorf("'Type' is nil")
 	}
 	switch *d.Type {
 	case DomainTypeIpa:

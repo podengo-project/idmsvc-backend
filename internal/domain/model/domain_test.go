@@ -35,7 +35,7 @@ func TestDomainAfterCreate(t *testing.T) {
 	var item *Domain
 
 	item = &Domain{}
-	assert.EqualError(t, item.AfterCreate(nil), "'DomainType' cannot be nil")
+	assert.EqualError(t, item.AfterCreate(nil), "'Type' is nil")
 
 	item = &Domain{
 		Model: gorm.Model{
