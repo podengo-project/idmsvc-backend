@@ -53,12 +53,13 @@ func (p domainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
 
 	switch *domain.Type {
 	case model.DomainTypeIpa:
-		if domain.IpaDomain == nil {
-			return output, nil
-		}
-		if err := p.createRhelIdm(output, domain); err != nil {
-			return nil, err
-		}
+		output.RhelIdm = nil
+		// if domain.IpaDomain == nil {
+		// 	return output, nil
+		// }
+		// if err := p.createRhelIdm(output, domain); err != nil {
+		// 	return nil, err
+		// }
 	default:
 		return nil, fmt.Errorf("'Type' is invalid")
 	}
