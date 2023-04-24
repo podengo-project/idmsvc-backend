@@ -1,3 +1,4 @@
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
 @schema = http
 @hostname = localhost
 @port = 8000
@@ -19,6 +20,10 @@
 
 # @name createDomain
 
+# Request from workstation
+# BASE_URL="http://localhost:8000/api/hmsidm/v1"
+# curl - "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/create-domain-ipa-payload.json
+
 # Request for ephemeral
 # curl -u "$CREDS" "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/create-domain-ipa-payload.json
 
@@ -31,14 +36,14 @@ Content-Type: {{contentType}}
   "domain_name": "mydomain.example",
   "title": "My Domain Example",
   "description": "My human readable domain description",
-  "domain_type": "ipa",
   "auto_enrollment_enabled": true,
-  "ipa": {
+  "type": "rhel-idm",
+  "rhel-idm": {
     "realm_name": "MYDOMAIN.EXAMPLE",
     "servers": [
       {
         "fqdn": "ipaserver.mydomain.example",
-        "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+        "subscription_manager_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
         "ca_server": true,
         "hcc_enrollment_server": true,
         "hcc_update_server": true,
@@ -67,28 +72,32 @@ Content-Type: {{contentType}}
 
 # @name createDomain
 
+# Request from workstation
+# BASE_URL="http://localhost:8000/api/hmsidm/v1"
+# curl -H "$( ./scripts/x-rh-identity.sh 12345 test )" "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/create-domain-ipa-min-payload.json
+
+# Request for ephemeral
+# curl -u "$CREDS" "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/create-domain-ipa-min-payload.json
+
 POST {{schema}}://{{host}}{{basepath}}/domains
 X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: post_domains
 Content-Type: {{contentType}}
 
 {
-  "domain_name": "mydomain.example",
-  "domain_description": "My human readable domain description",
-  "domain_type": "ipa",
+  "title": "My Domain Example Title",
+  "description": "My Domain Example Description",
   "auto_enrollment_enabled": true,
-  "ipa": {
-    "realm_name": "MYDOMAIN.EXAMPLE",
-    "servers": [],
-    "ca_certs": [],
-    "realm_domains": []
-  }
+  "type": "rhel-idm"
 }
 
 
 ### Get All Domains
 
 # @name listDomains
+
+# Request for localhost
+# curl -H "$( ./scripts/x-rh-identity.sh 12345 test )" http://localhost:8000/api/hmsidm/v1/domains
 
 # Request for ephemeral
 # curl -u "$CREDS" "${BASE_URL}/domains"
@@ -101,6 +110,10 @@ Content-Type: {{contentType}}
 ### Get last created Todo
 
 # @name getDomain
+
+# Request for localhost
+# UUID=""
+# curl -H "$( ./scripts/x-rh-identity.sh 12345 test )" "http://localhost:8000/api/hmsidm/v1/domains/${UUID}"
 
 # Request for ephemeral
 # curl -u "$CREDS" "${BASE_URL}/domains/${UUID}"
@@ -136,12 +149,16 @@ Content-Type: application/json; charset=urf-8
 ### Register IPA domain information
 
 # @name registerIpaDomain
+# @prompt token Your token to register a rhel-idm domain
+
+# Local workstation
+# curl -H "$( ./scripts/x-rh-identity.sh 11111 test )" -X POST -d 
 
 PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/register
 X-Rh-Identity: {{x-rh-identity-system}}
-X-Rh-IDM-Registration-Token: {{createDomain.response.body.ipa.token}}
+X-Rh-Idm-Registration-Token: {{token}}
 X-Rh-Insights-Request-Id: put_domains_register
-X-Rh-IDM-Version: {{x-rh-idm-version}}
+X-Rh-Idm-Version: {{x-rh-idm-version}}
 Content-Type: {{contentType}}
 
 {
