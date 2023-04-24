@@ -655,6 +655,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 	err = s.repository.RhelIdmClearToken(s.DB, orgID, "")
 	assert.EqualError(t, err, "'uuid' is empty")
 
+	// Error "'OrgID' mismatch"
 	s.mock.MatchExpectationsInOrder(true)
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 		WithArgs(
@@ -725,6 +726,36 @@ func (s *Suite) TestRhelIdmClearToken() {
 		}))
 	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
 	assert.EqualError(t, err, "'OrgId' mistmatch")
+
+	// Type is invalid
+	s.mock.MatchExpectationsInOrder(true)
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(
+			orgID,
+			uuidString,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{
+				"id", "created_at", "updated_at", "deleted_at",
+				"org_id", "domain_uuid", "domain_name", "title",
+				"description", "type", "auto_enrollment_enabled",
+			}).
+				AddRow(
+					1,
+					data.CreatedAt,
+					data.UpdatedAt,
+					nil,
+
+					mismatchOrgID,
+					data.DomainUuid,
+					*data.DomainName,
+					*data.Title,
+					*data.Description,
+					uint(999),
+					*data.AutoEnrollmentEnabled,
+				))
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
+	assert.EqualError(t, err, "'Type' is invalid")
 
 	// Success scenario
 	s.mock.MatchExpectationsInOrder(true)

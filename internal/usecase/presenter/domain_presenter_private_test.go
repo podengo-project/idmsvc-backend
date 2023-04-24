@@ -292,3 +292,63 @@ func TestRegisterFillDomainData(t *testing.T) {
 	assert.Equal(t, "My Domain Example", output.Title)
 	assert.Equal(t, "My Domain Example Description", output.Description)
 }
+
+func TestCreateRhelIdmCheckDomain(t *testing.T) {
+	var err error
+	p := domainPresenter{}
+
+	domain := &model.Domain{
+		IpaDomain: &model.Ipa{},
+	}
+	err = p.createRhelIdmCheckDomain(domain)
+	assert.EqualError(t, err, "'RealmName' is nil")
+
+	domain.IpaDomain.RealmName = pointy.String(string(public.DomainTypeRhelIdm))
+	err = p.createRhelIdmCheckDomain(domain)
+	assert.EqualError(t, err, "'CaCerts' is nil")
+
+	domain.IpaDomain.CaCerts = []model.IpaCert{}
+	err = p.createRhelIdmCheckDomain(domain)
+	assert.EqualError(t, err, "'Servers' is nil")
+
+	domain.IpaDomain.Servers = []model.IpaServer{}
+	err = p.createRhelIdmCheckDomain(domain)
+	assert.NoError(t, err)
+}
+
+func TestCreateRhelIdmFillRealmDomains(t *testing.T) {
+	p := domainPresenter{}
+
+	// Nil arguments evoke panic
+	assert.Panics(t, func() {
+		p.createRhelIdmFillRealmDomains(nil, nil)
+	})
+
+	output := public.Domain{}
+	domain := model.Domain{}
+	assert.Panics(t, func() {
+		p.createRhelIdmFillRealmDomains(nil, &domain)
+	})
+
+	domain.IpaDomain = &model.Ipa{}
+	assert.Panics(t, func() {
+		p.createRhelIdmFillRealmDomains(nil, &domain)
+	})
+
+	assert.Panics(t, func() {
+		p.createRhelIdmFillRealmDomains(&output, &domain)
+	})
+
+	domain.IpaDomain.RealmDomains = pq.StringArray{}
+	assert.Panics(t, func() {
+		p.createRhelIdmFillRealmDomains(&output, &domain)
+	})
+
+	domain.IpaDomain.RealmDomains = pq.StringArray{}
+	output.RhelIdm = &public.DomainIpa{}
+	p.createRhelIdmFillRealmDomains(&output, &domain)
+}
+
+func TestFillRhelIdmCerts(t *testing.T) {
+
+}
