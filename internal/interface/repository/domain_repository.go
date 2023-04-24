@@ -10,8 +10,8 @@ type DomainRepository interface {
 	Create(db *gorm.DB, orgId string, data *model.Domain) (err error)
 	// PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
 	// Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
-	FindById(db *gorm.DB, orgId string, uuid string) (output model.Domain, err error)
+	FindById(db *gorm.DB, orgId string, uuid string) (output *model.Domain, err error)
 	DeleteById(db *gorm.DB, orgId string, uuid string) (err error)
-	Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
+	Update(db *gorm.DB, orgId string, data *model.Domain) (err error)
 	RhelIdmClearToken(db *gorm.DB, orgId string, uuid string) (err error)
 }
