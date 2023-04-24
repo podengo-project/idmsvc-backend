@@ -11,14 +11,14 @@ const (
 	X_rh_identityScopes = "x_rh_identity.Scopes"
 )
 
-// Defines values for CreateDomainDomainType.
+// Defines values for CreateDomainType.
 const (
-	CreateDomainDomainTypeIpa CreateDomainDomainType = "ipa"
+	CreateDomainTypeRhelIdm CreateDomainType = "rhel-idm"
 )
 
-// Defines values for DomainResponseType.
+// Defines values for DomainType.
 const (
-	DomainResponseTypeIpa DomainResponseType = "ipa"
+	DomainTypeRhelIdm DomainType = "rhel-idm"
 )
 
 // Defines values for RegisterDomainType.
@@ -49,56 +49,59 @@ type CreateDomain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
-	// DomainDescription Humand readable description for this domain.
-	DomainDescription string `json:"domain_description"`
+	// Description Humand readable description for this domain.
+	Description string `json:"description"`
+
+	// Title the title for the entry
+	Title string `json:"title"`
+
+	// Type Type of this domain. Currently only ipa is supported.
+	Type CreateDomainType `json:"type"`
+}
+
+// CreateDomainType Type of this domain. Currently only ipa is supported.
+type CreateDomainType string
+
+// Domain A domain resource
+type Domain struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// Description Human readable description abou the domain.
+	Description string `json:"description"`
 
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
-	// DomainType Type of this domain. Currently only ipa is supported.
-	DomainType CreateDomainDomainType `json:"domain_type"`
+	// DomainUuid Internal id for this domain
+	DomainUuid string `json:"domain_uuid"`
 
-	// Ipa Options for ipa domains
-	Ipa CreateDomainIpa `json:"ipa"`
+	// RhelIdm Options for ipa domains
+	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
+
+	// Title Title to describe the domain.
+	Title string `json:"title"`
+
+	// Type Type of this domain. Currently only ipa is supported.
+	Type DomainType `json:"type"`
 }
 
-// CreateDomainDomainType Type of this domain. Currently only ipa is supported.
-type CreateDomainDomainType string
+// DomainType Type of this domain. Currently only ipa is supported.
+type DomainType string
 
-// CreateDomainIpa Options for ipa domains
-type CreateDomainIpa struct {
+// DomainIpa Options for ipa domains
+type DomainIpa struct {
 	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
-	CaCerts []CreateDomainIpaCert `json:"ca_certs"`
+	CaCerts []DomainIpaCert `json:"ca_certs"`
 
-	// RealmDomains TODO What is the meaning of this field.
+	// RealmDomains List of realm associated to the IPA domain.
 	RealmDomains []string `json:"realm_domains"`
 
-	// RealmName The kerberos realm name associated to the IPA domain.
+	// RealmName The kerberos realm name associated to this IPA domain.
 	RealmName string `json:"realm_name"`
 
 	// Servers List of auto-enrollment enabled servers for this domain.
-	Servers *[]CreateDomainIpaServer `json:"servers,omitempty"`
-}
-
-// CreateDomainIpaCert Represent a certificate item in the cacerts list for the Ipa domain type.
-type CreateDomainIpaCert struct {
-	Issuer         *string    `json:"issuer,omitempty"`
-	Nickname       *string    `json:"nickname,omitempty"`
-	NotValidAfter  *time.Time `json:"not_valid_after,omitempty"`
-	NotValidBefore *time.Time `json:"not_valid_before,omitempty"`
-	Pem            *string    `json:"pem,omitempty"`
-	SerialNumber   *string    `json:"serial_number,omitempty"`
-	Subject        *string    `json:"subject,omitempty"`
-}
-
-// CreateDomainIpaServer Server schema for an entry into the Ipa domain type
-type CreateDomainIpaServer struct {
-	CaServer              bool   `json:"ca_server"`
-	Fqdn                  string `json:"fqdn"`
-	HccEnrollmentServer   bool   `json:"hcc_enrollment_server"`
-	HccUpdateServer       bool   `json:"hcc_update_server"`
-	PkinitServer          bool   `json:"pkinit_server"`
-	SubscriptionManagerId string `json:"subscription_manager_id"`
+	Servers []DomainIpaServer `json:"servers"`
 }
 
 // DomainIpaCert Represent a certificate item in the cacerts list for the Ipa domain type.
@@ -112,7 +115,7 @@ type DomainIpaCert struct {
 	Subject        string    `json:"subject"`
 }
 
-// DomainIpaServer Server schema for an entry into the Ipa domain type
+// DomainIpaServer Server schema for an entry into the Ipa domain type.
 type DomainIpaServer struct {
 	CaServer              bool   `json:"ca_server"`
 	Fqdn                  string `json:"fqdn"`
@@ -120,55 +123,6 @@ type DomainIpaServer struct {
 	HccUpdateServer       bool   `json:"hcc_update_server"`
 	PkinitServer          bool   `json:"pkinit_server"`
 	SubscriptionManagerId string `json:"subscription_manager_id"`
-}
-
-// DomainResponse A domain resource
-type DomainResponse struct {
-	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
-
-	// Description Human readable description abou the domain.
-	Description string `json:"description"`
-
-	// DomainName Domain name
-	DomainName string `json:"domain_name"`
-
-	// DomainUuid Internal id for this domain
-	DomainUuid string `json:"domain_uuid"`
-
-	// Ipa Options for ipa domains
-	Ipa DomainResponseIpa `json:"ipa"`
-
-	// Title Title to describe the domain.
-	Title string `json:"title"`
-
-	// Type Type of this domain. Currently only ipa is supported.
-	Type DomainResponseType `json:"type"`
-}
-
-// DomainResponseType Type of this domain. Currently only ipa is supported.
-type DomainResponseType string
-
-// DomainResponseIpa Options for ipa domains
-type DomainResponseIpa struct {
-	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
-	CaCerts []DomainIpaCert `json:"ca_certs"`
-
-	// RealmDomains List of realm associated to the IPA domain.
-	RealmDomains []string `json:"realm_domains"`
-
-	// RealmName The kerberos realm name associated to this IPA domain.
-	RealmName string `json:"realm_name"`
-
-	// Servers List of auto-enrollment enabled servers for this domain.
-	Servers []DomainIpaServer `json:"servers"`
-
-	// Token One time token returned when the domain is created to let to register
-	// an IPA domain by using hcc-ipa agent.
-	Token *string `json:"token,omitempty"`
-
-	// TokenExpiration When expire the one time token.
-	TokenExpiration *time.Time `json:"token_expiration,omitempty"`
 }
 
 // Error General error schema
@@ -251,21 +205,24 @@ type PaginationMeta struct {
 	Count *int32 `json:"count,omitempty"`
 }
 
-// RegisterDomain A domain resource
+// RegisterDomain defines model for RegisterDomain.
 type RegisterDomain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
-	// Description Humand readable description for this domain.
+	// Description Human readable description abou the domain.
 	Description string `json:"description"`
 
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
-	// RhelIdm Options for ipa domains
-	RhelIdm RegisterDomainIpa `json:"rhel-idm"`
+	// DomainUuid Internal id for this domain
+	DomainUuid string `json:"domain_uuid"`
 
-	// Title Human readable title for the domain resource.
+	// RhelIdm Options for ipa domains
+	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
+
+	// Title Title to describe the domain.
 	Title string `json:"title"`
 
 	// Type Type of this domain. Currently only ipa is supported.
@@ -275,23 +232,8 @@ type RegisterDomain struct {
 // RegisterDomainType Type of this domain. Currently only ipa is supported.
 type RegisterDomainType string
 
-// RegisterDomainIpa Options for ipa domains
-type RegisterDomainIpa struct {
-	// CaCerts List of certifacates for the rhel-idm server.
-	CaCerts []CreateDomainIpaCert `json:"ca_certs"`
-
-	// RealmDomains TODO What is the meaning of this field.
-	RealmDomains []string `json:"realm_domains"`
-
-	// RealmName The kerberos realm name for the rhel-idm domain.
-	RealmName string `json:"realm_name"`
-
-	// Servers List of auto-enrollment enabled servers for this domain.
-	Servers []CreateDomainIpaServer `json:"servers"`
-}
-
 // CreateDomainResponse A domain resource
-type CreateDomainResponse = DomainResponse
+type CreateDomainResponse = Domain
 
 // ErrorResponse General error response returned by the hmsidm API
 type ErrorResponse = Errors
@@ -304,10 +246,10 @@ type HostConfResponse = HostConfResponseSchema
 type ListDomainsResponse = ListDomainsResponseSchema
 
 // ReadDomainResponse A domain resource
-type ReadDomainResponse = DomainResponse
+type ReadDomainResponse = Domain
 
 // RegisterDomainResponse A domain resource
-type RegisterDomainResponse = DomainResponse
+type RegisterDomainResponse = Domain
 
 // CheckHostParams defines parameters for CheckHost.
 type CheckHostParams struct {
@@ -368,8 +310,8 @@ type RegisterDomainParams struct {
 	// XRhInsightsRequestId Request id
 	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 
-	// XRhIDMRegistrationToken One time use token to register ipa information.
-	XRhIDMRegistrationToken string `json:"X-Rh-IDM-Registration-Token"`
+	// XRhIdmRegistrationToken One time use token to register ipa information.
+	XRhIdmRegistrationToken string `json:"X-Rh-Idm-Registration-Token"`
 
 	// XRhIdmVersion ipa-hcc agent version
 	XRhIdmVersion string `json:"X-Rh-Idm-Version"`

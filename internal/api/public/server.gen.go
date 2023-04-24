@@ -28,7 +28,7 @@ type ServerInterface interface {
 	// Read a domain.
 	// (GET /domains/{uuid})
 	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
-	// Register an IPA domain.
+	// Register a domain.
 	// (PUT /domains/{uuid}/register)
 	RegisterDomain(ctx echo.Context, uuid string, params RegisterDomainParams) error
 	// Get host vm information.
@@ -374,22 +374,22 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	} else {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
 	}
-	// ------------- Required header parameter "X-Rh-IDM-Registration-Token" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-IDM-Registration-Token")]; found {
-		var XRhIDMRegistrationToken string
+	// ------------- Required header parameter "X-Rh-Idm-Registration-Token" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Idm-Registration-Token")]; found {
+		var XRhIdmRegistrationToken string
 		n := len(valueList)
 		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-IDM-Registration-Token, got %d", n))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Idm-Registration-Token, got %d", n))
 		}
 
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-IDM-Registration-Token", runtime.ParamLocationHeader, valueList[0], &XRhIDMRegistrationToken)
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Idm-Registration-Token", runtime.ParamLocationHeader, valueList[0], &XRhIdmRegistrationToken)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-IDM-Registration-Token: %s", err))
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Idm-Registration-Token: %s", err))
 		}
 
-		params.XRhIDMRegistrationToken = XRhIDMRegistrationToken
+		params.XRhIdmRegistrationToken = XRhIdmRegistrationToken
 	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-IDM-Registration-Token is required, but not found"))
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Idm-Registration-Token is required, but not found"))
 	}
 	// ------------- Required header parameter "X-Rh-Idm-Version" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Idm-Version")]; found {

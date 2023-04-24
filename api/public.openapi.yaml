@@ -312,29 +312,6 @@ paths:
                     application/json:
                         schema:
                             $ref: "#/components/schemas/RegisterDomain"
-                        examples:
-                            set ipa domain information:
-                                value:
-                                    servers:
-                                        - fqdn: ipaserver.mydomain.example
-                                          rhsm_id: 547ce70c-9eb5-4783-a619-086aa26f88e5
-                                          ca_server: true
-                                          hcc_enrollment_server: true
-                                          hcc_update_server: true
-                                          pkinit_server: true
-                                    ca_certs:
-                                        - nickname: MYDOMAIN.EXAMPLE IPA CA
-                                          issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                                          subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                                          serial_number: "1"
-                                          not_valid_before: 2023-01-31T13:23:36Z
-                                          not_valid_after: 2023-01-31T13:23:36Z
-                                          pem: |
-                                              -----BEGIN CERTIFICATE-----
-                                              MII...
-                                              -----END CERTIFICATE-----
-                                    realm_domains:
-                                        - mydomain.example
                 required: true
             tags:
                 - actions
@@ -350,7 +327,7 @@ paths:
             security:
                 - x-rh-identity: []
             operationId: registerDomain
-            summary: Register an IPA domain.
+            summary: Register a domain.
             description: >-
                 Use the one time use token to register the initial information for
 
@@ -368,7 +345,7 @@ paths:
                   type: string
               in: header
               required: true
-            - name: X-Rh-IDM-Registration-Token
+            - name: X-Rh-Idm-Registration-Token
               description: One time use token to register ipa information.
               schema:
                   type: string
@@ -532,46 +509,6 @@ components:
                 domain_type: ipa
                 subscription_manager_id: 2326738a-adf8-11ed-af7d-482ae3863d30
                 inventory_id: 2ea6db7e-cf74-4560-a286-4d7c9eaf698f
-        HostConfIpa:
-            title: Root Type for ResponseIpaObject
-            description: Options for ipa domains
-            required:
-                - ca_certs
-            type: object
-            properties:
-                realm_name:
-                    description: The realm name for the domain
-                    type: string
-                    example: IPA.EXAMPLE
-                server_list:
-                    description: List of auto-enrollment enabled servers for this domain.
-                    type: array
-                    items:
-                        type: string
-                    example: '["server1.mydomain.example","server2.mydomain.example"]'
-                ca_certs:
-                    description: List of certificate data.
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/CreateDomainIpaCert"
-                    example:
-                        - nickname: MYDOMAIN.EXAMPLE IPA CA
-                          issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                          subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                          serial_number: "1"
-                          not_valid_before: 2023-01-31T13:23:36Z
-                          not_valid_after: 2023-01-31T13:23:36Z
-                          pem": |-
-                              -----BEGIN CERTIFICATE-----
-                              MIIE...
-                              -----END CERTIFICATE-----
-            example:
-                realm_name: IPA.EXAMPLE
-                ca_list: base64
-                server_list:
-                    - server1.mydomain.example
-                    - server2.mydomain.example
-                client_options: {}
         HostConfResponseSchema:
             title: Root Type for HostConfResponse
             description: >-
@@ -630,70 +567,6 @@ components:
                 pem:
                     type: string
             additionalProperties: false
-            example:
-                nickname: MYDOMAIN.EXAMPLE IPA CA
-                issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                serial_number: "1"
-                not_valid_before: 2023-01-31T13:23:36Z
-                not_valid_after: 2023-01-31T13:23:36Z
-                pem: |
-                    -----BEGIN CERTIFICATE-----
-                    MIIE...
-                    -----END CERTIFICATE-----
-        DomainResponse:
-            title: Root Type for DomainResponse
-            description: A domain resource
-            required:
-                - auto_enrollment_enabled
-                - domain_name
-                - type
-                - ipa
-                - domain_uuid
-                - description
-                - title
-            type: object
-            properties:
-                domain_uuid:
-                    description: Internal id for this domain
-                    type: string
-                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name:
-                    description: Domain name
-                    type: string
-                    example: mydomain.example
-                auto_enrollment_enabled:
-                    description: Enable or disable host vm auto-enrollment for this domain
-                    type: boolean
-                    example: "true"
-                ipa:
-                    $ref: "#/components/schemas/DomainResponseIpa"
-                title:
-                    description: Title to describe the domain.
-                    type: string
-                description:
-                    description: Human readable description abou the domain.
-                    type: string
-                type:
-                    description: Type of this domain. Currently only ipa is supported.
-                    enum:
-                        - ipa
-                    type: string
-                    example: ipa
-            additionalProperties: false
-            example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name: mydomain.example
-                domain_description: My awesome domain description.
-                domain_type: ipa
-                auto_enrollment_enabled: true
-                ipa:
-                    realm_name: IPA.EXAMPLE
-                    ca_list: base64
-                    server_list:
-                        - server1.mydomain.example
-                        - Server2.mydomain.example
-                    client_options: {}
         ListDomainsResponseSchema:
             title: Root Type for ListDomains
             description: Represent a paginated result for a list of domains
@@ -731,42 +604,34 @@ components:
             description: A domain resource
             required:
                 - auto_enrollment_enabled
-                - domain_name
-                - domain_type
-                - ipa
-                - domain_description
+                - type
+                - description
+                - title
             type: object
             properties:
-                domain_name:
-                    description: Domain name
-                    type: string
-                    example: mydomain.example
-                domain_type:
-                    description: Type of this domain. Currently only ipa is supported.
-                    enum:
-                        - ipa
-                    type: string
-                    example: ipa
                 auto_enrollment_enabled:
                     description: Enable or disable host vm auto-enrollment for this domain
                     type: boolean
                     example: "true"
-                domain_description:
+                type:
+                    description: Type of this domain. Currently only ipa is supported.
+                    enum:
+                        - rhel-idm
+                    type: string
+                    example: ipa
+                title:
+                    description: the title for the entry
+                    type: string
+                description:
                     description: Humand readable description for this domain.
                     type: string
                     example: This is my awesome domain description.
-                ipa:
-                    $ref: "#/components/schemas/CreateDomainIpa"
             additionalProperties: false
             example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name: mydomain.example
-                domain_type: ipa
+                title: My Domain Example Title
+                description: My Domain Example Description
                 auto_enrollment_enabled: true
-                ipa:
-                    realm_name: MYDOMAIN.EXAMPLE
-                    ca_certs: []
-                    servers: []
+                type: rhel-idm
         CreateDomainIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
@@ -796,8 +661,8 @@ components:
                             "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
                             "serial_number": "1",
                             "not_valid_before": "2023-01-31T13:23:36Z",
-                            "not_valid_after": "2023-01-31T13:23:36Z"
-                            "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+                            "not_valid_after": "2023-01-31T13:23:36Z",
+                            "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
                           }
                         ]
                 realm_name:
@@ -810,35 +675,180 @@ components:
                     items:
                         type: string
             additionalProperties: false
-            example: >-
-                {
-                  "realm_name": "MYDOMAIN.EXAMPLE",
-                  "servers": [
-                    {
-                      "fqdn": "ipaserver.mydomain.example",
-                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
-                      "ca_server": true,
-                      "hcc_enrollment_server": true,
-                      "hcc_update_server": true,
-                      "pkinit_server": true
-                    }
-                  ],
-                  "cacerts": [
-                    {
-                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "serial_number": "1",
-                      "not_valid_before": "2023-01-31T13:23:36Z",
-                      "not_valid_after": "2023-01-31T13:23:36Z"
-                      "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-                    }
-                  ],
-                  "realm_domains": [
-                    "ipahcc.test"
-                  ]
-                }
-        DomainResponseIpa:
+        RegisterDomain:
+            title: Root Type for DomainResponse
+            description: A domain resource
+            type: object
+            allOf:
+                - type: object
+                - $ref: "#/components/schemas/Domain"
+            additionalProperties: false
+        Errors:
+            title: Root Type for ErrorResponse
+            description: General error response returned by the hmsidm API
+            type: object
+            properties:
+                errors:
+                    description: Error objects provide additional information about problems
+                        encountered while performing an operation.
+                    minItems: 1
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/Error"
+                    readOnly: true
+                    example: >
+                        [
+                          {
+                            "id": "${X-RH-INSIGHTS-REQUEST-ID}",
+                            "status": "400",
+                            "detail": "Bad request: additional details: more additional details"
+                          }
+                        ]
+            example:
+                errors:
+                    - id: ${X-RH-INSIGHTS-REQUEST-ID}
+                      status: "400"
+                      detail: "Bad request: additional details: more additional details"
+        CreateDomainIpaServer:
+            title: Root Type for CreateDomainIpaServer
+            description: Server schema for an entry into the Ipa domain type
+            required:
+                - fqdn
+                - ca_server
+                - hcc_enrollment_server
+                - hcc_update_server
+                - pkinit_server
+                - subscription_manager_id
+            type: object
+            properties:
+                fqdn:
+                    type: string
+                    example: server1.mydomain.example
+                ca_server:
+                    type: boolean
+                    example: "true"
+                subscription_manager_id:
+                    type: string
+                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                hcc_enrollment_server:
+                    type: boolean
+                    example: "true"
+                hcc_update_server:
+                    type: boolean
+                    example: "true"
+                pkinit_server:
+                    type: boolean
+                    example: "true"
+            additionalProperties: false
+            example:
+                fqdn: ipaserver.mydomain.example
+                subscription_manager_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                ca_server: true
+                hcc_enrollment_server: true
+                hcc_update_server: true
+                pkinit_server: true
+        DomainIpaCert:
+            title: Root Type for CreateDomainIpaCert
+            description: Represent a certificate item in the cacerts list for the Ipa domain
+                type.
+            required:
+                - issuer
+                - nickname
+                - not_valid_after
+                - not_valid_before
+                - pem
+                - serial_number
+                - subject
+            type: object
+            properties:
+                nickname:
+                    type: string
+                    example: MYDOMAIN.EXAMPLE IPA CA
+                issuer:
+                    type: string
+                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                subject:
+                    type: string
+                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
+                serial_number:
+                    type: string
+                    example: "1"
+                not_valid_before:
+                    format: date-time
+                    type: string
+                    example: ""
+                not_valid_after:
+                    format: date-time
+                    type: string
+                    example: ""
+                pem:
+                    type: string
+                    example: -----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n
+            additionalProperties: false
+        RhelIdmToken:
+            title: Root Type for RhelIdmToken
+            description: Represent a rhel-idm token which allow register the domain
+                information.
+            type: object
+            properties:
+                secret:
+                    type: string
+                expiration:
+                    format: date-time
+                    type: string
+        Domain:
+            title: Root Type for DomainResponse
+            description: A domain resource
+            required:
+                - auto_enrollment_enabled
+                - domain_name
+                - type
+                - domain_uuid
+                - description
+                - title
+            type: object
+            properties:
+                domain_uuid:
+                    description: Internal id for this domain
+                    type: string
+                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_name:
+                    description: Domain name
+                    type: string
+                    example: mydomain.example
+                auto_enrollment_enabled:
+                    description: Enable or disable host vm auto-enrollment for this domain
+                    type: boolean
+                    example: "true"
+                title:
+                    description: Title to describe the domain.
+                    type: string
+                description:
+                    description: Human readable description abou the domain.
+                    type: string
+                type:
+                    description: Type of this domain. Currently only ipa is supported.
+                    enum:
+                        - rhel-idm
+                    type: string
+                    example: ipa
+                rhel-idm:
+                    $ref: "#/components/schemas/DomainIpa"
+            additionalProperties: false
+            example:
+                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_name: mydomain.example
+                domain_description: My awesome domain description.
+                domain_type: ipa
+                auto_enrollment_enabled: true
+                ipa:
+                    realm_name: IPA.EXAMPLE
+                    ca_list: []
+                    server_list:
+                        - server1.mydomain.example
+                        - Server2.mydomain.example
+                    client_options: {}
+        DomainIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
             required:
@@ -880,134 +890,8 @@ components:
                     type: array
                     items:
                         type: string
-                token:
-                    description: >-
-                        One time token returned when the domain is created to let to
-                        register
-
-                        an IPA domain by using hcc-ipa agent.
-                    type: string
-                    example: ccab7b91-f79a-4e65-9cef-1560ffa36230
-                token_expiration:
-                    format: date-time
-                    description: When expire the one time token.
-                    type: string
             additionalProperties: false
-            example: >-
-                {
-                  "servers": [
-                    {
-                      "fqdn": "ipaserver.mydomain.example",
-                      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
-                      "ca_server": true,
-                      "hcc_enrollment_server": true,
-                      "hcc_update_server": true,
-                      "pkinit_server": true
-                    }
-                  ],
-                  "cacerts": [
-                    {
-                      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                      "serial_number": "1",
-                      "not_valid_before": "2023-01-31T13:23:36Z",
-                      "not_valid_after": "2023-01-31T13:23:36Z"
-                      "pem": "-----BEGIN CERTIFICATE-----\nMIIE...\n-----END CERTIFICATE-----\n",
-                    }
-                  ]
-                }
-        RegisterDomain:
-            title: Root Type for DomainResponse
-            description: A domain resource
-            required:
-                - auto_enrollment_enabled
-                - domain_name
-                - type
-                - rhel-idm
-                - description
-                - title
-            type: object
-            properties:
-                domain_name:
-                    description: Domain name
-                    type: string
-                    example: mydomain.example
-                auto_enrollment_enabled:
-                    description: Enable or disable host vm auto-enrollment for this domain
-                    type: boolean
-                    example: "true"
-                rhel-idm:
-                    $ref: "#/components/schemas/RegisterDomainIpa"
-                type:
-                    description: Type of this domain. Currently only ipa is supported.
-                    enum:
-                        - rhel-idm
-                    type: string
-                    example: rhel-idm
-                description:
-                    description: Humand readable description for this domain.
-                    type: string
-                    example: This is my awesome domain description.
-                title:
-                    description: Human readable title for the domain resource.
-                    type: string
-                    example: My Domain Example
-            additionalProperties: false
-            example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-                domain_name: mydomain.example
-                type: rhel-idm
-                auto_enrollment_enabled: true
-                rhel-idm:
-                    realm_name: MYDOMAIN.EXAMPLE
-                    servers:
-                        - fqdn: server1.mydomain.example
-                          subscription_manager_id: 547ce70c-9eb5-4783-a619-086aa26f88e5
-                          ca_server: true
-                          hcc_enrollment_server: true
-                          hcc_update_server: true
-                          pkinit_server: true
-                    ca_certs:
-                        - nickname: MYDOMAIN.EXAMPLE IPA CA
-                          issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                          subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                          serial_number: "1"
-                          not_valid_before: 2023-01-31T13:23:36
-                          not_valid_after: 2023-01-31T13:23:36
-                          pem: |
-                              -----BEGIN CERTIFICATE-----
-                              MII...
-                              -----END CERTIFICATE-----
-                    realm_domains:
-                        - mydomain.example
-        Errors:
-            title: Root Type for ErrorResponse
-            description: General error response returned by the hmsidm API
-            type: object
-            properties:
-                errors:
-                    description: Error objects provide additional information about problems
-                        encountered while performing an operation.
-                    minItems: 1
-                    type: array
-                    items:
-                        $ref: "#/components/schemas/Error"
-                    readOnly: true
-                    example: >
-                        [
-                          {
-                            "id": "${X-RH-INSIGHTS-REQUEST-ID}",
-                            "status": "400",
-                            "detail": "Bad request: additional details: more additional details"
-                          }
-                        ]
-            example:
-                errors:
-                    - id: ${X-RH-INSIGHTS-REQUEST-ID}
-                      status: "400"
-                      detail: "Bad request: additional details: more additional details"
-        DomainResponseIpaServer:
+        DomainIpaServer:
             title: Root Type for CreateDomainIpaServer
             description: Server schema for an entry into the Ipa domain type.
             required:
@@ -1016,15 +900,12 @@ components:
                 - hcc_enrollment_server
                 - hcc_update_server
                 - pkinit_server
-                - rhsm_id
+                - subscription_manager_id
             type: object
             properties:
                 fqdn:
                     type: string
                     example: server1.mydomain.example
-                rhsm_id:
-                    type: string
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
                 ca_server:
                     type: boolean
                     example: "true"
@@ -1037,6 +918,9 @@ components:
                 pkinit_server:
                     type: boolean
                     example: "true"
+                subscription_manager_id:
+                    type: string
+                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
             additionalProperties: false
             example:
                 fqdn: ipaserver.mydomain.example
@@ -1045,288 +929,55 @@ components:
                 hcc_enrollment_server: true
                 hcc_update_server: true
                 pkinit_server: true
-        CreateDomainIpaServer:
-            title: Root Type for CreateDomainIpaServer
-            description: Server schema for an entry into the Ipa domain type
-            required:
-                - fqdn
-                - ca_server
-                - hcc_enrollment_server
-                - hcc_update_server
-                - pkinit_server
-                - subscription_manager_id
+        ResponseDomain:
+            title: Root Type for DomainResponse
+            description: A domain resource
             type: object
-            properties:
-                fqdn:
-                    type: string
-                    example: server1.mydomain.example
-                ca_server:
-                    type: boolean
-                    example: "true"
-                subscription_manager_id:
-                    type: string
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
-                hcc_enrollment_server:
-                    type: boolean
-                    example: "true"
-                hcc_update_server:
-                    type: boolean
-                    example: "true"
-                pkinit_server:
-                    type: boolean
-                    example: "true"
+            allOf:
+                - type: object
+                - $ref: "#/components/schemas/Domain"
             additionalProperties: false
             example:
-                fqdn: ipaserver.mydomain.example
-                subscription_manager_id: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server: true
-                hcc_enrollment_server: true
-                hcc_update_server: true
-                pkinit_server: true
-        RegisterDomainIpaServer:
-            title: Root Type for CreateDomainIpaServer
-            description: Server schema for an entry into the Ipa domain type
-            required:
-                - fqdn
-                - ca_server
-                - hcc_enrollment_server
-                - hcc_update_server
-                - pkinit_server
-                - subscription_manager_id
-            type: object
-            properties:
-                fqdn:
-                    type: string
-                    example: server1.mydomain.example
-                ca_server:
-                    type: boolean
-                    example: "true"
-                subscription_manager_id:
-                    type: string
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
-                hcc_enrollment_server:
-                    type: boolean
-                    example: "true"
-                hcc_update_server:
-                    type: boolean
-                    example: "true"
-                pkinit_server:
-                    type: boolean
-                    example: "true"
-            additionalProperties: false
-            example:
-                fqdn: ipaserver.mydomain.example
-                subscription_manager_id: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server: true
-                hcc_enrollment_server: true
-                hcc_update_server: true
-                pkinit_server: true
-        RegisterDomainIpa:
+                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_name: mydomain.example
+                domain_description: My awesome domain description.
+                auto_enrollment_enabled: true
+                domain_type: rhel-idm
+        HostConfIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
             required:
                 - ca_certs
-                - realm_domains
-                - realm_name
-                - servers
             type: object
             properties:
-                servers:
+                realm_name:
+                    description: The realm name for the domain
+                    type: string
+                    example: IPA.EXAMPLE
+                server_list:
                     description: List of auto-enrollment enabled servers for this domain.
                     type: array
                     items:
-                        $ref: "#/components/schemas/CreateDomainIpaServer"
+                        type: string
                     example: '["server1.mydomain.example","server2.mydomain.example"]'
                 ca_certs:
-                    description: List of certifacates for the rhel-idm server.
+                    description: List of certificate data.
                     type: array
                     items:
                         $ref: "#/components/schemas/CreateDomainIpaCert"
-                    example: >-
-                        {
-                            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-                            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-                            "serial_number": "1",
-                            "not_valid_before": "2023-01-31T13:23:36Z",
-                            "not_valid_after": "2023-01-31T13:23:36Z",
-                            "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----"
-                        }
                 realm_domains:
-                    description: TODO What is the meaning of this field.
+                    description: List of certificate data.
                     type: array
                     items:
                         type: string
-                realm_name:
-                    description: The kerberos realm name for the rhel-idm domain.
-                    type: string
-                    example: MYDOMAIN.EXAMPLE
-            additionalProperties: false
+                    example: '["mydomain.example"]'
             example:
-                realm_name: mydomain.example
-                servers:
-                    - fqdn: ipaserver.mydomain.example
-                      subscription_manager_id: 547ce70c-9eb5-4783-a619-086aa26f88e5
-                      ca_server: true
-                      hcc_enrollment_server: true
-                      hcc_update_server: true
-                      pkinit_server: true
-                cacerts:
-                    - nickname: MYDOMAIN.EXAMPLE IPA CA
-                      issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                      subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                      serial_number: "1"
-                      not_valid_before: 2023-01-31T13:23:36Z
-                      not_valid_after: 2023-01-31T13:23:36Z
-                      pem: |
-                          -----BEGIN CERTIFICATE-----
-                          MII...
-                          -----END CERTIFICATE-----
-                realm_domains:
-                    - mydomain.example
-        RegisterDomainIpaCert:
-            title: Root Type for CreateDomainIpaCert
-            description: Represent a certificate item in the cacerts list for the Ipa domain
-                type.
-            required:
-                - issuer
-                - nickname
-                - not_valid_after
-                - not_valid_before
-                - pem
-                - serial_number
-                - subject
-            type: object
-            properties:
-                nickname:
-                    type: string
-                    example: MYDOMAIN.EXAMPLE IPA CA
-                issuer:
-                    type: string
-                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                subject:
-                    type: string
-                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                serial_number:
-                    type: string
-                    example: "1"
-                not_valid_before:
-                    format: date-time
-                    type: string
-                    example: 2023-01-31T13:23:36Z
-                not_valid_after:
-                    format: date-time
-                    type: string
-                    example: 2023-01-31T13:23:36Z
-                pem:
-                    type: string
-                    example: -----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n
-            additionalProperties: false
-            example:
-                nickname: MYDOMAIN.EXAMPLE IPA CA
-                issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                serial_number: "1"
-                not_valid_before: 2023-01-31T13:23:36Z
-                not_valid_after: 2023-01-31T13:23:36Z
-                pem: |
-                    -----BEGIN CERTIFICATE-----
-                    MIIE...
-                    -----END CERTIFICATE-----
-        DomainIpaCert:
-            title: Root Type for CreateDomainIpaCert
-            description: Represent a certificate item in the cacerts list for the Ipa domain
-                type.
-            required:
-                - issuer
-                - nickname
-                - not_valid_after
-                - not_valid_before
-                - pem
-                - serial_number
-                - subject
-            type: object
-            properties:
-                nickname:
-                    type: string
-                    example: MYDOMAIN.EXAMPLE IPA CA
-                issuer:
-                    type: string
-                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                subject:
-                    type: string
-                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                serial_number:
-                    type: string
-                    example: "1"
-                not_valid_before:
-                    format: date-time
-                    type: string
-                    example: 2023-01-31T13:23:36Z
-                not_valid_after:
-                    format: date-time
-                    type: string
-                    example: 2023-01-31T13:23:36Z
-                pem:
-                    type: string
-                    example: -----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n
-            additionalProperties: false
-            example:
-                nickname: MYDOMAIN.EXAMPLE IPA CA
-                issuer: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                subject: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                serial_number: "1"
-                not_valid_before: 2023-01-31T13:23:36Z
-                not_valid_after: 2023-01-31T13:23:36Z
-                pem: |
-                    -----BEGIN CERTIFICATE-----
-                    MIIE...
-                    -----END CERTIFICATE-----
-        DomainIpaServer:
-            title: Root Type for CreateDomainIpaServer
-            description: Server schema for an entry into the Ipa domain type
-            required:
-                - fqdn
-                - ca_server
-                - hcc_enrollment_server
-                - hcc_update_server
-                - pkinit_server
-                - subscription_manager_id
-            type: object
-            properties:
-                fqdn:
-                    type: string
-                    example: server1.mydomain.example
-                ca_server:
-                    type: boolean
-                    example: "true"
-                subscription_manager_id:
-                    type: string
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
-                hcc_enrollment_server:
-                    type: boolean
-                    example: "true"
-                hcc_update_server:
-                    type: boolean
-                    example: "true"
-                pkinit_server:
-                    type: boolean
-                    example: "true"
-            additionalProperties: false
-            example:
-                fqdn: ipaserver.mydomain.example
-                subscription_manager_id: 03965a2c-bd24-11ed-968d-482ae3863d30
-                ca_server: true
-                hcc_enrollment_server: true
-                hcc_update_server: true
-                pkinit_server: true
+                realm_name: IPA.EXAMPLE
+                ca_list: base64
+                server_list:
+                    - server1.mydomain.example
+                    - server2.mydomain.example
     responses:
-        CreateDomainResponse:
-            content:
-                application/json:
-                    schema:
-                        $ref: "#/components/schemas/DomainResponse"
-            description: Response when a domain has been created.
         ErrorResponse:
             content:
                 application/json:
@@ -1337,7 +988,7 @@ components:
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/DomainResponse"
+                        $ref: "#/components/schemas/Domain"
             description: This represent the response for a specific domain.
         ListDomainsResponse:
             content:
@@ -1351,18 +1002,22 @@ components:
                     schema:
                         $ref: "#/components/schemas/HostConfResponseSchema"
             description: Response for the HostConf action.
-        CreateDomainIpaResponse:
-            content:
-                application/json:
-                    schema:
-                        $ref: "#/components/schemas/DomainResponse"
-            description: Response when a domain has been created.
         RegisterDomainResponse:
             content:
                 application/json:
                     schema:
-                        $ref: "#/components/schemas/DomainResponse"
+                        $ref: "#/components/schemas/Domain"
             description: Response for the domain register operation.
+        CreateDomainResponse:
+            headers:
+                X-Rh-Idm-Rhel-Idm-Token:
+                    schema:
+                        type: string
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Domain"
+            description: Response when a domain has been created.
     securitySchemes:
         x-rh-identity:
             type: apiKey
