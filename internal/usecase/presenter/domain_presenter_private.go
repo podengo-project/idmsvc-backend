@@ -20,7 +20,10 @@ import (
 // to be filled.
 // Return nil if the information is translated properly
 // else return an error.
-func (p domainPresenter) registerIpaCaCerts(domain *model.Domain, output *public.Domain) error {
+func (p domainPresenter) registerIpaCaCerts(
+	domain *model.Domain,
+	output *public.Domain,
+) error {
 	ipa := domain.IpaDomain
 	if ipa.CaCerts == nil {
 		return fmt.Errorf("'ipa.CaCerts' is nil")
@@ -45,7 +48,10 @@ func (p domainPresenter) registerIpaCaCerts(domain *model.Domain, output *public
 // to be filled.
 // Return nil if the information is translated properly
 // else return an error.
-func (p domainPresenter) registerIpaServers(domain *model.Domain, output *public.Domain) error {
+func (p domainPresenter) registerIpaServers(
+	domain *model.Domain,
+	output *public.Domain,
+) error {
 	ipa := domain.IpaDomain
 	if ipa == nil {
 		return fmt.Errorf("'IpaDomain' is nil")
@@ -134,9 +140,6 @@ func (p domainPresenter) getChecks(domain *model.Domain) error {
 	if domain.AutoEnrollmentEnabled == nil {
 		return fmt.Errorf("'AutoenrollmentEnabled' is nil")
 	}
-	// if domain.DomainName == nil {
-	// 	return fmt.Errorf("'DomainName' is nil")
-	// }
 	if domain.Type == nil {
 		return fmt.Errorf("'DomainType' is nil")
 	}
@@ -185,12 +188,12 @@ func (p domainPresenter) createRhelIdmCheckDomain(domain *model.Domain) error {
 	if domain.IpaDomain.RealmName == nil {
 		return fmt.Errorf("'RealmName' is nil")
 	}
-	// if domain.IpaDomain.CaCerts == nil {
-	// 	return fmt.Errorf("'CaCerts' is nil")
-	// }
-	// if domain.IpaDomain.Servers == nil {
-	// 	return fmt.Errorf("'Servers' is nil")
-	// }
+	if domain.IpaDomain.CaCerts == nil {
+		return fmt.Errorf("'CaCerts' is nil")
+	}
+	if domain.IpaDomain.Servers == nil {
+		return fmt.Errorf("'Servers' is nil")
+	}
 	return nil
 }
 

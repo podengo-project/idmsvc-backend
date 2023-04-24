@@ -298,9 +298,6 @@ func (r *domainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid str
 			Error; err != nil {
 			return err
 		}
-
-	default:
-		return fmt.Errorf("'Type=%d' invalid", *dataDomain.Type)
 	}
 
 	return nil
