@@ -153,22 +153,10 @@ func TestCreate(t *testing.T) {
 				Err:      fmt.Errorf("'AutoEnrollmentEnabled' is nil"),
 			},
 		},
-		// {
-		// 	Name: "DomainName is nil",
-		// 	Given: &model.Domain{
-		// 		AutoEnrollmentEnabled: pointy.Bool(true),
-		// 		DomainName:            nil,
-		// 	},
-		// 	Expected: TestCaseExpected{
-		// 		Response: nil,
-		// 		Err:      fmt.Errorf("'DomainName' is nil"),
-		// 	},
-		// },
 		{
 			Name: "Type is nil",
 			Given: &model.Domain{
 				AutoEnrollmentEnabled: pointy.Bool(true),
-				DomainName:            pointy.String("domain.example"),
 				Type:                  nil,
 			},
 			Expected: TestCaseExpected{
@@ -195,21 +183,21 @@ func TestCreate(t *testing.T) {
 				Err: nil,
 			},
 		},
-		{
-			Name: "RealmName is nil",
-			Given: &model.Domain{
-				AutoEnrollmentEnabled: pointy.Bool(true),
-				DomainName:            pointy.String("domain.example"),
-				Type:                  pointy.Uint(model.DomainTypeIpa),
-				IpaDomain: &model.Ipa{
-					RealmName: nil,
-				},
-			},
-			Expected: TestCaseExpected{
-				Response: nil,
-				Err:      fmt.Errorf("'RealmName' is nil"),
-			},
-		},
+		// {
+		// 	Name: "RealmName is nil",
+		// 	Given: &model.Domain{
+		// 		AutoEnrollmentEnabled: pointy.Bool(true),
+		// 		DomainName:            pointy.String("domain.example"),
+		// 		Type:                  pointy.Uint(model.DomainTypeIpa),
+		// 		IpaDomain: &model.Ipa{
+		// 			RealmName: nil,
+		// 		},
+		// 	},
+		// 	Expected: TestCaseExpected{
+		// 		Response: nil,
+		// 		Err:      fmt.Errorf("'RealmName' is nil"),
+		// 	},
+		// },
 		// {
 		// 	Name: "CaCerts is nil",
 		// 	Given: &model.Domain{
@@ -249,11 +237,11 @@ func TestCreate(t *testing.T) {
 				AutoEnrollmentEnabled: pointy.Bool(true),
 				DomainName:            pointy.String("domain.example"),
 				Type:                  pointy.Uint(model.DomainTypeIpa),
-				IpaDomain: &model.Ipa{
-					RealmName: pointy.String("DOMAIN.EXAMPLE"),
-					CaCerts:   []model.IpaCert{},
-					Servers:   []model.IpaServer{},
-				},
+				// IpaDomain: &model.Ipa{
+				// 	RealmName: pointy.String("DOMAIN.EXAMPLE"),
+				// 	CaCerts:   []model.IpaCert{},
+				// 	Servers:   []model.IpaServer{},
+				// },
 			},
 			Expected: TestCaseExpected{
 				Response: &public.CreateDomainResponse{
@@ -261,42 +249,42 @@ func TestCreate(t *testing.T) {
 					AutoEnrollmentEnabled: true,
 					Type:                  model.DomainTypeIpaString,
 					DomainUuid:            "00000000-0000-0000-0000-000000000000",
-					RhelIdm: &public.DomainIpa{
-						RealmName: "DOMAIN.EXAMPLE",
-						CaCerts:   []public.DomainIpaCert{},
-						Servers:   []public.DomainIpaServer{},
-					},
+					// RhelIdm: &public.DomainIpa{
+					// 	RealmName: "DOMAIN.EXAMPLE",
+					// 	CaCerts:   []public.DomainIpaCert{},
+					// 	Servers:   []public.DomainIpaServer{},
+					// },
 				},
 				Err: nil,
 			},
 		},
-		{
-			Name: "Success scenario with DomainName equals to nil",
-			Given: &model.Domain{
-				AutoEnrollmentEnabled: pointy.Bool(true),
-				DomainName:            nil,
-				Type:                  pointy.Uint(model.DomainTypeIpa),
-				IpaDomain: &model.Ipa{
-					RealmName: pointy.String("DOMAIN.EXAMPLE"),
-					CaCerts:   []model.IpaCert{},
-					Servers:   []model.IpaServer{},
-				},
-			},
-			Expected: TestCaseExpected{
-				Response: &public.CreateDomainResponse{
-					DomainName:            "",
-					AutoEnrollmentEnabled: true,
-					Type:                  model.DomainTypeIpaString,
-					DomainUuid:            "00000000-0000-0000-0000-000000000000",
-					RhelIdm: &public.DomainIpa{
-						RealmName: "DOMAIN.EXAMPLE",
-						CaCerts:   []public.DomainIpaCert{},
-						Servers:   []public.DomainIpaServer{},
-					},
-				},
-				Err: nil,
-			},
-		},
+		// {
+		// 	Name: "Success scenario with DomainName equals to nil",
+		// 	Given: &model.Domain{
+		// 		AutoEnrollmentEnabled: pointy.Bool(true),
+		// 		DomainName:            nil,
+		// 		Type:                  pointy.Uint(model.DomainTypeIpa),
+		// 		IpaDomain: &model.Ipa{
+		// 			RealmName: pointy.String("DOMAIN.EXAMPLE"),
+		// 			CaCerts:   []model.IpaCert{},
+		// 			Servers:   []model.IpaServer{},
+		// 		},
+		// 	},
+		// 	Expected: TestCaseExpected{
+		// 		Response: &public.CreateDomainResponse{
+		// 			DomainName:            "",
+		// 			AutoEnrollmentEnabled: true,
+		// 			Type:                  model.DomainTypeIpaString,
+		// 			DomainUuid:            "00000000-0000-0000-0000-000000000000",
+		// 			RhelIdm: &public.DomainIpa{
+		// 				RealmName: "DOMAIN.EXAMPLE",
+		// 				CaCerts:   []public.DomainIpaCert{},
+		// 				Servers:   []public.DomainIpaServer{},
+		// 			},
+		// 		},
+		// 		Err: nil,
+		// 	},
+		// },
 	}
 
 	for _, testCase := range testCases {

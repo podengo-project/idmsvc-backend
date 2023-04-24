@@ -435,10 +435,10 @@ func (s *Suite) TestUpdateErrors() {
 	)
 
 	err = s.repository.Update(nil, "", nil)
-	assert.EqualError(t, err, "'db' cannot be nil")
+	assert.EqualError(t, err, "'db' is nil")
 
 	err = s.repository.Update(s.DB, "", nil)
-	assert.EqualError(t, err, "'orgId' cannot be an empty string")
+	assert.EqualError(t, err, "'orgId' is empty")
 
 	err = s.repository.Update(s.DB, orgID, nil)
 	assert.EqualError(t, err, "'data' is nil")
