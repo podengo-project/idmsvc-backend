@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -65,8 +66,8 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 		return err
 	}
 	data.OrgId = orgId
-	err = db.Omit(clause.Associations).Create(data).Error
-	if err != nil {
+	if err = db.Omit(clause.Associations).
+		Create(data).Error; err != nil {
 		return err
 	}
 	switch *data.Type {
@@ -157,7 +158,7 @@ func (r *domainRepository) Update(
 	}
 
 	if err = db.Omit(clause.Associations).
-		Where("org_id = ? AND id = ?", orgId, data.ID).
+		Where("org_id = ?", orgId).
 		Updates(data).
 		Error; err != nil {
 		return err
@@ -223,15 +224,11 @@ func (r *domainRepository) updateIpaDomain(db *gorm.DB, data *model.Ipa) (err er
 // See: https://gorm.io/docs/query.html
 // TODO Document the method
 func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (output *model.Domain, err error) {
-	var count int64
 	if err = r.checkCommonAndUUID(db, orgId, uuid); err != nil {
 		return nil, err
 	}
-	if err = db.First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).Count(&count).Error; err != nil {
+	if err = db.First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).Error; err != nil {
 		return nil, err
-	}
-	if count == 0 {
-		return nil, fmt.Errorf("Not found")
 	}
 	if output.Type == nil {
 		return output, nil
@@ -239,11 +236,15 @@ func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (out
 	switch *output.Type {
 	case model.DomainTypeIpa:
 		output.IpaDomain = &model.Ipa{}
-		if err = db.Preload("CaCerts").Preload("Servers").First(output.IpaDomain, "id = ?", output.ID).Count(&count).Error; err != nil {
-			return nil, err
-		}
-		if count == 0 {
-			return nil, fmt.Errorf("Not found")
+		output.IpaDomain.ID = output.ID
+		if err = db.Preload("CaCerts").
+			Preload("Servers").
+			// First(output.IpaDomain, "id = ?", output.ID).
+			First(output.IpaDomain).
+			Error; err != nil {
+			if !errors.Is(err, gorm.ErrRecordNotFound) {
+				return nil, err
+			}
 		}
 		return output, nil
 	default:

@@ -3,6 +3,7 @@ package repository
 // https://pkg.go.dev/github.com/stretchr/testify/suite
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"regexp"
 	"testing"
@@ -444,19 +445,53 @@ func (s *Suite) TestUpdateErrors() {
 	assert.EqualError(t, err, "'data' is nil")
 
 	s.mock.MatchExpectationsInOrder(true)
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "id"=$1,"created_at"=$2,"updated_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"title"=$7,"description"=$8,"type"=$9,"auto_enrollment_enabled"=$10 WHERE "domains"."deleted_at" IS NULL AND "id" = $11`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 		WithArgs(
-			data.ID,
-			sqlmock.AnyArg(),
-			sqlmock.AnyArg(),
+			orgID,
+			testUUID,
+		).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type", "auto_enrollment_enabled",
+		}).AddRow(
+			data.Model.ID,
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			nil,
+
 			data.OrgId,
-			data.DomainUuid,
+			testUUID,
+			*data.DomainName,
+			*data.Title,
+			*data.Description,
+			*data.Type,
+			*data.AutoEnrollmentEnabled,
+		))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
+		WithArgs(
+			data.Model.ID,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{
+				"id", "created_at", "updated_at", "deleted_at",
+				"realm_name", "realm_names", "token", "token_expiration",
+			}))
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE org_id = $10 AND "domains"."deleted_at" IS NULL AND "id" = $11`)).
+		WithArgs(
+			sqlmock.AnyArg(),
+			sqlmock.AnyArg(),
+
+			data.OrgId,
+			testUUID.String(),
 			data.DomainName,
+
 			data.Title,
 			data.Description,
 			data.Type,
 			data.AutoEnrollmentEnabled,
 
+			data.OrgId,
 			data.ID,
 		).
 		WillReturnError(fmt.Errorf("An error"))
@@ -464,25 +499,64 @@ func (s *Suite) TestUpdateErrors() {
 	assert.EqualError(t, err, "An error")
 
 	s.mock.MatchExpectationsInOrder(true)
-	// UPDATE "domains"
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "id"=$1,"created_at"=$2,"updated_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"title"=$7,"description"=$8,"type"=$9,"auto_enrollment_enabled"=$10 WHERE "domains"."deleted_at" IS NULL AND "id" = $11`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 		WithArgs(
-			data.ID,
-			sqlmock.AnyArg(),
-			sqlmock.AnyArg(),
+			orgID,
+			testUUID,
+		).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type", "auto_enrollment_enabled",
+		}).AddRow(
+			data.Model.ID,
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			nil,
+
 			data.OrgId,
-			data.DomainUuid,
+			testUUID,
+			*data.DomainName,
+			*data.Title,
+			*data.Description,
+			*data.Type,
+			*data.AutoEnrollmentEnabled,
+		))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
+		WithArgs(
+			data.Model.ID,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{
+				"id", "created_at", "updated_at", "deleted_at",
+				"realm_name", "realm_names", "token", "token_expiration",
+			}))
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE org_id = $10 AND "domains"."deleted_at" IS NULL AND "id" = $11`)).
+		WithArgs(
+			sqlmock.AnyArg(),
+			sqlmock.AnyArg(),
+
+			data.OrgId,
+			testUUID.String(),
 			data.DomainName,
+
 			data.Title,
 			data.Description,
 			data.Type,
 			data.AutoEnrollmentEnabled,
 
+			data.OrgId,
 			data.ID,
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))
-	// INSERT INTO "ipas"
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT ("id") DO UPDATE SET "id"="excluded"."id" RETURNING "id"`)).
+	s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE id = $1 AND "ipas"."id" = $2`)).
+		WithArgs(
+			data.ID,
+			data.ID,
+		).WillReturnResult(
+		driver.RowsAffected(1),
+	)
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
 		WithArgs(
 			sqlmock.AnyArg(),
 			sqlmock.AnyArg(),
@@ -607,17 +681,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 					*data.Type,
 					*data.AutoEnrollmentEnabled,
 				))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT 1`)).
-		WithArgs(
-			orgID,
-			uuidString,
-		).
-		WillReturnRows(
-			sqlmock.NewRows([]string{"count"}).
-				AddRow(
-					1,
-				))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
 		WithArgs(data.ID).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "created_at", "updated_at", "deleted_at",
@@ -659,9 +723,6 @@ func (s *Suite) TestRhelIdmClearToken() {
 			"ca_server", "hcc_enrollment_server", "hcc_update_server",
 			"pk_init_server",
 		}))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL LIMIT 1`)).
-		WithArgs(data.ID).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
 	assert.EqualError(t, err, "'OrgId' mistmatch")
 
@@ -692,17 +753,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 					*data.Type,
 					*data.AutoEnrollmentEnabled,
 				))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT 1`)).
-		WithArgs(
-			orgID,
-			uuidString,
-		).
-		WillReturnRows(
-			sqlmock.NewRows([]string{"count"}).
-				AddRow(
-					1,
-				))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
 		WithArgs(data.ID).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "created_at", "updated_at", "deleted_at",
@@ -744,9 +795,6 @@ func (s *Suite) TestRhelIdmClearToken() {
 			"ca_server", "hcc_enrollment_server", "hcc_update_server",
 			"pk_init_server",
 		}))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL LIMIT 1`)).
-		WithArgs(data.ID).
-		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "ipas" SET "token"=$1 WHERE id = $2`)).
 		WithArgs(
 			nil,
