@@ -308,7 +308,7 @@ func (r *domainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid str
 // ------- PRIVATE METHODS --------
 func (r *domainRepository) checkCommon(db *gorm.DB, orgId string) error {
 	if db == nil {
-		return fmt.Errorf("db is nil")
+		return fmt.Errorf("'db' is nil")
 	}
 	if orgId == "" {
 		return fmt.Errorf("'orgId' is empty")
