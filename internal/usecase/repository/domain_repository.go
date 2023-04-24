@@ -6,6 +6,7 @@ import (
 
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/repository"
+	"github.com/openlyinc/pointy"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -60,14 +61,8 @@ func (r *domainRepository) createIpaDomain(db *gorm.DB, domainID uint, data *mod
 }
 
 func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain) (err error) {
-	if db == nil {
-		return fmt.Errorf("db is nil")
-	}
-	if data == nil {
-		return fmt.Errorf("data is nil")
-	}
-	if data.Type == nil {
-		return fmt.Errorf("'Type' is nil")
+	if err = r.checkCommonAndDataAndType(db, orgId, data); err != nil {
+		return err
 	}
 	data.OrgId = orgId
 	err = db.Omit(clause.Associations).Create(data).Error
@@ -76,14 +71,16 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 	}
 	switch *data.Type {
 	case model.DomainTypeIpa:
-		err = r.createIpaDomain(db, data.ID, data.IpaDomain)
-		if err != nil {
+		if data.IpaDomain == nil {
+			return nil
+		}
+		if err = r.createIpaDomain(db, data.ID, data.IpaDomain); err != nil {
 			return err
 		}
+		return nil
 	default:
 		return fmt.Errorf("'Type' is invalid")
 	}
-	return nil
 }
 
 // func (r *domainRepository) PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
@@ -103,48 +100,155 @@ func (r *domainRepository) Create(db *gorm.DB, orgId string, data *model.Domain)
 
 // Update save the Domain record into the database. It only update
 // data for the current organization.
-func (r *domainRepository) Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
-	if db == nil {
-		return model.Domain{}, fmt.Errorf("'db' cannot be nil")
+func (r *domainRepository) Update(
+	db *gorm.DB,
+	orgId string,
+	data *model.Domain,
+) (err error) {
+	var currentDomain *model.Domain
+	if err = r.checkCommonAndData(db, orgId, data); err != nil {
+		return err
 	}
-	if orgId == "" {
-		return model.Domain{}, fmt.Errorf("'orgId' cannot be an empty string")
+
+	uuid := data.DomainUuid.String()
+	// Check the entity exists
+	if currentDomain, err = r.FindById(
+		db,
+		orgId,
+		uuid,
+	); err != nil {
+		return err
 	}
+
+	// gorm.Model
+	// OrgId                 string
+	// DomainUuid            uuid.UUID `gorm:"unique"`
+	// DomainName            *string
+	// Title                 *string
+	// Description           *string
+	// Type                  *uint
+	// AutoEnrollmentEnabled *bool
+
+	currentDomain.OrgId = orgId
+	currentDomain.DomainUuid = data.DomainUuid
+
+	if data.DomainName != nil {
+		currentDomain.DomainName = data.DomainName
+	} else {
+		currentDomain.DomainName = pointy.String("")
+	}
+
+	if data.Title != nil {
+		currentDomain.Title = data.Title
+	} else {
+		currentDomain.Title = pointy.String("")
+	}
+
+	if data.Description != nil {
+		currentDomain.Description = data.Description
+	} else {
+		currentDomain.Description = pointy.String("")
+	}
+
+	if data.AutoEnrollmentEnabled != nil {
+		currentDomain.AutoEnrollmentEnabled = data.AutoEnrollmentEnabled
+	} else {
+		currentDomain.AutoEnrollmentEnabled = pointy.Bool(false)
+	}
+
+	if err = db.Omit(clause.Associations).
+		Where("org_id = ? AND id = ?", orgId, data.ID).
+		Updates(data).
+		Error; err != nil {
+		return err
+	}
+
+	// Specific
+	switch *data.Type {
+	case model.DomainTypeIpa:
+		if data.IpaDomain == nil {
+			return fmt.Errorf("'IpaDomain' is nil")
+		}
+		data.IpaDomain.ID = data.ID
+		return r.updateIpaDomain(db, data.IpaDomain)
+	default:
+		return fmt.Errorf("'Type' is invalid")
+	}
+}
+
+func (r *domainRepository) updateIpaDomain(db *gorm.DB, data *model.Ipa) (err error) {
 	if data == nil {
-		return model.Domain{}, fmt.Errorf("'data' is nil")
+		return fmt.Errorf("'data' of type '*model.Ipa' is nil")
 	}
-	data.OrgId = orgId
-	output = *data
-	err = db.Model(&output).Updates(output).Error
-	if err != nil {
-		return model.Domain{}, err
+	if err = db.Unscoped().
+		Delete(
+			data,
+			"id = ?",
+			data.ID,
+		).Error; err != nil {
+		return err
 	}
-	return output, nil
+
+	// Clean token and create new entry
+	data.Model.CreatedAt = time.Time{}
+	data.Model.UpdatedAt = time.Time{}
+	data.Model.DeletedAt = gorm.DeletedAt{}
+	data.Token = nil
+	data.TokenExpiration = nil
+	if err = db.Omit(clause.Associations).
+		Create(data).
+		Error; err != nil {
+		return err
+	}
+
+	// CaCerts
+	for i := range data.CaCerts {
+		data.CaCerts[i].IpaID = data.ID
+		if err = db.Create(&data.CaCerts[i]).Error; err != nil {
+			return err
+		}
+	}
+
+	// Servers
+	for i := range data.CaCerts {
+		data.Servers[i].IpaID = data.ID
+		if err = db.Create(&data.Servers[i]).Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // See: https://gorm.io/docs/query.html
 // TODO Document the method
-func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (output model.Domain, err error) {
+func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (output *model.Domain, err error) {
 	var count int64
-	if db == nil {
-		return model.Domain{}, fmt.Errorf("db is nil")
+	if err = r.checkCommonAndUUID(db, orgId, uuid); err != nil {
+		return nil, err
 	}
 	if err = db.First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).Count(&count).Error; err != nil {
-		return model.Domain{}, err
+		return nil, err
 	}
 	if count == 0 {
-		return model.Domain{}, fmt.Errorf("Not found")
+		return nil, fmt.Errorf("Not found")
 	}
-	if output.Type != nil && *output.Type == model.DomainTypeIpa {
+	if output.Type == nil {
+		return output, nil
+	}
+	switch *output.Type {
+	case model.DomainTypeIpa:
 		output.IpaDomain = &model.Ipa{}
 		if err = db.Preload("CaCerts").Preload("Servers").First(output.IpaDomain, "id = ?", output.ID).Count(&count).Error; err != nil {
-			return model.Domain{}, err
+			return nil, err
 		}
 		if count == 0 {
-			return model.Domain{}, fmt.Errorf("Not found")
+			return nil, fmt.Errorf("Not found")
 		}
+		return output, nil
+	default:
+		return nil, fmt.Errorf("'Type' is invalid")
 	}
-	return output, nil
 }
 
 // See: https://gorm.io/docs/delete.html
@@ -153,14 +257,8 @@ func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (e
 		data  model.Domain
 		count int64
 	)
-	if db == nil {
-		return fmt.Errorf("'db' is nil")
-	}
-	if orgId == "" {
-		return fmt.Errorf("'orgId' cannot be an empty string")
-	}
-	if uuid == "" {
-		return fmt.Errorf("'uuid' cannot be an empty string")
+	if err = r.checkCommonAndUUID(db, orgId, uuid); err != nil {
+		return err
 	}
 	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgId, uuid).Count(&count).Error; err != nil {
 		return err
@@ -175,16 +273,10 @@ func (r *domainRepository) DeleteById(db *gorm.DB, orgId string, uuid string) (e
 }
 
 func (r *domainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid string) (err error) {
-	if db == nil {
-		return fmt.Errorf("'db' is nil")
+	if err = r.checkCommonAndUUID(db, orgId, uuid); err != nil {
+		return err
 	}
-	if orgId == "" {
-		return fmt.Errorf("'orgId' is empty")
-	}
-	if uuid == "" {
-		return fmt.Errorf("'uuid' is empty")
-	}
-	var dataDomain model.Domain
+	var dataDomain *model.Domain
 	if dataDomain, err = r.FindById(db, orgId, uuid); err != nil {
 		return err
 	}
@@ -210,5 +302,46 @@ func (r *domainRepository) RhelIdmClearToken(db *gorm.DB, orgId string, uuid str
 		return fmt.Errorf("'Type=%d' invalid", *dataDomain.Type)
 	}
 
+	return nil
+}
+
+// ------- PRIVATE METHODS --------
+func (r *domainRepository) checkCommon(db *gorm.DB, orgId string) error {
+	if db == nil {
+		return fmt.Errorf("db is nil")
+	}
+	if orgId == "" {
+		return fmt.Errorf("'orgId' is empty")
+	}
+	return nil
+}
+
+func (r *domainRepository) checkCommonAndUUID(db *gorm.DB, orgId string, uuid string) error {
+	if err := r.checkCommon(db, orgId); err != nil {
+		return err
+	}
+	if uuid == "" {
+		return fmt.Errorf("'uuid' is empty")
+	}
+	return nil
+}
+
+func (r *domainRepository) checkCommonAndData(db *gorm.DB, orgId string, data *model.Domain) error {
+	if err := r.checkCommon(db, orgId); err != nil {
+		return err
+	}
+	if data == nil {
+		return fmt.Errorf("'data' is nil")
+	}
+	return nil
+}
+
+func (r *domainRepository) checkCommonAndDataAndType(db *gorm.DB, orgId string, data *model.Domain) error {
+	if err := r.checkCommonAndData(db, orgId, data); err != nil {
+		return err
+	}
+	if data.Type == nil {
+		return fmt.Errorf("'Type' is nil")
+	}
 	return nil
 }

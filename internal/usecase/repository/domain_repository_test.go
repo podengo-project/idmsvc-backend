@@ -63,8 +63,9 @@ func (s *Suite) TestCreate() {
 		},
 		OrgId:                 orgID,
 		DomainUuid:            testUUID,
-		DomainName:            pointy.String("domain.example"),
-		Description:           pointy.String("My domain example test."),
+		DomainName:            nil,
+		Title:                 pointy.String("My Domain Example Title"),
+		Description:           pointy.String("My Domain Example Description"),
 		Type:                  pointy.Uint(model.DomainTypeIpa),
 		AutoEnrollmentEnabled: pointy.Bool(true),
 		IpaDomain: &model.Ipa{
@@ -197,7 +198,7 @@ func (s *Suite) TestCreateErrors() {
 			},
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
-			DomainName:            pointy.String("domain.example"),
+			DomainName:            nil,
 			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  pointy.Uint(model.DomainTypeIpa),
@@ -215,7 +216,7 @@ func (s *Suite) TestCreateErrors() {
 			},
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
-			DomainName:            pointy.String("domain.example"),
+			DomainName:            nil,
 			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  nil,
@@ -230,7 +231,7 @@ func (s *Suite) TestCreateErrors() {
 			},
 			OrgId:                 orgID,
 			DomainUuid:            testUUID,
-			DomainName:            pointy.String("domain.example"),
+			DomainName:            nil,
 			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  pointy.Uint(1000),
@@ -256,7 +257,7 @@ func (s *Suite) TestCreateErrors() {
 			nil,
 			orgID,
 			data.DomainUuid,
-			data.DomainName,
+			nil,
 			data.Title,
 			data.Description,
 			data.Type,
@@ -304,7 +305,7 @@ func (s *Suite) TestCreateIpaDomain() {
 				CreatedAt: currentTime,
 				UpdatedAt: currentTime,
 			},
-			RealmName:       pointy.String("server.hmsidm-dev.test"),
+			RealmName:       pointy.String("MYDOMAIN.EXAMPLE"),
 			Token:           nil,
 			TokenExpiration: nil,
 			CaCerts: []model.IpaCert{
@@ -339,7 +340,7 @@ func (s *Suite) TestCreateIpaDomain() {
 					CaServer:            true,
 				},
 			},
-			RealmDomains: []string{"server.hmsidm-dev.test"},
+			RealmDomains: []string{"mydomain.example"},
 		}
 	)
 
@@ -430,17 +431,16 @@ func (s *Suite) TestUpdateErrors() {
 				Servers: []model.IpaServer{},
 			},
 		}
-		err        error
-		outputData model.Domain
+		err error
 	)
 
-	_, err = s.repository.Update(nil, "", nil)
+	err = s.repository.Update(nil, "", nil)
 	assert.EqualError(t, err, "'db' cannot be nil")
 
-	_, err = s.repository.Update(s.DB, "", nil)
+	err = s.repository.Update(s.DB, "", nil)
 	assert.EqualError(t, err, "'orgId' cannot be an empty string")
 
-	_, err = s.repository.Update(s.DB, orgID, nil)
+	err = s.repository.Update(s.DB, orgID, nil)
 	assert.EqualError(t, err, "'data' is nil")
 
 	s.mock.MatchExpectationsInOrder(true)
@@ -460,7 +460,7 @@ func (s *Suite) TestUpdateErrors() {
 			data.ID,
 		).
 		WillReturnError(fmt.Errorf("An error"))
-	_, err = s.repository.Update(s.DB, orgID, &data)
+	err = s.repository.Update(s.DB, orgID, &data)
 	assert.EqualError(t, err, "An error")
 
 	s.mock.MatchExpectationsInOrder(true)
@@ -497,9 +497,8 @@ func (s *Suite) TestUpdateErrors() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow("1"),
 		)
-	outputData, err = s.repository.Update(s.DB, orgID, &data)
+	err = s.repository.Update(s.DB, orgID, &data)
 	assert.NoError(t, err)
-	assert.Equal(t, data.Model.ID, outputData.Model.ID)
 }
 
 func (s *Suite) TestRhelIdmClearToken() {

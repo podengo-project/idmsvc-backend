@@ -6,10 +6,10 @@ import (
 )
 
 type DomainPresenter interface {
-	Create(domain *model.Domain) (*public.CreateDomainResponse, error)
+	Create(domain *model.Domain) (*public.Domain, error)
 	List(prefix string, offset int64, count int32, data []model.Domain) (*public.ListDomainsResponse, error)
-	Get(domain *model.Domain) (*public.ReadDomainResponse, error)
+	Get(domain *model.Domain) (*public.Domain, error)
 	// PartialUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
 	// FullUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
-	Register(domain *model.Domain) (*public.RegisterDomainResponse, error)
+	Register(domain *model.Domain) (*public.Domain, error)
 }

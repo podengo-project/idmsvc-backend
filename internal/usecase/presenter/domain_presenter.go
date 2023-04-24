@@ -8,7 +8,6 @@ package presenter
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -24,113 +23,44 @@ func NewDomainPresenter() presenter.DomainPresenter {
 	return domainPresenter{}
 }
 
-func (p domainPresenter) FillCert(to *public.DomainIpaCert, from *model.IpaCert) error {
-	if to == nil {
-		return fmt.Errorf("'to' cannot be nil")
-	}
-	if from == nil {
-		return fmt.Errorf("'from' cannot be nil")
-	}
-
-	to.Nickname = from.Nickname
-	to.Issuer = from.Issuer
-	to.NotValidAfter = from.NotValidAfter
-	to.NotValidBefore = from.NotValidBefore
-	to.SerialNumber = from.SerialNumber
-	to.Subject = from.Subject
-	to.Pem = from.Pem
-	return nil
-}
-
-func (p domainPresenter) FillServer(to *public.DomainIpaServer, from *model.IpaServer) error {
-	if to == nil {
-		return fmt.Errorf("'to' cannot be nil")
-	}
-	if from == nil {
-		return fmt.Errorf("'from' cannot be nil")
-	}
-
-	to.Fqdn = from.FQDN
-	to.CaServer = from.CaServer
-	to.HccEnrollmentServer = from.HCCEnrollmentServer
-	to.HccUpdateServer = from.HCCUpdateServer
-	to.PkinitServer = from.PKInitServer
-	to.SubscriptionManagerId = from.RHSMId
-	return nil
-}
-
 // Create translate from internal domain to the API response.
 // Return a new response domain representation and nil error on success,
 // or a nil response with an error on failure.
-func (p domainPresenter) Create(domain *model.Domain) (*public.CreateDomainResponse, error) {
+func (p domainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
 	if domain == nil {
-		return nil, fmt.Errorf("domain cannot be nil")
+		return nil, fmt.Errorf("'domain' is nil")
 	}
-	output := &public.CreateDomainResponse{}
+	output := &public.Domain{}
 	// TODO Maybe some nil values should be considered as a no valid response?
 	// TODO Important to be consistent, whatever is the response
 	output.DomainUuid = domain.DomainUuid.String()
 
 	if domain.AutoEnrollmentEnabled == nil {
-		return nil, fmt.Errorf("AutoenrollmentEnabled cannot be nil")
+		return nil, fmt.Errorf("'AutoEnrollmentEnabled' is nil")
 	}
 	output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
 
 	if domain.DomainName == nil {
-		return nil, fmt.Errorf("DomainName cannot be nil")
+		output.DomainName = ""
+	} else {
+		output.DomainName = *domain.DomainName
 	}
-	output.DomainName = *domain.DomainName
 
 	if domain.Type == nil {
-		return nil, fmt.Errorf("DomainType cannot be nil")
+		return nil, fmt.Errorf("'Type' is nil")
 	}
-	output.Type = public.DomainResponseType(
-		model.DomainTypeString(*domain.Type),
-	)
+	output.Type = public.DomainType(model.DomainTypeString(*domain.Type))
 
 	switch *domain.Type {
 	case model.DomainTypeIpa:
-		{
-			if domain.IpaDomain == nil {
-				return nil, fmt.Errorf("IpaDomain cannot be nil")
-			}
-			if domain.IpaDomain.RealmName == nil {
-				return nil, fmt.Errorf("RealmName cannot be nil")
-			}
-			if domain.IpaDomain.CaCerts == nil {
-				return nil, fmt.Errorf("CaCerts cannot be nil")
-			}
-			if domain.IpaDomain.Servers == nil {
-				return nil, fmt.Errorf("Servers cannot be nil")
-			}
-
-			output.Ipa.RealmName = *domain.IpaDomain.RealmName
-			output.Ipa.CaCerts = make([]public.DomainIpaCert, len(domain.IpaDomain.CaCerts))
-			for i, cert := range domain.IpaDomain.CaCerts {
-				p.FillCert(&output.Ipa.CaCerts[i], &cert)
-			}
-
-			output.Ipa.Servers = make([]public.DomainIpaServer, len(domain.IpaDomain.Servers))
-			for i, server := range domain.IpaDomain.Servers {
-				p.FillServer(&output.Ipa.Servers[i], &server)
-			}
-			if domain.IpaDomain.RealmDomains == nil {
-				output.Ipa.RealmDomains = []string{}
-			} else {
-				output.Ipa.RealmDomains = domain.IpaDomain.RealmDomains
-			}
-			if domain.IpaDomain.Token != nil && *domain.IpaDomain.Token != "" {
-				output.Ipa.Token = pointy.String(*domain.IpaDomain.Token)
-			}
-			if domain.IpaDomain.TokenExpiration != nil && (*domain.IpaDomain.TokenExpiration != time.Time{}) {
-				expiration := &time.Time{}
-				*expiration = *domain.IpaDomain.TokenExpiration
-				output.Ipa.TokenExpiration = expiration
-			}
-
+		if domain.IpaDomain == nil {
+			return output, nil
+		}
+		if err := p.createRhelIdm(output, domain); err != nil {
+			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("'DomainType' is not valid")
+		return nil, fmt.Errorf("'Type' is invalid")
 	}
 
 	return output, nil
@@ -156,7 +86,9 @@ func (p domainPresenter) List(prefix string, offset int64, count int32, data []m
 	output.Data = make([]public.ListDomainsData, len(data))
 	for idx, item := range data {
 		output.Data[idx].AutoEnrollmentEnabled = pointy.Bool(*item.AutoEnrollmentEnabled)
-		output.Data[idx].DomainName = pointy.String(*item.DomainName)
+		if item.DomainName != nil {
+			output.Data[idx].DomainName = pointy.String(*item.DomainName)
+		}
 		output.Data[idx].DomainType = pointy.String(model.DomainTypeString(*item.Type))
 		output.Data[idx].DomainUuid = pointy.String(item.DomainUuid.String())
 	}
@@ -164,66 +96,42 @@ func (p domainPresenter) List(prefix string, offset int64, count int32, data []m
 }
 
 // TODO Document the method
-func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, error) {
-	if domain == nil {
-		return nil, fmt.Errorf("'domain' is nil")
+func (p domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
+	if err := p.getChecks(domain); err != nil {
+		return nil, err
 	}
-	output := &public.ReadDomainResponse{}
+	output := &public.Domain{}
 	// TODO Maybe some nil values should be considered as a no valid response?
 	// TODO Important to be consistent, whatever is the response
 	output.DomainUuid = domain.DomainUuid.String()
-
-	if domain.AutoEnrollmentEnabled == nil {
-		return nil, fmt.Errorf("'AutoenrollmentEnabled' is nil")
-	}
 	output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
-
-	if domain.DomainName == nil {
-		return nil, fmt.Errorf("'DomainName' is nil")
+	if domain.DomainName != nil {
+		output.DomainName = *domain.DomainName
 	}
-	output.DomainName = *domain.DomainName
-
-	if domain.Type == nil {
-		return nil, fmt.Errorf("'DomainType' is nil")
+	if domain.Title != nil {
+		output.Title = *domain.Title
 	}
-	output.Type = public.DomainResponseType(model.DomainTypeString(*domain.Type))
-
+	if domain.Description != nil {
+		output.Description = *domain.Description
+	}
+	output.Type = public.DomainType(model.DomainTypeString(*domain.Type))
 	switch *domain.Type {
 	case model.DomainTypeIpa:
-		if domain.IpaDomain == nil {
-			return nil, fmt.Errorf("'IpaDomain' is nil")
+		output.RhelIdm = &public.DomainIpa{}
+		if err := p.fillRhelIdmCerts(output, domain); err != nil {
+			return nil, err
 		}
-		if domain.IpaDomain.CaCerts == nil {
-			return nil, fmt.Errorf("'CaCerts' is nil")
-		}
-		output.Ipa.CaCerts = make([]public.DomainIpaCert, len(domain.IpaDomain.CaCerts))
-		for i, cert := range domain.IpaDomain.CaCerts {
-			if err := p.FillCert(&output.Ipa.CaCerts[i], &cert); err != nil {
-				return nil, err
-			}
-		}
-
-		if domain.IpaDomain.RealmName == nil {
-			return nil, fmt.Errorf("'RealmName' is nil")
-		}
-		output.Ipa.RealmName = *domain.IpaDomain.RealmName
-
-		if domain.IpaDomain.Servers == nil {
-			return nil, fmt.Errorf("'Servers' is nil")
-		}
-		output.Ipa.Servers = make([]public.DomainIpaServer, len(domain.IpaDomain.Servers))
-		for i, server := range domain.IpaDomain.Servers {
-			if err := p.FillServer(&output.Ipa.Servers[i], &server); err != nil {
-				return nil, err
-			}
+		output.RhelIdm.RealmName = *domain.IpaDomain.RealmName
+		if err := p.fillRhelIdmServers(output, domain); err != nil {
+			return nil, err
 		}
 		if domain.IpaDomain.RealmDomains == nil {
-			output.Ipa.RealmDomains = []string{}
+			output.RhelIdm.RealmDomains = []string{}
 		} else {
-			output.Ipa.RealmDomains = domain.IpaDomain.RealmDomains
+			output.RhelIdm.RealmDomains = domain.IpaDomain.RealmDomains
 		}
 	default:
-		return nil, fmt.Errorf("'DomainType' is not valid")
+		return nil, fmt.Errorf("'Type' is invalid")
 	}
 
 	return output, nil
@@ -236,18 +144,19 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.ReadDomainResponse, 
 // a success translation, else nil and an error with the details.
 func (p domainPresenter) Register(
 	domain *model.Domain,
-) (output *public.RegisterDomainResponse, err error) {
+) (output *public.Domain, err error) {
 	if domain == nil {
 		return nil, fmt.Errorf("'domain' is nil")
 	}
 	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
 		return nil, fmt.Errorf("'domain.Type' is invalid")
 	}
-	output = &public.RegisterDomainResponse{}
+	output = &public.Domain{}
 	p.registerFillDomainData(domain, output)
 	switch *domain.Type {
 	case model.DomainTypeIpa:
 		output.Type = model.DomainTypeIpaString
+		output.RhelIdm = &public.DomainIpa{}
 		err = p.registerIpa(domain, output)
 	default:
 		err = fmt.Errorf("'domain.Type=%d' is unsupported", *domain.Type)

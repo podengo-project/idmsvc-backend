@@ -2,7 +2,6 @@ package interactor
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
@@ -25,74 +24,13 @@ func NewDomainInteractor() interactor.DomainInteractor {
 // helperDomainTypeToUint transform public.CreateDomainDomainType to an uint const
 // Return the uint representation or model.DomainTypeUndefined if it does not match
 // the current types.
-func helperDomainTypeToUint(domainType public.CreateDomainDomainType) uint {
+func helperDomainTypeToUint(domainType public.DomainType) uint {
 	switch domainType {
-	case public.CreateDomainDomainTypeIpa:
+	case api_public.DomainTypeRhelIdm:
 		return model.DomainTypeIpa
 	default:
 		return model.DomainTypeUndefined
 	}
-}
-
-func (i domainInteractor) FillCert(to *model.IpaCert, from *api_public.CreateDomainIpaCert) error {
-	if to == nil {
-		return fmt.Errorf("'to' cannot be nil")
-	}
-	if from == nil {
-		return fmt.Errorf("'from' cannot be nil")
-	}
-	if from.Nickname == nil {
-		to.Nickname = ""
-	} else {
-		to.Nickname = *from.Nickname
-	}
-	if from.Issuer == nil {
-		to.Issuer = ""
-	} else {
-		to.Issuer = *from.Issuer
-	}
-	if from.Subject == nil {
-		to.Subject = ""
-	} else {
-		to.Subject = *from.Subject
-	}
-	if from.NotValidAfter == nil {
-		to.NotValidAfter = time.Time{}
-	} else {
-		to.NotValidAfter = *from.NotValidAfter
-	}
-	if from.NotValidBefore == nil {
-		to.NotValidBefore = time.Time{}
-	} else {
-		to.NotValidBefore = *from.NotValidBefore
-	}
-	if from.Pem == nil {
-		to.Pem = ""
-	} else {
-		to.Pem = *from.Pem
-	}
-	if from.SerialNumber == nil {
-		to.SerialNumber = ""
-	} else {
-		to.SerialNumber = *from.SerialNumber
-	}
-	return nil
-}
-
-func (i domainInteractor) FillServer(to *model.IpaServer, from *api_public.CreateDomainIpaServer) error {
-	if to == nil {
-		return fmt.Errorf("'to' cannot be nil")
-	}
-	if from == nil {
-		return fmt.Errorf("'from' cannot be nil")
-	}
-	to.FQDN = from.Fqdn
-	to.CaServer = from.CaServer
-	to.HCCEnrollmentServer = from.HccEnrollmentServer
-	to.HCCUpdateServer = from.HccUpdateServer
-	to.PKInitServer = from.PkinitServer
-	to.RHSMId = from.SubscriptionManagerId
-	return nil
 }
 
 // Create translate api request to modle.Domain internal representation.
@@ -107,48 +45,31 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	if body == nil {
 		return "", nil, fmt.Errorf("'body' cannot be nil")
 	}
-	// FIXME Add a middleware that decode the X-Rh-Identity and store
-	//       the structure into the request context, so we can use directly
-	//       into the specific service handler and pass the information to
-	//       the interactors
 
 	domain := &model.Domain{}
+	// FIXME Pass the context decoded XRHID as argument, so we can use it
+	//       directly into the specific service handler and pass the
+	//       information to the interactors
 	xrhid, err := header.DecodeXRHID(string(params.XRhIdentity))
 	if err != nil {
 		return "", nil, err
 	}
 	domain.OrgId = xrhid.Identity.OrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
-	domain.DomainName = pointy.String(body.DomainName)
-	// FIXME Refactor API to add title
-	domain.Title = pointy.String("")
-	domain.Description = pointy.String(body.DomainDescription)
-	domain.Type = pointy.Uint(helperDomainTypeToUint(body.DomainType))
-
-	domain.IpaDomain = &model.Ipa{}
-	if body.Ipa.RealmName != "" {
-		domain.IpaDomain.RealmName = pointy.String(body.Ipa.RealmName)
-	}
-	if body.Ipa.Servers != nil {
-		domain.IpaDomain.Servers = make([]model.IpaServer, len(*body.Ipa.Servers))
-		for idx, server := range *body.Ipa.Servers {
-			i.FillServer(&domain.IpaDomain.Servers[idx], &server)
+	domain.DomainName = nil
+	domain.Title = pointy.String(body.Title)
+	domain.Description = pointy.String(body.Description)
+	domain.Type = pointy.Uint(helperDomainTypeToUint(api_public.DomainType(body.Type)))
+	switch *domain.Type {
+	case model.DomainTypeIpa:
+		domain.IpaDomain = &model.Ipa{
+			RealmName:    pointy.String(""),
+			RealmDomains: pq.StringArray{},
+			CaCerts:      []model.IpaCert{},
+			Servers:      []model.IpaServer{},
 		}
-	} else {
-		domain.IpaDomain.Servers = []model.IpaServer{}
-	}
-	if body.Ipa.CaCerts != nil {
-		domain.IpaDomain.CaCerts = make([]model.IpaCert, len(body.Ipa.CaCerts))
-		for idx, cert := range body.Ipa.CaCerts {
-			i.FillCert(&domain.IpaDomain.CaCerts[idx], &cert)
-		}
-	} else {
-		domain.IpaDomain.CaCerts = []model.IpaCert{}
-	}
-	if body.Ipa.RealmDomains == nil {
-		domain.IpaDomain.RealmDomains = []string{}
-	} else {
-		domain.IpaDomain.RealmDomains = body.Ipa.RealmDomains
+	default:
+		return "", nil, fmt.Errorf("'Type' is invalid")
 	}
 	return xrhid.Identity.OrgID, domain, nil
 }
@@ -329,28 +250,14 @@ func (i domainInteractor) registerIpaCaCerts(body *public.RegisterDomainJSONRequ
 	}
 }
 
-func (i domainInteractor) registerIpaCaCertOne(caCert *model.IpaCert, cert *api_public.CreateDomainIpaCert) {
-	if cert.Nickname != nil {
-		caCert.Nickname = *cert.Nickname
-	}
-	if cert.Issuer != nil {
-		caCert.Issuer = *cert.Issuer
-	}
-	if cert.Subject != nil {
-		caCert.Subject = *cert.Subject
-	}
-	if cert.SerialNumber != nil {
-		caCert.SerialNumber = *cert.SerialNumber
-	}
-	if cert.NotValidBefore != nil {
-		caCert.NotValidBefore = *cert.NotValidBefore
-	}
-	if cert.NotValidAfter != nil {
-		caCert.NotValidAfter = *cert.NotValidAfter
-	}
-	if cert.Pem != nil {
-		caCert.Pem = *cert.Pem
-	}
+func (i domainInteractor) registerIpaCaCertOne(caCert *model.IpaCert, cert *api_public.DomainIpaCert) {
+	caCert.Nickname = cert.Nickname
+	caCert.Issuer = cert.Issuer
+	caCert.Subject = cert.Subject
+	caCert.SerialNumber = cert.SerialNumber
+	caCert.NotValidBefore = cert.NotValidBefore
+	caCert.NotValidAfter = cert.NotValidAfter
+	caCert.Pem = cert.Pem
 }
 
 func (i domainInteractor) registerIpaServers(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {

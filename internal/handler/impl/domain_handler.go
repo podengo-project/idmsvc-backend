@@ -3,6 +3,7 @@ package impl
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
@@ -30,33 +31,31 @@ func (a *application) ListDomains(
 		tx     *gorm.DB
 	)
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
-	orgId, offset, limit, err = a.domain.interactor.List(&params)
-	if err != nil {
+	if orgId, offset, limit, err = a.domain.interactor.List(&params); err != nil {
 		return err
 	}
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
+	defer tx.Rollback()
 	if data, err = a.domain.repository.FindAll(
 		tx,
 		orgId,
 		int64(offset),
 		int32(limit),
 	); err != nil {
-		tx.Rollback()
 		return err
 	}
 	if tx.Commit(); tx.Error != nil {
 		return tx.Error
 	}
 	// TODO Read prefix from configuration
-	output, err = a.domain.presenter.List(
+	if output, err = a.domain.presenter.List(
 		"/api/hmsidm/v1",
 		int64(offset),
 		int32(limit),
 		data,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)
@@ -71,28 +70,33 @@ func (a *application) ReadDomain(
 ) error {
 	var (
 		err    error
-		data   model.Domain
-		output *public.ReadDomainResponse
+		data   *model.Domain
+		output *public.Domain
 		orgId  string
 		itemId string
 		tx     *gorm.DB
 	)
 
-	if orgId, itemId, err = a.domain.interactor.GetById(uuid, &params); err != nil {
+	if orgId, itemId, err = a.domain.interactor.GetById(
+		uuid, &params,
+	); err != nil {
 		return err
 	}
-	tx = a.db.Begin()
-	if tx.Error != nil {
+	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
-	if data, err = a.domain.repository.FindById(tx, orgId, itemId); err != nil {
-		tx.Rollback()
+	defer tx.Rollback()
+	if data, err = a.domain.repository.FindById(
+		tx,
+		orgId,
+		itemId,
+	); err != nil {
 		return err
 	}
 	if err = tx.Commit().Error; err != nil {
 		return err
 	}
-	if output, err = a.domain.presenter.Get(&data); err != nil {
+	if output, err = a.domain.presenter.Get(data); err != nil {
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)
@@ -166,26 +170,30 @@ func (a *application) CreateDomain(
 	params public.CreateDomainParams,
 ) error {
 	var (
-		err    error
-		input  public.CreateDomain
-		orgId  string
-		data   *model.Domain
-		output *public.CreateDomainResponse
-		tx     *gorm.DB
+		err      error
+		input    public.CreateDomain
+		orgId    string
+		data     *model.Domain
+		output   *public.CreateDomainResponse
+		tx       *gorm.DB
+		tokenStr string
 	)
 
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	if orgId, data, err = a.domain.interactor.Create(&params, &input); err != nil {
+	if orgId, data, err = a.domain.interactor.Create(
+		&params,
+		&input,
+	); err != nil {
 		return err
 	}
 
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
+	defer tx.Rollback()
 	if err = a.domain.repository.Create(tx, orgId, data); err != nil {
-		tx.Rollback()
 		return err
 	}
 	if tx.Commit(); tx.Error != nil {
@@ -194,6 +202,21 @@ func (a *application) CreateDomain(
 	if output, err = a.domain.presenter.Create(data); err != nil {
 		return err
 	}
+
+	// Add X-Rh-Idm-RhelIdm-Register-Token
+	if tokenStr, err = header.EncodeRhelIdmToken(
+		&header.RhelIdmToken{
+			Secret:     data.IpaDomain.Token,
+			Expiration: data.IpaDomain.TokenExpiration,
+		},
+	); err != nil {
+		return err
+	}
+	ctx.Response().Header().Add(
+		header.XRHIDMRHELIDMRegisterToken,
+		tokenStr,
+	)
+
 	return ctx.JSON(http.StatusCreated, *output)
 }
 
@@ -210,14 +233,21 @@ func (a *application) DeleteDomain(
 		orgId       string
 		domain_uuid string
 	)
-	if orgId, domain_uuid, err = a.domain.interactor.Delete(uuid, &params); err != nil {
+	if orgId, domain_uuid, err = a.domain.interactor.Delete(
+		uuid,
+		&params,
+	); err != nil {
 		return err
 	}
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
-	if err = a.domain.repository.DeleteById(tx, orgId, domain_uuid); err != nil {
-		tx.Rollback()
+	defer tx.Rollback()
+	if err = a.domain.repository.DeleteById(
+		tx,
+		orgId,
+		domain_uuid,
+	); err != nil {
 		return err
 	}
 	if tx.Commit(); tx.Error != nil {
@@ -256,23 +286,23 @@ func (a *application) CheckHost(
 // CN is checked against the host inventory, and the list
 // of servers into the IPA domain.
 // ctx the echo context for the request.
-// uuid the domain uuid that identify
+// UUID the domain uuid that identify
 // params contains the x-rh-identity, x-rh-insights-request-id
 // and x-rh-idm-token header contents.
 func (a *application) RegisterDomain(
 	ctx echo.Context,
-	uuid string,
+	UUID string,
 	params public.RegisterDomainParams,
 ) error {
 	var (
-		err   error
-		input public.RegisterDomain
-		data  *model.Domain
+		err     error
+		input   public.RegisterDomain
+		data    *model.Domain
+		oldData *model.Domain
 		// host          client.InventoryHost
-		domain        *model.Domain
 		orgId         string
 		tx            *gorm.DB
-		output        *public.DomainResponse
+		output        *public.Domain
 		domainCtx     middleware.DomainContextInterface
 		clientVersion *header.XRHIDMVersion
 	)
@@ -280,12 +310,11 @@ func (a *application) RegisterDomain(
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	orgId, clientVersion, domain, err = a.domain.interactor.Register(
+	if orgId, clientVersion, data, err = a.domain.interactor.Register(
 		domainCtx.XRHID(),
 		&params,
 		&input,
-	)
-	if err != nil {
+	); err != nil {
 		return err
 	}
 	ctx.Logger().Info(
@@ -304,14 +333,15 @@ func (a *application) RegisterDomain(
 	defer tx.Rollback()
 
 	// Load Domain data
-	if data, err = a.findIpaById(tx, orgId, uuid); err != nil {
+	if oldData, err = a.findIpaById(tx, orgId, UUID); err != nil {
+		// FIXME It is not found it should return a 404 Status
 		return err
 	}
 
 	// Check token
 	if err = a.checkToken(
-		params.XRhIDMRegistrationToken,
-		data.IpaDomain,
+		params.XRhIdmRegistrationToken,
+		oldData.IpaDomain,
 	); err != nil {
 		return err
 	}
@@ -338,17 +368,19 @@ func (a *application) RegisterDomain(
 	// 	return err
 	// }
 
-	if err = a.fillDomain(data, domain); err != nil {
-		return err
-	}
+	// if err = a.fillDomain(data, domain); err != nil {
+	// 	return err
+	// }
 	data.IpaDomain.Token = nil
 	data.IpaDomain.TokenExpiration = nil
+	data.DomainUuid = uuid.MustParse(UUID)
+	data.ID = oldData.ID
 
-	if *data, err = a.domain.repository.Update(tx, orgId, data); err != nil {
+	if err = a.domain.repository.Update(tx, orgId, data); err != nil {
 		return err
 	}
 
-	if err = a.domain.repository.RhelIdmClearToken(tx, orgId, uuid); err != nil {
+	if err = a.domain.repository.RhelIdmClearToken(tx, orgId, UUID); err != nil {
 		return err
 	}
 

@@ -12,15 +12,12 @@ import (
 )
 
 func (a *application) findIpaById(tx *gorm.DB, orgId string, uuid string) (data *model.Domain, err error) {
-	data = &model.Domain{}
-	*data, err = a.domain.repository.FindById(tx, orgId, uuid)
-	if err != nil {
+	if data, err = a.domain.repository.FindById(tx, orgId, uuid); err != nil {
 		return nil, err
 	}
 	if *data.Type != model.DomainTypeIpa {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "Wrong domain type")
 	}
-
 	if data.IpaDomain == nil {
 		return nil, echo.NewHTTPError(http.StatusInternalServerError, "No IPA data found for the domain")
 	}

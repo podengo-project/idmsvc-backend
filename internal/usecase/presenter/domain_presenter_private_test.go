@@ -41,7 +41,7 @@ func TestRegisterIpaCaCerts(t *testing.T) {
 	ipaNil := model.Domain{
 		IpaDomain: nil,
 	}
-	output := public.DomainResponse{}
+	output := public.RegisterDomainResponse{}
 
 	assert.Panics(t, func() {
 		err = p.registerIpaCaCerts(nil, nil)
@@ -58,15 +58,20 @@ func TestRegisterIpaCaCerts(t *testing.T) {
 		err = p.registerIpaCaCerts(&ipa, nil)
 	})
 
+	assert.Panics(t, func() {
+		err = p.registerIpaCaCerts(&ipa, &output)
+	})
+
+	output.RhelIdm = &public.DomainIpa{}
 	err = p.registerIpaCaCerts(&ipa, &output)
 	assert.NoError(t, err)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Nickname, output.Ipa.CaCerts[0].Nickname)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Issuer, output.Ipa.CaCerts[0].Issuer)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidAfter, output.Ipa.CaCerts[0].NotValidAfter)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidBefore, output.Ipa.CaCerts[0].NotValidBefore)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].SerialNumber, output.Ipa.CaCerts[0].SerialNumber)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Subject, output.Ipa.CaCerts[0].Subject)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Pem, output.Ipa.CaCerts[0].Pem)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Nickname, output.RhelIdm.CaCerts[0].Nickname)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Issuer, output.RhelIdm.CaCerts[0].Issuer)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidAfter, output.RhelIdm.CaCerts[0].NotValidAfter)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidBefore, output.RhelIdm.CaCerts[0].NotValidBefore)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].SerialNumber, output.RhelIdm.CaCerts[0].SerialNumber)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Subject, output.RhelIdm.CaCerts[0].Subject)
+	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Pem, output.RhelIdm.CaCerts[0].Pem)
 }
 
 func TestRegisterIpaServers(t *testing.T) {
@@ -90,7 +95,14 @@ func TestRegisterIpaServers(t *testing.T) {
 	err = p.registerIpaServers(domain, &output)
 	assert.EqualError(t, err, "'ipa.Servers' is nil")
 
+	output.Type = public.DomainTypeRhelIdm
+
 	domain.IpaDomain.Servers = append(domain.IpaDomain.Servers, model.IpaServer{})
+	assert.Panics(t, func() {
+		err = p.registerIpaServers(domain, &output)
+	})
+
+	output.RhelIdm = &public.DomainIpa{}
 	err = p.registerIpaServers(domain, &output)
 	assert.NoError(t, err)
 }
@@ -119,6 +131,12 @@ func TestGuardsRegisterIpa(t *testing.T) {
 	assert.EqualError(t, err, "'ipa.CaCerts' is nil")
 
 	domain.IpaDomain.CaCerts = []model.IpaCert{}
+	assert.Panics(t, func() {
+		err = p.registerIpa(domain, output)
+	})
+
+	output.Type = public.DomainTypeRhelIdm
+	output.RhelIdm = &public.DomainIpa{}
 	err = p.registerIpa(domain, output)
 	assert.EqualError(t, err, "'ipa.Servers' is nil")
 }
@@ -127,7 +145,7 @@ func TestRegisterIpa(t *testing.T) {
 	tokenExpiration := &time.Time{}
 	*tokenExpiration = time.Now()
 	type TestCaseExpected struct {
-		Domain *public.DomainResponse
+		Domain *public.RegisterDomainResponse
 		Err    error
 	}
 	type TestCase struct {
@@ -150,9 +168,9 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 			Expected: TestCaseExpected{
-				Domain: &public.DomainResponse{
-					Type: model.DomainTypeIpaString,
-					Ipa: public.DomainResponseIpa{
+				Domain: &public.RegisterDomainResponse{
+					Type: public.DomainTypeRhelIdm,
+					RhelIdm: &public.DomainIpa{
 						RealmName:    "",
 						CaCerts:      []public.DomainIpaCert{},
 						Servers:      []public.DomainIpaServer{},
@@ -193,12 +211,10 @@ func TestRegisterIpa(t *testing.T) {
 				},
 			},
 			Expected: TestCaseExpected{
-				Domain: &public.DomainResponse{
-					Ipa: public.DomainResponseIpa{
-						RealmName:       "MYDOMAIN.EXAMPLE",
-						Token:           nil,
-						TokenExpiration: nil,
-						RealmDomains:    pq.StringArray{"mydomain.example"},
+				Domain: &public.RegisterDomainResponse{
+					RhelIdm: &public.DomainIpa{
+						RealmName:    "MYDOMAIN.EXAMPLE",
+						RealmDomains: pq.StringArray{"mydomain.example"},
 						CaCerts: []public.DomainIpaCert{
 							{
 								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
@@ -226,7 +242,7 @@ func TestRegisterIpa(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		p := NewDomainPresenter()
+		p := &domainPresenter{}
 		ipa, err := p.Register(testCase.Given)
 		if testCase.Expected.Err != nil {
 			assert.EqualError(t, err, testCase.Expected.Err.Error())
@@ -234,18 +250,18 @@ func TestRegisterIpa(t *testing.T) {
 		} else {
 			assert.NoError(t, err)
 			require.NotNil(t, ipa)
-			assert.Equal(t, testCase.Expected.Domain.Ipa.RealmName, ipa.Ipa.RealmName)
-			require.Equal(t, len(testCase.Expected.Domain.Ipa.RealmDomains), len(ipa.Ipa.RealmDomains))
-			for i := range ipa.Ipa.RealmDomains {
-				assert.Equal(t, testCase.Expected.Domain.Ipa.RealmDomains[i], ipa.Ipa.RealmDomains[i])
+			assert.Equal(t, testCase.Expected.Domain.RhelIdm.RealmName, ipa.RhelIdm.RealmName)
+			require.Equal(t, len(testCase.Expected.Domain.RhelIdm.RealmDomains), len(ipa.RhelIdm.RealmDomains))
+			for i := range ipa.RhelIdm.RealmDomains {
+				assert.Equal(t, testCase.Expected.Domain.RhelIdm.RealmDomains[i], ipa.RhelIdm.RealmDomains[i])
 			}
-			require.Equal(t, len(testCase.Expected.Domain.Ipa.CaCerts), len(ipa.Ipa.CaCerts))
-			for i := range ipa.Ipa.CaCerts {
-				assert.Equal(t, testCase.Expected.Domain.Ipa.CaCerts[i], ipa.Ipa.CaCerts[i])
+			require.Equal(t, len(testCase.Expected.Domain.RhelIdm.CaCerts), len(ipa.RhelIdm.CaCerts))
+			for i := range ipa.RhelIdm.CaCerts {
+				assert.Equal(t, testCase.Expected.Domain.RhelIdm.CaCerts[i], ipa.RhelIdm.CaCerts[i])
 			}
-			require.Equal(t, len(testCase.Expected.Domain.Ipa.Servers), len(ipa.Ipa.Servers))
-			for i := range ipa.Ipa.Servers {
-				assert.Equal(t, testCase.Expected.Domain.Ipa.Servers[i], ipa.Ipa.Servers[i])
+			require.Equal(t, len(testCase.Expected.Domain.RhelIdm.Servers), len(ipa.RhelIdm.Servers))
+			for i := range ipa.RhelIdm.Servers {
+				assert.Equal(t, testCase.Expected.Domain.RhelIdm.Servers[i], ipa.RhelIdm.Servers[i])
 			}
 		}
 	}
