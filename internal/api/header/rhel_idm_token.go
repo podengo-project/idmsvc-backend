@@ -9,8 +9,12 @@ import (
 
 const XRHIDMRHELIDMRegisterToken = "X-Rh-Idm-RhelIdm-Register-Token"
 
+// RhelIdmToken Represent the information for the X-Rh-Idm-RhelIdm-Register-Token
+// at its internal structure.
 type RhelIdmToken struct {
-	Secret     *string    `json:"secret,omitempty"`
+	// OTP token which will allow to register the domain
+	Secret *string `json:"secret,omitempty"`
+	// The expiration data after which the token above is not usable
 	Expiration *time.Time `json:"expiration,omitempty"`
 }
 
@@ -28,8 +32,7 @@ func DecodeRhelIdmToken(data string) (*RhelIdmToken, error) {
 		return nil, err
 	}
 	output := &RhelIdmToken{}
-	err = json.Unmarshal(bytes, output)
-	if err != nil {
+	if err = json.Unmarshal(bytes, output); err != nil {
 		return nil, err
 	}
 	return output, nil
