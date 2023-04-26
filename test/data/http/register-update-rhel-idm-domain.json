@@ -1,0 +1,34 @@
+{
+  "domain_name": "mydomain.example",
+  "title": "Human readable title",
+  "description": "My human friendly description",
+  "auto_enrollment_enabled": true,
+  "type": "rhel-idm",
+  "rhel-idm": {
+    "realm_name": "MYDOMAIN.EXAMPLE",
+    "servers": [
+      {
+        "fqdn": "ipaserver.mydomain.example",
+        "subscription_manager_id": "{{subscription_manager_id}}",
+        "ca_server": true,
+        "hcc_enrollment_server": true,
+        "hcc_update_server": true,
+        "pkinit_server": true
+      }
+    ],
+    "ca_certs": [
+      {
+        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "serial_number": "1",
+        "not_valid_before": "2023-01-31T13:23:36Z",
+        "not_valid_after": "2023-01-31T13:23:36Z",
+        "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
+      }
+    ],
+    "realm_domains": [
+      "mydomain.example"
+    ]
+  }
+}
