@@ -39,6 +39,8 @@ EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/CLIENTS_RBAC_BASE_URL=$(CLIE
 endif
 endif
 
+EPHEMERAL_BONFIRE_PATH ?= configs/bonfire.yaml
+
 # TODO Uncomment when the frontend is created
 # EPHEMERAL_OPTS += --frontend true
 
@@ -79,7 +81,7 @@ ephemeral-deploy:  ## Build image and deploy application using 'config/bonfire.y
 	source .venv/bin/activate && \
 	bonfire deploy \
 	    --source appsre \
-		--local-config-path configs/bonfire.yaml \
+		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--secrets-dir "$(PROJECT_DIR)/secrets/ephemeral" \
 		--import-secrets \
 		--namespace "$(NAMESPACE)" \
@@ -94,7 +96,7 @@ ephemeral-undeploy: ## Undeploy application from the current namespace
 	source .venv/bin/activate && \
 	bonfire process \
 	    --source appsre \
-		--local-config-path configs/bonfire-local.yaml \
+		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--namespace "$(NAMESPACE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(DOCKER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(DOCKER_IMAGE_TAG)" \
@@ -107,7 +109,7 @@ ephemeral-process: ## Process application from the current namespace
 	source .venv/bin/activate && \
 	bonfire process \
 	    --source appsre \
-		--local-config-path configs/bonfire-local.yaml \
+		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--namespace "$(NAMESPACE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(DOCKER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(DOCKER_IMAGE_TAG)" \
