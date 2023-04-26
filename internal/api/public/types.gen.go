@@ -23,7 +23,12 @@ const (
 
 // Defines values for RegisterDomainType.
 const (
-	RhelIdm RegisterDomainType = "rhel-idm"
+	RegisterDomainTypeRhelIdm RegisterDomainType = "rhel-idm"
+)
+
+// Defines values for UpdateDomainType.
+const (
+	UpdateDomainTypeRhelIdm UpdateDomainType = "rhel-idm"
 )
 
 // CheckHosts Define the input data for the /check_host action.
@@ -232,6 +237,33 @@ type RegisterDomain struct {
 // RegisterDomainType Type of this domain. Currently only ipa is supported.
 type RegisterDomainType string
 
+// UpdateDomain defines model for UpdateDomain.
+type UpdateDomain struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// Description Human readable description abou the domain.
+	Description string `json:"description"`
+
+	// DomainName Domain name
+	DomainName string `json:"domain_name"`
+
+	// DomainUuid Internal id for this domain
+	DomainUuid string `json:"domain_uuid"`
+
+	// RhelIdm Options for ipa domains
+	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
+
+	// Title Title to describe the domain.
+	Title string `json:"title"`
+
+	// Type Type of this domain. Currently only ipa is supported.
+	Type UpdateDomainType `json:"type"`
+}
+
+// UpdateDomainType Type of this domain. Currently only ipa is supported.
+type UpdateDomainType string
+
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain
 
@@ -250,6 +282,9 @@ type ReadDomainResponse = Domain
 
 // RegisterDomainResponse A domain resource
 type RegisterDomainResponse = Domain
+
+// UpdateDomainResponse A domain resource
+type UpdateDomainResponse = Domain
 
 // CheckHostParams defines parameters for CheckHost.
 type CheckHostParams struct {
@@ -317,6 +352,18 @@ type RegisterDomainParams struct {
 	XRhIdmVersion string `json:"X-Rh-Idm-Version"`
 }
 
+// UpdateDomainParams defines parameters for UpdateDomain.
+type UpdateDomainParams struct {
+	// XRhIdentity Identity header
+	XRhIdentity string `json:"X-Rh-Identity"`
+
+	// XRhInsightsRequestId Request id
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+
+	// XRhIdmVersion ipa-hcc agent version
+	XRhIdmVersion string `json:"X-Rh-Idm-Version"`
+}
+
 // HostConfParams defines parameters for HostConf.
 type HostConfParams struct {
 	// XRhIdentity The identity header of the request.
@@ -334,6 +381,9 @@ type CreateDomainJSONRequestBody = CreateDomain
 
 // RegisterDomainJSONRequestBody defines body for RegisterDomain for application/json ContentType.
 type RegisterDomainJSONRequestBody = RegisterDomain
+
+// UpdateDomainJSONRequestBody defines body for UpdateDomain for application/json ContentType.
+type UpdateDomainJSONRequestBody = UpdateDomain
 
 // HostConfJSONRequestBody defines body for HostConf for application/json ContentType.
 type HostConfJSONRequestBody = HostConf

@@ -328,11 +328,10 @@ paths:
             security:
                 - x-rh-identity: []
             operationId: registerDomain
-            summary: Register a domain.
-            description: >-
-                Use the one time use token to register the initial information for
-
-                an IPA domain.
+            summary: Update a domain.
+            description: |-
+                Use the one time use token to update the initial information for
+                a rhel-idm domain.
         parameters:
             - name: X-Rh-Identity
               description: Identity header
@@ -348,6 +347,62 @@ paths:
               required: true
             - name: X-Rh-Idm-Registration-Token
               description: One time use token to register ipa information.
+              schema:
+                  type: string
+              in: header
+              required: true
+            - examples:
+                  uuid:
+                      value: 08363cd4-bea8-11ed-b83f-482ae3863d30
+              name: uuid
+              description: uuid for the IPA domain.
+              schema:
+                  type: string
+              in: path
+              required: true
+            - name: X-Rh-Idm-Version
+              description: ipa-hcc agent version
+              schema:
+                  type: string
+              in: header
+              required: true
+    "/domains/{uuid}/update":
+        summary: Update domain information throw the ipa-hcc agent.
+        description: Update the rhel-idm domain information.
+        put:
+            requestBody:
+                description: Information for an IPA domain so it is updated from the ipa-hcc
+                    agent.
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/UpdateDomain"
+                required: true
+            tags:
+                - actions
+            responses:
+                "200":
+                    $ref: "#/components/responses/UpdateDomainResponse"
+                "400":
+                    $ref: "#/components/responses/ErrorResponse"
+                "403":
+                    $ref: "#/components/responses/ErrorResponse"
+                "404":
+                    $ref: "#/components/responses/ErrorResponse"
+            security:
+                - x-rh-identity: []
+            operationId: updateDomain
+            summary: Update a previously registered domain.
+            description: Update the initial information for a rhel-idm domain.
+        parameters:
+            - name: X-Rh-Identity
+              description: Identity header
+              schema:
+                  type: string
+              in: header
+              required: true
+            - name: X-Rh-Insights-Request-Id
+              description: Request id
               schema:
                   type: string
               in: header
@@ -978,6 +1033,14 @@ components:
                 server_list:
                     - server1.mydomain.example
                     - server2.mydomain.example
+        UpdateDomain:
+            title: Root Type for DomainResponse
+            description: Update a domain resource
+            type: object
+            allOf:
+                - type: object
+                - $ref: "#/components/schemas/Domain"
+            additionalProperties: false
     responses:
         ErrorResponse:
             content:
@@ -1019,6 +1082,12 @@ components:
                     schema:
                         $ref: "#/components/schemas/Domain"
             description: Response when a domain has been created.
+        UpdateDomainResponse:
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Domain"
+            description: Response for the domain update operation.
     securitySchemes:
         x-rh-identity:
             type: apiKey
