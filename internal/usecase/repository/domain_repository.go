@@ -121,18 +121,6 @@ func (r *domainRepository) Update(
 		return err
 	}
 
-	// gorm.Model
-	// OrgId                 string
-	// DomainUuid            uuid.UUID `gorm:"unique"`
-	// DomainName            *string
-	// Title                 *string
-	// Description           *string
-	// Type                  *uint
-	// AutoEnrollmentEnabled *bool
-
-	currentDomain.OrgId = orgId
-	currentDomain.DomainUuid = data.DomainUuid
-
 	if data.DomainName != nil {
 		currentDomain.DomainName = data.DomainName
 	} else {
@@ -158,7 +146,7 @@ func (r *domainRepository) Update(
 	}
 
 	if err = db.Omit(clause.Associations).
-		Where("org_id = ?", orgId).
+		Where("org_id = ? AND domain_uuid = ?", orgId, currentDomain.DomainUuid).
 		Updates(data).
 		Error; err != nil {
 		return err
@@ -191,9 +179,9 @@ func (r *domainRepository) updateIpaDomain(db *gorm.DB, data *model.Ipa) (err er
 	}
 
 	// Clean token and create new entry
-	data.Model.CreatedAt = time.Time{}
-	data.Model.UpdatedAt = time.Time{}
-	data.Model.DeletedAt = gorm.DeletedAt{}
+	// data.Model.CreatedAt = time.Time{}
+	// data.Model.UpdatedAt = time.Time{}
+	// data.Model.DeletedAt = gorm.DeletedAt{}
 	data.Token = nil
 	data.TokenExpiration = nil
 	if err = db.Omit(clause.Associations).
@@ -237,7 +225,8 @@ func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (out
 	case model.DomainTypeIpa:
 		output.IpaDomain = &model.Ipa{}
 		output.IpaDomain.ID = output.ID
-		if err = db.Preload("CaCerts").
+		if err = db.
+			Preload("CaCerts").
 			Preload("Servers").
 			// First(output.IpaDomain, "id = ?", output.ID).
 			First(output.IpaDomain).
