@@ -477,7 +477,7 @@ func (s *Suite) TestUpdateErrors() {
 				"id", "created_at", "updated_at", "deleted_at",
 				"realm_name", "realm_names", "token", "token_expiration",
 			}))
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE org_id = $10 AND "domains"."deleted_at" IS NULL AND "id" = $11`)).
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
 		WithArgs(
 			sqlmock.AnyArg(),
 			sqlmock.AnyArg(),
@@ -492,6 +492,7 @@ func (s *Suite) TestUpdateErrors() {
 			data.AutoEnrollmentEnabled,
 
 			data.OrgId,
+			data.DomainUuid,
 			data.ID,
 		).
 		WillReturnError(fmt.Errorf("An error"))
@@ -531,7 +532,7 @@ func (s *Suite) TestUpdateErrors() {
 				"id", "created_at", "updated_at", "deleted_at",
 				"realm_name", "realm_names", "token", "token_expiration",
 			}))
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE org_id = $10 AND "domains"."deleted_at" IS NULL AND "id" = $11`)).
+	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
 		WithArgs(
 			sqlmock.AnyArg(),
 			sqlmock.AnyArg(),
@@ -546,6 +547,7 @@ func (s *Suite) TestUpdateErrors() {
 			data.AutoEnrollmentEnabled,
 
 			data.OrgId,
+			data.DomainUuid,
 			data.ID,
 		).
 		WillReturnResult(sqlmock.NewResult(1, 1))

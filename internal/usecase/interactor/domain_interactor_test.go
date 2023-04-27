@@ -238,7 +238,7 @@ func TestRegisterIpa(t *testing.T) {
 	type TestCaseGiven struct {
 		XRHID  *identity.XRHID
 		Params *api_public.RegisterDomainParams
-		Body   *public.RegisterDomain
+		Body   *public.Domain
 	}
 	type TestCaseExpected struct {
 		OrgId         string
@@ -299,7 +299,7 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: paramsNoClientVersion,
-				Body:   &api_public.RegisterDomain{},
+				Body:   &api_public.Domain{},
 			},
 			Expected: TestCaseExpected{
 				OrgId:         "",
@@ -313,7 +313,7 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomain{
+				Body: &api_public.Domain{
 					Type: "somethingwrong",
 					RhelIdm: &api_public.DomainIpa{
 						RealmDomains: nil,
@@ -332,11 +332,11 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomain{
+				Body: &api_public.Domain{
 					Title:       "My Example Domain",
 					Description: "My Example Domain Description",
 					DomainName:  "mydomain.example",
-					Type:        api_public.RegisterDomainType(api_public.DomainTypeRhelIdm),
+					Type:        api_public.DomainType(api_public.DomainTypeRhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "",
 					},
@@ -366,11 +366,11 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomain{
+				Body: &api_public.Domain{
 					Title:       "My Example Domain",
 					Description: "My Example Domain Description",
 					DomainName:  "mydomain.example",
-					Type:        api_public.RhelIdm,
+					Type:        api_public.DomainType(api_public.DomainTypeRhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 					},
@@ -400,11 +400,11 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomain{
+				Body: &api_public.Domain{
 					Title:       "My Example Domain",
 					Description: "My Example Domain Description",
 					DomainName:  "mydomain.example",
-					Type:        api_public.RhelIdm,
+					Type:        api_public.DomainType(api_public.DomainTypeRhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName:    "MYDOMAIN.EXAMPLE",
 						RealmDomains: []string{"server.domain.example"},
@@ -435,11 +435,11 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomain{
+				Body: &api_public.Domain{
 					Title:       "My Example Domain",
 					Description: "My Example Domain Description",
 					DomainName:  "mydomain.example",
-					Type:        api_public.RhelIdm,
+					Type:        api_public.DomainType(api_public.DomainTypeRhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 						CaCerts: []api_public.DomainIpaCert{
@@ -490,11 +490,11 @@ func TestRegisterIpa(t *testing.T) {
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
 				Params: params,
-				Body: &api_public.RegisterDomain{
+				Body: &api_public.Domain{
 					Title:       "My Example Domain",
 					Description: "My Example Domain Description",
 					DomainName:  "mydomain.example",
-					Type:        api_public.RhelIdm,
+					Type:        api_public.DomainType(api_public.DomainTypeRhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 						Servers: []api_public.DomainIpaServer{

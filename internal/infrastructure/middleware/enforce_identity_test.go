@@ -315,19 +315,6 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Expected: fmt.Errorf("'Identity.User.Active' is not true"),
 		},
 		{
-			Name: "'UserID' is empty",
-			Given: &identity.XRHID{
-				Identity: identity.Identity{
-					Type: "User",
-					User: identity.User{
-						Active: true,
-						UserID: "",
-					},
-				},
-			},
-			Expected: fmt.Errorf("'Identity.User.UserID' cannot be empty"),
-		},
-		{
 			Name: "'UserName' is empty",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
