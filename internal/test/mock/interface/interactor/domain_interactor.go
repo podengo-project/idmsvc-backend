@@ -140,18 +140,18 @@ func (_m *DomainInteractor) List(params *public.ListDomainsParams) (string, int,
 }
 
 // Register provides a mock function with given fields: xrhid, params, body
-func (_m *DomainInteractor) Register(xrhid *identity.XRHID, params *public.RegisterDomainParams, body *public.RegisterDomain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (_m *DomainInteractor) Register(xrhid *identity.XRHID, params *public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	ret := _m.Called(xrhid, params, body)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) string); ok {
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) string); ok {
 		r0 = rf(xrhid, params, body)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *header.XRHIDMVersion
-	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) *header.XRHIDMVersion); ok {
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) *header.XRHIDMVersion); ok {
 		r1 = rf(xrhid, params, body)
 	} else {
 		if ret.Get(1) != nil {
@@ -160,7 +160,7 @@ func (_m *DomainInteractor) Register(xrhid *identity.XRHID, params *public.Regis
 	}
 
 	var r2 *model.Domain
-	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) *model.Domain); ok {
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) *model.Domain); ok {
 		r2 = rf(xrhid, params, body)
 	} else {
 		if ret.Get(2) != nil {
@@ -169,7 +169,46 @@ func (_m *DomainInteractor) Register(xrhid *identity.XRHID, params *public.Regis
 	}
 
 	var r3 error
-	if rf, ok := ret.Get(3).(func(*identity.XRHID, *public.RegisterDomainParams, *public.RegisterDomain) error); ok {
+	if rf, ok := ret.Get(3).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) error); ok {
+		r3 = rf(xrhid, params, body)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
+// Update provides a mock function with given fields: xrhid, params, body
+func (_m *DomainInteractor) Update(xrhid *identity.XRHID, params *public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+	ret := _m.Called(xrhid, params, body)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.UpdateDomainParams, *public.Domain) string); ok {
+		r0 = rf(xrhid, params, body)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *header.XRHIDMVersion
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.UpdateDomainParams, *public.Domain) *header.XRHIDMVersion); ok {
+		r1 = rf(xrhid, params, body)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*header.XRHIDMVersion)
+		}
+	}
+
+	var r2 *model.Domain
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.UpdateDomainParams, *public.Domain) *model.Domain); ok {
+		r2 = rf(xrhid, params, body)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.Domain)
+		}
+	}
+
+	var r3 error
+	if rf, ok := ret.Get(3).(func(*identity.XRHID, *public.UpdateDomainParams, *public.Domain) error); ok {
 		r3 = rf(xrhid, params, body)
 	} else {
 		r3 = ret.Error(3)

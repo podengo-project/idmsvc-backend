@@ -155,6 +155,20 @@ func (_m *Application) RegisterDomain(ctx echo.Context, uuid string, params publ
 	return r0
 }
 
+// UpdateDomain provides a mock function with given fields: ctx, uuid, params
+func (_m *Application) UpdateDomain(ctx echo.Context, uuid string, params public.UpdateDomainParams) error {
+	ret := _m.Called(ctx, uuid, params)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, string, public.UpdateDomainParams) error); ok {
+		r0 = rf(ctx, uuid, params)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 type mockConstructorTestingTNewApplication interface {
 	mock.TestingT
 	Cleanup(func())

@@ -106,6 +106,29 @@ func (_m *DomainPresenter) Register(domain *model.Domain) (*public.Domain, error
 	return r0, r1
 }
 
+// Update provides a mock function with given fields: domain
+func (_m *DomainPresenter) Update(domain *model.Domain) (*public.Domain, error) {
+	ret := _m.Called(domain)
+
+	var r0 *public.Domain
+	if rf, ok := ret.Get(0).(func(*model.Domain) *public.Domain); ok {
+		r0 = rf(domain)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*public.Domain)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*model.Domain) error); ok {
+		r1 = rf(domain)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewDomainPresenter interface {
 	mock.TestingT
 	Cleanup(func())
