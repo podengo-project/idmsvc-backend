@@ -507,39 +507,40 @@ func TestFillRhelIdmServers(t *testing.T) {
 	}
 }
 
-func TestRegister(t *testing.T) {
+func TestRegisterAndUpdate(t *testing.T) {
 	var (
 		err    error
 		output *public.RegisterDomainResponse
 	)
 	p := domainPresenter{}
 
-	output, err = p.Register(nil)
+	output, err = p.registerAndUpdate(nil)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'domain' is nil")
 
 	domain := &model.Domain{}
-	output, err = p.Register(domain)
+	output, err = p.registerAndUpdate(domain)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'domain.Type' is invalid")
 
 	domain.Type = pointy.Uint(model.DomainTypeIpa)
-	output, err = p.Register(domain)
+	output, err = p.registerAndUpdate(domain)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
 
 	domain.IpaDomain = &model.Ipa{}
-	output, err = p.Register(domain)
+	output, err = p.registerAndUpdate(domain)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'ipa.CaCerts' is nil")
 
 	domain.IpaDomain.CaCerts = []model.IpaCert{}
-	output, err = p.Register(domain)
+	output, err = p.registerAndUpdate(domain)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'ipa.Servers' is nil")
 
+	// Success case
 	domain.IpaDomain.Servers = []model.IpaServer{}
-	output, err = p.Register(domain)
+	output, err = p.registerAndUpdate(domain)
 	require.NotNil(t, output)
 	assert.NoError(t, err)
 	assert.Equal(t, false, output.AutoEnrollmentEnabled)
@@ -555,4 +556,92 @@ func TestRegister(t *testing.T) {
 	assert.Equal(t, 0, len(output.RhelIdm.Servers))
 	assert.Equal(t, 0, len(output.RhelIdm.RealmDomains))
 	assert.Equal(t, "", output.RhelIdm.RealmName)
+}
+
+func TestRegister(t *testing.T) {
+	testUUID := "ebac2444-e51b-11ed-a7f5-482ae3863d30"
+	testDomainName := "mydomain.example"
+	testModel := model.Domain{
+		DomainUuid:            uuid.MustParse(testUUID),
+		DomainName:            pointy.String(testDomainName),
+		Title:                 pointy.String("My Example Domain Title"),
+		Description:           pointy.String("My Example Domain Description"),
+		OrgId:                 "12345",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+		IpaDomain: &model.Ipa{
+			RealmName:    pointy.String(testDomainName),
+			RealmDomains: pq.StringArray{testDomainName},
+			CaCerts:      []model.IpaCert{},
+			Servers:      []model.IpaServer{},
+		},
+	}
+	testExpected := public.Domain{
+		DomainUuid:            testUUID,
+		DomainName:            testDomainName,
+		Title:                 "My Example Domain Title",
+		Description:           "My Example Domain Description",
+		AutoEnrollmentEnabled: true,
+		Type:                  public.DomainTypeRhelIdm,
+		RhelIdm: &public.DomainIpa{
+			RealmName:    testDomainName,
+			RealmDomains: pq.StringArray{testDomainName},
+			CaCerts:      []public.DomainIpaCert{},
+			Servers:      []public.DomainIpaServer{},
+		},
+	}
+
+	p := domainPresenter{}
+
+	domain, err := p.Register(nil)
+	assert.EqualError(t, err, "'domain' is nil")
+	assert.Nil(t, domain)
+
+	domain, err = p.Register(&testModel)
+	assert.NoError(t, err)
+	assert.Equal(t, testExpected, *domain)
+}
+
+func TestUpdate(t *testing.T) {
+	testUUID := "ebac2444-e51b-11ed-a7f5-482ae3863d30"
+	testDomainName := "mydomain.example"
+	testModel := model.Domain{
+		DomainUuid:            uuid.MustParse(testUUID),
+		DomainName:            pointy.String(testDomainName),
+		Title:                 pointy.String("My Example Domain Title"),
+		Description:           pointy.String("My Example Domain Description"),
+		OrgId:                 "12345",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+		IpaDomain: &model.Ipa{
+			RealmName:    pointy.String(testDomainName),
+			RealmDomains: pq.StringArray{testDomainName},
+			CaCerts:      []model.IpaCert{},
+			Servers:      []model.IpaServer{},
+		},
+	}
+	testExpected := public.Domain{
+		DomainUuid:            testUUID,
+		DomainName:            testDomainName,
+		Title:                 "My Example Domain Title",
+		Description:           "My Example Domain Description",
+		AutoEnrollmentEnabled: true,
+		Type:                  public.DomainTypeRhelIdm,
+		RhelIdm: &public.DomainIpa{
+			RealmName:    testDomainName,
+			RealmDomains: pq.StringArray{testDomainName},
+			CaCerts:      []public.DomainIpaCert{},
+			Servers:      []public.DomainIpaServer{},
+		},
+	}
+
+	p := domainPresenter{}
+
+	domain, err := p.Update(nil)
+	assert.EqualError(t, err, "'domain' is nil")
+	assert.Nil(t, domain)
+
+	domain, err = p.Update(&testModel)
+	assert.NoError(t, err, "")
+	assert.Equal(t, testExpected, *domain)
 }

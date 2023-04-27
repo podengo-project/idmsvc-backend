@@ -217,8 +217,10 @@ func TestRegisterIpa(t *testing.T) {
 			},
 		}
 		clientVersionParsed = &header.XRHIDMVersion{
-			IPAHCCVersion: "0.7",
-			IPAVersion:    "4.10.0-8.el9_1",
+			IPAHCCVersion:      "0.7",
+			IPAVersion:         "4.10.0-8.el9_1",
+			OSReleaseID:        "rhel",
+			OSReleaseVersionID: "8",
 		}
 		xrhidSystemBase64     = header.EncodeXRHID(&xrhidSystem)
 		paramsNoClientVersion = &api_public.RegisterDomainParams{
@@ -230,7 +232,7 @@ func TestRegisterIpa(t *testing.T) {
 			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIdmRegistrationToken: token,
-			XRhIdmVersion:           "eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEifQo=",
+			XRhIdmVersion:           "eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEiLCAib3MtcmVsZWFzZS1pZCI6ICJyaGVsIiwgIm9zLXJlbGVhc2UtdmVyc2lvbi1pZCI6ICI4In0K",
 		}
 		notValidBefore = time.Now().UTC()
 		notValidAfter  = notValidBefore.Add(24 * time.Hour)
@@ -253,7 +255,7 @@ func TestRegisterIpa(t *testing.T) {
 	}
 	testCases := []TestCase{
 		{
-			Name: "xrhid is nil",
+			Name: "fail guards with xrhid is nil",
 			Given: TestCaseGiven{
 				XRHID:  nil,
 				Params: nil,
@@ -264,34 +266,6 @@ func TestRegisterIpa(t *testing.T) {
 				ClientVersion: nil,
 				Output:        nil,
 				Error:         fmt.Errorf("'xrhid' is nil"),
-			},
-		},
-		{
-			Name: "param is nil",
-			Given: TestCaseGiven{
-				XRHID:  &xrhidSystem,
-				Params: nil,
-				Body:   nil,
-			},
-			Expected: TestCaseExpected{
-				OrgId:         "",
-				ClientVersion: nil,
-				Output:        nil,
-				Error:         fmt.Errorf("'params' is nil"),
-			},
-		},
-		{
-			Name: "body is nil",
-			Given: TestCaseGiven{
-				XRHID:  &xrhidSystem,
-				Params: params,
-				Body:   nil,
-			},
-			Expected: TestCaseExpected{
-				OrgId:         "",
-				ClientVersion: nil,
-				Output:        nil,
-				Error:         fmt.Errorf("'body' is nil"),
 			},
 		},
 		{
@@ -555,4 +529,169 @@ func TestRegisterIpa(t *testing.T) {
 			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
 		}
 	}
+}
+
+func TestUpdate(t *testing.T) {
+	const testOrgID = "12345"
+	testXRHID := identity.XRHID{
+		Identity: identity.Identity{
+			OrgID: testOrgID,
+			Type:  "user",
+			User:  identity.User{},
+			Internal: identity.Internal{
+				OrgID: testOrgID,
+			},
+		},
+	}
+	testXRHIDMVersion := header.XRHIDMVersion{
+		IPAHCCVersion:      "",
+		IPAVersion:         "",
+		OSReleaseID:        "rhel",
+		OSReleaseVersionID: "8",
+	}
+	testParams := api_public.UpdateDomainParams{
+		XRhIdentity:          header.EncodeXRHID(&testXRHID),
+		XRhInsightsRequestId: "put_update_test",
+		XRhIdmVersion:        header.EncodeXRHIDMVersion(&testXRHIDMVersion),
+	}
+	testBadParams := api_public.UpdateDomainParams{
+		XRhIdentity:          header.EncodeXRHID(&testXRHID),
+		XRhInsightsRequestId: "put_update_test",
+		XRhIdmVersion:        "{",
+	}
+	testWrongTypeBody := api_public.Domain{
+		AutoEnrollmentEnabled: true,
+		Title:                 "My Example Domain Title",
+		Description:           "My Example Domain Description",
+		DomainName:            "mydomain.example",
+		DomainUuid:            "54ac086a-e50d-11ed-b3f7-482ae3863d30",
+		Type:                  "aninvalidtype",
+	}
+	testBody := api_public.Domain{
+		AutoEnrollmentEnabled: true,
+		Title:                 "My Example Domain Title",
+		Description:           "My Example Domain Description",
+		DomainName:            "mydomain.example",
+		DomainUuid:            "54ac086a-e50d-11ed-b3f7-482ae3863d30",
+		Type:                  api_public.DomainTypeRhelIdm,
+		RhelIdm: &api_public.DomainIpa{
+			RealmName:    "mydomain.example",
+			RealmDomains: []string{"mydomain.example"},
+			CaCerts:      []api_public.DomainIpaCert{},
+			Servers:      []api_public.DomainIpaServer{},
+		},
+	}
+	i := domainInteractor{}
+
+	// Get an error in guards
+	orgID, xrhidmVersion, domain, err := i.Update(nil, nil, nil)
+	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.Equal(t, "", orgID)
+	assert.Nil(t, xrhidmVersion)
+	assert.Nil(t, domain)
+
+	// Error retrieving ipa-hcc version information
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testBadParams, &testBody)
+	assert.EqualError(t, err, "'X-Rh-Idm-Version' is invalid")
+	assert.Equal(t, "", orgID)
+	assert.Nil(t, xrhidmVersion)
+	assert.Nil(t, domain)
+
+	// Error because of wrongtype
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testParams, &testWrongTypeBody)
+	assert.EqualError(t, err, "'Type=aninvalidtype' is invalid")
+	assert.Equal(t, "", orgID)
+	assert.Nil(t, xrhidmVersion)
+	assert.Nil(t, domain)
+
+	// Success result
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testParams, &testBody)
+	assert.NoError(t, err)
+	assert.Equal(t, testOrgID, orgID)
+	require.NotNil(t, xrhidmVersion)
+	require.NotNil(t, domain)
+}
+
+// --------- Private methods -----------
+
+func TestGuardRegister(t *testing.T) {
+	var err error
+
+	err = domainInteractor{}.guardRegister(nil, nil, nil)
+	assert.EqualError(t, err, "'xrhid' is nil")
+
+	xrhid := &identity.XRHID{}
+	err = domainInteractor{}.guardRegister(xrhid, nil, nil)
+	assert.EqualError(t, err, "'params' is nil")
+
+	params := &api_public.RegisterDomainParams{}
+	err = domainInteractor{}.guardRegister(xrhid, params, nil)
+	assert.EqualError(t, err, "'body' is nil")
+
+	body := &public.Domain{}
+	err = domainInteractor{}.guardRegister(xrhid, params, body)
+	assert.NoError(t, err)
+}
+
+func TestGuardUpdate(t *testing.T) {
+	var err error
+
+	err = domainInteractor{}.guardUpdate(nil, nil, nil)
+	assert.EqualError(t, err, "'xrhid' is nil")
+
+	xrhid := &identity.XRHID{}
+	err = domainInteractor{}.guardUpdate(xrhid, nil, nil)
+	assert.EqualError(t, err, "'params' is nil")
+
+	params := &api_public.UpdateDomainParams{}
+	err = domainInteractor{}.guardUpdate(xrhid, params, nil)
+	assert.EqualError(t, err, "'body' is nil")
+
+	body := &public.Domain{}
+	err = domainInteractor{}.guardUpdate(xrhid, params, body)
+	assert.NoError(t, err)
+}
+
+func TestCommonRegisterUpdate(t *testing.T) {
+	testOrgID := "12345"
+	i := domainInteractor{}
+	assert.Panics(t, func() {
+		i.commonRegisterUpdate("", nil)
+	})
+
+	testBody := public.Domain{
+		AutoEnrollmentEnabled: true,
+		Title:                 "My Example Domain Title",
+		Description:           "My Example Domain Description",
+		DomainName:            "mydomain.example",
+		DomainUuid:            "a3394fba-e512-11ed-8b96-482ae3863d30",
+		Type:                  api_public.DomainTypeRhelIdm,
+		RhelIdm: &api_public.DomainIpa{
+			RealmName:    "mydomain.example",
+			RealmDomains: []string{"mydomain.example"},
+			CaCerts:      []api_public.DomainIpaCert{},
+			Servers:      []api_public.DomainIpaServer{},
+		},
+	}
+	testWrongTypeBody := public.Domain{
+		AutoEnrollmentEnabled: true,
+		Title:                 "My Example Domain Title",
+		Description:           "My Example Domain Description",
+		DomainName:            "mydomain.example",
+		DomainUuid:            "a3394fba-e512-11ed-8b96-482ae3863d30",
+		Type:                  "wrongtype",
+		RhelIdm: &api_public.DomainIpa{
+			RealmName:    "mydomain.example",
+			RealmDomains: []string{"mydomain.example"},
+			CaCerts:      []api_public.DomainIpaCert{},
+			Servers:      []api_public.DomainIpaServer{},
+		},
+	}
+
+	domain, err := i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
+	assert.EqualError(t, err, "'Type=wrongtype' is invalid")
+	assert.Nil(t, domain)
+
+	domain, err = i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
+	i.commonRegisterUpdate(testOrgID, &testBody)
 }
