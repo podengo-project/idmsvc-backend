@@ -55,9 +55,6 @@ func EnforceUserPredicate(data *identity.XRHID) error {
 	if !data.Identity.User.Active {
 		return fmt.Errorf("'Identity.User.Active' is not true")
 	}
-	if data.Identity.User.UserID == "" {
-		return fmt.Errorf("'Identity.User.UserID' cannot be empty")
-	}
 	if data.Identity.User.Username == "" {
 		return fmt.Errorf("'Identity.User.Username' cannot be empty")
 	}
