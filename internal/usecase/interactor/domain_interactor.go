@@ -172,15 +172,12 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
 func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
-	var err error
-	if xrhid == nil {
-		return "", nil, nil, fmt.Errorf("'xrhid' is nil")
-	}
-	if params == nil {
-		return "", nil, nil, fmt.Errorf("'params' is nil")
-	}
-	if body == nil {
-		return "", nil, nil, fmt.Errorf("'body' is nil")
+	var (
+		domain *model.Domain
+		err    error
+	)
+	if err = i.guardRegister(xrhid, params, body); err != nil {
+		return "", nil, nil, err
 	}
 	orgId := xrhid.Identity.Internal.OrgID
 
@@ -191,26 +188,43 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 	}
 
 	// Read the body payload
-	domain := &model.Domain{}
-	domain.OrgId = orgId
-	domain.Title = pointy.String(body.Title)
-	domain.Description = pointy.String(body.Description)
-	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
-	domain.DomainName = pointy.String(body.DomainName)
-	switch body.Type {
-	case api_public.DomainType(api_public.DomainTypeRhelIdm):
-		domain.Type = pointy.Uint(model.DomainTypeIpa)
-		domain.IpaDomain = &model.Ipa{}
-		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)
-	default:
-		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
-	}
-	if err != nil {
+	if domain, err = i.commonRegisterUpdate(orgId, body); err != nil {
 		return "", nil, nil, err
 	}
-
 	return orgId, clientVersion, domain, nil
 }
+
+// Update translates the API input format into the business
+// data models for the PUT /domains/{uuid}/update endpoint.
+// params contains the header parameters.
+// body contains the input payload.
+// Return the orgId and the business model for Ipa information,
+// when success translation, else it returns empty string for orgId,
+// nil for the Ipa data, and an error filled.
+func (i domainInteractor) Update(xrhid *identity.XRHID, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+	var (
+		domain *model.Domain
+		err    error
+	)
+	if err = i.guardUpdate(xrhid, params, body); err != nil {
+		return "", nil, nil, err
+	}
+	orgId := xrhid.Identity.Internal.OrgID
+
+	// Retrieve the ipa-hcc version information
+	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
+	if clientVersion == nil {
+		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+	}
+
+	// Read the body payload
+	if domain, err = i.commonRegisterUpdate(orgId, body); err != nil {
+		return "", nil, nil, err
+	}
+	return orgId, clientVersion, domain, nil
+}
+
+// --------- Private methods -----------
 
 func (i domainInteractor) registerOrUpdateRhelIdm(body *public.Domain, domainIpa *model.Ipa) error {
 	domainIpa.RealmName = pointy.String(body.RhelIdm.RealmName)
@@ -277,35 +291,37 @@ func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, do
 	}
 }
 
-// Update translates the API input format into the business
-// data models for the PUT /domains/{uuid}/update endpoint.
-// params contains the header parameters.
-// body contains the input payload.
-// Return the orgId and the business model for Ipa information,
-// when success translation, else it returns empty string for orgId,
-// nil for the Ipa data, and an error filled.
-func (i domainInteractor) Update(xrhid *identity.XRHID, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
-	var err error
+func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (err error) {
 	if xrhid == nil {
-		return "", nil, nil, fmt.Errorf("'xrhid' is nil")
+		return fmt.Errorf("'xrhid' is nil")
 	}
 	if params == nil {
-		return "", nil, nil, fmt.Errorf("'params' is nil")
+		return fmt.Errorf("'params' is nil")
 	}
 	if body == nil {
-		return "", nil, nil, fmt.Errorf("'body' is nil")
-	}
-	orgId := xrhid.Identity.Internal.OrgID
-
-	// Retrieve the ipa-hcc version information
-	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
-	if clientVersion == nil {
-		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+		return fmt.Errorf("'body' is nil")
 	}
 
-	// Read the body payload
-	domain := &model.Domain{}
-	domain.OrgId = orgId
+	return nil
+}
+
+func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, params *api_public.UpdateDomainParams, body *public.Domain) (err error) {
+	if xrhid == nil {
+		return fmt.Errorf("'xrhid' is nil")
+	}
+	if params == nil {
+		return fmt.Errorf("'params' is nil")
+	}
+	if body == nil {
+		return fmt.Errorf("'body' is nil")
+	}
+
+	return nil
+}
+
+func (i domainInteractor) commonRegisterUpdate(orgID string, body *public.Domain) (domain *model.Domain, err error) {
+	domain = &model.Domain{}
+	domain.OrgId = orgID
 	domain.Title = pointy.String(body.Title)
 	domain.Description = pointy.String(body.Description)
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
@@ -319,8 +335,7 @@ func (i domainInteractor) Update(xrhid *identity.XRHID, params *api_public.Updat
 		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
 	}
 	if err != nil {
-		return "", nil, nil, err
+		return nil, err
 	}
-
-	return orgId, clientVersion, domain, nil
+	return domain, nil
 }
