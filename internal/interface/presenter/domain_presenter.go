@@ -12,4 +12,5 @@ type DomainPresenter interface {
 	// PartialUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
 	// FullUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
 	Register(domain *model.Domain) (*public.Domain, error)
+	Update(domain *model.Domain) (*public.Domain, error)
 }

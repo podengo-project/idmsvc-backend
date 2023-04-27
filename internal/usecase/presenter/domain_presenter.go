@@ -138,19 +138,21 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 	return output, nil
 }
 
-// Register translate model.Ipa instance to DomainResponseIpa
-// representation for the API response.
-// domain Not nil reference to the model.Ipa to represent.
-// Return a reference to a DomainResponseIpa and nil error for
-// a success translation, else nil and an error with the details.
-func (p domainPresenter) Register(
-	domain *model.Domain,
-) (output *public.Domain, err error) {
+func (p domainPresenter) registerUpdateCheck(domain *model.Domain) error {
 	if domain == nil {
-		return nil, fmt.Errorf("'domain' is nil")
+		return fmt.Errorf("'domain' is nil")
 	}
 	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
-		return nil, fmt.Errorf("'domain.Type' is invalid")
+		return fmt.Errorf("'domain.Type' is invalid")
+	}
+	return nil
+}
+
+func (p domainPresenter) registerAndUpdate(
+	domain *model.Domain,
+) (output *public.Domain, err error) {
+	if err = p.registerUpdateCheck(domain); err != nil {
+		return nil, err
 	}
 	output = &public.Domain{}
 	p.registerFillDomainData(domain, output)
@@ -159,13 +161,33 @@ func (p domainPresenter) Register(
 		output.Type = model.DomainTypeIpaString
 		output.RhelIdm = &public.DomainIpa{}
 		err = p.registerIpa(domain, output)
-	default:
-		err = fmt.Errorf("'domain.Type=%d' is unsupported", *domain.Type)
 	}
 	if err != nil {
 		return nil, err
 	}
 	return output, nil
+}
+
+// Register translate model.Domain instance to Domain output
+// representation for the API response.
+// domain Not nil reference to the domain model.
+// Return a reference to a pubic.Domain and nil error for
+// a success translation, else nil and an error with the details.
+func (p domainPresenter) Register(
+	domain *model.Domain,
+) (output *public.Domain, err error) {
+	return p.registerAndUpdate(domain)
+}
+
+// Update translate model.Domain instance to Domain output
+// representation for the API response.
+// domain Not nil reference to the domain model.
+// Return a reference to a pubic.Domain and nil error for
+// a success translation, else nil and an error with the details.
+func (p domainPresenter) Update(
+	domain *model.Domain,
+) (output *public.Domain, err error) {
+	return p.registerAndUpdate(domain)
 }
 
 // func (p todoPresenter) PartialUpdate(in *model.Todo, out *public.Todo) error {
