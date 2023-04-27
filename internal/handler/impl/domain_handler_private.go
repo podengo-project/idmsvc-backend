@@ -97,7 +97,6 @@ func (a *application) fillDomain(
 	if source.AutoEnrollmentEnabled != nil {
 		target.AutoEnrollmentEnabled = pointy.Bool(*source.AutoEnrollmentEnabled)
 	}
-	target.DomainUuid = source.DomainUuid
 	if source.DomainName != nil {
 		target.DomainName = pointy.String(*source.DomainName)
 	}

@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -8,6 +9,7 @@ import (
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/infrastructure/middleware"
+	"github.com/hmsidm/internal/interface/client"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -277,14 +279,12 @@ func (a *application) CheckHost(
 	return http.ErrNotSupported
 }
 
-// RegisterIpaDomain (PUT /domains/{uuid}/ipa) initialize the
+// RegisterIpaDomain (PUT /domains/{uuid}/register) initialize the
 // IPA domain information into the database. This requires
 // a valid X-Rh-IDM-Token. The token is removed when the
 // operation is success. Only update information that
 // belong to the current organization stored into the
-// X-Rh-Identity header, and the host associated to the
-// CN is checked against the host inventory, and the list
-// of servers into the IPA domain.
+// X-Rh-Identity header.
 // ctx the echo context for the request.
 // UUID the domain uuid that identify
 // params contains the x-rh-identity, x-rh-insights-request-id
@@ -296,7 +296,7 @@ func (a *application) RegisterDomain(
 ) error {
 	var (
 		err     error
-		input   public.RegisterDomain
+		input   public.Domain
 		data    *model.Domain
 		oldData *model.Domain
 		// host          client.InventoryHost
@@ -346,31 +346,6 @@ func (a *application) RegisterDomain(
 		return err
 	}
 
-	// TODO Check the source host exists in HBI
-	// FIXME Set the value from the unencoded and unmarshalled Identity
-	// xrhid := domainCtx.XRHID()
-	// if xrhid == nil {
-	// 	return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
-	// }
-	// subscription_manager_id := xrhid.Identity.System.CommonName
-	// if host, err = a.inventory.GetHostByCN(
-	// 	params.XRhIdentity,
-	// 	params.XRhInsightsRequestId,
-	// 	subscription_manager_id,
-	// ); err != nil {
-	// 	return err
-	// }
-
-	// if err = a.existsHostInServers(
-	// 	host.FQDN,
-	// 	domain.IpaDomain.Servers,
-	// ); err != nil {
-	// 	return err
-	// }
-
-	// if err = a.fillDomain(data, domain); err != nil {
-	// 	return err
-	// }
 	data.IpaDomain.Token = nil
 	data.IpaDomain.TokenExpiration = nil
 	data.DomainUuid = uuid.MustParse(UUID)
@@ -389,6 +364,105 @@ func (a *application) RegisterDomain(
 	}
 
 	if output, err = a.domain.presenter.Register(data); err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, *output)
+}
+
+// UpdateDomain (PUT /domains/{uuid}/update) update the
+// IPA domain information into the database. Only update
+// information that belong to the current organization stored
+// into the X-Rh-Identity header, and the host associated to the
+// CN is checked against the host inventory, and the list
+// of servers into the IPA domain.
+// ctx the echo context for the request.
+// UUID the domain uuid that identify
+// params contains the x-rh-identity, x-rh-insights-request-id
+// and x-rh-idm-token header contents.
+func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.UpdateDomainParams) error {
+	var (
+		err           error
+		input         public.Domain
+		data          *model.Domain
+		currentData   *model.Domain
+		host          client.InventoryHost
+		orgID         string
+		tx            *gorm.DB
+		output        *public.Domain
+		domainCtx     middleware.DomainContextInterface
+		clientVersion *header.XRHIDMVersion
+	)
+	domainCtx = ctx.(middleware.DomainContextInterface)
+	if err = ctx.Bind(&input); err != nil {
+		return err
+	}
+	if orgID, clientVersion, data, err = a.domain.interactor.Update(
+		domainCtx.XRHID(),
+		&params,
+		&input,
+	); err != nil {
+		return err
+	}
+	ctx.Logger().Info(
+		"ipa-hcc",
+		clientVersion.IPAHCCVersion,
+		"ipa",
+		clientVersion.IPAVersion,
+		"os-release-id",
+		clientVersion.OSReleaseID,
+		"os-release-version-id",
+		clientVersion.OSReleaseVersionID,
+	)
+	if tx = a.db.Begin(); tx.Error != nil {
+		return tx.Error
+	}
+	defer tx.Rollback()
+
+	// Load Domain data
+	if currentData, err = a.findIpaById(tx, orgID, UUID); err != nil {
+		// FIXME It is not found it should return a 404 Status
+		return err
+	}
+
+	if currentData.IpaDomain.Token != nil || currentData.IpaDomain.TokenExpiration != nil {
+		return fmt.Errorf("Bad Request")
+	}
+
+	// TODO Check the source host exists in HBI
+	xrhid := domainCtx.XRHID()
+	if xrhid == nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
+	}
+	subscription_manager_id := xrhid.Identity.System.CommonName
+	if host, err = a.inventory.GetHostByCN(
+		params.XRhIdentity,
+		params.XRhInsightsRequestId,
+		subscription_manager_id,
+	); err != nil {
+		return err
+	}
+
+	if err = a.existsHostInServers(
+		host.FQDN,
+		currentData.IpaDomain.Servers,
+	); err != nil {
+		return err
+	}
+
+	if err = a.fillDomain(currentData, data); err != nil {
+		return err
+	}
+
+	if err = a.domain.repository.Update(tx, orgID, currentData); err != nil {
+		return err
+	}
+
+	if err = tx.Commit().Error; err != nil {
+		return tx.Error
+	}
+
+	if output, err = a.domain.presenter.Update(currentData); err != nil {
 		return err
 	}
 
