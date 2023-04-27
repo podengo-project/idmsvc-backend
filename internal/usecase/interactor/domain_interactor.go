@@ -171,7 +171,7 @@ func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) 
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.RegisterDomain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var err error
 	if xrhid == nil {
 		return "", nil, nil, fmt.Errorf("'xrhid' is nil")
@@ -198,10 +198,10 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
 	domain.DomainName = pointy.String(body.DomainName)
 	switch body.Type {
-	case api_public.RhelIdm:
+	case api_public.DomainType(api_public.DomainTypeRhelIdm):
 		domain.Type = pointy.Uint(model.DomainTypeIpa)
 		domain.IpaDomain = &model.Ipa{}
-		err = i.registerRhelIdm(body, domain.IpaDomain)
+		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)
 	default:
 		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
 	}
@@ -212,22 +212,22 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 	return orgId, clientVersion, domain, nil
 }
 
-func (i domainInteractor) registerRhelIdm(body *public.RegisterDomain, domainIpa *model.Ipa) error {
+func (i domainInteractor) registerOrUpdateRhelIdm(body *public.Domain, domainIpa *model.Ipa) error {
 	domainIpa.RealmName = pointy.String(body.RhelIdm.RealmName)
 
 	// Translate realm domains
-	i.registerRhelIdmRealmDomains(body, domainIpa)
+	i.registerOrUpdateRhelIdmRealmDomains(body, domainIpa)
 
 	// Certificate list
-	i.registerRhelIdmCaCerts(body, domainIpa)
+	i.registerOrUpdateRhelIdmCaCerts(body, domainIpa)
 
 	// Server list
-	i.registerRhelIdmServers(body, domainIpa)
+	i.registerOrUpdateRhelIdmServers(body, domainIpa)
 
 	return nil
 }
 
-func (i domainInteractor) registerRhelIdmRealmDomains(body *public.RegisterDomain, domainIpa *model.Ipa) {
+func (i domainInteractor) registerOrUpdateRhelIdmRealmDomains(body *public.Domain, domainIpa *model.Ipa) {
 	if body.RhelIdm.RealmDomains == nil {
 		domainIpa.RealmDomains = pq.StringArray{}
 		return
@@ -239,18 +239,18 @@ func (i domainInteractor) registerRhelIdmRealmDomains(body *public.RegisterDomai
 	)
 }
 
-func (i domainInteractor) registerRhelIdmCaCerts(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
+func (i domainInteractor) registerOrUpdateRhelIdmCaCerts(body *public.Domain, domainIpa *model.Ipa) {
 	if body.RhelIdm.CaCerts == nil {
 		domainIpa.CaCerts = []model.IpaCert{}
 		return
 	}
 	domainIpa.CaCerts = make([]model.IpaCert, len(body.RhelIdm.CaCerts))
 	for idx := range body.RhelIdm.CaCerts {
-		i.registerRhelIdmCaCertOne(&domainIpa.CaCerts[idx], &body.RhelIdm.CaCerts[idx])
+		i.registerOrUpdateRhelIdmCaCertOne(&domainIpa.CaCerts[idx], &body.RhelIdm.CaCerts[idx])
 	}
 }
 
-func (i domainInteractor) registerRhelIdmCaCertOne(caCert *model.IpaCert, cert *api_public.DomainIpaCert) {
+func (i domainInteractor) registerOrUpdateRhelIdmCaCertOne(caCert *model.IpaCert, cert *api_public.DomainIpaCert) {
 	caCert.Nickname = cert.Nickname
 	caCert.Issuer = cert.Issuer
 	caCert.Subject = cert.Subject
@@ -260,7 +260,7 @@ func (i domainInteractor) registerRhelIdmCaCertOne(caCert *model.IpaCert, cert *
 	caCert.Pem = cert.Pem
 }
 
-func (i domainInteractor) registerRhelIdmServers(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
+func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, domainIpa *model.Ipa) {
 	if body.RhelIdm.Servers == nil {
 		domainIpa.Servers = []model.IpaServer{}
 		return
@@ -275,4 +275,52 @@ func (i domainInteractor) registerRhelIdmServers(body *public.RegisterDomainJSON
 		domainIpa.Servers[idx].HCCEnrollmentServer = server.HccEnrollmentServer
 		domainIpa.Servers[idx].HCCUpdateServer = server.HccUpdateServer
 	}
+}
+
+// Update translates the API input format into the business
+// data models for the PUT /domains/{uuid}/update endpoint.
+// params contains the header parameters.
+// body contains the input payload.
+// Return the orgId and the business model for Ipa information,
+// when success translation, else it returns empty string for orgId,
+// nil for the Ipa data, and an error filled.
+func (i domainInteractor) Update(xrhid *identity.XRHID, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+	var err error
+	if xrhid == nil {
+		return "", nil, nil, fmt.Errorf("'xrhid' is nil")
+	}
+	if params == nil {
+		return "", nil, nil, fmt.Errorf("'params' is nil")
+	}
+	if body == nil {
+		return "", nil, nil, fmt.Errorf("'body' is nil")
+	}
+	orgId := xrhid.Identity.Internal.OrgID
+
+	// Retrieve the ipa-hcc version information
+	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
+	if clientVersion == nil {
+		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+	}
+
+	// Read the body payload
+	domain := &model.Domain{}
+	domain.OrgId = orgId
+	domain.Title = pointy.String(body.Title)
+	domain.Description = pointy.String(body.Description)
+	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
+	domain.DomainName = pointy.String(body.DomainName)
+	switch body.Type {
+	case api_public.DomainType(api_public.DomainTypeRhelIdm):
+		domain.Type = pointy.Uint(model.DomainTypeIpa)
+		domain.IpaDomain = &model.Ipa{}
+		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)
+	default:
+		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
+	}
+	if err != nil {
+		return "", nil, nil, err
+	}
+
+	return orgId, clientVersion, domain, nil
 }
