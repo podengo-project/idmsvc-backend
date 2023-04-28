@@ -20,9 +20,11 @@ micro-service.
 - **domain_uuid**: The internal identifier for a domain. It is a
   unique value into the system.
 - **domain_name**: The domain name represented by this entity.
-- **domain_description**: A human readable description for this
+- **title**: A human readable description for this
   domain entry.
-- **domain_type**: Identify the sort of domain represented by this
+- **description**: A human readable description for this
+  domain entry.
+- **type**: Identify the sort of domain represented by this
   entry.
 - **auto_enrollment_enabled**: If it is true, the auto-enrollment
   is enabled for this domain; false, no host will be enrolled for
@@ -82,4 +84,3 @@ This entity represent the servers associated to an IPA domain.
   server has the hcc enrollment agent enabled.
 - **hcc_update_server**: A boolean value that indicate if this server
   is enabled to run the `hcc-ipa update ...` command.
-

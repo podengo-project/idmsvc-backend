@@ -10,9 +10,10 @@ entity "**domains**" {
   ""deleted_at"": //timestamp without time zone //
   *""org_id"": //character varying(255) //
   *""domain_uuid"": //uuid //
-  *""domain_name"": //character varying(253) //
-  *""domain_description"": //text //
-  *""domain_type"": //integer //
+  ""domain_name"": //character varying(253) //
+  *""title"": //character varying(255) //
+  *""description"": //text //
+  *""type"": //integer //
   *""auto_enrollment_enabled"": //boolean //
 }
 
