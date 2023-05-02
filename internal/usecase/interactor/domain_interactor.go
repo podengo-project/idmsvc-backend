@@ -201,7 +201,7 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 	case api_public.RhelIdm:
 		domain.Type = pointy.Uint(model.DomainTypeIpa)
 		domain.IpaDomain = &model.Ipa{}
-		err = i.registerIpa(body, domain.IpaDomain)
+		err = i.registerRhelIdm(body, domain.IpaDomain)
 	default:
 		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
 	}
@@ -212,22 +212,22 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 	return orgId, clientVersion, domain, nil
 }
 
-func (i domainInteractor) registerIpa(body *public.RegisterDomain, domainIpa *model.Ipa) error {
+func (i domainInteractor) registerRhelIdm(body *public.RegisterDomain, domainIpa *model.Ipa) error {
 	domainIpa.RealmName = pointy.String(body.RhelIdm.RealmName)
 
 	// Translate realm domains
-	i.registerIpaRealmDomains(body, domainIpa)
+	i.registerRhelIdmRealmDomains(body, domainIpa)
 
 	// Certificate list
-	i.registerIpaCaCerts(body, domainIpa)
+	i.registerRhelIdmCaCerts(body, domainIpa)
 
 	// Server list
-	i.registerIpaServers(body, domainIpa)
+	i.registerRhelIdmServers(body, domainIpa)
 
 	return nil
 }
 
-func (i domainInteractor) registerIpaRealmDomains(body *public.RegisterDomain, domainIpa *model.Ipa) {
+func (i domainInteractor) registerRhelIdmRealmDomains(body *public.RegisterDomain, domainIpa *model.Ipa) {
 	if body.RhelIdm.RealmDomains == nil {
 		domainIpa.RealmDomains = pq.StringArray{}
 		return
@@ -239,18 +239,18 @@ func (i domainInteractor) registerIpaRealmDomains(body *public.RegisterDomain, d
 	)
 }
 
-func (i domainInteractor) registerIpaCaCerts(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
+func (i domainInteractor) registerRhelIdmCaCerts(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
 	if body.RhelIdm.CaCerts == nil {
 		domainIpa.CaCerts = []model.IpaCert{}
 		return
 	}
 	domainIpa.CaCerts = make([]model.IpaCert, len(body.RhelIdm.CaCerts))
 	for idx := range body.RhelIdm.CaCerts {
-		i.registerIpaCaCertOne(&domainIpa.CaCerts[idx], &body.RhelIdm.CaCerts[idx])
+		i.registerRhelIdmCaCertOne(&domainIpa.CaCerts[idx], &body.RhelIdm.CaCerts[idx])
 	}
 }
 
-func (i domainInteractor) registerIpaCaCertOne(caCert *model.IpaCert, cert *api_public.DomainIpaCert) {
+func (i domainInteractor) registerRhelIdmCaCertOne(caCert *model.IpaCert, cert *api_public.DomainIpaCert) {
 	caCert.Nickname = cert.Nickname
 	caCert.Issuer = cert.Issuer
 	caCert.Subject = cert.Subject
@@ -260,7 +260,7 @@ func (i domainInteractor) registerIpaCaCertOne(caCert *model.IpaCert, cert *api_
 	caCert.Pem = cert.Pem
 }
 
-func (i domainInteractor) registerIpaServers(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
+func (i domainInteractor) registerRhelIdmServers(body *public.RegisterDomainJSONRequestBody, domainIpa *model.Ipa) {
 	if body.RhelIdm.Servers == nil {
 		domainIpa.Servers = []model.IpaServer{}
 		return
