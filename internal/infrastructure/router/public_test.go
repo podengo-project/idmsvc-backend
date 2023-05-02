@@ -190,7 +190,7 @@ func TestNewGroupPublic(t *testing.T) {
 	}
 }
 
-func TestSkipperUSer(t *testing.T) {
+func TestSkipperUser(t *testing.T) {
 	type TestCase struct {
 		Name     string
 		Given    string
@@ -212,6 +212,7 @@ func TestSkipperUSer(t *testing.T) {
 		})
 	}
 	for _, testCase := range testCases {
+		t.Log(testCase.Name)
 		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
 		result := skipperUserPredicate(ctx)
 		assert.Equal(t, testCase.Expected, result)
@@ -240,6 +241,7 @@ func TestSkipperSystem(t *testing.T) {
 		})
 	}
 	for _, testCase := range testCases {
+		t.Log(testCase.Name)
 		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
 		result := skipperSystemPredicate(ctx)
 		assert.Equal(t, testCase.Expected, result)
