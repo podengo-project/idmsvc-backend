@@ -20,6 +20,10 @@ const (
 	DomainTypeUndefinedString = ""
 )
 
+var (
+	NilUUID = uuid.MustParse("00000000-0000-0000-0000-000000000000")
+)
+
 // NOTE https://samu.space/uuids-with-postgres-and-gorm/
 //      thanks @anschnei
 // NOTE hmscontent can be an example of this; they redefine
@@ -59,7 +63,12 @@ func DomainTypeUint(data string) uint {
 // See: https://gorm.io/docs/hooks.html
 
 func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
-	d.DomainUuid = uuid.New()
+	for {
+		d.DomainUuid = uuid.New()
+		if d.DomainUuid != NilUUID {
+			break
+		}
+	}
 	var currentTime = time.Now()
 	d.CreatedAt = currentTime
 	d.UpdatedAt = currentTime
