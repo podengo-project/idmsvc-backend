@@ -16,17 +16,25 @@ import (
 	"k8s.io/utils/env"
 )
 
-const DefaultAppName = "hmsidm"
+const (
+	// DefaultAppName is used to compose the route paths
+	DefaultAppName = "hmsidm"
+	// DefatulExpirationTime is used for the default token expiration period
+	DefatulExpirationTime = 15
+	// DefaultWebPort is the default port where the public API is listening
+	DefaultWebPort = 8000
+)
 
 type Config struct {
-	Loaded     bool
-	Web        Web
-	Database   Database
-	Logging    Logging
-	Kafka      Kafka
-	Cloudwatch Cloudwatch
-	Metrics    Metrics
-	Clients    Clients
+	Loaded      bool
+	Web         Web
+	Database    Database
+	Logging     Logging
+	Kafka       Kafka
+	Cloudwatch  Cloudwatch
+	Metrics     Metrics
+	Clients     Clients
+	Application Application `mapstructure:"app"`
 }
 
 type Web struct {
@@ -124,6 +132,13 @@ type InventoryClient struct {
 	BaseUrl string `mapstructure:"base_url"`
 }
 
+// Application hold specific application settings
+type Application struct {
+	// This is the default expiration time for the token
+	// generated when a RHEL IDM domain is created
+	ExpirationTime int `mapstructure:"expiration_time"`
+}
+
 var config *Config = nil
 
 func setDefaults(v *viper.Viper) {
@@ -131,7 +146,7 @@ func setDefaults(v *viper.Viper) {
 		panic("viper instance cannot be nil")
 	}
 	// Web
-	v.SetDefault("web.port", 8000)
+	v.SetDefault("web.port", DefaultWebPort)
 
 	// Database
 
@@ -145,17 +160,18 @@ func setDefaults(v *viper.Viper) {
 
 	// Clients
 	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
+
+	// Set default value for application expiration time for
+	// the token created by the RHEL IDM domains
+	v.SetDefault("application.expiration_time", DefatulExpirationTime)
 }
 
-func setClowderConfiguration(v *viper.Viper) {
-	if !clowder.IsClowderEnabled() {
-		return
+func setClowderConfiguration(v *viper.Viper, cfg *clowder.AppConfig) {
+	if v == nil {
+		panic("'v' is nil")
 	}
-
-	cfg := clowder.LoadedConfig
 	if cfg == nil {
-		log.Error().Msg("clowder.LoadedConfig is nil")
-		return
+		panic("'cfg' is nil")
 	}
 	var rdsCertPath string
 	if cfg.Database != nil && cfg.Database.RdsCa != nil {
@@ -181,10 +197,12 @@ func setClowderConfiguration(v *viper.Viper) {
 	}
 
 	// Clowdwatch
-	v.Set("cloudwatch.region", cfg.Logging.Cloudwatch.Region)
-	v.Set("cloudwatch.group", cfg.Logging.Cloudwatch.LogGroup)
-	v.Set("cloudwatch.secret", cfg.Logging.Cloudwatch.SecretAccessKey)
-	v.Set("cloudwatch.key", cfg.Logging.Cloudwatch.AccessKeyId)
+	if cfg.Logging.Cloudwatch != nil {
+		v.Set("cloudwatch.region", cfg.Logging.Cloudwatch.Region)
+		v.Set("cloudwatch.group", cfg.Logging.Cloudwatch.LogGroup)
+		v.Set("cloudwatch.secret", cfg.Logging.Cloudwatch.SecretAccessKey)
+		v.Set("cloudwatch.key", cfg.Logging.Cloudwatch.AccessKeyId)
+	}
 
 	// Metrics configuration
 	v.Set("metrics.path", cfg.MetricsPath)
@@ -205,7 +223,9 @@ func Load(cfg *Config) *Config {
 	v.SetConfigName("config.yaml")
 	v.SetConfigType("yaml")
 	setDefaults(v)
-	setClowderConfiguration(v)
+	if clowder.IsClowderEnabled() {
+		setClowderConfiguration(v, clowder.LoadedConfig)
+	}
 	v.AutomaticEnv()
 	if err = v.ReadInConfig(); err != nil {
 		log.Warn().Msgf("Not using config.yaml: %s", err.Error())
@@ -229,12 +249,19 @@ func hasKafkaBrokerConfig(cfg *clowder.AppConfig) bool {
 	if cfg == nil || cfg.Kafka == nil || cfg.Kafka.Brokers == nil || len(cfg.Kafka.Brokers) <= 0 {
 		return false
 	}
+	broker := cfg.Kafka.Brokers[0]
+	if broker.Hostname == "" || broker.Port == nil {
+		return false
+	}
 	return true
 }
 
 func addEventConfigDefaults(options *viper.Viper) {
+	if options == nil {
+		panic("'options' is nil")
+	}
 	options.SetDefault("kafka.timeout", 10000)
-	options.SetDefault("kafka.group.id", "hmsidm")
+	options.SetDefault("kafka.group.id", DefaultAppName)
 	options.SetDefault("kafka.auto.offset.reset", "latest")
 	options.SetDefault("kafka.auto.commit.interval.ms", 5000)
 	options.SetDefault("kafka.request.required.acks", -1) // -1 == "all"
@@ -245,7 +272,7 @@ func addEventConfigDefaults(options *viper.Viper) {
 		// If clowder is not present, set defaults to local configuration
 		TopicTranslationConfig = NewTopicTranslationWithDefaults()
 		options.SetDefault("kafka.bootstrap.servers", readEnv("KAFKA_BOOTSTRAP_SERVERS", ""))
-		options.SetDefault("kafka.topics", "platform.hmsidm.todo-created")
+		options.SetDefault("kafka.topics", "platform."+DefaultAppName+".domain-created")
 		return
 	}
 
