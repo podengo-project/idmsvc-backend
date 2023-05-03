@@ -44,9 +44,17 @@ structure of a commit message is:
 ```
 
 - Prefix the commit subject with one of these [_types_](https://github.com/commitizen/conventional-commit-types/blob/master/index.json):
-    - `build`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `test`
+    - `build`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`,
+      `test`, `style`, `chore`.
     - You can **ignore this for "fixup" commits** or any commits you expect to be squashed.
-- Append optional scope to _type_ such as `(db)`, `(inventory)`, `(client)`, …
+- Append optional scope to _type_ such as `(db)`, `(inventory)`, `(client)`, …:
+  - `(interactor)`: Scope the change to the input adapter components.
+  - `(model)`: Scope the changes to `internal/module` and `scripts/db`.
+  - `(repository)`: Scope the change to the repository components.
+  - `(presenter)`: Scope the change to the output adapter components.
+  - `(client)`: Scope the change to the client components.
+  - `(middleware)`: Scope the changes to the middleware components.
+  - `(route)`: Scope the changes to the router components.
 - _Description_ shouldn't start with a capital letter or end in a period.
 - Use the _imperative voice_: "Fix bug" rather than "Fixed bug" or "Fixes bug."
 - Try to keep the first line under 72 characters.
@@ -72,5 +80,7 @@ Each pull request must pass the automated builds.
 
 See `.editorconfig` for indentation and textwidth
 Use `gofumpt` to format Go files!
+
+This repository is
 
 [conventional_commits]: https://www.conventionalcommits.org
