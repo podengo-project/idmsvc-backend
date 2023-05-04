@@ -75,6 +75,8 @@ objects:
                 value: ${CLOWDER_ENABLED}
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
+              - name: APP_TOKEN_EXPIRATION
+                value: "${APP_TOKEN_EXPIRATION}"
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -122,17 +124,33 @@ parameters:
     required: true
   - name: APP_NAME
     value: hmsidm
+    description: |
+      The internal application name that is used to
+      compose the API path for its routes.
   - name: IMAGE
     value: quay.io/cloudservices/hmsidm-backend
   - name: IMAGE_TAG
     required: true
   - name: CPU_LIMIT
     value: 500m
+    description: |
+      The resource limit for the cpu per pod
   - name: CPU_REQUESTS
     value: 100m
+    description: |
+      The resource request for the cpu per pod
   - name: MEMORY_LIMIT
     value: 1Gi
+    description: |
+      The resource limit for the memory per pod
   - name: MEMORY_REQUESTS
     value: 100Mi
+    description: |
+      The resource request for the memory per pod
   - name: LOGGING_LEVEL
     value: warn
+    description: |
+      The log level for the deployment
+  - name: APP_TOKEN_EXPIRATION
+    value: "15"
+    description: Indicate the token expiration period
