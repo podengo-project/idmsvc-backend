@@ -27,44 +27,7 @@ func NewDomainPresenter() presenter.DomainPresenter {
 // Return a new response domain representation and nil error on success,
 // or a nil response with an error on failure.
 func (p domainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
-	if domain == nil {
-		return nil, fmt.Errorf("'domain' is nil")
-	}
-	output := &public.Domain{}
-	// TODO Maybe some nil values should be considered as a no valid response?
-	// TODO Important to be consistent, whatever is the response
-	output.DomainUuid = domain.DomainUuid.String()
-
-	if domain.AutoEnrollmentEnabled == nil {
-		return nil, fmt.Errorf("'AutoEnrollmentEnabled' is nil")
-	}
-	output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
-
-	if domain.DomainName == nil {
-		output.DomainName = ""
-	} else {
-		output.DomainName = *domain.DomainName
-	}
-
-	if domain.Type == nil {
-		return nil, fmt.Errorf("'Type' is nil")
-	}
-	output.Type = public.DomainType(model.DomainTypeString(*domain.Type))
-
-	switch *domain.Type {
-	case model.DomainTypeIpa:
-		output.RhelIdm = nil
-		// if domain.IpaDomain == nil {
-		// 	return output, nil
-		// }
-		// if err := p.createRhelIdm(output, domain); err != nil {
-		// 	return nil, err
-		// }
-	default:
-		return nil, fmt.Errorf("'Type' is invalid")
-	}
-
-	return output, nil
+	return p.sharedDomain(domain)
 }
 
 // TODO Document the method
@@ -98,74 +61,7 @@ func (p domainPresenter) List(prefix string, offset int64, count int32, data []m
 
 // TODO Document the method
 func (p domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
-	if err := p.getChecks(domain); err != nil {
-		return nil, err
-	}
-	output := &public.Domain{}
-	// TODO Maybe some nil values should be considered as a no valid response?
-	// TODO Important to be consistent, whatever is the response
-	output.DomainUuid = domain.DomainUuid.String()
-	output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
-	if domain.DomainName != nil {
-		output.DomainName = *domain.DomainName
-	}
-	if domain.Title != nil {
-		output.Title = *domain.Title
-	}
-	if domain.Description != nil {
-		output.Description = *domain.Description
-	}
-	output.Type = public.DomainType(model.DomainTypeString(*domain.Type))
-	switch *domain.Type {
-	case model.DomainTypeIpa:
-		output.RhelIdm = &public.DomainIpa{}
-		if err := p.fillRhelIdmCerts(output, domain); err != nil {
-			return nil, err
-		}
-		output.RhelIdm.RealmName = *domain.IpaDomain.RealmName
-		if err := p.fillRhelIdmServers(output, domain); err != nil {
-			return nil, err
-		}
-		if domain.IpaDomain.RealmDomains == nil {
-			output.RhelIdm.RealmDomains = []string{}
-		} else {
-			output.RhelIdm.RealmDomains = domain.IpaDomain.RealmDomains
-		}
-	default:
-		return nil, fmt.Errorf("'Type' is invalid")
-	}
-
-	return output, nil
-}
-
-func (p domainPresenter) registerUpdateCheck(domain *model.Domain) error {
-	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
-	}
-	if domain.Type == nil || *domain.Type == model.DomainTypeUndefined {
-		return fmt.Errorf("'domain.Type' is invalid")
-	}
-	return nil
-}
-
-func (p domainPresenter) registerAndUpdate(
-	domain *model.Domain,
-) (output *public.Domain, err error) {
-	if err = p.registerUpdateCheck(domain); err != nil {
-		return nil, err
-	}
-	output = &public.Domain{}
-	p.registerFillDomainData(domain, output)
-	switch *domain.Type {
-	case model.DomainTypeIpa:
-		output.Type = model.DomainTypeIpaString
-		output.RhelIdm = &public.DomainIpa{}
-		err = p.registerIpa(domain, output)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
+	return p.sharedDomain(domain)
 }
 
 // Register translate model.Domain instance to Domain output
@@ -176,7 +72,7 @@ func (p domainPresenter) registerAndUpdate(
 func (p domainPresenter) Register(
 	domain *model.Domain,
 ) (output *public.Domain, err error) {
-	return p.registerAndUpdate(domain)
+	return p.sharedDomain(domain)
 }
 
 // Update translate model.Domain instance to Domain output
@@ -187,34 +83,17 @@ func (p domainPresenter) Register(
 func (p domainPresenter) Update(
 	domain *model.Domain,
 ) (output *public.Domain, err error) {
-	return p.registerAndUpdate(domain)
+	return p.sharedDomain(domain)
 }
 
-// func (p todoPresenter) PartialUpdate(in *model.Todo, out *public.Todo) error {
-// 	if in == nil {
-// 		return fmt.Errorf("'in' cannot be nil")
-// 	}
-// 	if out == nil {
-// 		return fmt.Errorf("'out' cannot be nil")
-// 	}
-// 	if in.ID == 0 {
-// 		out.Id = nil
-// 	} else {
-// 		out.Id = pointy.Uint(in.ID)
-// 	}
-// 	if in.Title == nil {
-// 		out.Title = nil
-// 	} else {
-// 		out.Title = pointy.String(*in.Title)
-// 	}
-// 	if in.Description == nil {
-// 		out.Body = nil
-// 	} else {
-// 		out.Body = pointy.String(*in.Description)
-// 	}
-// 	return nil
+// func (p domainPresenter) PartialUpdate(
+// 	domain *model.Domain,
+// ) (output *public.Domain, err error) {
+// 	return p.sharedDomain(domain)
 // }
 
-// func (p todoPresenter) FullUpdate(in *model.Todo, out *public.Todo) error {
-// 	return p.PartialUpdate(in, out)
+// func (p domainPresenter) FullUpdate(
+// 	domain *model.Domain,
+// ) (output *public.Domain, err error) {
+// 	return p.sharedDomain(domain)
 // }
