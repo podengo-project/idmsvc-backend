@@ -55,7 +55,8 @@ func (i *Ipa) BeforeCreate(tx *gorm.DB) (err error) {
 		return fmt.Errorf("'BeforeCreate' cannot be invoked on nil")
 	}
 	tokenExpiration := &time.Time{}
-	*tokenExpiration = time.Now().Add(tokenExpirationDuration)
+	*tokenExpiration = time.Now().
+		Add(DefaultTokenExpiration())
 	i.Token = pointy.String(uuid.NewString())
 	i.TokenExpiration = tokenExpiration
 
