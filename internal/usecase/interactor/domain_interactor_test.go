@@ -79,6 +79,31 @@ func TestCreate(t *testing.T) {
 			},
 		},
 		{
+			Name: "wrong domain type",
+			Given: TestCaseGiven{
+				Params: &api_public.CreateDomainParams{
+					XRhIdentity: header.EncodeXRHID(
+						&identity.XRHID{
+							Identity: identity.Identity{
+								OrgID: "12345",
+								Internal: identity.Internal{
+									OrgID: "12345",
+								},
+							},
+						},
+					),
+				},
+				Body: &api_public.CreateDomain{
+					AutoEnrollmentEnabled: true,
+					Type:                  api_public.CreateDomainType("invalid"),
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'Type' is invalid"),
+				Out: nil,
+			},
+		},
+		{
 			Name: "success case",
 			Given: TestCaseGiven{
 				Params: &api_public.CreateDomainParams{
