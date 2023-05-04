@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/hmsidm/internal/config"
+	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/handler"
 	"github.com/hmsidm/internal/infrastructure/logger"
 	"github.com/hmsidm/internal/infrastructure/router"
@@ -65,6 +67,12 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 			}
 		}
 	}
+
+	model.SetDefaultTokenExpiration(
+		time.Duration(
+			cfg.Application.ExpirationTime,
+		) * time.Minute,
+	)
 
 	return result
 }
