@@ -14,6 +14,13 @@ import (
 	"gorm.io/gorm"
 )
 
+// About defer Rollback
+//
+// In the case of a commit, the rollback operation does not have any effect into
+// the transaction because it was already committed; but it returns ErrTxDone
+// error; no side effects because the session created by the transaction is not
+// used anymore when the handler returns. It was double checked debugging the code.
+
 //
 // This file implements the interface public.
 
@@ -39,6 +46,7 @@ func (a *application) ListDomains(
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
+	// https://stackoverflow.com/a/46421989
 	defer tx.Rollback()
 	if data, err = a.domain.repository.FindAll(
 		tx,
@@ -194,7 +202,7 @@ func (a *application) CreateDomain(
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
-	defer tx.Rollback()
+	// https://stackoverflow.com/a/46421989
 	if err = a.domain.repository.Create(tx, orgId, data); err != nil {
 		return err
 	}
