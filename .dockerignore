@@ -13,3 +13,6 @@ configs
 # File generated when running unit tests
 coverage.out
 
+# Delete git files from the container context
+.git
+
