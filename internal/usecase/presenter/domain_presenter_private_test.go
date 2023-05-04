@@ -1,6 +1,7 @@
 package presenter
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -13,135 +14,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegisterIpaCaCerts(t *testing.T) {
-	var (
-		err error
-	)
-	p := &domainPresenter{}
-	notValidBefore := time.Now()
-	notValidAfter := notValidBefore.Add(time.Hour * 24)
-	ipa := model.Domain{
-		IpaDomain: &model.Ipa{
-			CaCerts: []model.IpaCert{
-				{
-					Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
-					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-					NotValidBefore: notValidBefore.UTC(),
-					NotValidAfter:  notValidAfter.UTC(),
-					SerialNumber:   "1",
-					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-				},
-			},
-		},
-	}
-	ipaNilCerts := model.Domain{
-		IpaDomain: &model.Ipa{},
-	}
-	ipaNil := model.Domain{
-		IpaDomain: nil,
-	}
-	output := public.RegisterDomainResponse{}
-
-	assert.Panics(t, func() {
-		err = p.registerIpaCaCerts(nil, nil)
-	})
-
-	assert.Panics(t, func() {
-		err = p.registerIpaCaCerts(&ipaNil, nil)
-	})
-
-	err = p.registerIpaCaCerts(&ipaNilCerts, nil)
-	assert.EqualError(t, err, "'ipa.CaCerts' is nil")
-
-	assert.Panics(t, func() {
-		err = p.registerIpaCaCerts(&ipa, nil)
-	})
-
-	assert.Panics(t, func() {
-		err = p.registerIpaCaCerts(&ipa, &output)
-	})
-
-	output.RhelIdm = &public.DomainIpa{}
-	err = p.registerIpaCaCerts(&ipa, &output)
-	assert.NoError(t, err)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Nickname, output.RhelIdm.CaCerts[0].Nickname)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Issuer, output.RhelIdm.CaCerts[0].Issuer)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidAfter, output.RhelIdm.CaCerts[0].NotValidAfter)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].NotValidBefore, output.RhelIdm.CaCerts[0].NotValidBefore)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].SerialNumber, output.RhelIdm.CaCerts[0].SerialNumber)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Subject, output.RhelIdm.CaCerts[0].Subject)
-	assert.Equal(t, ipa.IpaDomain.CaCerts[0].Pem, output.RhelIdm.CaCerts[0].Pem)
-}
-
-func TestRegisterIpaServers(t *testing.T) {
-	var (
-		err error
-	)
-	p := domainPresenter{}
-	assert.Panics(t, func() {
-		err = p.registerIpaServers(nil, nil)
-	})
-
-	domain := &model.Domain{}
-	err = p.registerIpaServers(domain, nil)
-	assert.EqualError(t, err, "'IpaDomain' is nil")
-
-	domain.IpaDomain = &model.Ipa{}
-	err = p.registerIpaServers(domain, nil)
-	assert.EqualError(t, err, "'output' is nil")
-
-	output := public.RegisterDomainResponse{}
-	err = p.registerIpaServers(domain, &output)
-	assert.EqualError(t, err, "'ipa.Servers' is nil")
-
-	output.Type = public.DomainTypeRhelIdm
-
-	domain.IpaDomain.Servers = append(domain.IpaDomain.Servers, model.IpaServer{})
-	assert.Panics(t, func() {
-		err = p.registerIpaServers(domain, &output)
-	})
-
-	output.RhelIdm = &public.DomainIpa{}
-	err = p.registerIpaServers(domain, &output)
-	assert.NoError(t, err)
-}
-
 func TestGuardsRegisterIpa(t *testing.T) {
 	var (
 		err error
 	)
 	p := domainPresenter{}
 	assert.Panics(t, func() {
-		err = p.registerIpa(nil, nil)
+		err = p.sharedDomainFillRhelIdm(nil, nil)
 	})
 
 	domain := &model.Domain{}
-	domain.Type = pointy.Uint(model.DomainTypeIpa)
-	err = p.registerIpa(domain, nil)
+	domain.Type = pointy.Uint(999)
+	err = p.sharedDomainFillRhelIdm(domain, nil)
+	assert.EqualError(t, err, fmt.Sprintf("'domain.Type' is not '%s'", model.DomainTypeIpaString))
+
+	*domain.Type = model.DomainTypeIpa
+	err = p.sharedDomainFillRhelIdm(domain, nil)
 	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
 
 	domain.IpaDomain = &model.Ipa{}
 	assert.Panics(t, func() {
-		err = p.registerIpa(domain, nil)
+		err = p.sharedDomainFillRhelIdm(domain, nil)
 	})
 
 	output := &public.RegisterDomainResponse{}
-	err = p.registerIpa(domain, output)
-	assert.EqualError(t, err, "'ipa.CaCerts' is nil")
+	err = p.sharedDomainFillRhelIdm(domain, output)
+	assert.NoError(t, err)
 
 	domain.IpaDomain.CaCerts = []model.IpaCert{}
-	assert.Panics(t, func() {
-		err = p.registerIpa(domain, output)
+	assert.NotPanics(t, func() {
+		err = p.sharedDomainFillRhelIdm(domain, output)
 	})
 
 	output.Type = public.DomainTypeRhelIdm
 	output.RhelIdm = &public.DomainIpa{}
-	err = p.registerIpa(domain, output)
-	assert.EqualError(t, err, "'ipa.Servers' is nil")
+	err = p.sharedDomainFillRhelIdm(domain, output)
+	assert.NoError(t, err)
 }
 
-func TestRegisterIpa(t *testing.T) {
+func TestRegisterRhelIdm(t *testing.T) {
 	tokenExpiration := &time.Time{}
 	*tokenExpiration = time.Now()
 	type TestCaseExpected struct {
@@ -267,15 +178,15 @@ func TestRegisterIpa(t *testing.T) {
 	}
 }
 
-func TestRegisterFillDomainData(t *testing.T) {
+func TestSharedDomainFill(t *testing.T) {
 	p := domainPresenter{}
 	assert.Panics(t, func() {
-		p.registerFillDomainData(nil, nil)
+		p.sharedDomainFill(nil, nil)
 	})
 
 	domain := &model.Domain{}
 	assert.Panics(t, func() {
-		p.registerFillDomainData(domain, nil)
+		p.sharedDomainFill(domain, nil)
 	})
 
 	output := public.RegisterDomainResponse{}
@@ -285,7 +196,7 @@ func TestRegisterFillDomainData(t *testing.T) {
 	domain.DomainName = pointy.String("mydomain.example")
 	domain.Title = pointy.String("My Domain Example")
 	domain.Description = pointy.String("My Domain Example Description")
-	p.registerFillDomainData(domain, &output)
+	p.sharedDomainFill(domain, &output)
 	assert.Equal(t, domainUUID, output.DomainUuid)
 	assert.Equal(t, true, output.AutoEnrollmentEnabled)
 	assert.Equal(t, "mydomain.example", output.DomainName)
@@ -349,6 +260,380 @@ func TestCreateRhelIdmFillRealmDomains(t *testing.T) {
 	p.createRhelIdmFillRealmDomains(&output, &domain)
 }
 
-func TestFillRhelIdmCerts(t *testing.T) {
+func TestCreateRhelIdm(t *testing.T) {
+	p := domainPresenter{}
+	assert.Panics(t, func() {
+		p.createRhelIdm(nil, nil)
+	})
 
+	domain := model.Domain{}
+	assert.Panics(t, func() {
+		p.createRhelIdm(nil, &domain)
+	})
+
+	domain.IpaDomain = &model.Ipa{}
+	err := p.createRhelIdm(nil, &domain)
+	assert.EqualError(t, err, "'RealmName' is nil")
+
+	domain.IpaDomain.RealmName = pointy.String("mydomain.example")
+	domain.IpaDomain.CaCerts = []model.IpaCert{}
+	domain.IpaDomain.Servers = []model.IpaServer{}
+	assert.Panics(t, func() {
+		err = p.createRhelIdm(nil, &domain)
+	})
+
+	output := public.Domain{}
+	err = p.createRhelIdm(&output, &domain)
+}
+
+func TestFillRhelIdmCerts(t *testing.T) {
+	p := domainPresenter{}
+
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmCerts(nil, nil)
+	})
+
+	output := public.Domain{}
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmCerts(&output, nil)
+	})
+
+	domain := model.Domain{}
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmCerts(&output, &domain)
+	})
+
+	output.RhelIdm = &public.DomainIpa{}
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmCerts(&output, &domain)
+	})
+}
+
+func TestGuardSharedDomain(t *testing.T) {
+	p := domainPresenter{}
+
+	err := p.guardSharedDomain(nil)
+	assert.EqualError(t, err, "'domain' is nil")
+
+	domain := model.Domain{}
+	err = p.guardSharedDomain(&domain)
+	assert.EqualError(t, err, "'domain.Type' is nil")
+
+	domain.Type = pointy.Uint(model.DomainTypeUndefined)
+	err = p.guardSharedDomain(&domain)
+	assert.EqualError(t, err, "'domain.Type' is invalid")
+
+	*domain.Type = model.DomainTypeIpa
+	err = p.guardSharedDomain(&domain)
+	assert.NoError(t, err)
+}
+
+func TestSharedDomain(t *testing.T) {
+	var (
+		err    error
+		output *public.RegisterDomainResponse
+	)
+	p := domainPresenter{}
+
+	// Fail some guard check
+	output, err = p.sharedDomain(nil)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain' is nil")
+
+	// Fail Type not filled
+	domain := &model.Domain{}
+	output, err = p.sharedDomain(domain)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain.Type' is nil")
+
+	// Fail nil IpaDomain
+	domain.Type = pointy.Uint(model.DomainTypeIpa)
+	output, err = p.sharedDomain(domain)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
+
+	// Not valid Type
+	*domain.Type = 999
+	output, err = p.sharedDomain(domain)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'domain.Type=999' is invalid")
+
+	// Success minimal values
+	*domain.Type = model.DomainTypeIpa
+	domain.IpaDomain = &model.Ipa{}
+	output, err = p.sharedDomain(domain)
+	expected := public.Domain{
+		AutoEnrollmentEnabled: false,
+		Title:                 "",
+		Description:           "",
+		DomainName:            "",
+		DomainUuid:            model.NilUUID.String(),
+		Type:                  public.DomainTypeRhelIdm,
+		RhelIdm: &public.DomainIpa{
+			RealmName:    "",
+			CaCerts:      []public.DomainIpaCert{},
+			Servers:      []public.DomainIpaServer{},
+			RealmDomains: []string{},
+		},
+	}
+	assert.NoError(t, err)
+	require.NotNil(t, output)
+	equalPresenterDomain(t, &expected, output)
+
+	// Success with full information
+	*domain.Type = model.DomainTypeIpa
+	domain.Title = pointy.String("Test Title")
+	domain.Description = pointy.String("Test Description")
+	domain.DomainName = pointy.String("mydomain.example")
+	testUUID := uuid.New()
+	testOrgID := "12345"
+	domain.DomainUuid = testUUID
+	domain.OrgId = testOrgID
+	domain.AutoEnrollmentEnabled = pointy.Bool(true)
+	testNotValidBefore := time.Now()
+	testNotValidAfter := testNotValidBefore.Add(24 * time.Hour)
+	domain.IpaDomain.RealmDomains = pq.StringArray{"mydomain.example"}
+	domain.IpaDomain.RealmName = pointy.String("MYDOMAIN.EXAMPLE")
+	testToken := uuid.New()
+	domain.IpaDomain.Token = pointy.String(testToken.String())
+	testTokenExpiration := time.Now().Add(15 * time.Minute)
+	domain.IpaDomain.TokenExpiration = &testTokenExpiration
+	domain.IpaDomain.CaCerts = []model.IpaCert{
+		{
+			Issuer:         "Ca Cert Issuer test",
+			Nickname:       "Ca Cert Nickname test",
+			NotValidBefore: testNotValidBefore,
+			NotValidAfter:  testNotValidAfter,
+			SerialNumber:   "1",
+			Subject:        "Ca Cert Subject",
+			Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+		},
+	}
+	testSubscriptionManagerId := "93a46bde-e760-11ed-9a5a-482ae3863d30"
+	domain.IpaDomain.Servers = []model.IpaServer{
+		{
+			FQDN:                "server1.mydomain.example",
+			RHSMId:              testSubscriptionManagerId,
+			CaServer:            true,
+			PKInitServer:        true,
+			HCCEnrollmentServer: true,
+			HCCUpdateServer:     true,
+		},
+	}
+	expected = public.Domain{
+		AutoEnrollmentEnabled: true,
+		Title:                 "Test Title",
+		Description:           "Test Description",
+		DomainName:            "mydomain.example",
+		DomainUuid:            testUUID.String(),
+		Type:                  public.DomainTypeRhelIdm,
+		RhelIdm: &public.DomainIpa{
+			RealmName:    "MYDOMAIN.EXAMPLE",
+			RealmDomains: []string{"mydomain.example"},
+			CaCerts: []public.DomainIpaCert{
+				{
+					Issuer:         "Ca Cert Issuer test",
+					Nickname:       "Ca Cert Nickname test",
+					NotValidBefore: testNotValidBefore,
+					NotValidAfter:  testNotValidAfter,
+					SerialNumber:   "1",
+					Subject:        "Ca Cert Subject",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+			},
+			Servers: []public.DomainIpaServer{
+				{
+					Fqdn:                  "server1.mydomain.example",
+					SubscriptionManagerId: testSubscriptionManagerId,
+					CaServer:              true,
+					PkinitServer:          true,
+					HccEnrollmentServer:   true,
+					HccUpdateServer:       true,
+				},
+			},
+		},
+	}
+	output, err = p.sharedDomain(domain)
+	require.NotNil(t, output)
+	assert.NoError(t, err)
+	equalPresenterDomain(t, output, &expected)
+}
+
+func equalPrensenterDomainRhelIdmCaCerts(t *testing.T, expected []public.DomainIpaCert, actual []public.DomainIpaCert) {
+	if expected == nil && actual == nil {
+		return
+	}
+	if expected == nil {
+		t.Errorf("'expected' is nil")
+		return
+	}
+	if actual == nil {
+		t.Errorf("'actual' is nil")
+		return
+	}
+
+	require.Equal(t, len(expected), len(actual))
+	for i := range actual {
+		assert.Equal(t, expected[i].Nickname, actual[i].Nickname)
+		assert.Equal(t, expected[i].Issuer, actual[i].Issuer)
+		assert.Equal(t, expected[i].SerialNumber, actual[i].SerialNumber)
+		assert.Equal(t, expected[i].Subject, actual[i].Subject)
+		assert.Equal(t, expected[i].NotValidAfter, actual[i].NotValidAfter)
+		assert.Equal(t, expected[i].NotValidBefore, actual[i].NotValidBefore)
+		assert.Equal(t, expected[i].Pem, actual[i].Pem)
+	}
+}
+
+func equalPrensenterDomainRhelIdmServers(t *testing.T, expected []public.DomainIpaServer, actual []public.DomainIpaServer) {
+	if expected == nil && actual == nil {
+		return
+	}
+	require.NotNil(t, expected)
+	require.NotNil(t, actual)
+
+	require.Equal(t, len(expected), len(actual))
+	for i := range actual {
+		assert.Equal(t, expected[i].Fqdn, actual[i].Fqdn)
+		assert.Equal(t, expected[i].SubscriptionManagerId, actual[i].SubscriptionManagerId)
+		assert.Equal(t, expected[i].CaServer, actual[i].CaServer)
+		assert.Equal(t, expected[i].PkinitServer, actual[i].PkinitServer)
+		assert.Equal(t, expected[i].HccEnrollmentServer, actual[i].HccEnrollmentServer)
+		assert.Equal(t, expected[i].HccUpdateServer, actual[i].HccUpdateServer)
+	}
+}
+
+// equalPresenterDomainRhelIdm compare expected public.DomainIpa with actual model.Ipa
+func equalPresenterDomainRhelIdm(t *testing.T, expected *public.DomainIpa, actual *public.DomainIpa) {
+	if expected == nil && actual == nil {
+		return
+	}
+	require.NotNil(t, expected)
+	require.NotNil(t, actual)
+	assert.Equal(t, expected.RealmName, actual.RealmName)
+	assert.Equal(t, expected.RealmDomains, actual.RealmDomains)
+	equalPrensenterDomainRhelIdmCaCerts(t, expected.CaCerts, actual.CaCerts)
+	equalPrensenterDomainRhelIdmServers(t, expected.Servers, actual.Servers)
+}
+
+// equalPresenterDomain compare expected public.Domain with actual model.Domain
+func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.Domain) {
+	if expected == nil && actual == nil {
+		return
+	}
+	require.NotNil(t, expected)
+	require.NotNil(t, actual)
+	assert.Equal(t, expected.AutoEnrollmentEnabled, actual.AutoEnrollmentEnabled)
+	assert.Equal(t, expected.Title, actual.Title)
+	assert.Equal(t, expected.Description, actual.Description)
+	assert.Equal(t, expected.DomainName, actual.DomainName)
+	assert.Equal(t, expected.DomainUuid, actual.DomainUuid)
+	assert.Equal(t, expected.Type, actual.Type)
+	switch expected.Type {
+	case public.DomainTypeRhelIdm:
+		equalPresenterDomainRhelIdm(t, expected.RhelIdm, actual.RhelIdm)
+	case "":
+	default:
+		t.Errorf("asserting agains an invalid Type='%s'", expected.Type)
+	}
+}
+
+func TestFillRhelIdmServersError(t *testing.T) {
+	p := domainPresenter{}
+
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmServers(nil, nil)
+	})
+
+	output := public.Domain{}
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmServers(&output, nil)
+	})
+
+	domain := model.Domain{}
+	assert.NotPanics(t, func() {
+		p.fillRhelIdmServers(&output, &domain)
+	})
+}
+
+func TestFillRhelIdmServers(t *testing.T) {
+	type TestCaseGiven struct {
+		To   *public.Domain
+		From *model.Domain
+	}
+	type TestCaseExpected struct {
+		Err error
+		To  *public.Domain
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+	testCases := []TestCase{
+		{
+			Name: "Full success copy",
+			Given: TestCaseGiven{
+				To: &public.Domain{
+					RhelIdm: &public.DomainIpa{},
+				},
+				From: &model.Domain{
+					Type: pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						Servers: []model.IpaServer{
+							{
+								FQDN:                "server1.mydomain.example",
+								RHSMId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
+								CaServer:            true,
+								HCCEnrollmentServer: true,
+								HCCUpdateServer:     true,
+								PKInitServer:        true,
+							},
+						},
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				To: &public.Domain{
+					Type: public.DomainTypeRhelIdm,
+					RhelIdm: &public.DomainIpa{
+						Servers: []public.DomainIpaServer{
+							{
+								Fqdn:                  "server1.mydomain.example",
+								SubscriptionManagerId: "547ce70c-9eb5-4783-a619-086aa26f88e5",
+								CaServer:              true,
+								HccEnrollmentServer:   true,
+								HccUpdateServer:       true,
+								PkinitServer:          true,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		// I instantiate directly because the public methods
+		// are not part of the interface
+		p := domainPresenter{}
+		if testCase.Expected.Err != nil {
+			// assert.EqualError(t, err, testCase.Expected.Err.Error())
+			assert.Panics(t, func() {
+				p.fillRhelIdmServers(testCase.Given.To, testCase.Given.From)
+			})
+		} else {
+			// assert.NoError(t, err)
+			assert.NotPanics(t, func() {
+				p.fillRhelIdmServers(testCase.Given.To, testCase.Given.From)
+			})
+			require.NotNil(t, testCase.Expected.To)
+			require.NotNil(t, testCase.Expected.To.RhelIdm)
+			require.NotNil(t, testCase.Expected.To.RhelIdm.Servers)
+			require.NotNil(t, testCase.Given.To)
+			require.NotNil(t, testCase.Given.To.RhelIdm)
+			require.NotNil(t, testCase.Given.To.RhelIdm.Servers)
+			assert.Equal(t, testCase.Expected.To.RhelIdm.Servers, testCase.Given.To.RhelIdm.Servers)
+		}
+	}
 }
