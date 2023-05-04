@@ -205,8 +205,15 @@ func (s *Suite) TestCreateErrors() {
 			Type:                  pointy.Uint(model.DomainTypeIpa),
 			AutoEnrollmentEnabled: pointy.Bool(true),
 			IpaDomain: &model.Ipa{
-				CaCerts: []model.IpaCert{},
-				Servers: []model.IpaServer{},
+				Model: gorm.Model{
+					ID:        1,
+					CreatedAt: currentTime,
+					UpdatedAt: currentTime,
+				},
+				RealmName:    pointy.String("mydomain.example"),
+				RealmDomains: pq.StringArray{"mydomain.example"},
+				CaCerts:      []model.IpaCert{},
+				Servers:      []model.IpaServer{},
 			},
 		}
 		domainTypeIsNil model.Domain = model.Domain{
@@ -236,6 +243,21 @@ func (s *Suite) TestCreateErrors() {
 			Title:                 pointy.String("My domain test title"),
 			Description:           pointy.String("My domain test description"),
 			Type:                  pointy.Uint(1000),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			IpaDomain:             nil,
+		}
+		ipaDomainIpaDomainIsNil model.Domain = model.Domain{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+			},
+			OrgId:                 orgID,
+			DomainUuid:            testUUID,
+			DomainName:            nil,
+			Title:                 pointy.String("My domain test title"),
+			Description:           pointy.String("My domain test description"),
+			Type:                  pointy.Uint(model.DomainTypeIpa),
 			AutoEnrollmentEnabled: pointy.Bool(true),
 			IpaDomain:             nil,
 		}
@@ -270,8 +292,84 @@ func (s *Suite) TestCreateErrors() {
 	assert.Error(t, err)
 	assert.Equal(t, "an error happened", err.Error())
 
+	// Type is nil
 	err = s.repository.Create(s.DB, orgID, &domainTypeIsNil)
 	assert.EqualError(t, err, "'Type' is nil")
+
+	// Type is invalid
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(
+			ipaDomainTypeIsNotValid.CreatedAt,
+			ipaDomainTypeIsNotValid.UpdatedAt,
+			nil,
+			ipaDomainTypeIsNotValid.OrgId,
+			ipaDomainTypeIsNotValid.DomainUuid,
+			ipaDomainTypeIsNotValid.DomainName,
+			ipaDomainTypeIsNotValid.Title,
+			ipaDomainTypeIsNotValid.Description,
+			ipaDomainTypeIsNotValid.Type,
+			ipaDomainTypeIsNotValid.AutoEnrollmentEnabled,
+			ipaDomainTypeIsNotValid.ID,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id"}).
+				AddRow(uint(1)))
+	err = s.repository.Create(s.DB, orgID, &ipaDomainTypeIsNotValid)
+	assert.EqualError(t, err, "'Type' is invalid")
+
+	// IpaDomain is nil - return no error
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(
+			ipaDomainIpaDomainIsNil.CreatedAt,
+			ipaDomainIpaDomainIsNil.UpdatedAt,
+			nil,
+			ipaDomainIpaDomainIsNil.OrgId,
+			ipaDomainIpaDomainIsNil.DomainUuid,
+			ipaDomainIpaDomainIsNil.DomainName,
+			ipaDomainIpaDomainIsNil.Title,
+			ipaDomainIpaDomainIsNil.Description,
+			ipaDomainIpaDomainIsNil.Type,
+			ipaDomainIpaDomainIsNil.AutoEnrollmentEnabled,
+			ipaDomainIpaDomainIsNil.ID,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id"}).
+				AddRow(int64(1)))
+	err = s.repository.Create(s.DB, orgID, &ipaDomainIpaDomainIsNil)
+	assert.NoError(t, err)
+
+	// Force error for createIpaDomain
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(
+			data.CreatedAt,
+			data.UpdatedAt,
+			nil,
+			data.OrgId,
+			data.DomainUuid,
+			data.DomainName,
+			data.Title,
+			data.Description,
+			data.Type,
+			data.AutoEnrollmentEnabled,
+			data.ID,
+		).
+		WillReturnRows(
+			sqlmock.NewRows([]string{"id"}).
+				AddRow(int64(1)))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
+		WithArgs(
+			sqlmock.AnyArg(),
+			sqlmock.AnyArg(),
+			nil,
+			data.IpaDomain.RealmName,
+			data.IpaDomain.RealmDomains,
+			sqlmock.AnyArg(),
+			sqlmock.AnyArg(),
+			data.IpaDomain.ID,
+		).
+		WillReturnError(fmt.Errorf("error at INSERT INTO \"ipas\""))
+	err = s.repository.Create(s.DB, orgID, &data)
+	assert.EqualError(t, err, "error at INSERT INTO \"ipas\"")
 
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
 		WithArgs(
@@ -348,6 +446,104 @@ func (s *Suite) TestCreateIpaDomain() {
 	// Check nil
 	err = s.repository.createIpaDomain(s.DB, 1, nil)
 	assert.EqualError(t, err, "'data' of type '*model.Ipa' is nil")
+
+	// Error on INSERT INTO "ipas"
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
+		WithArgs(
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			nil,
+
+			data.RealmName,
+			data.RealmDomains,
+			data.Token,
+			sqlmock.AnyArg(),
+			data.ID).
+		WillReturnError(fmt.Errorf("error on INSERT INTO \"ipas\""))
+	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	assert.EqualError(t, err, "error on INSERT INTO \"ipas\"")
+
+	// Error on INSERT INTO "ipa_certs"
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
+		WithArgs(
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			nil,
+
+			data.RealmName,
+			data.RealmDomains,
+			data.Token,
+			sqlmock.AnyArg(),
+			data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.ID))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+		WithArgs(
+			data.CaCerts[0].CreatedAt,
+			data.CaCerts[0].UpdatedAt,
+			nil,
+
+			data.CaCerts[0].IpaID,
+			data.CaCerts[0].Issuer,
+			data.CaCerts[0].Nickname,
+			data.CaCerts[0].NotValidAfter,
+			data.CaCerts[0].NotValidBefore,
+			data.CaCerts[0].Pem,
+			data.CaCerts[0].SerialNumber,
+			data.CaCerts[0].Subject,
+			data.CaCerts[0].ID).
+		WillReturnError(fmt.Errorf("error on INSERT INTO \"ipa_certs\""))
+	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	assert.EqualError(t, err, "error on INSERT INTO \"ipa_certs\"")
+
+	// Error on INSERT INTO "ipa_servers"
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
+		WithArgs(
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			nil,
+
+			data.RealmName,
+			data.RealmDomains,
+			data.Token,
+			sqlmock.AnyArg(),
+			data.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.ID))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+		WithArgs(
+			data.CaCerts[0].CreatedAt,
+			data.CaCerts[0].UpdatedAt,
+			nil,
+
+			data.CaCerts[0].IpaID,
+			data.CaCerts[0].Issuer,
+			data.CaCerts[0].Nickname,
+			data.CaCerts[0].NotValidAfter,
+			data.CaCerts[0].NotValidBefore,
+			data.CaCerts[0].Pem,
+			data.CaCerts[0].SerialNumber,
+			data.CaCerts[0].Subject,
+			data.CaCerts[0].ID).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).
+			AddRow(data.CaCerts[0].ID))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(
+			data.Servers[0].CreatedAt,
+			data.Servers[0].UpdatedAt,
+			nil,
+
+			data.Servers[0].IpaID,
+			data.Servers[0].FQDN,
+			data.Servers[0].RHSMId,
+			data.Servers[0].CaServer,
+			data.Servers[0].HCCEnrollmentServer,
+			data.Servers[0].HCCUpdateServer,
+			data.Servers[0].PKInitServer,
+			data.Servers[0].ID).
+		WillReturnError(fmt.Errorf("error on INSERT INTO \"ipa_servers\""))
+	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	assert.EqualError(t, err, "error on INSERT INTO \"ipa_servers\"")
 
 	//
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
@@ -439,7 +635,7 @@ func (s *Suite) TestUpdateErrors() {
 	assert.EqualError(t, err, "'db' is nil")
 
 	err = s.repository.Update(s.DB, "", nil)
-	assert.EqualError(t, err, "'orgId' is empty")
+	assert.EqualError(t, err, "'orgID' is empty")
 
 	err = s.repository.Update(s.DB, orgID, nil)
 	assert.EqualError(t, err, "'data' is nil")
@@ -652,7 +848,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 	assert.EqualError(t, err, "'db' is nil")
 
 	err = s.repository.RhelIdmClearToken(s.DB, "", "")
-	assert.EqualError(t, err, "'orgId' is empty")
+	assert.EqualError(t, err, "'orgID' is empty")
 
 	err = s.repository.RhelIdmClearToken(s.DB, orgID, "")
 	assert.EqualError(t, err, "'uuid' is empty")
@@ -861,6 +1057,71 @@ func (s *Suite) TestRhelIdmClearToken() {
 		)
 	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
 	require.NoError(t, err)
+}
+
+func (s *Suite) TestCheckCommon() {
+	t := s.T()
+	r := &domainRepository{}
+
+	err := r.checkCommon(nil, "")
+	assert.EqualError(t, err, "'db' is nil")
+
+	err = r.checkCommon(s.DB, "")
+	assert.EqualError(t, err, "'orgID' is empty")
+
+	err = r.checkCommon(s.DB, "12345")
+	assert.NoError(t, err)
+}
+
+func (s *Suite) TestCheckCommonAndUUID() {
+	t := s.T()
+	r := &domainRepository{}
+
+	err := r.checkCommonAndUUID(nil, "", "")
+	assert.EqualError(t, err, "'db' is nil")
+
+	err = r.checkCommonAndUUID(s.DB, "", "")
+	assert.EqualError(t, err, "'orgID' is empty")
+
+	err = r.checkCommonAndUUID(s.DB, "12345", "")
+	assert.EqualError(t, err, "'uuid' is empty")
+
+	err = r.checkCommonAndUUID(s.DB, "12345", "42f7adee-e932-11ed-8d73-482ae3863d30")
+	assert.NoError(t, err)
+}
+
+func (s *Suite) TestCheckCommonAndData() {
+	t := s.T()
+	r := &domainRepository{}
+
+	err := r.checkCommonAndData(nil, "", nil)
+	assert.EqualError(t, err, "'db' is nil")
+
+	err = r.checkCommonAndData(s.DB, "", nil)
+	assert.EqualError(t, err, "'orgID' is empty")
+
+	err = r.checkCommonAndData(s.DB, "12345", nil)
+	assert.EqualError(t, err, "'data' is nil")
+
+	err = r.checkCommonAndData(s.DB, "12345", &model.Domain{})
+	assert.NoError(t, err)
+}
+
+func (s *Suite) TestCheckCommonAndDataAndType() {
+	t := s.T()
+	r := &domainRepository{}
+
+	err := r.checkCommonAndData(nil, "", nil)
+	assert.EqualError(t, err, "'db' is nil")
+
+	err = r.checkCommonAndData(s.DB, "", nil)
+	assert.EqualError(t, err, "'orgID' is empty")
+
+	err = r.checkCommonAndData(s.DB, "12345", nil)
+	assert.EqualError(t, err, "'data' is nil")
+
+	err = r.checkCommonAndData(s.DB, "12345", &model.Domain{})
+	assert.NoError(t, err)
 }
 
 func TestSuite(t *testing.T) {
