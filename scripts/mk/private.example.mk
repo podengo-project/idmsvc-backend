@@ -36,6 +36,7 @@ DOCKER_IMAGE_BASE ?= quay.io/$(QUAY_LOGIN)/$(QUAY_REPOSITORY)
 #   https://access.redhat.com/RegistryAuthentication#creating-registry-service-accounts-6
 # To retrieve your token or regenerate it, go to:
 #   https://access.redhat.com/terms-based-registry/#/token/YOUR_USERNAME
+# Use the user and token from the "Docker login" tab (e.g. `12345|nickname`).
 # If the Dockerfile is using the authenticated repositories, you will need this values
 # The build_deploy.sh script which is called by jenkins job automation, log in the
 # redhat registry. They are specified here to use the same script that use

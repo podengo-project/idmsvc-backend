@@ -4,7 +4,7 @@
 
 **Pre-requisites**:
 
-- golang 1.18
+- golang 1.18 (not `gcc-go`)
 - docker or podman (>4.0.0)
 - docker-compose or podman-compose
 - python3
@@ -15,6 +15,7 @@ Packages for fedora 37:
 ```sh
 $ sudo dnf upgrade
 $ sudo dnf install git golang podman podman-compose
+$ sudo dnf remove gcc-go
 ```
 
 (Optional) Installing VSCode by repository on fedora 37:
@@ -44,6 +45,8 @@ Once tasks:
 - Install used tools: `make install-tools`
 - Create your `configs/config.yaml` file: `cp -vf configs/config.example.yaml configs/config.yaml`
 - Create your `secrets/private.mk` file: `cp -vf scripts/mk/private.example.mk secrets/private.mk`
+- Follow the instructions in `secrets/private.mk` to set up Quay repository
+  and Red Hat Repository access.
 - Create your `configs/bonfire.yaml` file: `cp -vf configs/bonfire.example.yaml configs/bonfire.yaml`
 - Add a `GITHUB_TOKEN` to `~/.config/bonfire/env` if deploying frequently at ephemeral environment,
   to avoid API access rate limit.
