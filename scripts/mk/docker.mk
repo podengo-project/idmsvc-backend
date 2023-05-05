@@ -29,6 +29,15 @@ DOCKER_IMAGE ?= $(DOCKER_IMAGE_BASE):$(DOCKER_IMAGE_TAG)
 # DOCKER_OPTS
 # DOCKER_RUN_ARGS
 
+# if go is available, mount user's Go module and build cache to speed up dev builds.
+ifneq (,$(shell command go 2>&1 >/dev/null))
+USE_GO_CACHE = true
+DOCKER_BUILD_OPTS += -v "$(shell go env GOCACHE):/opt/app-root/src/.cache/go-build$(DOCKER_VOL_SUFFIX)"
+DOCKER_BUILD_OPTS += -v "$(shell go env GOMODCACHE):/opt/app-root/src/go/pkg/mod$(DOCKER_VOL_SUFFIX)"
+else
+USE_GO_CACHE = false
+endif
+
 .PHONY: docker-login
 docker-login:
 	$(DOCKER) login -u "$(DOCKER_LOGIN_USER)" -p "$(DOCKER_LOGIN_TOKEN)" $(DOCKER_REGISTRY)
@@ -36,11 +45,9 @@ docker-login:
 .PHONY: docker-build
 docker-build: QUAY_EXPIRATION ?= 1d
 docker-build:  ## Build image DOCKER_IMAGE from DOCKER_DOCKERFILE using the DOCKER_CONTEXT_DIR
-	mkdir -p $(shell go env GOCACHE) $(shell go env GOMODCACHE)
+	$(USE_GO_CACHE) && mkdir -p $(shell go env GOCACHE) $(shell go env GOMODCACHE) || true
 	$(DOCKER) build \
 	  --label "quay.expires-after=$(QUAY_EXPIRATION)" \
-	  -v $(shell go env GOCACHE):/opt/app-root/src/.cache/go-build$(DOCKER_VOL_SUFFIX) \
-	  -v $(shell go env GOMODCACHE):/opt/app-root/src/go/pkg/mod$(DOCKER_VOL_SUFFIX) \
 	  $(DOCKER_BUILD_OPTS) \
 	  -t "$(DOCKER_IMAGE)" \
 	  $(DOCKER_CONTEXT_DIR) \
