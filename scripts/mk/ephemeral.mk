@@ -151,7 +151,7 @@ ephemeral-namespace-describe: ## Display information about the current namespace
 # Tested by 'make ephemeral-build-deploy DOCKER_IMAGE_BASE=quay.io/avisied0/hmsidm-backend'
 .PHONY: ephemeral-build-deploy
 ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scripts; It requires to pass DOCKER_IMAGE_BASE
-	IMAGE="$(DOCKER_IMAGE_BASE)" IMAGE_TAG="$(DOCKER_IMAGE_TAG)" ./build_deploy.sh &> build_deploy.log
+	IMAGE="$(DOCKER_IMAGE_BASE)" IMAGE_TAG="$(DOCKER_IMAGE_TAG)" ./build_deploy.sh 2>&1 | tee build_deploy.log
 
 .PHONY: ephemeral-pr-checks
 ephemeral-pr-checks:

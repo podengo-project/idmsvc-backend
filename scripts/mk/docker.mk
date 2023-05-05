@@ -6,10 +6,12 @@
 ifneq (,$(shell command podman -v 2>/dev/null))
 DOCKER ?= podman
 DOCKER_HEALTH_PATH ?= .State.Healthcheck.Status
+DOCKER_VOL_SUFFIX ?= :Z
 else
 ifneq (,$(shell command docker -v 2>/dev/null))
 DOCKER ?= docker
 DOCKER_HEALTH_PATH ?= .State.Health.Status
+DOCKER_VOL_SUFFIX ?=
 else
 DOCKER ?= false
 endif
@@ -34,8 +36,11 @@ docker-login:
 .PHONY: docker-build
 docker-build: QUAY_EXPIRATION ?= 1d
 docker-build:  ## Build image DOCKER_IMAGE from DOCKER_DOCKERFILE using the DOCKER_CONTEXT_DIR
+	mkdir -p $(shell go env GOCACHE) $(shell go env GOMODCACHE)
 	$(DOCKER) build \
 	  --label "quay.expires-after=$(QUAY_EXPIRATION)" \
+	  -v $(shell go env GOCACHE):/opt/app-root/src/.cache/go-build$(DOCKER_VOL_SUFFIX) \
+	  -v $(shell go env GOMODCACHE):/opt/app-root/src/go/pkg/mod$(DOCKER_VOL_SUFFIX) \
 	  $(DOCKER_BUILD_OPTS) \
 	  -t "$(DOCKER_IMAGE)" \
 	  $(DOCKER_CONTEXT_DIR) \
