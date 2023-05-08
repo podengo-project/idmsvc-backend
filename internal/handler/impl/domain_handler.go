@@ -33,13 +33,15 @@ func (a *application) ListDomains(
 		err    error
 		data   []model.Domain
 		output *public.ListDomainsResponse
-		orgId  string
+		orgID  string
 		offset int
 		limit  int
+		count  int64
 		tx     *gorm.DB
 	)
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
-	if orgId, offset, limit, err = a.domain.interactor.List(&params); err != nil {
+	domainCtx := ctx.(middleware.DomainContextInterface)
+	if orgID, offset, limit, err = a.domain.interactor.List(domainCtx.XRHID(), &params); err != nil {
 		return err
 	}
 	if tx = a.db.Begin(); tx.Error != nil {
@@ -47,11 +49,11 @@ func (a *application) ListDomains(
 	}
 	// https://stackoverflow.com/a/46421989
 	defer tx.Rollback()
-	if data, err = a.domain.repository.FindAll(
+	if data, count, err = a.domain.repository.List(
 		tx,
-		orgId,
-		int64(offset),
-		int32(limit),
+		orgID,
+		offset,
+		limit,
 	); err != nil {
 		return err
 	}
@@ -61,8 +63,9 @@ func (a *application) ListDomains(
 	// TODO Read prefix from configuration
 	if output, err = a.domain.presenter.List(
 		"/api/hmsidm/v1",
-		int64(offset),
-		int32(limit),
+		count,
+		offset,
+		limit,
 		data,
 	); err != nil {
 		return err

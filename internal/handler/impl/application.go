@@ -37,7 +37,7 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 	}
 	i := usecase_interactor.NewDomainInteractor()
 	r := usecase_repository.NewDomainRepository()
-	p := usecase_presenter.NewDomainPresenter()
+	p := usecase_presenter.NewDomainPresenter(config)
 
 	// Instantiate application
 	return &application{
