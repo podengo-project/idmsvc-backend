@@ -67,6 +67,10 @@ tidy:
 get-deps: ## Download golang dependencies
 	go get -d ./...
 
+.PHONY: vet
+vet:  ## Run go vet ignoring /vendor directory
+	go vet $(shell go list ./... | grep -v /vendor/)
+
 .PHONY: vendor
 vendor: ## Generate vendor/ directory populated with the dependencies
 	go mod vendor
@@ -170,3 +174,7 @@ generate-mock: $(MOCKERY)  ## Generate mock by using mockery tool
 .PHONY: generate-deps
 generate-deps: $(GODA)
 	$(GODA) graph "github.com/hmsidm/..." | dot -Tsvg -o docs/service-dependencies.svg
+
+.PHONY: coverage
+coverage:  ## Printout coverage
+	go tool cover -func ./coverage.out
