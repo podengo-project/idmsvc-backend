@@ -769,3 +769,33 @@ func TestCommonRegisterUpdate(t *testing.T) {
 	domain, err = i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
 	i.commonRegisterUpdate(testOrgID, &testBody)
 }
+
+func TestGetByID(t *testing.T) {
+	i := domainInteractor{}
+
+	orgID, err := i.GetByID(nil, nil)
+	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.Equal(t, "", orgID)
+
+	testOrgID := "12345"
+	xrhid := identity.XRHID{
+		Identity: identity.Identity{
+			OrgID: testOrgID,
+			Internal: identity.Internal{
+				OrgID: testOrgID,
+			},
+		},
+	}
+	orgID, err = i.GetByID(&xrhid, nil)
+	assert.EqualError(t, err, "'params' is nil")
+	assert.Equal(t, "", orgID)
+
+	testRequestID := "getByID"
+	params := public.ReadDomainParams{
+		XRhIdentity:          header.EncodeXRHID(&xrhid),
+		XRhInsightsRequestId: &testRequestID,
+	}
+	orgID, err = i.GetByID(&xrhid, &params)
+	assert.NoError(t, err)
+	assert.Equal(t, testOrgID, orgID)
+}
