@@ -21,6 +21,11 @@ const (
 	DomainTypeRhelIdm DomainType = "rhel-idm"
 )
 
+// Defines values for ListDomainsDataDomainType.
+const (
+	ListDomainsDataDomainTypeRhelIdm ListDomainsDataDomainType = "rhel-idm"
+)
+
 // Defines values for RegisterDomainType.
 const (
 	RegisterDomainTypeRhelIdm RegisterDomainType = "rhel-idm"
@@ -28,7 +33,7 @@ const (
 
 // Defines values for UpdateDomainType.
 const (
-	UpdateDomainTypeRhelIdm UpdateDomainType = "rhel-idm"
+	RhelIdm UpdateDomainType = "rhel-idm"
 )
 
 // CheckHosts Define the input data for the /check_host action.
@@ -171,11 +176,14 @@ type HostConfResponseSchema struct {
 
 // ListDomainsData The data listed for the domains.
 type ListDomainsData struct {
-	AutoEnrollmentEnabled *bool   `json:"auto_enrollment_enabled,omitempty"`
-	DomainName            *string `json:"domain_name,omitempty"`
-	DomainType            *string `json:"domain_type,omitempty"`
-	DomainUuid            *string `json:"domain_uuid,omitempty"`
+	AutoEnrollmentEnabled bool                      `json:"auto_enrollment_enabled"`
+	DomainName            string                    `json:"domain_name"`
+	DomainType            ListDomainsDataDomainType `json:"domain_type"`
+	DomainUuid            string                    `json:"domain_uuid"`
 }
+
+// ListDomainsDataDomainType defines model for ListDomainsData.DomainType.
+type ListDomainsDataDomainType string
 
 // ListDomainsResponseSchema Represent a paginated result for a list of domains
 type ListDomainsResponseSchema struct {
@@ -206,8 +214,14 @@ type PaginationLinks struct {
 
 // PaginationMeta Metadata for the paginated responses.
 type PaginationMeta struct {
-	// Count Total number of registers without pagination.
-	Count *int32 `json:"count,omitempty"`
+	// Count total records in the collection.
+	Count int64 `json:"count"`
+
+	// Limit Number of items per page.
+	Limit int `json:"limit"`
+
+	// Offset Initial record of the page.
+	Offset int `json:"offset"`
 }
 
 // RegisterDomain defines model for RegisterDomain.

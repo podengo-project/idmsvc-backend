@@ -459,16 +459,31 @@ components:
         PaginationMeta:
             title: Root Type for PaginationMeta
             description: Metadata for the paginated responses.
+            required:
+                - count
+                - limit
+                - offset
             type: object
             properties:
                 count:
-                    format: int32
-                    description: Total number of registers without pagination.
+                    format: int64
+                    description: total records in the collection.
                     type: integer
+                    readOnly: false
                     example: "1"
+                limit:
+                    description: Number of items per page.
+                    type: integer
+                    readOnly: false
+                offset:
+                    description: Initial record of the page.
+                    type: integer
+                    readOnly: false
             additionalProperties: false
             example:
                 count: 1
+                limit: 10
+                offset: 0
         PaginationLinks:
             title: Root Type for PaginationLinks
             description: Represent the navigation links for the data paginated.
@@ -495,6 +510,11 @@ components:
         ListDomainsData:
             title: Root Type for ListDomainsData
             description: The data listed for the domains.
+            required:
+                - auto_enrollment_enabled
+                - domain_name
+                - domain_type
+                - domain_uuid
             type: object
             properties:
                 domain_uuid:
@@ -502,6 +522,8 @@ components:
                 domain_name:
                     type: string
                 domain_type:
+                    enum:
+                        - rhel-idm
                     type: string
                 auto_enrollment_enabled:
                     type: boolean
