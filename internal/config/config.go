@@ -23,6 +23,13 @@ const (
 	DefatulExpirationTime = 15
 	// DefaultWebPort is the default port where the public API is listening
 	DefaultWebPort = 8000
+
+	// https://github.com/project-koku/koku/blob/main/koku/api/common/pagination.py
+
+	// PaginationDefaultLimit is the default limit for the pagination
+	PaginationDefaultLimit = 10
+	// PaginationMaxLimit is the default max limit for the pagination
+	PaginationMaxLimit = 1000
 )
 
 type Config struct {
@@ -137,6 +144,10 @@ type Application struct {
 	// This is the default expiration time for the token
 	// generated when a RHEL IDM domain is created
 	ExpirationTime int `mapstructure:"expiration_time"`
+	// Indicate the default pagination limit when it is 0 or not filled
+	PaginationDefaultLimit int `mapstructure:"pagination_default_limit"`
+	// Indicate the max pagination limit when it is grather
+	PaginationMaxLimit int `mapstructure:"pagination_max_limit"`
 }
 
 var config *Config = nil
@@ -161,9 +172,13 @@ func setDefaults(v *viper.Viper) {
 	// Clients
 	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
 
+	// Application specific
+
 	// Set default value for application expiration time for
 	// the token created by the RHEL IDM domains
-	v.SetDefault("application.expiration_time", DefatulExpirationTime)
+	v.SetDefault("app.expiration_time", DefatulExpirationTime)
+	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
+	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 }
 
 func setClowderConfiguration(v *viper.Viper, cfg *clowder.AppConfig) {

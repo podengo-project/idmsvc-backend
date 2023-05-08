@@ -77,6 +77,10 @@ objects:
                 value: ${{LOGGING_LEVEL}}
               - name: APP_TOKEN_EXPIRATION
                 value: "${APP_TOKEN_EXPIRATION}"
+              - name: APP_PAGINATION_DEFAULT_LIMIT
+                value: ${APP_PAGINATION_DEFAULT_LIMIT}
+              - name: APP_PAGINATION_MAX_LIMIT
+                value: ${APP_PAGINATION_MAX_LIMIT}
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -154,3 +158,11 @@ parameters:
   - name: APP_TOKEN_EXPIRATION
     value: "15"
     description: Indicate the token expiration period
+  - name: APP_PAGINATION_DEFAULT_LIMIT
+    value: "10"
+    description: |
+      The pagination default limit default to list domains
+  - name: APP_PAGINATION_MAX_LIMIT
+    value: "100"
+    description: |
+      The pagination max limit to list domains
