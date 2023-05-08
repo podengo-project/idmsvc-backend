@@ -33,17 +33,17 @@ func helperDomainTypeToUint(domainType public.DomainType) uint {
 	}
 }
 
-// Create translate api request to modle.Domain internal representation.
+// Create translate api request to model.Domain internal representation.
 // params is the x-rh-identity as base64 and the x-rh-insights-request-id value for this request.
 // body is the CreateDomain schema received for the POST request.
 // Return a reference to a new model.Domain instance and nil error for
 // a success transformation, else nil and an error instance.
 func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *api_public.CreateDomain) (string, *model.Domain, error) {
 	if params == nil {
-		return "", nil, fmt.Errorf("'params' cannot be nil")
+		return "", nil, fmt.Errorf("'params' is nil")
 	}
 	if body == nil {
-		return "", nil, fmt.Errorf("'body' cannot be nil")
+		return "", nil, fmt.Errorf("'body' is nil")
 	}
 
 	domain := &model.Domain{}
@@ -128,10 +128,18 @@ func (i domainInteractor) Delete(uuid string, params *api_public.DeleteDomainPar
 	return xrhid.Identity.OrgID, uuid, nil
 }
 
-// TODO Document method
-func (i domainInteractor) List(params *api_public.ListDomainsParams) (orgId string, offset int, limit int, err error) {
+// List is the input adapter to list the domains that belongs to
+// the current organization by using pagination.
+// params is the pagination parameters.
+// Return the organization id, offset of the page, number of items
+// to retrieve and nil error for a success scenario, else empty or
+// zero values and an error interface filled on error.
+func (i domainInteractor) List(xrhid *identity.XRHID, params *api_public.ListDomainsParams) (orgID string, offset int, limit int, err error) {
+	if xrhid == nil {
+		return "", -1, -1, fmt.Errorf("'xrhid' is nil")
+	}
 	if params == nil {
-		return "", -1, -1, fmt.Errorf("'params' cannot be nil")
+		return "", -1, -1, fmt.Errorf("'params' is nil")
 	}
 	if params.Offset == nil {
 		offset = 0
@@ -142,10 +150,6 @@ func (i domainInteractor) List(params *api_public.ListDomainsParams) (orgId stri
 		limit = 10
 	} else {
 		limit = *params.Limit
-	}
-	xrhid, err := header.DecodeXRHID(string(params.XRhIdentity))
-	if err != nil {
-		return "", -1, -1, err
 	}
 	return xrhid.Identity.OrgID, offset, limit, nil
 }
