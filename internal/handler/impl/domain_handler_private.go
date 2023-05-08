@@ -12,7 +12,7 @@ import (
 )
 
 func (a *application) findIpaById(tx *gorm.DB, orgId string, uuid string) (data *model.Domain, err error) {
-	if data, err = a.domain.repository.FindById(tx, orgId, uuid); err != nil {
+	if data, err = a.domain.repository.FindByID(tx, orgId, uuid); err != nil {
 		return nil, err
 	}
 	if *data.Type != model.DomainTypeIpa {

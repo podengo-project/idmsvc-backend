@@ -73,8 +73,13 @@ func (a *application) ListDomains(
 	return ctx.JSON(http.StatusOK, *output)
 }
 
-// Return a Domain resource
-// (GET /domains/{id})
+// ReadDomain retrieve a domain resource identified by the uuid for
+// the GET /domains/:id endpoint.
+// ctx is the echo.Context for this request.
+// uuid is the identifier for the domain to be retrieved.
+// params represent the parameters for the /domains/:uuid endpoint.
+// Return nil if the handler execute successfully, else an error
+// interface providing the error details.
 func (a *application) ReadDomain(
 	ctx echo.Context,
 	uuid string,
@@ -84,13 +89,14 @@ func (a *application) ReadDomain(
 		err    error
 		data   *model.Domain
 		output *public.Domain
-		orgId  string
-		itemId string
+		orgID  string
 		tx     *gorm.DB
 	)
+	domainCtx := ctx.(middleware.DomainContextInterface)
 
-	if orgId, itemId, err = a.domain.interactor.GetById(
-		uuid, &params,
+	if orgID, err = a.domain.interactor.GetByID(
+		domainCtx.XRHID(),
+		&params,
 	); err != nil {
 		return err
 	}
@@ -98,10 +104,10 @@ func (a *application) ReadDomain(
 		return tx.Error
 	}
 	defer tx.Rollback()
-	if data, err = a.domain.repository.FindById(
+	if data, err = a.domain.repository.FindByID(
 		tx,
-		orgId,
-		itemId,
+		orgID,
+		uuid,
 	); err != nil {
 		return err
 	}
