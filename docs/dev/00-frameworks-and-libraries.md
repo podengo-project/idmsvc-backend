@@ -21,7 +21,7 @@
   - Testify: https://pkg.go.dev/github.com/stretchr/testify
   - Mockery: https://github.com/vektra/mockery
   - SqlMock: https://github.com/DATA-DOG/go-sqlmock
-  - (todo) 
+  - (todo)
 
 >> Create a Question google doc to retrieve all the questions
 
@@ -37,4 +37,4 @@
 - [Infrastructure](04-infrastructure.md)
 - [RBAC](05-rbac.md)
 - [Metrics](06-metrics.md)
-
+- [Configurations](07-configs.md)
