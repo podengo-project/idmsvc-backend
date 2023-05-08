@@ -67,7 +67,7 @@ func TestDecodeIdentity(t *testing.T) {
 	result, err = DecodeXRHID("")
 	assert.Nil(t, result)
 	require.Error(t, err)
-	assert.EqualError(t, err, "X-Rh-Identity content cannot be an empty string")
+	assert.EqualError(t, err, "'X-Rh-Identity' is an empty string")
 
 	result, err = DecodeXRHID("abc")
 	assert.Nil(t, result)

@@ -15,7 +15,7 @@ import (
 // nil and an error.
 func DecodeXRHID(data string) (*identity.XRHID, error) {
 	if data == "" {
-		return nil, fmt.Errorf("X-Rh-Identity content cannot be an empty string")
+		return nil, fmt.Errorf("'X-Rh-Identity' is an empty string")
 	}
 	bytes, err := b64.StdEncoding.DecodeString(data)
 	if err != nil {
