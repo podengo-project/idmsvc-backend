@@ -1059,6 +1059,157 @@ func (s *Suite) TestRhelIdmClearToken() {
 	require.NoError(t, err)
 }
 
+func (s *Suite) TestList() {
+	t := s.T()
+	r := &domainRepository{}
+	currentTime := time.Now()
+	orgID := "11111"
+	uuidString := "3bccb88e-dd25-11ed-99e0-482ae3863d30"
+	subscriptionManagerID := "fe106208-dd32-11ed-aa87-482ae3863d30"
+	data := model.Domain{
+		Model: gorm.Model{
+			ID:        1,
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
+			DeletedAt: gorm.DeletedAt{},
+		},
+		OrgId:                 orgID,
+		DomainUuid:            uuid.MustParse(uuidString),
+		DomainName:            pointy.String("mydomain.example"),
+		Title:                 pointy.String("My Domain Example"),
+		Description:           pointy.String("Description of My Domain Example"),
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+		IpaDomain: &model.Ipa{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+				DeletedAt: gorm.DeletedAt{},
+			},
+			RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
+			CaCerts: []model.IpaCert{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:          1,
+					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+					Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
+					NotValidAfter:  currentTime.Add(24 * time.Hour),
+					NotValidBefore: currentTime,
+					SerialNumber:   "1",
+					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----",
+				},
+			},
+			Servers: []model.IpaServer{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:               1,
+					FQDN:                "server1.mydomain.example",
+					RHSMId:              subscriptionManagerID,
+					CaServer:            true,
+					HCCEnrollmentServer: true,
+					HCCUpdateServer:     true,
+					PKInitServer:        true,
+				},
+			},
+			RealmDomains: pq.StringArray{"mydomain.example"},
+		},
+	}
+
+	// db is nil
+	output, count, err := r.List(nil, "", -1, -1)
+	assert.EqualError(t, err, "'db' is nil")
+	assert.Equal(t, int64(0), count)
+	assert.Nil(t, output)
+
+	// orgID is empty
+	output, count, err = r.List(s.DB, "", -1, -1)
+	assert.EqualError(t, err, "'orgID' is empty")
+	assert.Equal(t, int64(0), count)
+	assert.Nil(t, output)
+
+	// offset is lower than 0
+	output, count, err = r.List(s.DB, orgID, -1, -1)
+	assert.EqualError(t, err, "'offset' is lower than 0")
+	assert.Equal(t, int64(0), count)
+	assert.Nil(t, output)
+
+	// limit is lower than 0
+	offset := 0
+	output, count, err = r.List(s.DB, orgID, offset, -1)
+	assert.EqualError(t, err, "'limit' is lower than 0")
+	assert.Equal(t, int64(0), count)
+	assert.Nil(t, output)
+
+	// Return error
+	limit := 5
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE org_id = $1`)).
+		WithArgs(orgID).
+		WillReturnError(fmt.Errorf("an error happened"))
+	output, count, err = r.List(s.DB, orgID, offset, limit)
+	assert.EqualError(t, err, "an error happened")
+	assert.Equal(t, int64(0), count)
+	assert.Nil(t, output)
+
+	// Success case
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE org_id = $1`)).
+		WithArgs(orgID).
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE org_id = $1 AND "domains"."deleted_at" IS NULL LIMIT 5`)).
+		WithArgs(orgID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deleted_at",
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type",
+			"auto_enrollment_enabled",
+		}).AddRow(
+			data.Model.ID,
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			data.Model.DeletedAt,
+
+			data.OrgId,
+			data.DomainUuid,
+			data.DomainName,
+			data.Title,
+			data.Description,
+			data.Type,
+			data.AutoEnrollmentEnabled,
+		))
+	output, count, err = r.List(s.DB, orgID, offset, limit)
+	require.NoError(t, err)
+	assert.Equal(t, int64(1), count)
+	assert.Equal(t, []model.Domain{
+		{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: data.CreatedAt,
+				UpdatedAt: data.UpdatedAt,
+			},
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			OrgId:                 data.OrgId,
+			DomainUuid:            data.DomainUuid,
+			DomainName:            data.DomainName,
+			Title:                 data.Title,
+			Description:           data.Description,
+			Type:                  pointy.Uint(model.DomainTypeIpa),
+		},
+	}, output)
+}
+
+// ---------------- Test for private methods ---------------------
+
 func (s *Suite) TestCheckCommon() {
 	t := s.T()
 	r := &domainRepository{}
