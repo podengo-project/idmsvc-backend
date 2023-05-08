@@ -1,65 +1,16 @@
 package presenter
 
-// TODO Too much code duplication
-// TODO Investigate if some "inheritence" mechanism in
-//      opanapi specification generate common structures
-//      letting to reduce the boilerplate when transforming
-//      internal types <--> api types
-
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
+	"github.com/openlyinc/pointy"
 )
 
-// sharedDomainFillRhelIdmCaCerts translate the list of certificates
-// for the Register operation.
-// ipa the Ipa instance from the business model.
-// output the DomainResponseIpa schema representation
-// to be filled.
-// Return nil if the information is translated properly
-// else return an error.
-
-func (p domainPresenter) getCheckRhelIdm(
-	domain *model.Domain,
-) error {
-	if domain.IpaDomain == nil {
-		return fmt.Errorf("'IpaDomain' is nil")
-	}
-	if domain.IpaDomain.CaCerts == nil {
-		return fmt.Errorf("'CaCerts' is nil")
-	}
-	if domain.IpaDomain.RealmName == nil {
-		return fmt.Errorf("'RealmName' is nil")
-	}
-	if domain.IpaDomain.Servers == nil {
-		return fmt.Errorf("'Servers' is nil")
-	}
-	return nil
-}
-
-func (p domainPresenter) getChecks(
-	domain *model.Domain,
-) error {
-	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
-	}
-	if domain.AutoEnrollmentEnabled == nil {
-		return fmt.Errorf("'AutoenrollmentEnabled' is nil")
-	}
-	if domain.Type == nil {
-		return fmt.Errorf("'DomainType' is nil")
-	}
-	switch *domain.Type {
-	case model.DomainTypeIpa:
-		return p.getCheckRhelIdm(domain)
-	default:
-		return fmt.Errorf("'Type' is invalid")
-	}
-}
-
-func (p domainPresenter) fillRhelIdmServers(
+func (p *domainPresenter) fillRhelIdmServers(
 	target *public.Domain,
 	source *model.Domain,
 ) {
@@ -89,7 +40,7 @@ func (p domainPresenter) fillRhelIdmServers(
 	}
 }
 
-func (p domainPresenter) fillRhelIdmCerts(
+func (p *domainPresenter) fillRhelIdmCerts(
 	output *public.Domain,
 	domain *model.Domain,
 ) {
@@ -118,48 +69,7 @@ func (p domainPresenter) fillRhelIdmCerts(
 	}
 }
 
-func (p domainPresenter) createRhelIdmCheckDomain(
-	domain *model.Domain,
-) error {
-	if domain.IpaDomain.RealmName == nil {
-		return fmt.Errorf("'RealmName' is nil")
-	}
-	if domain.IpaDomain.CaCerts == nil {
-		return fmt.Errorf("'CaCerts' is nil")
-	}
-	if domain.IpaDomain.Servers == nil {
-		return fmt.Errorf("'Servers' is nil")
-	}
-	return nil
-}
-
-func (p domainPresenter) createRhelIdmFillRealmDomains(
-	output *public.Domain,
-	domain *model.Domain,
-) {
-	if domain.IpaDomain.RealmDomains == nil {
-		output.RhelIdm.RealmDomains = []string{}
-	} else {
-		output.RhelIdm.RealmDomains = domain.IpaDomain.RealmDomains
-	}
-}
-
-func (p domainPresenter) createRhelIdm(
-	output *public.Domain,
-	domain *model.Domain,
-) error {
-	if err := p.createRhelIdmCheckDomain(domain); err != nil {
-		return err
-	}
-	output.RhelIdm = &public.DomainIpa{}
-	output.RhelIdm.RealmName = *domain.IpaDomain.RealmName
-	p.fillRhelIdmCerts(output, domain)
-	p.fillRhelIdmServers(output, domain)
-	p.createRhelIdmFillRealmDomains(output, domain)
-	return nil
-}
-
-func (p domainPresenter) guardSharedDomain(
+func (p *domainPresenter) guardSharedDomain(
 	domain *model.Domain,
 ) error {
 	if domain == nil {
@@ -174,7 +84,7 @@ func (p domainPresenter) guardSharedDomain(
 	return nil
 }
 
-func (p domainPresenter) sharedDomain(
+func (p *domainPresenter) sharedDomain(
 	domain *model.Domain,
 ) (output *public.Domain, err error) {
 	// Expect domain not nil and domain.Type filled
@@ -201,7 +111,7 @@ func (p domainPresenter) sharedDomain(
 	return output, nil
 }
 
-func (p domainPresenter) sharedDomainFill(
+func (p *domainPresenter) sharedDomainFill(
 	domain *model.Domain,
 	output *public.Domain,
 ) {
@@ -220,7 +130,7 @@ func (p domainPresenter) sharedDomainFill(
 	}
 }
 
-func (p domainPresenter) sharedDomainFillRhelIdm(
+func (p *domainPresenter) sharedDomainFillRhelIdm(
 	domain *model.Domain,
 	output *public.Domain,
 ) (err error) {
@@ -249,19 +159,80 @@ func (p domainPresenter) sharedDomainFillRhelIdm(
 		output.RhelIdm.RealmDomains = []string{}
 	}
 
-	// if err = p.sharedDomainFillRhelIdmCaCerts(
-	// 	domain, output,
-	// ); err != nil {
-	// 	return err
-	// }
 	p.fillRhelIdmCerts(output, domain)
 
-	// if err = p.sharedDomainFillRhelIdmServers(
-	// 	domain, output,
-	// ); err != nil {
-	// 	return err
-	// }
 	p.fillRhelIdmServers(output, domain)
 
 	return nil
+}
+
+func (p *domainPresenter) buildPaginationLink(prefix string, offset int, limit int) string {
+	if limit == 0 {
+		limit = p.cfg.Application.PaginationDefaultLimit
+	}
+	if limit > p.cfg.Application.PaginationMaxLimit {
+		limit = p.cfg.Application.PaginationMaxLimit
+	}
+	if offset < 0 {
+		offset = 0
+	}
+
+	q := url.Values{}
+	q.Add("limit", strconv.FormatInt(int64(limit), 10))
+	q.Add("offset", strconv.FormatInt(int64(offset), 10))
+
+	return fmt.Sprintf("%s/domains?%s", prefix, q.Encode())
+}
+
+func (p *domainPresenter) listFillLinks(output *public.ListDomainsResponse, prefix string, count int64, offset int, limit int) {
+	if output == nil {
+		panic("'output' is nil")
+	}
+
+	// Calculate the offsets
+	currentOffset := ((offset + limit - 1) / limit) * limit
+	firstOffset := 0
+	prevOffset := currentOffset - limit
+	nextOffset := currentOffset + limit
+	lastOffset := ((int(count)+limit-1)/limit)*limit - limit
+	if firstOffset > prevOffset {
+		prevOffset = firstOffset
+	}
+	if nextOffset > lastOffset {
+		nextOffset = lastOffset
+	}
+
+	// Build the link
+	output.Links.First = pointy.String(p.buildPaginationLink(prefix, firstOffset, limit))
+	output.Links.Previous = pointy.String(p.buildPaginationLink(prefix, prevOffset, limit))
+	output.Links.Next = pointy.String(p.buildPaginationLink(prefix, nextOffset, limit))
+	output.Links.Last = pointy.String(p.buildPaginationLink(prefix, lastOffset, limit))
+}
+
+func (p *domainPresenter) listFillMeta(output *public.ListDomainsResponse, count int64, offset int, limit int) {
+	if output == nil {
+		panic("'output' is nil")
+	}
+	output.Meta.Count = count
+	output.Meta.Offset = offset
+	output.Meta.Limit = limit
+}
+
+func (p *domainPresenter) listFillItem(output *public.ListDomainsData, domain *model.Domain) {
+	if output == nil {
+		panic("'output' is nil")
+	}
+	if domain == nil {
+		panic("'domain' is nil")
+	}
+	if domain.AutoEnrollmentEnabled == nil {
+		output.AutoEnrollmentEnabled = false
+	} else {
+		output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
+	}
+	if domain.DomainName != nil {
+		output.DomainName = *domain.DomainName
+	}
+	output.DomainType = public.ListDomainsDataDomainType(model.DomainTypeString(*domain.Type))
+	output.DomainUuid = domain.DomainUuid.String()
 }

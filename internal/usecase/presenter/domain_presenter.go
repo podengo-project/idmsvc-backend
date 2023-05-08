@@ -10,57 +10,71 @@ import (
 	"fmt"
 
 	"github.com/hmsidm/internal/api/public"
+	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/interface/presenter"
-	"github.com/openlyinc/pointy"
 )
 
-type domainPresenter struct{}
+type domainPresenter struct {
+	cfg *config.Config
+}
 
 // NewDomainPresenter create a new DomainPresenter instance
 // Return a new presenter.DomainPresenter instance
-func NewDomainPresenter() presenter.DomainPresenter {
-	return domainPresenter{}
+func NewDomainPresenter(cfg *config.Config) presenter.DomainPresenter {
+	if cfg == nil {
+		panic("'cfg' is nil")
+	}
+	return &domainPresenter{cfg}
 }
 
 // Create translate from internal domain to the API response.
 // Return a new response domain representation and nil error on success,
 // or a nil response with an error on failure.
-func (p domainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
+func (p *domainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
 	return p.sharedDomain(domain)
 }
 
-// TODO Document the method
-func (p domainPresenter) List(prefix string, offset int64, count int32, data []model.Domain) (*public.ListDomainsResponse, error) {
+// List is the output adapter to list the domains with pagination.
+// prefix is the prefix that is used to compose the pagination links.
+// offset is the starting point of the page for a given ordered list of domains.
+// count is the number of items on the current page.
+// data is the slice with the model.Domain
+func (p *domainPresenter) List(prefix string, count int64, offset int, limit int, data []model.Domain) (*public.ListDomainsResponse, error) {
+	// https://consoledot.pages.redhat.com/docs/dev/developer-references/rest/pagination.html
+	if offset < 0 {
+		return nil, fmt.Errorf("'offset' is lower than 0")
+	}
+	if limit < 0 {
+		return nil, fmt.Errorf("'limit' is lower than 0")
+	}
+	if limit == 0 {
+		limit = p.cfg.Application.PaginationDefaultLimit
+	}
+	if limit > p.cfg.Application.PaginationMaxLimit {
+		limit = p.cfg.Application.PaginationMaxLimit
+	}
 	output := &public.ListDomainsResponse{}
-	output.Meta.Count = pointy.Int32(count)
-	if offset > 0 {
-		output.Links.First = pointy.String(fmt.Sprintf(prefix+"/todo?offset=%d&count=%d", 0, count))
+	p.listFillMeta(output, count, offset, limit)
+	p.listFillLinks(output, prefix, count, offset, limit)
+
+	sizeData := limit
+	if len(data) < limit {
+		sizeData = len(data)
 	}
-	if offset-int64(count) < 0 {
-		output.Links.Previous = pointy.String(fmt.Sprintf(prefix+"/todo?offset=%d&count=%d", 0, count))
-	} else {
-		output.Links.Previous = pointy.String(fmt.Sprintf(prefix+"/todo?offset=%d&count=%d", offset-int64(count), count))
-	}
-	output.Links.Next = pointy.String(fmt.Sprintf(prefix+"/todo?offset=%d&count=%d", offset+int64(count), count))
-	// TODO Add Links.Last
-	// FIXME this is weird and I am not happy with this.
-	//       I would need to find to modify the openapi spec to
-	//       generate a structure more accessible.
-	output.Data = make([]public.ListDomainsData, len(data))
-	for idx, item := range data {
-		output.Data[idx].AutoEnrollmentEnabled = pointy.Bool(*item.AutoEnrollmentEnabled)
-		if item.DomainName != nil {
-			output.Data[idx].DomainName = pointy.String(*item.DomainName)
+	output.Data = make([]public.ListDomainsData, sizeData)
+	for idx := range data {
+		if idx == sizeData {
+			break
 		}
-		output.Data[idx].DomainType = pointy.String(model.DomainTypeString(*item.Type))
-		output.Data[idx].DomainUuid = pointy.String(item.DomainUuid.String())
+
+		p.listFillItem(&output.Data[idx], &data[idx])
 	}
 	return output, nil
 }
 
 // TODO Document the method
-func (p domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
+func (p *domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 	return p.sharedDomain(domain)
 }
 
@@ -69,7 +83,7 @@ func (p domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 // domain Not nil reference to the domain model.
 // Return a reference to a pubic.Domain and nil error for
 // a success translation, else nil and an error with the details.
-func (p domainPresenter) Register(
+func (p *domainPresenter) Register(
 	domain *model.Domain,
 ) (output *public.Domain, err error) {
 	return p.sharedDomain(domain)
@@ -80,19 +94,19 @@ func (p domainPresenter) Register(
 // domain Not nil reference to the domain model.
 // Return a reference to a pubic.Domain and nil error for
 // a success translation, else nil and an error with the details.
-func (p domainPresenter) Update(
+func (p *domainPresenter) Update(
 	domain *model.Domain,
 ) (output *public.Domain, err error) {
 	return p.sharedDomain(domain)
 }
 
-// func (p domainPresenter) PartialUpdate(
+// func (p *domainPresenter) PartialUpdate(
 // 	domain *model.Domain,
 // ) (output *public.Domain, err error) {
 // 	return p.sharedDomain(domain)
 // }
 
-// func (p domainPresenter) FullUpdate(
+// func (p *domainPresenter) FullUpdate(
 // 	domain *model.Domain,
 // ) (output *public.Domain, err error) {
 // 	return p.sharedDomain(domain)
