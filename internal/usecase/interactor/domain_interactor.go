@@ -154,18 +154,21 @@ func (i domainInteractor) List(xrhid *identity.XRHID, params *api_public.ListDom
 	return xrhid.Identity.OrgID, offset, limit, nil
 }
 
-// TODO Document method
-func (i domainInteractor) GetById(uuid string, params *public.ReadDomainParams) (string, string, error) {
-	if uuid == "" {
-		return "", "", fmt.Errorf("'in' cannot be an empty string")
+// GetByID translate from input api to model information.
+// xrhid is the unserialized identity structure stored into the request
+// context.
+// params is the GET /domains/:uuid endpoint parameters.
+// Return the organization id and nil error for success invokation, else
+// an empty organizaion id and a filled error with the situation details.
+func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDomainParams) (orgID string, err error) {
+	if xrhid == nil {
+		return "", fmt.Errorf("'xrhid' is nil")
+	}
+	if params == nil {
+		return "", fmt.Errorf("'params' is nil")
 	}
 
-	xrhid, err := header.DecodeXRHID(string(params.XRhIdentity))
-	if err != nil {
-		return "", "", err
-	}
-
-	return xrhid.Identity.OrgID, uuid, nil
+	return xrhid.Identity.OrgID, nil
 }
 
 // Register translates the API input format into the business
