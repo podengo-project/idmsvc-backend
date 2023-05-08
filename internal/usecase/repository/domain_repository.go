@@ -14,30 +14,53 @@ import (
 
 type domainRepository struct{}
 
+// NewDomainRepository create a new repository component for the
+// idm domainds backend service.
+// Return a repository.DomainRepository interface.
 func NewDomainRepository() repository.DomainRepository {
 	return &domainRepository{}
 }
 
-func (r *domainRepository) FindAll(
+// List retrieve the list of domains for the given orgID and
+// the pagination info.
+// db is the gorm database connector.
+// orgID is the organization id that we belongs.
+// offset is the starting record for the given ordered result.
+// limit is the number of items for the current requested page.
+// Return the list of items for the current page, the total number
+// of items for the given organization and nil error if the call
+// is successful, else it return nil slice, 0 for count and a
+// filled error interface with the details.
+func (r *domainRepository) List(
 	db *gorm.DB,
 	orgID string,
-	offset int64,
-	count int32,
-) (output []model.Domain, err error) {
+	offset int,
+	limit int,
+) (output []model.Domain, count int64, err error) {
 	if db == nil {
-		return []model.Domain{}, fmt.Errorf("'db' is nil")
+		return nil, 0, fmt.Errorf("'db' is nil")
+	}
+	if orgID == "" {
+		return nil, 0, fmt.Errorf("'orgID' is empty")
 	}
 	if offset < 0 {
-		return []model.Domain{}, fmt.Errorf("'offset' lower than 0")
+		return nil, 0, fmt.Errorf("'offset' is lower than 0")
 	}
-	if count < 0 {
-		return []model.Domain{}, fmt.Errorf("'limit' lower than 0")
+	if limit < 0 {
+		return nil, 0, fmt.Errorf("'limit' is lower than 0")
 	}
-	err = db.Offset(int(offset)).Limit(int(count)).Find(&output).Error
-	if err != nil {
-		return []model.Domain{}, err
+	if err = db.
+		Table("domains").
+		Limit(limit).
+		Where("org_id = ?", orgID).
+		Offset(int(offset)).
+		Count(&count).
+		Find(&output).
+		Error; err != nil {
+		return nil, 0, err
 	}
-	return
+
+	return output, count, nil
 }
 
 func (r *domainRepository) Create(
