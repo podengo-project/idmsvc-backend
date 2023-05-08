@@ -63,6 +63,12 @@ func (r *domainRepository) List(
 	return output, count, nil
 }
 
+// Create add a new record to the domains entity.
+// db is the gorm database connector.
+// orgID is the organization to segment the data.
+// data is the business model to be created into the database.
+// Return nil for a successful operation, or an error interface
+// with details about the situation.
 func (r *domainRepository) Create(
 	db *gorm.DB,
 	orgID string,
@@ -127,7 +133,7 @@ func (r *domainRepository) Update(
 
 	uuid := data.DomainUuid.String()
 	// Check the entity exists
-	if currentDomain, err = r.FindById(
+	if currentDomain, err = r.FindByID(
 		db,
 		orgID,
 		uuid,
@@ -179,13 +185,21 @@ func (r *domainRepository) Update(
 	}
 }
 
-// See: https://gorm.io/docs/query.html
-// TODO Document the method
-func (r *domainRepository) FindById(
+// FindByID retrieve the model.Domain specified by its uuid that
+// belongs to the specified organization.
+// db is the gorm database connector.
+// orgID is the organization id which the statement is executed for.
+// uuid is the uuid that identify the domain record as provided for
+// the API.
+// Return a filled model.Domain structure and nil error for success
+// scenario, else nil reference and an error with details about the
+// situation.
+func (r *domainRepository) FindByID(
 	db *gorm.DB,
 	orgID string,
 	uuid string,
 ) (output *model.Domain, err error) {
+	// See: https://gorm.io/docs/query.html
 	if err = r.checkCommonAndUUID(db, orgID, uuid); err != nil {
 		return nil, err
 	}
@@ -195,7 +209,7 @@ func (r *domainRepository) FindById(
 		return nil, err
 	}
 	if output.Type == nil {
-		return output, nil
+		return nil, fmt.Errorf("'Type' is nil")
 	}
 	switch *output.Type {
 	case model.DomainTypeIpa:
@@ -206,7 +220,7 @@ func (r *domainRepository) FindById(
 			Preload("Servers").
 			Find(output.IpaDomain, "id = ?", output.ID).
 			Error; err != nil {
-			if !errors.Is(err, gorm.ErrRecordNotFound) {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
 			}
 		}
@@ -250,7 +264,7 @@ func (r *domainRepository) RhelIdmClearToken(
 		return err
 	}
 	var dataDomain *model.Domain
-	if dataDomain, err = r.FindById(db, orgID, uuid); err != nil {
+	if dataDomain, err = r.FindByID(db, orgID, uuid); err != nil {
 		return err
 	}
 	if dataDomain.OrgId != orgID {
