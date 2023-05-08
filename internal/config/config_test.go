@@ -22,7 +22,9 @@ func TestSetDefaults(t *testing.T) {
 	assert.Equal(t, DefaultWebPort, v.Get("web.port"))
 	assert.Equal(t, "info", v.Get("logging.level"))
 	assert.Equal(t, "http://localhost:8010/api/inventory/v1", v.Get("clients.host_inventory_base_url"))
-	assert.Equal(t, DefatulExpirationTime, v.Get("application.expiration_time"))
+	assert.Equal(t, DefatulExpirationTime, v.Get("app.expiration_time"))
+	assert.Equal(t, PaginationDefaultLimit, v.Get("app.pagination_default_limit"))
+	assert.Equal(t, PaginationMaxLimit, v.Get("app.pagination_max_limit"))
 }
 
 func TestSetClowderConfiguration(t *testing.T) {
