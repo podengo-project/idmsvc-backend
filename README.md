@@ -1,4 +1,4 @@
-# poc-crc-backend
+# idm-domains-backend
 
 ## Getting started
 
