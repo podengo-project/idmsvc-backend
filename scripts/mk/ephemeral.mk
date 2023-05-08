@@ -44,7 +44,7 @@ EPHEMERAL_BONFIRE_PATH ?= configs/bonfire.yaml
 # TODO Uncomment when the frontend is created
 # EPHEMERAL_OPTS += --frontend true
 
-# https://consoledot.pages.redhat.com/docs/dev/getting-started/ephemeral/onboarding.html
+# https://consoledot.pages.redhat.com/docs/dev/creating-a-new-app/using-ee/bonfire/getting-started-with-ees.html
 # Checkout this: https://github.com/RedHatInsights/bonfire/commit/15ac80bfcf9c386eabce33cb219b015a58b756c8
 .PHONY: ephemeral-login
 ephemeral-login: .old-ephemeral-login ## Help in login to the ephemeral cluster
