@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/public"
+	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -18,7 +19,7 @@ func TestGuardsRegisterIpa(t *testing.T) {
 	var (
 		err error
 	)
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 	assert.Panics(t, func() {
 		err = p.sharedDomainFillRhelIdm(nil, nil)
 	})
@@ -153,7 +154,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		p := &domainPresenter{}
+		p := &domainPresenter{cfg: &cfg}
 		ipa, err := p.Register(testCase.Given)
 		if testCase.Expected.Err != nil {
 			assert.EqualError(t, err, testCase.Expected.Err.Error())
@@ -179,7 +180,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 }
 
 func TestSharedDomainFill(t *testing.T) {
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 	assert.Panics(t, func() {
 		p.sharedDomainFill(nil, nil)
 	})
@@ -204,90 +205,8 @@ func TestSharedDomainFill(t *testing.T) {
 	assert.Equal(t, "My Domain Example Description", output.Description)
 }
 
-func TestCreateRhelIdmCheckDomain(t *testing.T) {
-	var err error
-	p := domainPresenter{}
-
-	domain := &model.Domain{
-		IpaDomain: &model.Ipa{},
-	}
-	err = p.createRhelIdmCheckDomain(domain)
-	assert.EqualError(t, err, "'RealmName' is nil")
-
-	domain.IpaDomain.RealmName = pointy.String(string(public.DomainTypeRhelIdm))
-	err = p.createRhelIdmCheckDomain(domain)
-	assert.EqualError(t, err, "'CaCerts' is nil")
-
-	domain.IpaDomain.CaCerts = []model.IpaCert{}
-	err = p.createRhelIdmCheckDomain(domain)
-	assert.EqualError(t, err, "'Servers' is nil")
-
-	domain.IpaDomain.Servers = []model.IpaServer{}
-	err = p.createRhelIdmCheckDomain(domain)
-	assert.NoError(t, err)
-}
-
-func TestCreateRhelIdmFillRealmDomains(t *testing.T) {
-	p := domainPresenter{}
-
-	// Nil arguments evoke panic
-	assert.Panics(t, func() {
-		p.createRhelIdmFillRealmDomains(nil, nil)
-	})
-
-	output := public.Domain{}
-	domain := model.Domain{}
-	assert.Panics(t, func() {
-		p.createRhelIdmFillRealmDomains(nil, &domain)
-	})
-
-	domain.IpaDomain = &model.Ipa{}
-	assert.Panics(t, func() {
-		p.createRhelIdmFillRealmDomains(nil, &domain)
-	})
-
-	assert.Panics(t, func() {
-		p.createRhelIdmFillRealmDomains(&output, &domain)
-	})
-
-	domain.IpaDomain.RealmDomains = pq.StringArray{}
-	assert.Panics(t, func() {
-		p.createRhelIdmFillRealmDomains(&output, &domain)
-	})
-
-	domain.IpaDomain.RealmDomains = pq.StringArray{}
-	output.RhelIdm = &public.DomainIpa{}
-	p.createRhelIdmFillRealmDomains(&output, &domain)
-}
-
-func TestCreateRhelIdm(t *testing.T) {
-	p := domainPresenter{}
-	assert.Panics(t, func() {
-		p.createRhelIdm(nil, nil)
-	})
-
-	domain := model.Domain{}
-	assert.Panics(t, func() {
-		p.createRhelIdm(nil, &domain)
-	})
-
-	domain.IpaDomain = &model.Ipa{}
-	err := p.createRhelIdm(nil, &domain)
-	assert.EqualError(t, err, "'RealmName' is nil")
-
-	domain.IpaDomain.RealmName = pointy.String("mydomain.example")
-	domain.IpaDomain.CaCerts = []model.IpaCert{}
-	domain.IpaDomain.Servers = []model.IpaServer{}
-	assert.Panics(t, func() {
-		err = p.createRhelIdm(nil, &domain)
-	})
-
-	output := public.Domain{}
-	err = p.createRhelIdm(&output, &domain)
-}
-
 func TestFillRhelIdmCerts(t *testing.T) {
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	assert.NotPanics(t, func() {
 		p.fillRhelIdmCerts(nil, nil)
@@ -310,7 +229,7 @@ func TestFillRhelIdmCerts(t *testing.T) {
 }
 
 func TestGuardSharedDomain(t *testing.T) {
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	err := p.guardSharedDomain(nil)
 	assert.EqualError(t, err, "'domain' is nil")
@@ -333,7 +252,7 @@ func TestSharedDomain(t *testing.T) {
 		err    error
 		output *public.RegisterDomainResponse
 	)
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	// Fail some guard check
 	output, err = p.sharedDomain(nil)
@@ -538,7 +457,7 @@ func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.
 }
 
 func TestFillRhelIdmServersError(t *testing.T) {
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	assert.NotPanics(t, func() {
 		p.fillRhelIdmServers(nil, nil)
@@ -616,7 +535,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 		t.Log(testCase.Name)
 		// I instantiate directly because the public methods
 		// are not part of the interface
-		p := domainPresenter{}
+		p := &domainPresenter{cfg: &cfg}
 		if testCase.Expected.Err != nil {
 			// assert.EqualError(t, err, testCase.Expected.Err.Error())
 			assert.Panics(t, func() {
@@ -636,4 +555,150 @@ func TestFillRhelIdmServers(t *testing.T) {
 			assert.Equal(t, testCase.Expected.To.RhelIdm.Servers, testCase.Given.To.RhelIdm.Servers)
 		}
 	}
+}
+
+func TestBuildPaginationLink(t *testing.T) {
+	const prefix = "/api/hmsidm/v1"
+	cfg := config.Config{
+		Application: config.Application{
+			PaginationDefaultLimit: 10,
+			PaginationMaxLimit:     100,
+		},
+	}
+	p := &domainPresenter{cfg: &cfg}
+
+	offset := 0
+	limit := 10
+	output := p.buildPaginationLink(prefix, offset, limit)
+	assert.Equal(t, prefix+"/domains?limit=10&offset=0", output)
+
+	offset = -1
+	limit = 10
+	output = p.buildPaginationLink(prefix, offset, limit)
+	assert.Equal(t, prefix+"/domains?limit=10&offset=0", output)
+
+	offset = 0
+	limit = 0
+	output = p.buildPaginationLink(prefix, offset, limit)
+	assert.Equal(t, prefix+"/domains?limit=10&offset=0", output)
+
+	offset = 0
+	limit = p.cfg.Application.PaginationMaxLimit + 1
+	output = p.buildPaginationLink(prefix, offset, limit)
+	assert.Equal(t, fmt.Sprintf(prefix+"/domains?limit=%d&offset=0", p.cfg.Application.PaginationMaxLimit), output)
+}
+
+func TestListFillLinks(t *testing.T) {
+
+	p := &domainPresenter{cfg: &cfg}
+
+	// output nil
+	assert.Panics(t, func() {
+		p.listFillLinks(nil, "/prefix", 10, 0, 1)
+	})
+
+	// links at page 1
+	output := public.ListDomainsResponse{}
+	p.listFillLinks(&output, "/prefix", 10, 0, 1)
+	require.NotNil(t, output.Links.First)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	require.NotNil(t, output.Links.Previous)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.Previous)
+	require.NotNil(t, output.Links.Next)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=1", *output.Links.Next)
+	require.NotNil(t, output.Links.Last)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+
+	// links at page 2
+	output = public.ListDomainsResponse{}
+	p.listFillLinks(&output, "/prefix", 10, 1, 1)
+	require.NotNil(t, output.Links.First)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	require.NotNil(t, output.Links.Previous)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.Previous)
+	require.NotNil(t, output.Links.Next)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=2", *output.Links.Next)
+	require.NotNil(t, output.Links.Last)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+
+	// links at before last page
+	output = public.ListDomainsResponse{}
+	p.listFillLinks(&output, "/prefix", 10, 8, 1)
+	require.NotNil(t, output.Links.First)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	require.NotNil(t, output.Links.Previous)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=7", *output.Links.Previous)
+	require.NotNil(t, output.Links.Next)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Next)
+	require.NotNil(t, output.Links.Last)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+
+	// links at last page
+	output = public.ListDomainsResponse{}
+	p.listFillLinks(&output, "/prefix", 10, 9, 1)
+	require.NotNil(t, output.Links.First)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	require.NotNil(t, output.Links.Previous)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=8", *output.Links.Previous)
+	require.NotNil(t, output.Links.Next)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Next)
+	require.NotNil(t, output.Links.Last)
+	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+}
+
+func TestListFillMeta(t *testing.T) {
+	p := &domainPresenter{cfg: &cfg}
+
+	assert.Panics(t, func() {
+		p.listFillMeta(nil, 10, 0, 1)
+	})
+
+	output := public.ListDomainsResponse{}
+	p.listFillMeta(&output, 10, 0, 1)
+	assert.Equal(t, int64(10), output.Meta.Count)
+	assert.Equal(t, 0, output.Meta.Offset)
+	assert.Equal(t, 1, output.Meta.Limit)
+}
+
+func TestListFillItem(t *testing.T) {
+	p := &domainPresenter{cfg: &cfg}
+
+	assert.Panics(t, func() {
+		p.listFillItem(nil, nil)
+	})
+
+	output := public.ListDomainsData{}
+	assert.Panics(t, func() {
+		p.listFillItem(&output, nil)
+	})
+
+	// path with all the data
+	domain := model.Domain{
+		OrgId:                 "12345",
+		DomainUuid:            uuid.MustParse("d89b6b9a-ecf4-11ed-9e6c-482ae3863d30"),
+		DomainName:            nil,
+		AutoEnrollmentEnabled: nil,
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+	}
+	p.listFillItem(&output, &domain)
+	assert.Nil(t, domain.AutoEnrollmentEnabled)
+	assert.Nil(t, domain.DomainName)
+	require.NotNil(t, output.DomainType)
+	assert.Equal(t, string(public.RhelIdm), string(output.DomainType))
+
+	// path with all the data
+	domain = model.Domain{
+		OrgId:                 "12345",
+		DomainUuid:            uuid.MustParse("d89b6b9a-ecf4-11ed-9e6c-482ae3863d30"),
+		DomainName:            pointy.String("mydomain.example"),
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+	}
+	p.listFillItem(&output, &domain)
+	require.NotNil(t, domain.AutoEnrollmentEnabled)
+	assert.Equal(t, true, *domain.AutoEnrollmentEnabled)
+	require.NotNil(t, domain.DomainName)
+	assert.Equal(t, "mydomain.example", *domain.DomainName)
+	require.NotNil(t, output.DomainType)
+	assert.Equal(t, string(public.RhelIdm), string(output.DomainType))
 }

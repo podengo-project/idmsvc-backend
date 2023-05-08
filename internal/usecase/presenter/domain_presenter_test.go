@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/public"
+	"github.com/hmsidm/internal/config"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -15,9 +16,20 @@ import (
 	"gorm.io/gorm"
 )
 
+var cfg = config.Config{
+	Application: config.Application{
+		PaginationDefaultLimit: 10,
+		PaginationMaxLimit:     100,
+	},
+}
+
 func TestNewTodoPresenter(t *testing.T) {
+	assert.Panics(t, func() {
+		NewDomainPresenter(nil)
+	})
+
 	assert.NotPanics(t, func() {
-		NewDomainPresenter()
+		NewDomainPresenter(&cfg)
 	})
 }
 
@@ -84,7 +96,7 @@ func TestGet(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		obj := domainPresenter{}
+		obj := &domainPresenter{cfg: &cfg}
 		output, err := obj.Get(testCase.Given.Input)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
@@ -288,7 +300,7 @@ func TestCreate(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		obj := domainPresenter{}
+		obj := &domainPresenter{cfg: &cfg}
 		response, err := obj.Create(testCase.Given)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
@@ -304,7 +316,7 @@ func TestCreate(t *testing.T) {
 
 func TestFillRhelmIdmCertsPanics(t *testing.T) {
 	var err error
-	p := &domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	assert.NotPanics(t, func() {
 		p.fillRhelIdmCerts(nil, nil)
@@ -401,7 +413,7 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		// Instantiate directly to access the private methods
-		p := domainPresenter{}
+		p := &domainPresenter{cfg: &cfg}
 		if testCase.Expected.Err != nil {
 			// assert.EqualError(t, err, testCase.Expected.Err.Error())
 			assert.Panics(t, func() {
@@ -456,7 +468,7 @@ func TestRegister(t *testing.T) {
 		},
 	}
 
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	domain, err := p.Register(nil)
 	assert.EqualError(t, err, "'domain' is nil")
@@ -500,7 +512,7 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	p := domainPresenter{}
+	p := &domainPresenter{cfg: &cfg}
 
 	domain, err := p.Update(nil)
 	assert.EqualError(t, err, "'domain' is nil")
@@ -509,4 +521,146 @@ func TestUpdate(t *testing.T) {
 	domain, err = p.Update(&testModel)
 	assert.NoError(t, err, "")
 	assert.Equal(t, testExpected, *domain)
+}
+
+func TestList(t *testing.T) {
+	// https://consoledot.pages.redhat.com/docs/dev/developer-references/rest/pagination.html
+	testOrgID := "12345"
+	testUUID1 := "5427c3d6-eaa1-11ed-99da-482ae3863d30"
+	testUUID2 := "5ae8e844-eaa1-11ed-8f71-482ae3863d30"
+	prefix := "/api/hmsidm/v1"
+	cfg := config.Config{
+		Application: config.Application{
+			PaginationDefaultLimit: 10,
+			PaginationMaxLimit:     100,
+		},
+	}
+	p := &domainPresenter{cfg: &cfg}
+
+	// offset lower than 0
+	count := int64(5)
+	offset := -1
+	limit := -1
+	output, err := p.List(prefix, count, offset, limit, nil)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'offset' is lower than 0")
+
+	// limit lower than 0
+	offset = 5
+	output, err = p.List(prefix, count, offset, limit, nil)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'limit' is lower than 0")
+
+	// set default limit
+	limit = 0
+	output, err = p.List(prefix, count, offset, limit, nil)
+	assert.NotNil(t, output)
+
+	assert.Equal(t, count, output.Meta.Count)
+	assert.Equal(t, p.cfg.Application.PaginationDefaultLimit, output.Meta.Limit)
+	assert.Equal(t, offset, output.Meta.Offset)
+
+	require.NotNil(t, output.Links.First)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.First)
+	require.NotNil(t, output.Links.Previous)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Previous)
+	require.NotNil(t, output.Links.Next)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Previous)
+	require.NotNil(t, output.Links.Last)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Previous)
+
+	// set max limit  paginationMaxLimit
+	limit = p.cfg.Application.PaginationMaxLimit + 1
+	output, err = p.List(prefix, count, offset, limit, nil)
+	assert.NotNil(t, output)
+
+	assert.Equal(t, count, output.Meta.Count)
+	assert.Equal(t, p.cfg.Application.PaginationMaxLimit, output.Meta.Limit)
+	assert.Equal(t, offset, output.Meta.Offset)
+
+	require.NotNil(t, output.Links.First)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.First)
+	require.NotNil(t, output.Links.Previous)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Previous)
+	require.NotNil(t, output.Links.Next)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Previous)
+	require.NotNil(t, output.Links.Last)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Previous)
+
+	// domain slice is nil return empty list
+	count = int64(0)
+	offset = 2
+	limit = 2
+	expected := public.ListDomainsResponseSchema{
+		Meta: public.PaginationMeta{
+			Count:  count,
+			Offset: offset,
+			Limit:  limit,
+		},
+		Links: public.PaginationLinks{
+			First:    pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			Previous: pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			Next:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			Last:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+		},
+		Data: []public.ListDomainsData{},
+	}
+	output, err = p.List(prefix, count, offset, limit, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, *output)
+
+	// domain slice fill the list
+	data := []model.Domain{
+		{
+			OrgId:                 testOrgID,
+			DomainUuid:            uuid.MustParse(testUUID1),
+			DomainName:            pointy.String("mydomain1.example"),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			Title:                 pointy.String("mydomain1 example title"),
+			Description:           pointy.String("mydomain1.example located in Boston"),
+			Type:                  pointy.Uint(model.DomainTypeIpa),
+		},
+		{
+			OrgId:                 testOrgID,
+			DomainUuid:            uuid.MustParse(testUUID2),
+			DomainName:            pointy.String("mydomain2.example"),
+			AutoEnrollmentEnabled: nil,
+			Title:                 pointy.String("mydomain2 example title"),
+			Description:           pointy.String("mydomain2.example located in Brno"),
+			Type:                  pointy.Uint(model.DomainTypeIpa),
+		},
+	}
+	count = int64(len(data))
+	offset = 0
+	limit = 2
+	expected = public.ListDomainsResponseSchema{
+		Meta: public.PaginationMeta{
+			Count:  count,
+			Offset: offset,
+			Limit:  limit,
+		},
+		Links: public.PaginationLinks{
+			First:    pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			Previous: pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			Next:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			Last:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+		},
+		Data: []public.ListDomainsData{
+			{
+				AutoEnrollmentEnabled: true,
+				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
+				DomainName:            "mydomain1.example",
+				DomainUuid:            testUUID1,
+			},
+			{
+				AutoEnrollmentEnabled: false,
+				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
+				DomainName:            "mydomain2.example",
+				DomainUuid:            testUUID2,
+			},
+		},
+	}
+	output, err = p.List(prefix, count, offset, limit, data)
+	assert.NoError(t, err)
+	assert.Equal(t, &expected, output)
 }
