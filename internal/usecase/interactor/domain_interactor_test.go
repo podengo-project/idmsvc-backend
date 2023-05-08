@@ -52,7 +52,7 @@ func TestCreate(t *testing.T) {
 				Body:   &api_public.CreateDomain{},
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'params' cannot be nil"),
+				Err: fmt.Errorf("'params' is nil"),
 				Out: nil,
 			},
 		},
@@ -63,7 +63,7 @@ func TestCreate(t *testing.T) {
 				Body:   nil,
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'body' cannot be nil"),
+				Err: fmt.Errorf("'body' is nil"),
 				Out: nil,
 			},
 		},
@@ -74,7 +74,7 @@ func TestCreate(t *testing.T) {
 				Body:   &api_public.CreateDomain{},
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("X-Rh-Identity content cannot be an empty string"),
+				Err: fmt.Errorf("'X-Rh-Identity' is an empty string"),
 				Out: nil,
 			},
 		},
@@ -635,6 +635,55 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, testOrgID, orgID)
 	require.NotNil(t, xrhidmVersion)
 	require.NotNil(t, domain)
+}
+
+func assertListEqualError(t *testing.T, err error, msg string, orgID string, offset int, limit int) {
+	assert.EqualError(t, err, msg)
+	assert.Equal(t, "", orgID)
+	assert.Equal(t, -1, offset)
+	assert.Equal(t, -1, limit)
+}
+
+func TestList(t *testing.T) {
+	i := domainInteractor{}
+	testOrgID := "12345"
+
+	// xrhid is nil
+	orgID, offset, limit, err := i.List(nil, nil)
+	assertListEqualError(t, err, "'xrhid' is nil", orgID, offset, limit)
+
+	// params is nil
+	xrhid := identity.XRHID{
+		Identity: identity.Identity{
+			OrgID: testOrgID,
+		},
+	}
+	orgID, offset, limit, err = i.List(&xrhid, nil)
+	assertListEqualError(t, err, "'params' is nil", orgID, offset, limit)
+
+	// params.Offset is nil
+	params := api_public.ListDomainsParams{}
+	orgID, offset, limit, err = i.List(&xrhid, &params)
+	assert.NoError(t, err)
+	assert.Equal(t, testOrgID, orgID)
+	assert.Equal(t, 0, offset)
+	assert.Equal(t, 10, limit)
+
+	// params.Offset is not nil
+	params.Offset = pointy.Int(20)
+	orgID, offset, limit, err = i.List(&xrhid, &params)
+	assert.NoError(t, err)
+	assert.Equal(t, testOrgID, orgID)
+	assert.Equal(t, 20, offset)
+	assert.Equal(t, 10, limit)
+
+	// params.Limit is not nil
+	params.Limit = pointy.Int(30)
+	orgID, offset, limit, err = i.List(&xrhid, &params)
+	assert.NoError(t, err)
+	assert.Equal(t, testOrgID, orgID)
+	assert.Equal(t, 20, offset)
+	assert.Equal(t, 30, limit)
 }
 
 // --------- Private methods -----------
