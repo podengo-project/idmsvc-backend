@@ -28,7 +28,8 @@ type Suite struct {
 	repository *domainRepository
 }
 
-func (s *Suite) SetupSuite() {
+// https://pkg.go.dev/github.com/stretchr/testify/suite#SetupTestSuite
+func (s *Suite) SetupTest() {
 	var err error
 	s.mock, s.DB, err = test.NewSqlMock(&gorm.Session{SkipHooks: true})
 	if err != nil {
@@ -36,9 +37,6 @@ func (s *Suite) SetupSuite() {
 		return
 	}
 	s.repository = &domainRepository{}
-}
-
-func (s *Suite) TearDownSuite() {
 }
 
 func (s *Suite) TestNewDomainRepository() {
@@ -672,28 +670,10 @@ func (s *Suite) TestUpdateErrors() {
 			sqlmock.NewRows([]string{
 				"id", "created_at", "updated_at", "deleted_at",
 				"realm_name", "realm_names", "token", "token_expiration",
-			}))
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
-		WithArgs(
-			sqlmock.AnyArg(),
-			sqlmock.AnyArg(),
-
-			data.OrgId,
-			testUUID.String(),
-			data.DomainName,
-
-			data.Title,
-			data.Description,
-			data.Type,
-			data.AutoEnrollmentEnabled,
-
-			data.OrgId,
-			data.DomainUuid,
-			data.ID,
-		).
-		WillReturnError(fmt.Errorf("An error"))
+			}).
+				RowError(0, gorm.ErrRecordNotFound))
 	err = s.repository.Update(s.DB, orgID, &data)
-	require.EqualError(t, err, "An error")
+	assert.EqualError(t, err, "record not found")
 
 	s.mock.MatchExpectationsInOrder(true)
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
@@ -727,7 +707,18 @@ func (s *Suite) TestUpdateErrors() {
 			sqlmock.NewRows([]string{
 				"id", "created_at", "updated_at", "deleted_at",
 				"realm_name", "realm_names", "token", "token_expiration",
-			}))
+			}).
+				AddRow(
+					data.Model.ID,
+					data.Model.CreatedAt,
+					data.Model.UpdatedAt,
+					nil,
+
+					data.IpaDomain.RealmName,
+					data.IpaDomain.RealmDomains,
+					data.IpaDomain.Token,
+					data.IpaDomain.TokenExpiration,
+				))
 	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
 		WithArgs(
 			sqlmock.AnyArg(),
@@ -1206,6 +1197,248 @@ func (s *Suite) TestList() {
 			Type:                  pointy.Uint(model.DomainTypeIpa),
 		},
 	}, output)
+}
+
+func (s *Suite) TestFindByID() {
+	t := s.T()
+	r := &domainRepository{}
+	s.mock.MatchExpectationsInOrder(true)
+
+	// Check one wrong argument
+	domain, err := r.FindByID(nil, "", "")
+	assert.EqualError(t, err, "'db' is nil")
+	assert.Nil(t, domain)
+
+	// Check path when an error hapens into the sql statement
+	testOrgID := "12345"
+	testUUID := "d8e3dbf2-edba-11ed-bfd1-482ae3863d30"
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(testOrgID, testUUID).
+		WillReturnError(fmt.Errorf("an error happened"))
+	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	assert.EqualError(t, err, "an error happened")
+	assert.Nil(t, domain)
+
+	// Check path when a domain type is NULL
+	currentTime := time.Now()
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(testOrgID, testUUID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type",
+			"autoenrollment",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				testOrgID,
+				testUUID,
+				pointy.String("mydomain.example"),
+
+				pointy.String("My Domain Example Title"),
+				pointy.String("My Domain Example Description"),
+				nil,
+
+				pointy.Bool(true),
+			))
+	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	assert.EqualError(t, err, "'Type' is nil")
+	assert.Nil(t, domain)
+
+	// Check for 'ipas' record not found
+	validBefore := currentTime
+	validAfter := currentTime.Add(365 * 24 * time.Hour)
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(testOrgID, testUUID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type",
+			"autoenrollment",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				testOrgID,
+				testUUID,
+				pointy.String("mydomain.example"),
+
+				pointy.String("My Domain Example Title"),
+				pointy.String("My Domain Example Description"),
+				pointy.Uint(model.DomainTypeIpa),
+
+				pointy.Bool(true),
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
+		WithArgs(1).
+		WillReturnError(gorm.ErrRecordNotFound)
+	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	assert.EqualError(t, err, "record not found")
+	assert.Nil(t, domain)
+
+	// Successful scenario
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+		WithArgs(testOrgID, testUUID).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type",
+			"autoenrollment",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				testOrgID,
+				testUUID,
+				pointy.String("mydomain.example"),
+
+				pointy.String("My Domain Example Title"),
+				pointy.String("My Domain Example Description"),
+				pointy.Uint(model.DomainTypeIpa),
+
+				pointy.Bool(true),
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
+		WithArgs(1).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"realm_name", "realm_domains",
+			"token", "token_expiration",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				"MYDOMAIN.EXAMPLE",
+				"{\"mydomain.example\"}",
+
+				nil, nil,
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
+		WithArgs(1).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"ipa_id", "issuer", "nickname",
+			"not_valid_after", "not_valid_before", "serial_number",
+			"subject", "pem",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				1,
+				"issuer",
+				"nickname",
+				validAfter,
+				validBefore,
+				"1111111111",
+				"Subject",
+				"-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+			))
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
+		WithArgs(1).
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"ipa_id", "fqdn", "rhsm_id",
+			"ca_server", "hcc_enrollment_server", "hcc_update_server",
+			"pk_init_server",
+		}).
+			AddRow(
+				1,
+				currentTime,
+				currentTime,
+				nil,
+
+				1,
+				"server1.mydomain.example",
+				"a42f537e-edc8-11ed-b5b9-482ae3863d30",
+				true,
+				true,
+				true,
+				true,
+			))
+	expected := model.Domain{
+		Model: gorm.Model{
+			ID:        1,
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
+		},
+		OrgId:       testOrgID,
+		DomainUuid:  uuid.MustParse(testUUID),
+		DomainName:  pointy.String("mydomain.example"),
+		Title:       pointy.String("My Domain Example Title"),
+		Description: pointy.String("My Domain Example Description"),
+		Type:        pointy.Uint(model.DomainTypeIpa),
+		// AutoEnrollmentEnabled: pointy.Bool(true),
+		IpaDomain: &model.Ipa{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+			},
+			RealmName:       pointy.String("MYDOMAIN.EXAMPLE"),
+			RealmDomains:    pq.StringArray{"mydomain.example"},
+			Token:           nil,
+			TokenExpiration: nil,
+			CaCerts: []model.IpaCert{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+					},
+					IpaID:          1,
+					Issuer:         "issuer",
+					Subject:        "Subject",
+					Nickname:       "nickname",
+					NotValidAfter:  validAfter,
+					NotValidBefore: validBefore,
+					SerialNumber:   "1111111111",
+					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				},
+			},
+			Servers: []model.IpaServer{
+				{
+					Model: gorm.Model{
+						ID:        1,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+					},
+					IpaID:               1,
+					FQDN:                "server1.mydomain.example",
+					RHSMId:              "a42f537e-edc8-11ed-b5b9-482ae3863d30",
+					CaServer:            true,
+					HCCEnrollmentServer: true,
+					HCCUpdateServer:     true,
+					PKInitServer:        true,
+				},
+			},
+		},
+	}
+	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	assert.NoError(t, err)
+	require.NotNil(t, domain)
+	require.Equal(t, &expected, domain)
 }
 
 // ---------------- Test for private methods ---------------------
