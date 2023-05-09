@@ -22,7 +22,11 @@ func NewApiServiceValidator() func(echo.HandlerFunc) echo.HandlerFunc {
 	}
 	return middleware.OapiRequestValidatorWithOptions(swagger, &middleware.Options{
 		Options: openapi3filter.Options{
-			AuthenticationFunc: NewAuthenticator(xrhiAlwaysTrue{}),
+			ExcludeResponseBody:   false,
+			ExcludeRequestBody:    false,
+			IncludeResponseStatus: true,
+			MultiError:            true,
+			AuthenticationFunc:    NewAuthenticator(xrhiAlwaysTrue{}),
 		},
 	})
 }
