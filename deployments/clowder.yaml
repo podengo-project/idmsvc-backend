@@ -111,7 +111,7 @@ objects:
         #     env:
         #       - name: LOGGING_LEVEL
         #         value: ${{LOGGING_LEVEL}}
-      
+
       # https://consoledot.pages.redhat.com/clowder/dev/providers/database.html
       database:
         name: ${APP_NAME}

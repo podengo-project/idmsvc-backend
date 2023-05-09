@@ -3,6 +3,11 @@
 # https://github.com/dnephin/pre-commit-golang
 ---
 repos:
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.29.0
+    hooks:
+      - id: yamllint
+        args: [--strict, -c=.yamllint.yaml]
   - repo: https://github.com/dnephin/pre-commit-golang
     rev: v0.5.1
     hooks:

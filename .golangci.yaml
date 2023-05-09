@@ -325,4 +325,3 @@ severity:
     - linters:
         - dupl
       severity: info
-

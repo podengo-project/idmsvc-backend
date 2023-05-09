@@ -42,7 +42,7 @@ paths:
           $ref: '#/components/responses/HealthySuccess'
         default:
           $ref: '#/components/responses/HealthyFailure'
-  
+
 components:
   schemas:
     SuccessProbe:
@@ -73,7 +73,7 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
-    
+
     HealthySuccess:
       description: Response for healthy probe
       content:

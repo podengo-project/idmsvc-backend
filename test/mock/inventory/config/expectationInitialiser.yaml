@@ -1,3 +1,4 @@
+---
 ##
 # Expectations for GET /api/inventory/v1/hosts?[system_profile][owner_id]={uuid}
 ##
@@ -54,4 +55,3 @@
         }
         ]
       }
-    
