@@ -14,11 +14,11 @@ type XRhIValidator struct {
 }
 
 // ValidateXRhIdentity provides a mock function with given fields: xrhi
-func (_m *XRhIValidator) ValidateXRhIdentity(xrhi *identity.Identity) error {
+func (_m *XRhIValidator) ValidateXRhIdentity(xrhi *identity.XRHID) error {
 	ret := _m.Called(xrhi)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*identity.Identity) error); ok {
+	if rf, ok := ret.Get(0).(func(*identity.XRHID) error); ok {
 		r0 = rf(xrhi)
 	} else {
 		r0 = ret.Error(0)

@@ -6,66 +6,10 @@ info:
     description: Backend API for hmsidm service
     contact: {}
 servers:
-    - url: "{schema}://{domain}:{port}{prefix}"
-      description: Prod environment
-      variables:
-          schema:
-              default: https
-              description: Schema used to reach out the API
-          domain:
-              default: console.redhat.com
-              description: The domain where our API is running
-          port:
-              default: "443"
-              description: The port where our public API is listening
-          prefix:
-              default: /api/hmsidm/v1
-              description: The prefix for our public API
-    - url: "{schema}://{domain}:{port}{prefix}"
-      description: Prod Beta environment
-      variables:
-          schema:
-              default: https
-              description: Schema used to reach out the API
-          domain:
-              default: console.redhat.com
-              description: The domain where our API is running
-          port:
-              default: "443"
-              description: The port where our public API is listening
-          prefix:
-              default: /beta/api/hmsidm/v1
-              description: The prefix for our public API
-    - url: "{schema}://{domain}:{port}{prefix}"
-      description: Stage environment
-      variables:
-          schema:
-              default: https
-              description: Schema used to reach out the API
-          domain:
-              default: console.stage.redhat.com
-              description: The domain where our API is running
-          port:
-              default: "443"
-              description: The port where our public API is listening
-          prefix:
-              default: /api/hmsidm/v1
-              description: The prefix for our public API
-    - url: "{schema}://{domain}:{port}{prefix}"
+    - url: http://localhost:8000/api/hmsidm/v1
       description: Development environment
-      variables:
-          schema:
-              default: http
-              description: Schema used to reach out the API
-          domain:
-              default: localhost
-              description: The domain where our API is running
-          port:
-              default: "8000"
-              description: The port where our public API is listening
-          prefix:
-              default: /api/hmsidm/v1
-              description: The prefix for our public API
+    - url: https://console.redhat.com/api/hmsidm/v1
+      description: Production environment
 paths:
     "/domains/{uuid}":
         summary: Operations on a specific domain

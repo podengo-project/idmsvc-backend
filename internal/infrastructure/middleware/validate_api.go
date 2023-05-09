@@ -10,7 +10,7 @@ import (
 
 type xrhiAlwaysTrue struct{}
 
-func (x xrhiAlwaysTrue) ValidateXRhIdentity(xrhi *identity.Identity) error {
+func (x xrhiAlwaysTrue) ValidateXRhIdentity(xrhi *identity.XRHID) error {
 	// TODO Implement behavior here
 	return nil
 }

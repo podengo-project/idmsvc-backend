@@ -75,8 +75,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		// TODO Check if this is made by 3scale
 		// middleware.CORSWithConfig(middleware.CORSConfig{}),
 		requestIDMiddleware,
-		// FIXME Investigate why is failing when it is uncommented
-		// middleware.NewApiServiceValidator(),
+		middleware.NewApiServiceValidator(),
 	)
 
 	// Setup routes
