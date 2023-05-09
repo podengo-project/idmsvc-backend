@@ -56,6 +56,7 @@ func TestGuardsRegisterIpa(t *testing.T) {
 func TestRegisterRhelIdm(t *testing.T) {
 	tokenExpiration := &time.Time{}
 	*tokenExpiration = time.Now()
+	testSubscriptionManagerId := "71ad4978-c768-11ed-ad69-482ae3863d30"
 	type TestCaseExpected struct {
 		Domain *public.RegisterDomainResponse
 		Err    error
@@ -113,7 +114,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 					Servers: []model.IpaServer{
 						{
 							FQDN:                "server1.mydomain.example",
-							RHSMId:              pointy.String("c4a80438-c768-11ed-a60e-482ae3863d30"),
+							RHSMId:              pointy.String(testSubscriptionManagerId),
 							PKInitServer:        true,
 							CaServer:            true,
 							HCCEnrollmentServer: true,
@@ -139,7 +140,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 						Servers: []public.DomainIpaServer{
 							{
 								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: pointy.String("c4a80438-c768-11ed-a60e-482ae3863d30"),
+								SubscriptionManagerId: pointy.String(testSubscriptionManagerId),
 								PkinitServer:          true,
 								CaServer:              true,
 								HccEnrollmentServer:   true,
@@ -191,14 +192,14 @@ func TestSharedDomainFill(t *testing.T) {
 	})
 
 	output := public.RegisterDomainResponse{}
-	domainUUID := "6d9575f2-de94-11ed-af6e-482ae3863d30"
-	domain.DomainUuid = uuid.MustParse(domainUUID)
+	testDomainID := "6d9575f2-de94-11ed-af6e-482ae3863d30"
+	domain.DomainUuid = uuid.MustParse(testDomainID)
 	domain.AutoEnrollmentEnabled = pointy.Bool(true)
 	domain.DomainName = pointy.String("mydomain.example")
 	domain.Title = pointy.String("My Domain Example")
 	domain.Description = pointy.String("My Domain Example Description")
 	p.sharedDomainFill(domain, &output)
-	assert.Equal(t, domainUUID, output.DomainId)
+	assert.Equal(t, testDomainID, output.DomainId)
 	assert.Equal(t, true, output.AutoEnrollmentEnabled)
 	assert.Equal(t, "mydomain.example", output.DomainName)
 	assert.Equal(t, "My Domain Example", output.Title)
@@ -491,6 +492,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 		Given    TestCaseGiven
 		Expected TestCaseExpected
 	}
+	testSubscriptionManagerId := "547ce70c-9eb5-4783-a619-086aa26f88e5"
 	testCases := []TestCase{
 		{
 			Name: "Full success copy",
@@ -504,7 +506,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 						Servers: []model.IpaServer{
 							{
 								FQDN:                "server1.mydomain.example",
-								RHSMId:              pointy.String("547ce70c-9eb5-4783-a619-086aa26f88e5"),
+								RHSMId:              pointy.String(testSubscriptionManagerId),
 								CaServer:            true,
 								HCCEnrollmentServer: true,
 								HCCUpdateServer:     true,
@@ -522,7 +524,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 						Servers: []public.DomainIpaServer{
 							{
 								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: pointy.String("547ce70c-9eb5-4783-a619-086aa26f88e5"),
+								SubscriptionManagerId: pointy.String(testSubscriptionManagerId),
 								CaServer:              true,
 								HccEnrollmentServer:   true,
 								HccUpdateServer:       true,
@@ -600,8 +602,13 @@ func TestListFillLinks(t *testing.T) {
 		p.listFillLinks(nil, "/prefix", 10, 0, 1)
 	})
 
-	// links at page 1
+	// links with limit 0
 	output := public.ListDomainsResponse{}
+	assert.Panics(t, func() {
+		p.listFillLinks(&output, "/prefix", 10, 0, 0)
+	})
+
+	// links at page 1
 	p.listFillLinks(&output, "/prefix", 10, 0, 1)
 	require.NotNil(t, output.Links.First)
 	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)

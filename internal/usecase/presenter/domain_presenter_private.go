@@ -190,6 +190,9 @@ func (p *domainPresenter) listFillLinks(output *public.ListDomainsResponse, pref
 	if output == nil {
 		panic("'output' is nil")
 	}
+	if limit == 0 {
+		panic("'limit' is zero")
+	}
 
 	// Calculate the offsets
 	currentOffset := ((offset + limit - 1) / limit) * limit
