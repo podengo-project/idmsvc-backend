@@ -76,32 +76,25 @@ func (_m *DomainInteractor) Delete(uuid string, params *public.DeleteDomainParam
 	return r0, r1, r2
 }
 
-// GetById provides a mock function with given fields: uuid, params
-func (_m *DomainInteractor) GetById(uuid string, params *public.ReadDomainParams) (string, string, error) {
-	ret := _m.Called(uuid, params)
+// GetByID provides a mock function with given fields: xrhid, params
+func (_m *DomainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDomainParams) (string, error) {
+	ret := _m.Called(xrhid, params)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(string, *public.ReadDomainParams) string); ok {
-		r0 = rf(uuid, params)
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.ReadDomainParams) string); ok {
+		r0 = rf(xrhid, params)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 string
-	if rf, ok := ret.Get(1).(func(string, *public.ReadDomainParams) string); ok {
-		r1 = rf(uuid, params)
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.ReadDomainParams) error); ok {
+		r1 = rf(xrhid, params)
 	} else {
-		r1 = ret.Get(1).(string)
+		r1 = ret.Error(1)
 	}
 
-	var r2 error
-	if rf, ok := ret.Get(2).(func(string, *public.ReadDomainParams) error); ok {
-		r2 = rf(uuid, params)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
+	return r0, r1
 }
 
 // List provides a mock function with given fields: xrhid, params
