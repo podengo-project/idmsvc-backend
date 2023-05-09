@@ -50,3 +50,4 @@ include scripts/mk/oapi-codegen.mk
 include scripts/mk/goda.mk
 include scripts/mk/meta-prometheus.mk
 include scripts/mk/prometheus.mk
+include scripts/mk/xrhidgen.mk

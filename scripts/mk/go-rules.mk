@@ -4,7 +4,7 @@
 # the generated binaries.
 ##
 
-CONFIG_PATH ?= $(PROJECT_DIR)/configs/config.yaml
+CONFIG_PATH ?= $(PROJECT_DIR)/configs
 export CONFIG_PATH
 
 # Directory where the built binaries will be generated
@@ -28,6 +28,7 @@ install-tools: ## Install tools used to build, test and lint
 	$(MAKE) install-goda
 	$(MAKE) install-yq
 	$(MAKE) install-planter
+	$(MAKE) install-xrhidgen
 	$(MAKE) .venv
 	source .venv/bin/activate && pip install -U pip && pip install -r requirements-dev.txt
 

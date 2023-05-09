@@ -6,10 +6,16 @@ $(PYTHON_VENV):
 	python3 -m venv $(PYTHON_VENV)
 	$(PYTHON_VENV)/bin/pip install -U pip setuptools
 
+.PHONY: install-pre-commit
+install-pre-commit: $(PYTHON_VENV)/bin/pre-commit
+
 # FIXME fails for the pre-commit hook installed, but launching pre-commit by 'make lint' works
 $(PYTHON_VENV)/bin/pre-commit: $(GOLANGCI_LINT) $(PYTHON_VENV)
 	$(PYTHON_VENV)/bin/pip3 install pre-commit
 	# $(PYTHON_VENV)/bin/pre-commit install --install-hooks --allow-missing-config
+
+.PHONY: install-golangci-lint
+install-golangci-lint: $(GOLANGCI_LINT)
 
 # curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(BIN) $(GOLANGCI_LINT_VERSION)
 $(GOLANGCI_LINT):
