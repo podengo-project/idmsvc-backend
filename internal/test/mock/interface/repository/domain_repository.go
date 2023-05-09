@@ -41,8 +41,8 @@ func (_m *DomainRepository) DeleteById(db *gorm.DB, orgID string, uuid string) e
 	return r0
 }
 
-// FindById provides a mock function with given fields: db, orgID, uuid
-func (_m *DomainRepository) FindById(db *gorm.DB, orgID string, uuid string) (*model.Domain, error) {
+// FindByID provides a mock function with given fields: db, orgID, uuid
+func (_m *DomainRepository) FindByID(db *gorm.DB, orgID string, uuid string) (*model.Domain, error) {
 	ret := _m.Called(db, orgID, uuid)
 
 	var r0 *model.Domain
