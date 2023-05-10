@@ -47,6 +47,8 @@ Go to <https://quay.io/> and login with your Red Hat user account.
     make ephemeral-namespace-create
     make ephemeral-deploy
 
+    # If correct image was already built and pushed,
+    # set EPHEMERAL_NO_BUILD=y to skip these steps.
     make ephemeral-deploy EPHEMERAL_NO_BUILD=y
 
 ## How to login to the ephemeral deployment

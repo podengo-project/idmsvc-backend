@@ -74,7 +74,7 @@ $(GO_OUTPUT/get-token.py):
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-deploy
-ephemeral-deploy:  ## Deploy application using 'config/bonfire.yaml' file
+ephemeral-deploy:  ## Build image and deploy application using 'config/bonfire.yaml'. Set EPHEMERAL_NO_BUILD=1 to skip image build and push.
 	[ "$(EPHEMERAL_NO_BUILD)" == "y" ] || $(MAKE) ephemeral-build-deploy
 	source .venv/bin/activate && \
 	bonfire deploy \
