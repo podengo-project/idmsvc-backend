@@ -454,6 +454,10 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		return err
 	}
 
+	if err = a.domain.repository.RhelIdmClearToken(tx, orgID, currentData.DomainUuid.String()); err != nil {
+		return err
+	}
+
 	if err = tx.Commit().Error; err != nil {
 		return tx.Error
 	}
