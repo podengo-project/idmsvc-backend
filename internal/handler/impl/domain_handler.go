@@ -9,7 +9,6 @@ import (
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/infrastructure/middleware"
-	"github.com/hmsidm/internal/interface/client"
 	"github.com/labstack/echo/v4"
 	"gorm.io/gorm"
 )
@@ -390,11 +389,11 @@ func (a *application) RegisterDomain(
 // and x-rh-idm-token header contents.
 func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.UpdateDomainParams) error {
 	var (
-		err           error
-		input         public.Domain
-		data          *model.Domain
-		currentData   *model.Domain
-		host          client.InventoryHost
+		err         error
+		input       public.Domain
+		data        *model.Domain
+		currentData *model.Domain
+		// host          client.InventoryHost
 		orgID         string
 		tx            *gorm.DB
 		output        *public.Domain
@@ -413,14 +412,12 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		return err
 	}
 	ctx.Logger().Info(
-		"ipa-hcc",
-		clientVersion.IPAHCCVersion,
-		"ipa",
-		clientVersion.IPAVersion,
-		"os-release-id",
-		clientVersion.OSReleaseID,
-		"os-release-version-id",
-		clientVersion.OSReleaseVersionID,
+		"{",
+		"\"ipa-hcc\":\"", clientVersion.IPAHCCVersion, "\",",
+		"\"ipa\": \"", clientVersion.IPAVersion, "\",",
+		"\"os-release-id\": \"", clientVersion.OSReleaseID, "\",",
+		"\"os-release-version-id\": \"", clientVersion.OSReleaseVersionID, "\"",
+		"}",
 	)
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
@@ -437,22 +434,13 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		return fmt.Errorf("Bad Request")
 	}
 
-	// TODO Check the source host exists in HBI
 	xrhid := domainCtx.XRHID()
 	if xrhid == nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
 	}
-	subscription_manager_id := xrhid.Identity.System.CommonName
-	if host, err = a.inventory.GetHostByCN(
-		params.XRhIdentity,
-		params.XRhInsightsRequestId,
-		subscription_manager_id,
-	); err != nil {
-		return err
-	}
-
-	if err = a.existsHostInServers(
-		host.FQDN,
+	subscriptionManagerID := xrhid.Identity.System.CommonName
+	if err = a.isSubscriptionManagerIDAuthorizedToUpdate(
+		subscriptionManagerID,
 		currentData.IpaDomain.Servers,
 	); err != nil {
 		return err

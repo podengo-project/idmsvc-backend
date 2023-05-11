@@ -76,6 +76,24 @@ func (a *application) existsHostInServers(
 	return fmt.Errorf("'fqdn' not found into the list of IPA servers")
 }
 
+func (a *application) isSubscriptionManagerIDAuthorizedToUpdate(
+	subscriptionManagerID string,
+	servers []model.IpaServer,
+) error {
+	if subscriptionManagerID == "" {
+		return fmt.Errorf("'subscriptionManagerID' is empty")
+	}
+	if servers == nil {
+		return fmt.Errorf("'servers' is nil")
+	}
+	for i := range servers {
+		if servers[i].HCCUpdateServer && servers[i].RHSMId == subscriptionManagerID {
+			return nil
+		}
+	}
+	return fmt.Errorf("'subscriptionManagerID' not found into the authorized list of rhel-idm servers")
+}
+
 // fillIpaDomain is a helper function to copy Ipa domain
 // data between structures, to be used at register IPA domain endpoint.
 // target is the destination Ipa structure, it cannot be nil.
