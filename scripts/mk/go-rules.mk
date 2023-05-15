@@ -20,14 +20,12 @@ install-tools: ## Install tools used to build, test and lint
 	$(MAKE) install-oapi-codegen
 	$(MAKE) install-mockery
 	$(MAKE) install-golangci-lint
-	$(MAKE) install-pre-commit
 	$(MAKE) install-gojsonschema
 	$(MAKE) install-goda
 	$(MAKE) install-yq
 	$(MAKE) install-planter
 	$(MAKE) install-xrhidgen
-	$(MAKE) .venv
-	source .venv/bin/activate && pip install -U pip && pip install -r requirements-dev.txt
+	$(MAKE) install-python-tools
 
 .PHONY: build-all
 build-all: ## Generate code and build binaries

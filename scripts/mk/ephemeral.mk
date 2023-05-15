@@ -1,7 +1,7 @@
 
 # .PHONY: ephemeral-setup
-# ephemeral-setup: ## Configure bonfire to run locally
-# 	bonfire config write-default > $(PROJECT_DIR)/config/bonfire-config.yaml
+# ephemeral-setup: $(BONFIRE) ## Configure bonfire to run locally
+# 	$(BONFIRE) config write-default > $(PROJECT_DIR)/config/bonfire-config.yaml
 
 ifeq (,$(APP))
 $(error APP is empty; did you miss to set APP=my-app at your scripts/mk/variables.mk)
@@ -84,10 +84,9 @@ $(GO_OUTPUT/get-token.py):
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-deploy
-ephemeral-deploy:  ## Build image and deploy application using 'config/bonfire.yaml'. Set EPHEMERAL_NO_BUILD=1 to skip image build and push.
+ephemeral-deploy: $(BONFIRE) ## Deploy application using 'config/bonfire.yaml'. Set EPHEMERAL_NO_BUILD=1 to skip image build and push.
 	[ "$(EPHEMERAL_NO_BUILD)" == "y" ] || $(MAKE) ephemeral-build-deploy
-	source .venv/bin/activate && \
-	bonfire deploy \
+	$(BONFIRE) deploy \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--secrets-dir "$(PROJECT_DIR)/secrets/ephemeral" \
@@ -100,9 +99,8 @@ ephemeral-deploy:  ## Build image and deploy application using 'config/bonfire.y
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-undeploy
-ephemeral-undeploy: ## Undeploy application from the current namespace
-	source .venv/bin/activate && \
-	bonfire process \
+ephemeral-undeploy: $(BONFIRE) $(json2yaml) ## Undeploy application from the current namespace
+	$(BONFIRE) process \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--namespace "$(NAMESPACE)" \
@@ -113,9 +111,8 @@ ephemeral-undeploy: ## Undeploy application from the current namespace
 	! oc get secrets/content-sources-certs &>/dev/null || oc delete secrets/content-sources-certs
 
 .PHONY: ephemeral-process
-ephemeral-process: ## Process application from the current namespace
-	source .venv/bin/activate && \
-	bonfire process \
+ephemeral-process: $(BONFIRE) $(json2yaml) ## Process application from the current namespace
+	$(BONFIRE) process \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--namespace "$(NAMESPACE)" \
@@ -126,35 +123,30 @@ ephemeral-process: ## Process application from the current namespace
 
 # TODO Add command to specify to bonfire the clowdenv template to be used
 .PHONY: ephemeral-namespace-create
-ephemeral-namespace-create:  ## Create a namespace (requires ephemeral environment)
-	oc project "$(shell source .venv/bin/activate && bonfire namespace reserve --force --pool "$(POOL)" 2>/dev/null)"
+ephemeral-namespace-create: $(BONFIRE)  ## Create a namespace (requires ephemeral environment)
+	oc project "$(shell $(BONFIRE) namespace reserve --force --pool "$(POOL)" 2>/dev/null)"
 
 .PHONY: ephemeral-namespace-delete
-ephemeral-namespace-delete: ## Delete current namespace (requires ephemeral environment)
-	source .venv/bin/activate && \
-	bonfire namespace release --force "$(oc project -q)"
+ephemeral-namespace-delete: $(BONFIRE) ## Delete current namespace (requires ephemeral environment)
+	$(BONFIRE) namespace release --force "$(oc project -q)"
 
 .PHONY: ephemeral-namespace-delete-all
-ephemeral-namespace-delete-all: ## Delete all namespace created by us (requires ephemeral environment)
-	source .venv/bin/activate && \
-	for item in $$( bonfire namespace list --mine --output json | jq -r '. | to_entries | map(select(.key | match("ephemeral-*";"i"))) | map(.key) | .[]' ); do \
-	  bonfire namespace release --force $$item ; \
+ephemeral-namespace-delete-all: $(BONFIRE) ## Delete all namespace created by us (requires ephemeral environment)
+	for item in $$( $(BONFIRE) namespace list --mine --output json | jq -r '. | to_entries | map(select(.key | match("ephemeral-*";"i"))) | map(.key) | .[]' ); do \
+	  $(BONFIRE) namespace release --force $$item ; \
 	done
 
 .PHONY: ephemeral-namespace-list
-ephemeral-namespace-list: ## List all the namespaces reserved to the current user (requires ephemeral environment)
-	source .venv/bin/activate && \
-	bonfire namespace list --mine
+ephemeral-namespace-list: $(BONFIRE) ## List all the namespaces reserved to the current user (requires ephemeral environment)
+	$(BONFIRE) namespace list --mine
 
 .PHONY: ephemeral-namespace-extend-1h
-ephemeral-namespace-extend-1h: ## Extend for 1 hour the usage of the current ephemeral environment
-	source .venv/bin/activate && \
-	bonfire namespace extend --duration 1h "$(NAMESPACE)"
+ephemeral-namespace-extend-1h: $(BONFIRE) ## Extend for 1 hour the usage of the current ephemeral environment
+	$(BONFIRE) namespace extend --duration 1h "$(NAMESPACE)"
 
 .PHONY: ephemeral-namespace-describe
-ephemeral-namespace-describe: ## Display information about the current namespace
-	@source .venv/bin/activate && \
-	bonfire namespace describe "$(NAMESPACE)"
+ephemeral-namespace-describe: $(BONFIRE) ## Display information about the current namespace
+	@$(BONFIRE) namespace describe "$(NAMESPACE)"
 
 
 # CONTAINER_IMAGE_BASE should be a public image
@@ -169,9 +161,8 @@ ephemeral-pr-checks:
 
 # FIXME This rule will require some updates but it will be something similar
 .PHONY: ephemeral-test-backend
-ephemeral-test-backend:  ## Run IQE tests in the ephemeral environment (require to run ephemeral-deploy before)
-	source .venv/bin/activate && \
-	bonfire deploy-iqe-cji \
+ephemeral-test-backend: $(BONFIRE) ## Run IQE tests in the ephemeral environment (require to run ephemeral-deploy before)
+	$(BONFIRE) deploy-iqe-cji \
 	  --env clowder_smoke \
 	  --cji-name "$(APP)-$(APP_COMPONENT)" \
 	  --namespace "$(NAMESPACE)" \
