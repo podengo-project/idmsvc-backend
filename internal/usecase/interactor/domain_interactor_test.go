@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
@@ -27,9 +26,6 @@ func TestNewTodoInteractor(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	notValidBefore := time.Now()
-	notValidAfter := time.Now().Add(time.Hour * 24)
-	rhsmId := uuid.New().String()
 	type TestCaseGiven struct {
 		Params *api_public.CreateDomainParams
 		Body   *api_public.CreateDomain
@@ -159,31 +155,7 @@ func TestCreate(t *testing.T) {
 					DomainName:            nil,
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
-					IpaDomain: &model.Ipa{
-						RealmName: pointy.String("DOMAIN.EXAMPLE"),
-						CaCerts: []model.IpaCert{
-							{
-								Nickname:       "DOMAIN.EXAMPLE IPA CA",
-								Issuer:         "CN=Certificate Authority,O=DOMAIN.EXAMPLE",
-								Subject:        "CN=Certificate Authority,O=DOMAIN.EXAMPLE",
-								SerialNumber:   "1",
-								NotValidAfter:  notValidAfter,
-								NotValidBefore: notValidBefore,
-								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-							},
-						},
-						Servers: []model.IpaServer{
-							{
-								FQDN:                "server1.domain.example",
-								CaServer:            true,
-								HCCEnrollmentServer: true,
-								HCCUpdateServer:     true,
-								PKInitServer:        true,
-								RHSMId:              rhsmId,
-							},
-						},
-						RealmDomains: pq.StringArray{"server1.domain.example", "server2.domain.example"},
-					},
+					IpaDomain:             &model.Ipa{},
 				},
 			},
 		},

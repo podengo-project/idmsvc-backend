@@ -333,6 +333,7 @@ func TestSharedDomain(t *testing.T) {
 		{
 			FQDN:                "server1.mydomain.example",
 			RHSMId:              testSubscriptionManagerId,
+			Location:            "europe",
 			CaServer:            true,
 			PKInitServer:        true,
 			HCCEnrollmentServer: true,
@@ -364,6 +365,7 @@ func TestSharedDomain(t *testing.T) {
 				{
 					Fqdn:                  "server1.mydomain.example",
 					SubscriptionManagerId: testSubscriptionManagerId,
+					Location:              "europe",
 					CaServer:              true,
 					PkinitServer:          true,
 					HccEnrollmentServer:   true,
@@ -414,6 +416,7 @@ func equalPrensenterDomainRhelIdmServers(t *testing.T, expected []public.DomainI
 	for i := range actual {
 		assert.Equal(t, expected[i].Fqdn, actual[i].Fqdn)
 		assert.Equal(t, expected[i].SubscriptionManagerId, actual[i].SubscriptionManagerId)
+		assert.Equal(t, expected[i].Location, actual[i].Location)
 		assert.Equal(t, expected[i].CaServer, actual[i].CaServer)
 		assert.Equal(t, expected[i].PkinitServer, actual[i].PkinitServer)
 		assert.Equal(t, expected[i].HccEnrollmentServer, actual[i].HccEnrollmentServer)
