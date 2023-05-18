@@ -1,14 +1,41 @@
 ---
-image: golang:latest
+image: golang:1.18
 
 stages:
+  - check
   - test
   - build
+
+check missed commits:
+  stage: check
+  tags:
+    - shared
+  # TODO Remove the line below or set to false after the pipeline is stable
+  allow_failure: true
+  script:
+    - make install-oapi-codegen
+    - make install-mockery
+    # - make install-golangci-lint
+    # - make install-gojsonschema
+    # - make install-goda
+    - make install-yq
+
+    # - echo "Checking missed 'make tidy'"
+    # - make tidy && git diff --exit-code go.mod go.sum
+    - echo "get dependencies"
+    - go get ./...
+
+    - echo "Checking missed 'make generate-api'"
+    - make generate-api && git diff --exit-code internal/api/public/
+
+    - echo "Checking missed 'make generate-mock'"
+    - make generate-mock && git diff --exit-code internal/test/mock/
 
 run tests:
   stage: test
   tags:
     - shared
+  needs: []
   script:
     - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
@@ -27,5 +54,6 @@ compile project:
   stage: build
   tags:
     - shared
+  needs: ["run tests"]
   script:
     - make build

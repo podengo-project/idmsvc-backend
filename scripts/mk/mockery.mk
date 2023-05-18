@@ -7,7 +7,7 @@ MOCKERY ?= $(BIN)/mockery
 .PHONY: install-mockery
 install-mockery: $(MOCKERY)
 
-MOCKERY_VERSION ?= latest
+MOCKERY_VERSION ?= v2.16.0
 
 $(MOCKERY):
 	@{ \
