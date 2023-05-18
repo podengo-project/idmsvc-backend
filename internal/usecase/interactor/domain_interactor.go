@@ -286,11 +286,11 @@ func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, do
 		domainIpa.Servers = []model.IpaServer{}
 		return
 	}
-	// FIXME Set body.Servers as required into the openapi specification
 	domainIpa.Servers = make([]model.IpaServer, len(body.RhelIdm.Servers))
 	for idx, server := range body.RhelIdm.Servers {
 		domainIpa.Servers[idx].FQDN = server.Fqdn
 		domainIpa.Servers[idx].RHSMId = server.SubscriptionManagerId
+		domainIpa.Servers[idx].Location = server.Location
 		domainIpa.Servers[idx].PKInitServer = server.PkinitServer
 		domainIpa.Servers[idx].CaServer = server.CaServer
 		domainIpa.Servers[idx].HCCEnrollmentServer = server.HccEnrollmentServer

@@ -29,6 +29,8 @@ func (p *domainPresenter) fillRhelIdmServers(
 			source.IpaDomain.Servers[i].FQDN
 		target.RhelIdm.Servers[i].SubscriptionManagerId =
 			source.IpaDomain.Servers[i].RHSMId
+		target.RhelIdm.Servers[i].Location =
+			source.IpaDomain.Servers[i].Location
 		target.RhelIdm.Servers[i].CaServer =
 			source.IpaDomain.Servers[i].CaServer
 		target.RhelIdm.Servers[i].HccEnrollmentServer =

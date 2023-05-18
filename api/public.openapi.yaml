@@ -979,6 +979,7 @@ components:
                 - hcc_update_server
                 - pkinit_server
                 - subscription_manager_id
+                - location
             type: object
             properties:
                 fqdn:
@@ -999,10 +1000,15 @@ components:
                 subscription_manager_id:
                     type: string
                     example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                location:
+                    description: A location identifier (lower-case DNS label).
+                    maxLength: 63
+                    type: string
             additionalProperties: false
             example:
                 fqdn: ipaserver.mydomain.example
                 rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                location: europe
                 ca_server: true
                 hcc_enrollment_server: true
                 hcc_update_server: true

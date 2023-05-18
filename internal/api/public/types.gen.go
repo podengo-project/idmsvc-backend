@@ -127,10 +127,13 @@ type DomainIpaCert struct {
 
 // DomainIpaServer Server schema for an entry into the Ipa domain type.
 type DomainIpaServer struct {
-	CaServer              bool   `json:"ca_server"`
-	Fqdn                  string `json:"fqdn"`
-	HccEnrollmentServer   bool   `json:"hcc_enrollment_server"`
-	HccUpdateServer       bool   `json:"hcc_update_server"`
+	CaServer            bool   `json:"ca_server"`
+	Fqdn                string `json:"fqdn"`
+	HccEnrollmentServer bool   `json:"hcc_enrollment_server"`
+	HccUpdateServer     bool   `json:"hcc_update_server"`
+
+	// Location A location identifier (lower-case DNS label).
+	Location              string `json:"location"`
 	PkinitServer          bool   `json:"pkinit_server"`
 	SubscriptionManagerId string `json:"subscription_manager_id"`
 }
