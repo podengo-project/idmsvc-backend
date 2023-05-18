@@ -9,19 +9,16 @@ GODA ?= $(BIN)/goda
 .PHONY: install-goda
 install-goda: $(GODA)
 
-GODA_VERSION ?= master
+GODA_VERSION ?= v0.5.7
 
 $(GODA):
 	@{ \
 	    export GOPATH="$(shell mktemp -d "$(PROJECT_DIR)/tmp.XXXXXXXX" 2>/dev/null)" ; \
 	    echo "Using GOPATH='$${GOPATH}'" ; \
 	    [ "$${GOPATH}" != "" ] || { echo "error:GOPATH is empty"; exit 1; } ; \
-	    export GOBIN="$(dir $(GODA))" ; \
+	    export GOBIN="$(BIN)" ; \
 	    echo "Installing 'goda' at '$(GODA)'" ; \
-		pushd "$${GOPATH}" ; \
-		git clone https://github.com/loov/goda && cd goda ; \
-		go build -o "$(GODA)"; \
-		popd ; \
+		go install "github.com/loov/goda@$(GODA_VERSION)"; \
 	    find "$${GOPATH}" -type d -exec chmod u+w {} \; ; \
 	    rm -rf "$${GOPATH}" ; \
 	}
