@@ -56,6 +56,7 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
 		Handlers:   impl.NewHandler(cfg, db, metrics, inventory),
+		Metrics:    metrics,
 	}
 	routerWrongConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
@@ -65,15 +66,14 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	require.NotNil(t, e)
 
 	assert.Panics(t, func() {
-		newGroupPublic(nil, routerConfig, metrics)
+		newGroupPublic(nil, routerConfig)
 	})
 	assert.Panics(t, func() {
-		newGroupPublic(e.Group(routerConfig.PublicPath+"/"+routerConfig.Version), routerWrongConfig, metrics)
+		newGroupPublic(e.Group(routerConfig.PublicPath+"/"+routerConfig.Version), routerWrongConfig)
 	})
-	assert.Panics(t, func() {
-		newGroupPublic(e.Group(routerConfig.PublicPath+"/"+routerConfig.Version), routerConfig, nil)
+	assert.NotPanics(t, func() {
+		newGroupPublic(e.Group(routerConfig.PublicPath+"/"+routerConfig.Version), routerConfig)
 	})
-
 }
 
 func TestNewGroupPublic(t *testing.T) {
@@ -174,11 +174,12 @@ func TestNewGroupPublic(t *testing.T) {
 		PublicPath: appPrefix + appName,
 		Version:    "1.0",
 		Handlers:   impl.NewHandler(cfg, db, metrics, inventory),
+		Metrics:    metrics,
 	}
 
 	e := echo.New()
 	require.NotNil(t, e)
-	group := newGroupPublic(e.Group(routerConfig.PublicPath+"/v"+routerConfig.Version), routerConfig, metrics)
+	group := newGroupPublic(e.Group(routerConfig.PublicPath+"/v"+routerConfig.Version), routerConfig)
 	require.NotNil(t, group)
 
 	// Match Routes in expected
@@ -192,6 +193,35 @@ func TestNewGroupPublic(t *testing.T) {
 		assert.Truef(t, okMethod, "method=%s not found into the expected ones for the path=%s", route.Method, route.Path)
 		assert.Equalf(t, name, route.Name, "handler for path=%s method=%s does not match", route.Path, route.Method)
 	}
+
+	// Same result when IsFakeEnabled
+	e = echo.New()
+	require.NotNil(t, e)
+	routerConfig.IsFakeEnabled = true
+	group = newGroupPublic(
+		e.Group(routerConfig.PublicPath+"/v"+routerConfig.Version),
+		routerConfig)
+	require.NotNil(t, group)
+	for _, route := range e.Routes() {
+		t.Logf("Method=%s Path=%s Name=%s", route.Method, route.Path, route.Name)
+
+		methods, okPath := testCases[route.Path]
+		assert.Truef(t, okPath, "path=%s not found into the expected ones", route.Path)
+
+		name, okMethod := methods[route.Method]
+		assert.Truef(t,
+			okMethod,
+			"method=%s not found into the expected ones for the path=%s",
+			route.Method,
+			route.Path)
+		assert.Equalf(t,
+			name,
+			route.Name,
+			"handler for path=%s method=%s does not match",
+			route.Path,
+			route.Method)
+	}
+
 }
 
 func TestSkipperUser(t *testing.T) {
@@ -217,7 +247,11 @@ func TestSkipperUser(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		ctx := helperNewContextForSkipper(testCase.Given, http.MethodGet, testCase.Given, nil)
+		ctx := helperNewContextForSkipper(
+			testCase.Given,
+			http.MethodGet,
+			testCase.Given,
+			nil)
 		result := skipperUserPredicate(ctx)
 		assert.Equal(t, testCase.Expected, result)
 	}

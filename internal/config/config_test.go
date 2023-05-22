@@ -51,6 +51,19 @@ func TestSetClowderConfiguration(t *testing.T) {
 	assert.Nil(t, v.Get("database.name"))
 	assert.Nil(t, v.Get("database.ca_cert_path"))
 
+	// Load RDSACert with wrong path
+	cfg.Database = &clowder.DatabaseConfig{}
+	cfg.Database.RdsCa = pointy.String("/tmp/itdoesnotexist.pem")
+	assert.NotPanics(t, func() {
+		setClowderConfiguration(v, &cfg)
+	})
+
+	// Load RDSACert nil
+	cfg.Database.RdsCa = nil
+	assert.NotPanics(t, func() {
+		setClowderConfiguration(v, &cfg)
+	})
+
 	// Load database data (but RdsCa)
 	cfg.Database = &clowder.DatabaseConfig{
 		Hostname: "testhost",
@@ -67,7 +80,7 @@ func TestSetClowderConfiguration(t *testing.T) {
 	assert.Equal(t, "testuser", v.Get("database.user"))
 	assert.Equal(t, "testpassword", v.Get("database.password"))
 	assert.Equal(t, "testname", v.Get("database.name"))
-	assert.Nil(t, v.Get("database.ca_cert_path"))
+	assert.NotNil(t, v.Get("database.ca_cert_path"))
 
 	// TODO Add test to cover RdsCa flow
 
@@ -118,4 +131,17 @@ func TestAddEventConfigDefaults(t *testing.T) {
 	assert.Equal(t, 15, v.Get("kafka.message.send.max.retries"))
 	assert.Equal(t, 100, v.Get("kafka.retry.backoff.ms"))
 
+}
+
+func TestLoad(t *testing.T) {
+	// 'cfg' is nil panic
+	assert.Panics(t, func() {
+		Load(nil)
+	}, "'cfg' is nil")
+
+	// Success Load
+	cfg := Config{}
+	assert.NotPanics(t, func() {
+		Load(&cfg)
+	})
 }

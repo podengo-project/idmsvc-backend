@@ -30,7 +30,8 @@
 # # TODO Set the ephemeral credentials
 # export CREDS="username:password"
 # unset X_RH_IDENTITY
-# BASE_URL="$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
+# unset X_RH_FAKE_IDENTITY
+# BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
 # ./scripts/curl.sh -i "${BASE_URL}/domains" -X POST -d @./test/data/http/create-rhel-idm-domain.json
 
 POST {{schema}}://{{host}}{{basepath}}/domains
@@ -78,16 +79,20 @@ Content-Type: {{contentType}}
 
 # @name createDomain
 
-# Request from workstation
+# Request for localhost
+#
 # export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+# unset X_RH_FAKE_IDENTITY
 # unset CREDS
 # BASE_URL="http://localhost:8000/api/hmsidm/v1"
 # ./scripts/curl.sh -i "${BASE_URL}/domains" -X POST -d @./test/data/http/create-rhel-idm-domain.json
 
 # Request for ephemeral
+#
 # # TODO Set CREDS value
 # export CREDS="username:password"
 # unset X_RH_IDENTITY
+# unset X_RH_FAKE_IDENTITY
 # BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
 # ./scripts/curl.sh -i "${BASE_URL}/domains" -X POST -d @./test/data/http/create-rhel-idm-domain.json
 
@@ -105,6 +110,7 @@ Content-Type: {{contentType}}
 # Request for localhost
 #
 # export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+# unset X_RH_FAKE_IDENTITY
 # unset CREDS
 # unset X_RH_IDM_VERSION
 # BASE_URL="http://localhost:8000/api/hmsidm/v1"
@@ -115,6 +121,7 @@ Content-Type: {{contentType}}
 # # TODO Set the ephemeral credentials
 # export CREDS="username:password"
 # unset X_RH_IDENTITY
+# unset X_RH_FAKE_IDENTITY
 # BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
 # ./scripts/curl.sh -i "${BASE_URL}/domains"
 
@@ -129,16 +136,22 @@ Content-Type: {{contentType}}
 
 # Request for localhost
 # export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+# unset X_RH_FAKE_IDENTITY
 # unset CREDS
 # UUID=""
 # BASE_URL="http://localhost:8000/api/hmsidm/v1"
 # ./scripts/curl.sh -i "${BASE_URL}/domains/${UUID}"
 
 # Request for ephemeral
+#
+# # TODO Fill CREDS
+# export CREDS="username:password"
+# unset X_RH_IDENTITY
+# unset X_RH_FAKE_IDENTITY
 # # TODO Fill UUID with the one matching your fresh created domain blueprint
 # UUID=""
 # BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
-# curl -i -u "$CREDS" "${BASE_URL}/domains/${UUID}"
+# ./scripts/curl.sh -i -u "$CREDS" "${BASE_URL}/domains/${UUID}"
 
 GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
 X-Rh-Identity: {{x-rh-identity-user}}
@@ -198,17 +211,23 @@ Content-Type: {{contentType}}
 
 # Request for ephemeral (FIXME)
 #
+# # TODO Fill CREDS
+# export CREDS="username:password"
+# unset X_RH_IDENTITY
+# export X_RH_FAKE_IDENTITY="$( ./bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64 -w0 )"
 # # TODO Fill the token to be used
 # TOKEN=""
-# X_RH_IDM_REGISTRATION_TOKEN="X-Rh-Idm-Registration-Token: ${TOKEN}"
-# X_RH_IDM_VERSION="X-Rh-Idm-Version: $( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"
+# export X_RH_IDM_REGISTRATION_TOKEN="X-Rh-Idm-Registration-Token: ${TOKEN}"
+# export X_RH_IDM_VERSION="X-Rh-Idm-Version: $( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"
 # # TODO Fill the domain_uuid value below
 # UUID=""
 # BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
-# curl -i -X PUT -H "${X_RH_IDM_VERSION}" -H "${X_RH_IDM_REGISTRATION_TOKEN}" -d @<( cat test/data/http/register-update-rhel-idm-domain.json | sed 's/{{subscription_manager_id}}/6f324116-b3d2-11ed-8a37-482ae3863d30/g' ) -H "Content-Type: application/json" "${BASE_URL}/domains/${UUID}/register"
+# ./scripts/curl.sh -i -X PUT -d @<( cat test/data/http/register-update-rhel-idm-domain.json | sed 's/{{subscription_manager_id}}/6f324116-b3d2-11ed-8a37-482ae3863d30/g' ) "${BASE_URL}/domains/${UUID}/register"
 
 PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/register
-X-Rh-Identity: {{x-rh-identity-system}}
+# X-Rh-Identity: {{x-rh-identity-system}}
+X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
+X-Rh-Fake-Identity: {{x-rh-identity-system}}
 X-Rh-Idm-Registration-Token: {{token}}
 X-Rh-Insights-Request-Id: put_domains_register
 X-Rh-Idm-Version: {{x-rh-idm-version}}
@@ -224,6 +243,8 @@ Content-Type: {{contentType}}
 #
 # export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64 -w0 )"
 # unset CREDS
+# unset X_RH_IDENTITY
+# export X_RH_FAKE_IDENTITY X_RH_FAKE_IDENTITY="$( ./bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64 -w0 )"
 # unset X_RH_IDM_REGISTRATION_TOKEN
 # export X_RH_IDM_VERSION="$( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"
 # # TODO Fill the domain_uuid value below
@@ -231,9 +252,26 @@ Content-Type: {{contentType}}
 # BASE_URL="http://localhost:8000/api/hmsidm/v1"
 # ./scripts/curl.sh -i -X PUT -d @<( cat test/data/http/register-update-rhel-idm-domain.json | sed 's/{{subscription_manager_id}}/6f324116-b3d2-11ed-8a37-482ae3863d30/g' ) "${BASE_URL}/domains/${UUID}/update"
 
+# Request for ephemeral
+#
+# # TODO Fill CREDS
+# export CREDS="username:password"
+# unset X_RH_IDENTITY
+# export X_RH_FAKE_IDENTITY="$( ./bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64 -w0 )"
+# # TODO Fill the token to be used
+# TOKEN=""
+# export X_RH_IDM_REGISTRATION_TOKEN="X-Rh-Idm-Registration-Token: ${TOKEN}"
+# export X_RH_IDM_VERSION="X-Rh-Idm-Version: $( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"
+# # TODO Fill the domain_uuid value below
+# UUID=""
+# BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
+# ./scripts/curl.sh -i -X PUT -d @<( cat test/data/http/register-update-rhel-idm-domain.json | sed 's/{{subscription_manager_id}}/6f324116-b3d2-11ed-8a37-482ae3863d30/g' ) "${BASE_URL}/domains/${UUID}/update"
+
 
 PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/update
-X-Rh-Identity: {{x-rh-identity-system}}
+# X-Rh-Identity: {{x-rh-identity-system}}
+X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
+X-Rh-Fake-Identity: {{x-rh-identity-system}}
 X-Rh-Insights-Request-Id: put_domains_register
 X-Rh-Idm-Version: {{x-rh-idm-version}}
 Content-Type: {{contentType}}
@@ -298,16 +336,18 @@ Content-Type: {{contentType}}
 ### Delete Domain
 
 # Request for localhost
+# export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
 # BASE_URL="http://localhost:8000/api/hmsidm/v1"
 # # TODO Fill UUID value
 # UUID=""
 # curl -i -X DELETE -H "$( ./scripts/x-rh-identity.sh 12345 test )" "${BASE_URL}/domains/${UUID}"
+# ./scripts/curl.sh -i -X DELETE "${BASE_URL}/domains/${UUID}"
 
 # Request for ephemeral
 # BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
 # # TODO Fill UUID with the one matching your fresh created domain blueprint
 # UUID=""
-# curl -i -u "$CREDS" -X DELETE "${BASE_URL}/domains/${UUID}"
+# ./scripts/curl.sh -i -X DELETE "${BASE_URL}/domains/${UUID}"
 
 
 DELETE http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
