@@ -11,12 +11,13 @@ import (
 )
 
 type RouterConfig struct {
-	Handlers    handler.Application
-	PublicPath  string
-	PrivatePath string
-	Version     string
-	MetricsPath string
-	Metrics     *metrics.Metrics
+	Handlers      handler.Application
+	PublicPath    string
+	PrivatePath   string
+	Version       string
+	MetricsPath   string
+	IsFakeEnabled bool
+	Metrics       *metrics.Metrics
 }
 
 func getMajorVersion(version string) string {
@@ -38,6 +39,9 @@ func checkRouterConfig(c RouterConfig) error {
 	}
 	if c.Version == "" {
 		return fmt.Errorf("Version cannot be empty")
+	}
+	if c.Metrics == nil {
+		return fmt.Errorf("Metrics is nil")
 	}
 	return nil
 }
@@ -68,7 +72,17 @@ func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 	e.Use(middleware.Recover())
 }
 
-func NewRouterWithConfig(e *echo.Echo, c RouterConfig, metrics *metrics.Metrics) *echo.Echo {
+// NewRouterWithConfig fill the router configuration for the given echo instance,
+// providing routes for the public endpoints, the private paths (includes the healthcheck),
+// and the /metrics path
+// e is the echo instance where to add the routes.
+// c is the router configuration.
+// metrics is the reference to the metrics storage.
+// Return the echo instance set up; is something fails it panics.
+func NewRouterWithConfig(e *echo.Echo, c RouterConfig) *echo.Echo {
+	if e == nil {
+		panic("'e' is nil")
+	}
 	if err := checkRouterConfig(c); err != nil {
 		panic(err.Error())
 	}
@@ -76,12 +90,20 @@ func NewRouterWithConfig(e *echo.Echo, c RouterConfig, metrics *metrics.Metrics)
 	configCommonMiddlewares(e, c)
 
 	newGroupPrivate(e.Group(c.PrivatePath), c)
-	newGroupPublic(e.Group(c.PublicPath+"/v"+c.Version), c, metrics)
-	newGroupPublic(e.Group(c.PublicPath+"/v"+getMajorVersion(c.Version)), c, metrics)
+	newGroupPublic(e.Group(c.PublicPath+"/v"+c.Version), c)
+	newGroupPublic(e.Group(c.PublicPath+"/v"+getMajorVersion(c.Version)), c)
 	return e
 }
 
+// NewRouterForMetrics fill the routing information for /metrics endpoint.
+// e is the echo instance
+// c is the router configuration
+// Return the echo instance configured for the metrics for success execution,
+// else raise any panic.
 func NewRouterForMetrics(e *echo.Echo, c RouterConfig) *echo.Echo {
+	if e == nil {
+		panic("'e' is nil")
+	}
 	if c.MetricsPath == "" {
 		panic(fmt.Errorf("MetricsPath cannot be an empty string"))
 	}

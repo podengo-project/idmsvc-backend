@@ -72,3 +72,5 @@ app:
   pagination_default_limit: 10
   # The pagination max limit to avoid bigger values and long requests
   pagination_max_limit: 100
+  # Allow to inject a system identity for development propose
+  is_fake_enabled: true

@@ -30,6 +30,9 @@ const (
 	PaginationDefaultLimit = 10
 	// PaginationMaxLimit is the default max limit for the pagination
 	PaginationMaxLimit = 1000
+
+	// By default disabled
+	DefaultIsFakeEnabled = false
 )
 
 type Config struct {
@@ -130,6 +133,7 @@ type Metrics struct {
 	Port int `mapstructure:"port"`
 }
 
+// Clients gather all the client settings for the
 type Clients struct {
 	Inventory InventoryClient
 }
@@ -148,6 +152,9 @@ type Application struct {
 	PaginationDefaultLimit int `mapstructure:"pagination_default_limit"`
 	// Indicate the max pagination limit when it is grather
 	PaginationMaxLimit int `mapstructure:"pagination_max_limit"`
+	// IsFakeEnabled define when the fake middleware is added to the route
+	// to process the x-rh-fake-identity
+	IsFakeEnabled bool `mapstructure:"is_fake_enabled"`
 }
 
 var config *Config = nil
@@ -185,6 +192,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.expiration_time", DefatulExpirationTime)
 	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
+	v.SetDefault("app.is_fake_enabled", DefaultIsFakeEnabled)
 }
 
 func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
@@ -194,6 +202,11 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 	if clowderConfig == nil {
 		panic("'clowderConfig' is nil")
 	}
+
+	// Web
+	v.Set("web.port", clowderConfig.PublicPort)
+
+	// Database
 	var rdsCertPath string
 	if clowderConfig.Database != nil && clowderConfig.Database.RdsCa != nil {
 		var err error
@@ -201,11 +214,6 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 			log.Warn().Err(err).Msg("Cannot read RDS CA cert")
 		}
 	}
-
-	// Web
-	v.Set("web.port", clowderConfig.PublicPort)
-
-	// Database
 	if clowderConfig.Database != nil {
 		v.Set("database.host", clowderConfig.Database.Hostname)
 		v.Set("database.port", clowderConfig.Database.Port)
@@ -236,7 +244,7 @@ func Load(cfg *Config) *Config {
 	)
 
 	if cfg == nil {
-		panic("cfg is nil")
+		panic("'cfg' is nil")
 	}
 
 	v := viper.New()

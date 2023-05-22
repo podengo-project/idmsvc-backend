@@ -21,6 +21,10 @@
 #   NOTE this value should not be specified when launching
 #   the request against ephemeral environment, as the
 #   values are filled by the api gateway.
+# X_RH_FAKE_IDENTITY if it is not empty, then the header
+#   'X-Rh-Fake-Identity' is added to the curl options.
+#   this is used for development propose only, and it
+#   requires APP_IS_FAKE_ENABLED=true when it was deployed.
 # X_RH_IDM_REGISTRATION_TOKEN if it is not empty, then
 #   the header is filled.
 # CREDS if it is not empty, then `-u "${CREDS}"` options
@@ -63,6 +67,12 @@ fi
 if [ "${X_RH_IDENTITY}" != "" ]; then
     opts+=("-H" "X-Rh-Identity: ${X_RH_IDENTITY}")
     verbose "-H X-Rh-Identity: ${X_RH_IDENTITY}"
+fi
+
+# Optionally add X-Rh-Fake-Identity (used for testing in ephemeral)
+if [ "${X_RH_FAKE_IDENTITY}" != "" ]; then
+    opts+=("-H" "X-Rh-Fake-Identity: ${X_RH_FAKE_IDENTITY}")
+    verbose "-H X-Rh-Fake-Identity: ${X_RH_FAKE_IDENTITY}"
 fi
 
 # Optionally add X-Rh-Idm-Registration-Token

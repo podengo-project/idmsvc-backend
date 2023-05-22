@@ -48,11 +48,14 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 		PublicPath:  "/api/hmsidm",
 		PrivatePath: "/private",
 		Handlers:    app,
+		Metrics:     metrics,
+	}
+	if cfg.Application.IsFakeEnabled {
+		routerConfig.IsFakeEnabled = true
 	}
 	result.echo = router.NewRouterWithConfig(
 		echo.New(),
 		routerConfig,
-		metrics,
 	)
 	result.echo.HideBanner = true
 	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {

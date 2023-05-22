@@ -39,6 +39,10 @@ EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/CLIENTS_RBAC_BASE_URL=$(CLIE
 endif
 endif
 
+ifneq (,$(EPHEMERAL_LOG_LEVEL))
+EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/LOGGING_LEVEL=$(EPHEMERAL_LOG_LEVEL)"
+endif
+
 EPHEMERAL_BONFIRE_PATH ?= configs/bonfire.yaml
 
 # TODO Uncomment when the frontend is created
@@ -87,6 +91,7 @@ ephemeral-deploy:  ## Build image and deploy application using 'config/bonfire.y
 		--namespace "$(NAMESPACE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(DOCKER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(DOCKER_IMAGE_TAG)" \
+		--set-parameter "$(APP_COMPONENT)/IS_FAKE_ENABLED=$(APP_IS_FAKE_ENABLED)" \
 		$(EPHEMERAL_OPTS) \
 		"$(APP)"
 

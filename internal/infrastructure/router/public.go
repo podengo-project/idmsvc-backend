@@ -3,7 +3,6 @@ package router
 import (
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/infrastructure/middleware"
-	"github.com/hmsidm/internal/metrics"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
@@ -18,18 +17,24 @@ var systemEnforceRoutes = []string{
 	"/api/hmsidm/v1/domains/:uuid/update",
 }
 
-func newGroupPublic(e *echo.Group, c RouterConfig, metrics *metrics.Metrics) *echo.Group {
+func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	if e == nil {
 		panic("echo group is nil")
-	}
-	if metrics == nil {
-		panic("'metrics' is nil")
 	}
 	if c.Handlers == nil {
 		panic("'handlers' is nil")
 	}
 
 	// Initialize middlewares
+	var fakeIdentityMiddleware func(echo.HandlerFunc) echo.HandlerFunc
+	if c.IsFakeEnabled {
+		fakeIdentityMiddleware = middleware.FakeIdentityWithConfig(
+			&middleware.FakeIdentityConfig{
+				Skipper: skipperSystemPredicate,
+			},
+		)
+	}
+
 	systemIdentityMiddleware := middleware.EnforceIdentityWithConfig(
 		&middleware.IdentityConfig{
 			Skipper: skipperSystemPredicate,
@@ -48,7 +53,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig, metrics *metrics.Metrics) *ec
 	)
 	metricsMiddleware := middleware.MetricsMiddlewareWithConfig(
 		&middleware.MetricsConfig{
-			Metrics: metrics,
+			Metrics: c.Metrics,
 		},
 	)
 	requestIDMiddleware := echo_middleware.RequestIDWithConfig(
@@ -58,8 +63,11 @@ func newGroupPublic(e *echo.Group, c RouterConfig, metrics *metrics.Metrics) *ec
 	)
 
 	// Wire the middlewares
+	e.Use(middleware.CreateContext())
+	if c.IsFakeEnabled {
+		e.Use(fakeIdentityMiddleware)
+	}
 	e.Use(
-		middleware.CreateContext(),
 		systemIdentityMiddleware,
 		userIdentityMiddleware,
 		metricsMiddleware,
