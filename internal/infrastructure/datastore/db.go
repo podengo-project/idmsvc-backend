@@ -37,7 +37,6 @@ func NewDB(cfg *config.Config) (db *gorm.DB) {
 	var err error
 	dbUrl := getUrl(cfg)
 
-	log.Debug().Msgf("connecting to database with dsn: %s", dbUrl)
 	if db, err = gorm.Open(pg.Open(dbUrl),
 		&gorm.Config{
 			Logger:                 logger.NewGormLog(cfg),
@@ -47,13 +46,6 @@ func NewDB(cfg *config.Config) (db *gorm.DB) {
 		log.Error().Msgf("Error creating database connector: %s", err.Error())
 		return nil
 	}
-	// FIXME clean-up the below block
-	var tables []string
-	if err := db.Table("information_schema.tables").Where("table_schema = ?", "public").Pluck("table_name", &tables).Error; err != nil {
-		panic(err)
-	}
-	log.Debug().Strs("tables", tables).Send()
-	// END FIX
 	return db
 }
 
