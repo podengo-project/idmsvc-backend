@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS domains (
 );
 
 CREATE TABLE IF NOT EXISTS ipas (
-    id SERIAL UNIQUE NOT NULL PRIMARY KEY,
+    id INT UNIQUE NOT NULL PRIMARY KEY,
     created_at TIMESTAMP,
     updated_at TIMESTAMP,
     -- NOTE Keep in mind that gorm is making a logical delete,
@@ -35,15 +35,13 @@ CREATE TABLE IF NOT EXISTS ipas (
     realm_name VARCHAR(253) NOT NULL,
     realm_domains TEXT NOT NULL,
     token VARCHAR(256) DEFAULT NULL,
-    token_expiration TIMESTAMP DEFAULT NULL
+    token_expiration TIMESTAMP DEFAULT NULL,
+
+    CONSTRAINT fk_ipas_id__domains_id
+        FOREIGN KEY (id)
+            REFERENCES domains(id)
+        ON DELETE CASCADE
 );
-
-ALTER TABLE ipas
-ADD CONSTRAINT fk_domains_ipas_id
-FOREIGN KEY (id)
-REFERENCES domains(id)
-ON DELETE CASCADE;
-
 
 CREATE TABLE IF NOT EXISTS ipa_certs (
     id SERIAL UNIQUE NOT NULL PRIMARY KEY,
@@ -58,17 +56,13 @@ CREATE TABLE IF NOT EXISTS ipa_certs (
     not_valid_before TIMESTAMP NOT NULL,
     serial_number VARCHAR(64) NOT NULL,
     subject TEXT NOT NULL,
-    pem TEXT NOT NULL
+    pem TEXT NOT NULL,
+
+    CONSTRAINT fk_ipa_certs_ipa_id__ipas_id
+        FOREIGN KEY (ipa_id)
+            REFERENCES ipas(id)
+    ON DELETE CASCADE
 );
-
-ALTER TABLE ipa_certs
-ADD CONSTRAINT fk_ipas_ipa_certs_id
-FOREIGN KEY (ipa_id)
-REFERENCES ipas(id)
-ON DELETE CASCADE;
-
-
-
 
 CREATE TABLE IF NOT EXISTS ipa_servers (
     id SERIAL UNIQUE NOT NULL PRIMARY KEY,
@@ -82,14 +76,12 @@ CREATE TABLE IF NOT EXISTS ipa_servers (
     ca_server BOOLEAN NOT NULL,
     hcc_enrollment_server BOOLEAN NOT NULL,
     hcc_update_server BOOLEAN NOT NULL,
-    pk_init_server BOOLEAN NOT NULL
+    pk_init_server BOOLEAN NOT NULL,
+
+    CONSTRAINT fk_ipa_servers_ipa_id__ipas_id
+        FOREIGN KEY (ipa_id)
+            REFERENCES ipas(id)
+    ON DELETE CASCADE
 );
-
-ALTER TABLE ipa_servers
-ADD CONSTRAINT fk_ipas_ipa_servers
-FOREIGN KEY (ipa_id)
-REFERENCES ipas(id)
-ON DELETE CASCADE;
-
 
 COMMIT;
