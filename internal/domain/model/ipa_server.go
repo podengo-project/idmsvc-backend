@@ -14,5 +14,5 @@ type IpaServer struct {
 	HCCUpdateServer     bool
 	PKInitServer        bool
 
-	Ipa Ipa
+	Ipa Ipa `gorm:"foreignKey:ID;references:IpaID"`
 }

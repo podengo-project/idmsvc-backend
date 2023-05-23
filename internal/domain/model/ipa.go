@@ -17,18 +17,14 @@ import (
 
 type Ipa struct {
 	gorm.Model
-	CaCerts []IpaCert `gorm:"foreignKey:id"`
-	// TODO Do we want to create an ipa_server_list table
-	//      related with this Ipa entry?
-	// NOTE Thinking about this as a comma separated list
-	//      of servers
-	Servers         []IpaServer `gorm:"foreignKey:id"`
+	CaCerts         []IpaCert
+	Servers         []IpaServer
 	RealmName       *string
 	RealmDomains    pq.StringArray `gorm:"type:text[]"`
 	Token           *string
 	TokenExpiration *time.Time
 
-	Domain Domain `gorm:"foreignKey:id"`
+	Domain Domain `gorm:"foreignKey:ID;references:ID"`
 }
 
 // Set by the default tokenExpiration to 24hours once it is created
