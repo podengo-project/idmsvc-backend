@@ -199,7 +199,7 @@ func (r *domainRepository) updateIpaDomain(db *gorm.DB, data *model.Ipa) (err er
 	}
 
 	// Servers
-	for i := range data.CaCerts {
+	for i := range data.Servers {
 		data.Servers[i].IpaID = data.ID
 		if err = db.Create(&data.Servers[i]).Error; err != nil {
 			return err
@@ -211,11 +211,17 @@ func (r *domainRepository) updateIpaDomain(db *gorm.DB, data *model.Ipa) (err er
 
 // See: https://gorm.io/docs/query.html
 // TODO Document the method
-func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (output *model.Domain, err error) {
+func (r *domainRepository) FindById(
+	db *gorm.DB,
+	orgId string,
+	uuid string,
+) (output *model.Domain, err error) {
 	if err = r.checkCommonAndUUID(db, orgId, uuid); err != nil {
 		return nil, err
 	}
-	if err = db.First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).Error; err != nil {
+	if err = db.Model(&model.Domain{}).
+		First(&output, "org_id = ? AND domain_uuid = ?", orgId, uuid).
+		Error; err != nil {
 		return nil, err
 	}
 	if output.Type == nil {
@@ -224,12 +230,11 @@ func (r *domainRepository) FindById(db *gorm.DB, orgId string, uuid string) (out
 	switch *output.Type {
 	case model.DomainTypeIpa:
 		output.IpaDomain = &model.Ipa{}
-		output.IpaDomain.ID = output.ID
 		if err = db.
+			Model(&model.Ipa{}).
 			Preload("CaCerts").
 			Preload("Servers").
-			// First(output.IpaDomain, "id = ?", output.ID).
-			First(output.IpaDomain).
+			Find(output.IpaDomain, "id = ?", output.ID).
 			Error; err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err
