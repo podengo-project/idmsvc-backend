@@ -22,15 +22,17 @@ func NewGormLog(cfg *config.Config) logger.Interface {
 	} else {
 		o = os.Stderr
 	}
-	l := zerolog.New(o).
-		With().
-		Timestamp().
-		Logger()
+
 	lvl, err := zerolog.ParseLevel(cfg.Logging.Level)
 	if err != nil {
 		panic(err)
 	}
-	l = l.Level(lvl)
+	l := zerolog.New(o).
+		Level(lvl).
+		With().
+		Timestamp().
+		Logger()
+
 	return &gormZerolog{
 		logger: l,
 	}
