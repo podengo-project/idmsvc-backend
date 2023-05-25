@@ -1029,6 +1029,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 			nil,
 			1,
 
+			1,
 			data.IpaDomain.Servers[0].FQDN,
 			data.IpaDomain.Servers[0].RHSMId,
 			data.IpaDomain.Servers[0].CaServer,
