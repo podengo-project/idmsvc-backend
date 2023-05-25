@@ -218,7 +218,7 @@ func (r *domainRepository) FindByID(
 			Model(&model.Ipa{}).
 			Preload("CaCerts").
 			Preload("Servers").
-			Find(output.IpaDomain, "id = ?", output.ID).
+			First(output.IpaDomain, "id = ?", output.ID).
 			Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				return nil, err

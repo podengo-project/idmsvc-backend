@@ -457,9 +457,9 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.Token,
 			sqlmock.AnyArg(),
 			data.ID).
-		WillReturnError(fmt.Errorf("error on INSERT INTO \"ipas\""))
+		WillReturnError(fmt.Errorf("error at INSERT INTO \"ipas\""))
 	err = s.repository.createIpaDomain(s.DB, 1, &data)
-	assert.EqualError(t, err, "error on INSERT INTO \"ipas\"")
+	assert.EqualError(t, err, "error at INSERT INTO \"ipas\"")
 
 	// Error on INSERT INTO "ipa_certs"
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
@@ -490,9 +490,9 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.CaCerts[0].SerialNumber,
 			data.CaCerts[0].Subject,
 			data.CaCerts[0].ID).
-		WillReturnError(fmt.Errorf("error on INSERT INTO \"ipa_certs\""))
+		WillReturnError(fmt.Errorf("error at INSERT INTO \"ipa_certs\""))
 	err = s.repository.createIpaDomain(s.DB, 1, &data)
-	assert.EqualError(t, err, "error on INSERT INTO \"ipa_certs\"")
+	assert.EqualError(t, err, "error at INSERT INTO \"ipa_certs\"")
 
 	// Error on INSERT INTO "ipa_servers"
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
@@ -539,9 +539,9 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.Servers[0].HCCUpdateServer,
 			data.Servers[0].PKInitServer,
 			data.Servers[0].ID).
-		WillReturnError(fmt.Errorf("error on INSERT INTO \"ipa_servers\""))
+		WillReturnError(fmt.Errorf("error at INSERT INTO \"ipa_servers\""))
 	err = s.repository.createIpaDomain(s.DB, 1, &data)
-	assert.EqualError(t, err, "error on INSERT INTO \"ipa_servers\"")
+	assert.EqualError(t, err, "error at INSERT INTO \"ipa_servers\"")
 
 	//
 	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","token","token_expiration","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING "id"`)).
@@ -1216,6 +1216,7 @@ func (s *Suite) TestFindByID() {
 		WithArgs(testOrgID, testUUID).
 		WillReturnError(fmt.Errorf("an error happened"))
 	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, "an error happened")
 	assert.Nil(t, domain)
 
@@ -1247,6 +1248,7 @@ func (s *Suite) TestFindByID() {
 				pointy.Bool(true),
 			))
 	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, "'Type' is nil")
 	assert.Nil(t, domain)
 
@@ -1278,11 +1280,17 @@ func (s *Suite) TestFindByID() {
 
 				pointy.Bool(true),
 			))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
 		WithArgs(1).
-		WillReturnError(gorm.ErrRecordNotFound)
+		WillReturnRows(sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"realm_name", "realm_domains",
+			"token", "token_expiration",
+		}))
 	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
-	assert.EqualError(t, err, "record not found")
+	require.NoError(t, s.mock.ExpectationsWereMet())
+	assert.EqualError(t, err, gorm.ErrRecordNotFound.Error())
 	assert.Nil(t, domain)
 
 	// Successful scenario
@@ -1311,7 +1319,7 @@ func (s *Suite) TestFindByID() {
 
 				pointy.Bool(true),
 			))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE "ipas"."deleted_at" IS NULL AND "ipas"."id" = $1 ORDER BY "ipas"."id" LIMIT 1`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
 		WithArgs(1).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "created_at", "updated_at", "deletet_at",
@@ -1330,7 +1338,7 @@ func (s *Suite) TestFindByID() {
 
 				nil, nil,
 			))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."ipa_id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
 		WithArgs(1).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "created_at", "updated_at", "deletet_at",
@@ -1354,7 +1362,7 @@ func (s *Suite) TestFindByID() {
 				"Subject",
 				"-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 			))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."ipa_id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
 		WithArgs(1).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "created_at", "updated_at", "deletet_at",
@@ -1436,9 +1444,10 @@ func (s *Suite) TestFindByID() {
 		},
 	}
 	domain, err = r.FindByID(s.DB, testOrgID, testUUID)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.NoError(t, err)
 	require.NotNil(t, domain)
-	require.Equal(t, &expected, domain)
+	assert.Equal(t, &expected, domain)
 }
 
 // ---------------- Test for private methods ---------------------
