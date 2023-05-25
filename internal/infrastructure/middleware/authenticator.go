@@ -18,11 +18,27 @@ func NewAuthenticator(v XRhIValidator) openapi3filter.AuthenticationFunc {
 	}
 }
 
+func checkGuardsAuthenticate(v XRhIValidator, ctx context.Context, input *openapi3filter.AuthenticationInput) error {
+	if v == nil {
+		return fmt.Errorf("'v' is nil")
+	}
+	if ctx == nil {
+		return fmt.Errorf("'ctx' is nil")
+	}
+	if input == nil {
+		return fmt.Errorf("'input' is nil")
+	}
+	return nil
+}
+
 func Authenticate(v XRhIValidator, ctx context.Context, input *openapi3filter.AuthenticationInput) error {
 	var (
 		err  error
 		data *identity.XRHID
 	)
+	if err = checkGuardsAuthenticate(v, ctx, input); err != nil {
+		return err
+	}
 	if input.SecuritySchemeName != "x-rh-identity" {
 		return fmt.Errorf("security scheme '%s' != 'x-rh-identity'", input.SecuritySchemeName)
 	}
