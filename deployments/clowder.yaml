@@ -81,8 +81,8 @@ objects:
                 value: ${APP_PAGINATION_DEFAULT_LIMIT}
               - name: APP_PAGINATION_MAX_LIMIT
                 value: ${APP_PAGINATION_MAX_LIMIT}
-              - name: APP_IS_FAKE_ENABLED
-                value: ${APP_IS_FAKE_ENABLED}
+              - name: APP_ACCEPT_X_RH_FAKE_IDENTITY
+                value: ${APP_ACCEPT_X_RH_FAKE_IDENTITY}
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -168,7 +168,7 @@ parameters:
     value: "100"
     description: |
       The pagination max limit to list domains
-  - name: APP_IS_FAKE_ENABLED
+  - name: APP_ACCEPT_X_RH_FAKE_IDENTITY
     value: "false"
     description: |
       It is used only for development to add middleware to

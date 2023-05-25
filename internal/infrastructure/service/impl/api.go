@@ -50,7 +50,7 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 		Handlers:    app,
 		Metrics:     metrics,
 	}
-	if cfg.Application.IsFakeEnabled {
+	if cfg.Application.AcceptXRHFakeIdentity {
 		routerConfig.IsFakeEnabled = true
 	}
 	result.echo = router.NewRouterWithConfig(

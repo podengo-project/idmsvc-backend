@@ -31,8 +31,8 @@ const (
 	// PaginationMaxLimit is the default max limit for the pagination
 	PaginationMaxLimit = 1000
 
-	// By default disabled
-	DefaultIsFakeEnabled = false
+	// DefaultAcceptXRHFakeIdentity is disabled
+	DefaultAcceptXRHFakeIdentity = false
 )
 
 type Config struct {
@@ -152,9 +152,9 @@ type Application struct {
 	PaginationDefaultLimit int `mapstructure:"pagination_default_limit"`
 	// Indicate the max pagination limit when it is grather
 	PaginationMaxLimit int `mapstructure:"pagination_max_limit"`
-	// IsFakeEnabled define when the fake middleware is added to the route
+	// AcceptXRHFakeIdentity define when the fake middleware is added to the route
 	// to process the x-rh-fake-identity
-	IsFakeEnabled bool `mapstructure:"is_fake_enabled"`
+	AcceptXRHFakeIdentity bool `mapstructure:"accept_x_rh_fake_identity"`
 }
 
 var config *Config = nil
@@ -192,7 +192,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.expiration_time", DefatulExpirationTime)
 	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
-	v.SetDefault("app.is_fake_enabled", DefaultIsFakeEnabled)
+	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)
 }
 
 func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
