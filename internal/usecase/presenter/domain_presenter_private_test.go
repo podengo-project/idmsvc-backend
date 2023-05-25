@@ -600,13 +600,13 @@ func TestListFillLinks(t *testing.T) {
 	// output nil
 	assert.Panics(t, func() {
 		p.listFillLinks(nil, "/prefix", 10, 0, 1)
-	})
+	}, "'output' is nil")
 
 	// links with limit 0
 	output := public.ListDomainsResponse{}
 	assert.Panics(t, func() {
 		p.listFillLinks(&output, "/prefix", 10, 0, 0)
-	})
+	}, "'limit' is zero")
 
 	// links at page 1
 	p.listFillLinks(&output, "/prefix", 10, 0, 1)
@@ -661,7 +661,7 @@ func TestListFillMeta(t *testing.T) {
 
 	assert.Panics(t, func() {
 		p.listFillMeta(nil, 10, 0, 1)
-	})
+	}, "'output' is nil")
 
 	output := public.ListDomainsResponse{}
 	p.listFillMeta(&output, 10, 0, 1)
@@ -675,12 +675,12 @@ func TestListFillItem(t *testing.T) {
 
 	assert.Panics(t, func() {
 		p.listFillItem(nil, nil)
-	})
+	}, "'output' is nil")
 
 	output := public.ListDomainsData{}
 	assert.Panics(t, func() {
 		p.listFillItem(&output, nil)
-	})
+	}, "'domain' is nil")
 
 	// path with all the data
 	domain := model.Domain{
