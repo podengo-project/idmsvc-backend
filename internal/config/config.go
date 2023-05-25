@@ -160,6 +160,12 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("web.port", DefaultWebPort)
 
 	// Database
+	v.SetDefault("database.host", "")
+	v.SetDefault("database.port", "")
+	v.SetDefault("database.user", "")
+	v.SetDefault("database.password", "")
+	v.SetDefault("database.name", "")
+	v.SetDefault("database.ca_cert_path", "")
 
 	// Kafka
 	addEventConfigDefaults(v)
@@ -181,47 +187,47 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 }
 
-func setClowderConfiguration(v *viper.Viper, cfg *clowder.AppConfig) {
+func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 	if v == nil {
 		panic("'v' is nil")
 	}
-	if cfg == nil {
-		panic("'cfg' is nil")
+	if clowderConfig == nil {
+		panic("'clowderConfig' is nil")
 	}
 	var rdsCertPath string
-	if cfg.Database != nil && cfg.Database.RdsCa != nil {
+	if clowderConfig.Database != nil && clowderConfig.Database.RdsCa != nil {
 		var err error
-		if rdsCertPath, err = cfg.RdsCa(); err != nil {
+		if rdsCertPath, err = clowderConfig.RdsCa(); err != nil {
 			log.Warn().Err(err).Msg("Cannot read RDS CA cert")
 		}
 	}
 
 	// Web
-	v.Set("web.port", cfg.PublicPort)
+	v.Set("web.port", clowderConfig.PublicPort)
 
 	// Database
-	if cfg.Database != nil {
-		v.Set("database.host", cfg.Database.Hostname)
-		v.Set("database.port", cfg.Database.Port)
-		v.Set("database.user", cfg.Database.Username)
-		v.Set("database.password", cfg.Database.Password)
-		v.Set("database.name", cfg.Database.Name)
+	if clowderConfig.Database != nil {
+		v.Set("database.host", clowderConfig.Database.Hostname)
+		v.Set("database.port", clowderConfig.Database.Port)
+		v.Set("database.user", clowderConfig.Database.Username)
+		v.Set("database.password", clowderConfig.Database.Password)
+		v.Set("database.name", clowderConfig.Database.Name)
 		if rdsCertPath != "" {
 			v.Set("database.ca_cert_path", rdsCertPath)
 		}
 	}
 
 	// Clowdwatch
-	if cfg.Logging.Cloudwatch != nil {
-		v.Set("cloudwatch.region", cfg.Logging.Cloudwatch.Region)
-		v.Set("cloudwatch.group", cfg.Logging.Cloudwatch.LogGroup)
-		v.Set("cloudwatch.secret", cfg.Logging.Cloudwatch.SecretAccessKey)
-		v.Set("cloudwatch.key", cfg.Logging.Cloudwatch.AccessKeyId)
+	if clowderConfig.Logging.Cloudwatch != nil {
+		v.Set("cloudwatch.region", clowderConfig.Logging.Cloudwatch.Region)
+		v.Set("cloudwatch.group", clowderConfig.Logging.Cloudwatch.LogGroup)
+		v.Set("cloudwatch.secret", clowderConfig.Logging.Cloudwatch.SecretAccessKey)
+		v.Set("cloudwatch.key", clowderConfig.Logging.Cloudwatch.AccessKeyId)
 	}
 
 	// Metrics configuration
-	v.Set("metrics.path", cfg.MetricsPath)
-	v.Set("metrics.port", cfg.MetricsPort)
+	v.Set("metrics.path", clowderConfig.MetricsPath)
+	v.Set("metrics.port", clowderConfig.MetricsPort)
 }
 
 func Load(cfg *Config) *Config {
@@ -242,6 +248,7 @@ func Load(cfg *Config) *Config {
 		setClowderConfiguration(v, clowder.LoadedConfig)
 	}
 	v.AutomaticEnv()
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	if err = v.ReadInConfig(); err != nil {
 		log.Warn().Msgf("Not using config.yaml: %s", err.Error())
 	}
@@ -252,6 +259,7 @@ func Load(cfg *Config) *Config {
 	return cfg
 }
 
+// Get is a singleton to get the global loaded configuration.
 func Get() *Config {
 	if config != nil {
 		return config

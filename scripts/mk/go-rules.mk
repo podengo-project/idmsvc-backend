@@ -4,9 +4,6 @@
 # the generated binaries.
 ##
 
-CONFIG_PATH ?= $(PROJECT_DIR)/configs
-export CONFIG_PATH
-
 # Directory where the built binaries will be generated
 BIN ?= $(PROJECT_DIR)/bin
 PATH := $(BIN):$(PATH)

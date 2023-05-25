@@ -31,7 +31,7 @@
 # export CREDS="username:password"
 # unset X_RH_IDENTITY
 # BASE_URL="$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
-# ./scripts/curl.sh -i -u "$CREDS" "${BASE_URL}/domains" -X POST -H "Content-Type: application/json" -d @./test/data/http/create-rhel-idm-domain.json
+# ./scripts/curl.sh -i "${BASE_URL}/domains" -X POST -d @./test/data/http/create-rhel-idm-domain.json
 
 POST {{schema}}://{{host}}{{basepath}}/domains
 X-Rh-Identity: {{x-rh-identity-user}}

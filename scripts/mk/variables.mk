@@ -67,3 +67,11 @@ KAFKA_TOPICS ?= platform.hmsidm.todo-created
 # only one message to be processed, so we only use a unique
 # group id at the moment.
 KAFKA_GROUP_ID ?= hmsidm
+
+# Application specific parameters
+APP_EXPIRATION_TIME ?= 15
+export APP_EXPIRATION_TIME
+APP_PAGINATION_DEFAULT_LIMIT ?= 10
+export APP_PAGINATION_DEFAULT_LIMIT
+APP_PAGINATION_MAX_LIMIT ?= 100
+export APP_PAGINATION_MAX_LIMIT

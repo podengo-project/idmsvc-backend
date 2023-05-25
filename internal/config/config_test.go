@@ -35,7 +35,7 @@ func TestSetClowderConfiguration(t *testing.T) {
 
 	// Panic for cfg = nil
 	v := viper.New()
-	assert.PanicsWithValue(t, "'cfg' is nil", func() {
+	assert.PanicsWithValue(t, "'clowderConfig' is nil", func() {
 		setClowderConfiguration(v, nil)
 	})
 
