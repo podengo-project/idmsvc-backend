@@ -59,7 +59,7 @@ type CreateDomain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
-	// Description Humand readable description for this domain.
+	// Description Human readable description for this domain.
 	Description string `json:"description"`
 
 	// Title the title for the entry
@@ -179,10 +179,16 @@ type HostConfResponseSchema struct {
 
 // ListDomainsData The data listed for the domains.
 type ListDomainsData struct {
-	AutoEnrollmentEnabled bool                      `json:"auto_enrollment_enabled"`
-	DomainName            string                    `json:"domain_name"`
-	DomainType            ListDomainsDataDomainType `json:"domain_type"`
-	DomainUuid            string                    `json:"domain_uuid"`
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// Description Human-readable description of the domain entry.
+	Description string                    `json:"description"`
+	DomainName  string                    `json:"domain_name"`
+	DomainType  ListDomainsDataDomainType `json:"domain_type"`
+	DomainUuid  string                    `json:"domain_uuid"`
+
+	// Title Human-friendly title for the domain entry.
+	Title string `json:"title"`
 }
 
 // ListDomainsDataDomainType defines model for ListDomainsData.DomainType.

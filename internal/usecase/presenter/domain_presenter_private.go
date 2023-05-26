@@ -237,4 +237,10 @@ func (p *domainPresenter) listFillItem(output *public.ListDomainsData, domain *m
 	}
 	output.DomainType = public.ListDomainsDataDomainType(model.DomainTypeString(*domain.Type))
 	output.DomainUuid = domain.DomainUuid.String()
+	if domain.Title != nil {
+		output.Title = *domain.Title
+	}
+	if domain.Description != nil {
+		output.Description = *domain.Description
+	}
 }

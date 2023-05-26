@@ -651,12 +651,16 @@ func TestList(t *testing.T) {
 				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
 				DomainName:            "mydomain1.example",
 				DomainUuid:            testUUID1,
+				Title:                 "mydomain1 example title",
+				Description:           "mydomain1.example located in Boston",
 			},
 			{
 				AutoEnrollmentEnabled: false,
 				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
 				DomainName:            "mydomain2.example",
 				DomainUuid:            testUUID2,
+				Title:                 "mydomain2 example title",
+				Description:           "mydomain2.example located in Brno",
 			},
 		},
 	}

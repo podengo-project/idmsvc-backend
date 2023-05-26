@@ -515,6 +515,8 @@ components:
                 - domain_name
                 - domain_type
                 - domain_uuid
+                - title
+                - description
             type: object
             properties:
                 domain_uuid:
@@ -527,6 +529,12 @@ components:
                     type: string
                 auto_enrollment_enabled:
                     type: boolean
+                title:
+                    description: Human-friendly title for the domain entry.
+                    type: string
+                description:
+                    description: Human-readable description of the domain entry.
+                    type: string
             additionalProperties: false
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
@@ -701,7 +709,7 @@ components:
                     description: the title for the entry
                     type: string
                 description:
-                    description: Humand readable description for this domain.
+                    description: Human readable description for this domain.
                     type: string
                     example: This is my awesome domain description.
             additionalProperties: false
