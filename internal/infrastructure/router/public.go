@@ -7,6 +7,11 @@ import (
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 )
 
+// skipperValidate is an alias to represent skipper for API validation middleware
+// FIXME Once the openapi specification is propery defined, remove this skipper
+// to validate every request
+var skipperValidate echo_middleware.Skipper = skipperUserPredicate
+
 var userEnforceRoutes = []string{
 	"/api/hmsidm/v1/domains",
 	"/api/hmsidm/v1/domains/:uuid",
@@ -26,7 +31,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	}
 
 	// Initialize middlewares
-	var fakeIdentityMiddleware func(echo.HandlerFunc) echo.HandlerFunc
+	var fakeIdentityMiddleware echo.MiddlewareFunc
 	if c.IsFakeEnabled {
 		fakeIdentityMiddleware = middleware.FakeIdentityWithConfig(
 			&middleware.FakeIdentityConfig{
@@ -61,6 +66,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 			TargetHeader: "X-Rh-Insights-Request-Id", // TODO Check this name is the expected
 		},
 	)
+	validationAPI := middleware.NewApiServiceValidator(skipperValidate)
 
 	// Wire the middlewares
 	e.Use(middleware.CreateContext())
@@ -75,7 +81,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		// TODO Check if this is made by 3scale
 		// middleware.CORSWithConfig(middleware.CORSConfig{}),
 		requestIDMiddleware,
-		middleware.NewApiServiceValidator(),
+		validationAPI,
 	)
 
 	// Setup routes
