@@ -74,3 +74,5 @@ app:
   pagination_max_limit: 100
   # Allow to inject a system identity for development propose
   accept_x_rh_fake_identity: true
+  # Validate API requests and response against the openapi specification
+  validate_api: true

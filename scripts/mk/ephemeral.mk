@@ -47,6 +47,10 @@ ifeq (true,$(APP_ACCEPT_X_RH_FAKE_IDENTITY))
 EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_ACCEPT_X_RH_FAKE_IDENTITY=$(APP_ACCEPT_X_RH_FAKE_IDENTITY)"
 endif
 
+ifneq (,$(APP_VALIDATE_API))
+EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_VALIDATE_API=$(APP_VALIDATE_API)"
+endif
+
 EPHEMERAL_BONFIRE_PATH ?= configs/bonfire.yaml
 
 # TODO Uncomment when the frontend is created
@@ -120,6 +124,11 @@ ephemeral-process: $(BONFIRE) $(json2yaml) ## Process application from the curre
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
 		"$(APP)" 2>/dev/null | json2yaml
+
+.PHONY: ephemeral-db-cli
+ephemeral-db-cli: ## Open a database client
+	POD="$(shell oc get pods -l service=db,app=$(APP)-$(APP_COMPONENT) -o jsonpath='{.items[0].metadata.name}')" \
+	&& oc exec -it pod/"$${POD}" -- bash -c 'exec psql -U $$POSTGRESQL_USER -d $$POSTGRESQL_DATABASE'
 
 # TODO Add command to specify to bonfire the clowdenv template to be used
 .PHONY: ephemeral-namespace-create
