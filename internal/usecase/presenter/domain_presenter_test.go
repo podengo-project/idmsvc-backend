@@ -34,7 +34,7 @@ func TestNewTodoPresenter(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
-	testUuid := uuid.New()
+	testUUID := &uuid.UUID{}
 	type TestCaseGiven struct {
 		Input  *model.Domain
 		Output *public.ReadDomainResponse
@@ -65,7 +65,7 @@ func TestGet(t *testing.T) {
 				Input: &model.Domain{
 					Model:                 gorm.Model{ID: 1},
 					OrgId:                 "12345",
-					DomainUuid:            testUuid,
+					DomainUuid:            *testUUID,
 					DomainName:            pointy.String("domain.example"),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					AutoEnrollmentEnabled: pointy.Bool(true),
@@ -81,7 +81,7 @@ func TestGet(t *testing.T) {
 				Err: nil,
 				Output: &public.ReadDomainResponse{
 					AutoEnrollmentEnabled: true,
-					DomainId:              testUuid.String(),
+					DomainId:              testUUID.String(),
 					DomainName:            "domain.example",
 					DomainType:            public.DomainDomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					RhelIdm: &public.DomainIpa{
@@ -377,13 +377,13 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 					IpaDomain: &model.Ipa{
 						CaCerts: []model.IpaCert{
 							{
-								Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
-								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-								NotBefore: NotBefore,
-								NotAfter:  NotAfter,
-								SerialNumber:   "1",
-								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+								Nickname:     "MYDOMAIN.EXAMPLE.IPA CA",
+								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+								NotBefore:    NotBefore,
+								NotAfter:     NotAfter,
+								SerialNumber: "1",
+								Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+								Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 							},
 						},
 					},
@@ -396,13 +396,13 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 					RhelIdm: &public.DomainIpa{
 						CaCerts: []public.DomainIpaCert{
 							{
-								Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
-								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-								NotBefore: NotBefore,
-								NotAfter:  NotAfter,
-								SerialNumber:   "1",
-								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+								Nickname:     "MYDOMAIN.EXAMPLE.IPA CA",
+								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+								NotBefore:    NotBefore,
+								NotAfter:     NotAfter,
+								SerialNumber: "1",
+								Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
+								Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 							},
 						},
 					},
@@ -480,10 +480,10 @@ func TestRegister(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	testUUID := "ebac2444-e51b-11ed-a7f5-482ae3863d30"
+	testUUID := uuid.MustParse("ebac2444-e51b-11ed-a7f5-482ae3863d30")
 	testDomainName := "mydomain.example"
 	testModel := model.Domain{
-		DomainUuid:            uuid.MustParse(testUUID),
+		DomainUuid:            testUUID,
 		DomainName:            pointy.String(testDomainName),
 		Title:                 pointy.String("My Example Domain Title"),
 		Description:           pointy.String("My Example Domain Description"),
@@ -498,7 +498,7 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	testExpected := public.Domain{
-		DomainId:              testUUID,
+		DomainId:              testUUID.String(),
 		DomainName:            testDomainName,
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
@@ -526,8 +526,8 @@ func TestUpdate(t *testing.T) {
 func TestList(t *testing.T) {
 	// https://consoledot.pages.redhat.com/docs/dev/developer-references/rest/pagination.html
 	testOrgID := "12345"
-	testUUID1 := "5427c3d6-eaa1-11ed-99da-482ae3863d30"
-	testUUID2 := "5ae8e844-eaa1-11ed-8f71-482ae3863d30"
+	testUUID1 := uuid.MustParse("5427c3d6-eaa1-11ed-99da-482ae3863d30")
+	testUUID2 := uuid.MustParse("5ae8e844-eaa1-11ed-8f71-482ae3863d30")
 	prefix := "/api/hmsidm/v1"
 	cfg := config.Config{
 		Application: config.Application{
@@ -613,7 +613,7 @@ func TestList(t *testing.T) {
 	data := []model.Domain{
 		{
 			OrgId:                 testOrgID,
-			DomainUuid:            uuid.MustParse(testUUID1),
+			DomainUuid:            testUUID1,
 			DomainName:            pointy.String("mydomain1.example"),
 			AutoEnrollmentEnabled: pointy.Bool(true),
 			Title:                 pointy.String("mydomain1 example title"),
@@ -622,7 +622,7 @@ func TestList(t *testing.T) {
 		},
 		{
 			OrgId:                 testOrgID,
-			DomainUuid:            uuid.MustParse(testUUID2),
+			DomainUuid:            testUUID2,
 			DomainName:            pointy.String("mydomain2.example"),
 			AutoEnrollmentEnabled: nil,
 			Title:                 pointy.String("mydomain2 example title"),
@@ -650,7 +650,7 @@ func TestList(t *testing.T) {
 				AutoEnrollmentEnabled: true,
 				DomainType:            public.RhelIdm,
 				DomainName:            "mydomain1.example",
-				DomainId:              testUUID1,
+				DomainId:              testUUID1.String(),
 				Title:                 "mydomain1 example title",
 				Description:           "mydomain1.example located in Boston",
 			},
@@ -658,7 +658,7 @@ func TestList(t *testing.T) {
 				AutoEnrollmentEnabled: false,
 				DomainType:            public.RhelIdm,
 				DomainName:            "mydomain2.example",
-				DomainId:              testUUID2,
+				DomainId:              testUUID2.String(),
 				Title:                 "mydomain2 example title",
 				Description:           "mydomain2.example located in Brno",
 			},

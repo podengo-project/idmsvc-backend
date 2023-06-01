@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/openlyinc/pointy"
@@ -27,8 +28,12 @@ func (p *domainPresenter) fillRhelIdmServers(
 	for i := range source.IpaDomain.Servers {
 		target.RhelIdm.Servers[i].Fqdn =
 			source.IpaDomain.Servers[i].FQDN
-		target.RhelIdm.Servers[i].SubscriptionManagerId =
-			source.IpaDomain.Servers[i].RHSMId
+		var rhsmID *uuid.UUID = nil
+		if source.IpaDomain.Servers[i].RHSMId != nil {
+			rhsmID = &uuid.UUID{}
+			*rhsmID = uuid.MustParse(*source.IpaDomain.Servers[i].RHSMId)
+		}
+		target.RhelIdm.Servers[i].SubscriptionManagerId = rhsmID
 		target.RhelIdm.Servers[i].Location =
 			source.IpaDomain.Servers[i].Location
 		target.RhelIdm.Servers[i].CaServer =

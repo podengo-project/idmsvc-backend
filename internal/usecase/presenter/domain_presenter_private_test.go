@@ -56,7 +56,8 @@ func TestGuardsRegisterIpa(t *testing.T) {
 func TestRegisterRhelIdm(t *testing.T) {
 	tokenExpiration := &time.Time{}
 	*tokenExpiration = time.Now()
-	testSubscriptionManagerId := "71ad4978-c768-11ed-ad69-482ae3863d30"
+	testSubscriptionManagerId := &uuid.UUID{}
+	*testSubscriptionManagerId = uuid.MustParse("71ad4978-c768-11ed-ad69-482ae3863d30")
 	type TestCaseExpected struct {
 		Domain *public.RegisterDomainResponse
 		Err    error
@@ -114,7 +115,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 					Servers: []model.IpaServer{
 						{
 							FQDN:                "server1.mydomain.example",
-							RHSMId:              pointy.String(testSubscriptionManagerId),
+							RHSMId:              pointy.String(testSubscriptionManagerId.String()),
 							PKInitServer:        true,
 							CaServer:            true,
 							HCCEnrollmentServer: true,
@@ -140,7 +141,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 						Servers: []public.DomainIpaServer{
 							{
 								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: pointy.String(testSubscriptionManagerId),
+								SubscriptionManagerId: testSubscriptionManagerId,
 								PkinitServer:          true,
 								CaServer:              true,
 								HccEnrollmentServer:   true,
@@ -192,14 +193,14 @@ func TestSharedDomainFill(t *testing.T) {
 	})
 
 	output := public.RegisterDomainResponse{}
-	testDomainID := "6d9575f2-de94-11ed-af6e-482ae3863d30"
-	domain.DomainUuid = uuid.MustParse(testDomainID)
+	testDomainID := uuid.MustParse("6d9575f2-de94-11ed-af6e-482ae3863d30")
+	domain.DomainUuid = testDomainID
 	domain.AutoEnrollmentEnabled = pointy.Bool(true)
 	domain.DomainName = pointy.String("mydomain.example")
 	domain.Title = pointy.String("My Domain Example")
 	domain.Description = pointy.String("My Domain Example Description")
 	p.sharedDomainFill(domain, &output)
-	assert.Equal(t, testDomainID, output.DomainId)
+	assert.Equal(t, testDomainID.String(), output.DomainId)
 	assert.Equal(t, true, output.AutoEnrollmentEnabled)
 	assert.Equal(t, "mydomain.example", output.DomainName)
 	assert.Equal(t, "My Domain Example", output.Title)
@@ -305,9 +306,10 @@ func TestSharedDomain(t *testing.T) {
 	domain.Title = pointy.String("Test Title")
 	domain.Description = pointy.String("Test Description")
 	domain.DomainName = pointy.String("mydomain.example")
-	testUUID := uuid.New()
+	testUUID := &uuid.UUID{}
+	*testUUID = uuid.MustParse("810f9112-0559-11ee-a54c-482ae3863d30")
 	testOrgID := "12345"
-	domain.DomainUuid = testUUID
+	domain.DomainUuid = *testUUID
 	domain.OrgId = testOrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(true)
 	testNotBefore := time.Now()
@@ -329,11 +331,12 @@ func TestSharedDomain(t *testing.T) {
 			Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 		},
 	}
-	testSubscriptionManagerId := pointy.String("93a46bde-e760-11ed-9a5a-482ae3863d30")
+	testSubscriptionManagerID := &uuid.UUID{}
+	*testSubscriptionManagerID = uuid.MustParse("93a46bde-e760-11ed-9a5a-482ae3863d30")
 	domain.IpaDomain.Servers = []model.IpaServer{
 		{
 			FQDN:                "server1.mydomain.example",
-			RHSMId:              testSubscriptionManagerId,
+			RHSMId:              pointy.String(testSubscriptionManagerID.String()),
 			Location:            pointy.String("europe"),
 			CaServer:            true,
 			PKInitServer:        true,
@@ -365,7 +368,7 @@ func TestSharedDomain(t *testing.T) {
 			Servers: []public.DomainIpaServer{
 				{
 					Fqdn:                  "server1.mydomain.example",
-					SubscriptionManagerId: testSubscriptionManagerId,
+					SubscriptionManagerId: testSubscriptionManagerID,
 					Location:              pointy.String("europe"),
 					CaServer:              true,
 					PkinitServer:          true,
@@ -492,7 +495,8 @@ func TestFillRhelIdmServers(t *testing.T) {
 		Given    TestCaseGiven
 		Expected TestCaseExpected
 	}
-	testSubscriptionManagerId := "547ce70c-9eb5-4783-a619-086aa26f88e5"
+	testSubscriptionManagerID := &uuid.UUID{}
+	*testSubscriptionManagerID = uuid.MustParse("547ce70c-9eb5-4783-a619-086aa26f88e5")
 	testCases := []TestCase{
 		{
 			Name: "Full success copy",
@@ -506,7 +510,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 						Servers: []model.IpaServer{
 							{
 								FQDN:                "server1.mydomain.example",
-								RHSMId:              pointy.String(testSubscriptionManagerId),
+								RHSMId:              pointy.String(testSubscriptionManagerID.String()),
 								CaServer:            true,
 								HCCEnrollmentServer: true,
 								HCCUpdateServer:     true,
@@ -524,7 +528,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 						Servers: []public.DomainIpaServer{
 							{
 								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: pointy.String(testSubscriptionManagerId),
+								SubscriptionManagerId: testSubscriptionManagerID,
 								CaServer:              true,
 								HccEnrollmentServer:   true,
 								HccUpdateServer:       true,
