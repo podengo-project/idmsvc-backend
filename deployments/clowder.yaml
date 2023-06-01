@@ -72,7 +72,7 @@ objects:
               timeoutSeconds: 120
             env:
               - name: CLOWDER_ENABLED
-                value: ${CLOWDER_ENABLED}
+                value: "true"
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
               - name: APP_TOKEN_EXPIRATION
@@ -83,6 +83,8 @@ objects:
                 value: ${APP_PAGINATION_MAX_LIMIT}
               - name: APP_ACCEPT_X_RH_FAKE_IDENTITY
                 value: ${APP_ACCEPT_X_RH_FAKE_IDENTITY}
+              - name: APP_VALIDATE_API
+                value: ${APP_VALIDATE_API}
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -173,3 +175,8 @@ parameters:
     description: |
       It is used only for development to add middleware to
       process the x-rh-fake-identity header.
+  - name: APP_VALIDATE_API
+    value: "false"
+    description: |
+      It allows to validate request and responses against the
+      service OpenAPI specification.

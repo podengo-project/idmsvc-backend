@@ -33,6 +33,8 @@ const (
 
 	// DefaultAcceptXRHFakeIdentity is disabled
 	DefaultAcceptXRHFakeIdentity = false
+	// DefaultValidateAPI is true
+	DefaultValidateAPI = true
 )
 
 type Config struct {
@@ -155,6 +157,9 @@ type Application struct {
 	// AcceptXRHFakeIdentity define when the fake middleware is added to the route
 	// to process the x-rh-fake-identity
 	AcceptXRHFakeIdentity bool `mapstructure:"accept_x_rh_fake_identity"`
+	// ValidateAPI indicate when the middleware to validate the API
+	// requests and responses is disabled; by default it is enabled.
+	ValidateAPI bool `mapstructure:"validate_api"`
 }
 
 var config *Config = nil
@@ -193,6 +198,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)
+	v.SetDefault("app.validate_api", DefaultValidateAPI)
 }
 
 func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
