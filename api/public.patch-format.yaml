@@ -1,0 +1,7 @@
+---
+components:
+  schemas:
+    PaginationLinks:
+      properties:
+        first:
+          format: url
