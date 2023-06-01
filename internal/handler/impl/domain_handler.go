@@ -317,6 +317,7 @@ func (a *application) RegisterDomain(
 	}
 	if orgId, clientVersion, data, err = a.domain.interactor.Register(
 		domainCtx.XRHID(),
+		UUID,
 		&params,
 		&input,
 	); err != nil {
@@ -404,6 +405,7 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 	}
 	if orgID, clientVersion, data, err = a.domain.interactor.Update(
 		domainCtx.XRHID(),
+		UUID,
 		&params,
 		&input,
 	); err != nil {

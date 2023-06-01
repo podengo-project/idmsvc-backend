@@ -3,6 +3,7 @@ package interactor
 import (
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
@@ -178,7 +179,7 @@ func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDoma
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Register(xrhid *identity.XRHID, UUID string, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
@@ -195,7 +196,7 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 	}
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgId, body); err != nil {
+	if domain, err = i.commonRegisterUpdate(orgId, UUID, body); err != nil {
 		return "", nil, nil, err
 	}
 	return orgId, clientVersion, domain, nil
@@ -208,12 +209,12 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Update(xrhid *identity.XRHID, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Update(xrhid *identity.XRHID, UUID string, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
 	)
-	if err = i.guardUpdate(xrhid, params, body); err != nil {
+	if err = i.guardUpdate(xrhid, UUID, params, body); err != nil {
 		return "", nil, nil, err
 	}
 	orgId := xrhid.Identity.Internal.OrgID
@@ -225,7 +226,7 @@ func (i domainInteractor) Update(xrhid *identity.XRHID, params *api_public.Updat
 	}
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgId, body); err != nil {
+	if domain, err = i.commonRegisterUpdate(orgId, UUID, body); err != nil {
 		return "", nil, nil, err
 	}
 	return orgId, clientVersion, domain, nil
@@ -312,9 +313,12 @@ func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_publi
 	return nil
 }
 
-func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, params *api_public.UpdateDomainParams, body *public.Domain) (err error) {
+func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID string, params *api_public.UpdateDomainParams, body *public.Domain) (err error) {
 	if xrhid == nil {
 		return fmt.Errorf("'xrhid' is nil")
+	}
+	if UUID == "" {
+		return fmt.Errorf("'UUID' is empty")
 	}
 	if params == nil {
 		return fmt.Errorf("'params' is nil")
@@ -326,9 +330,10 @@ func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, params *api_public.
 	return nil
 }
 
-func (i domainInteractor) commonRegisterUpdate(orgID string, body *public.Domain) (domain *model.Domain, err error) {
+func (i domainInteractor) commonRegisterUpdate(orgID string, UUID string, body *public.Domain) (domain *model.Domain, err error) {
 	domain = &model.Domain{}
 	domain.OrgId = orgID
+	domain.DomainUuid = uuid.MustParse(UUID)
 	domain.Title = pointy.String(body.Title)
 	domain.Description = pointy.String(body.Description)
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)

@@ -31,7 +31,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	}
 
 	// Initialize middlewares
-	var fakeIdentityMiddleware echo.MiddlewareFunc
+	var fakeIdentityMiddleware echo.MiddlewareFunc = middleware.DefaultNooperation
 	if c.IsFakeEnabled {
 		fakeIdentityMiddleware = middleware.FakeIdentityWithConfig(
 			&middleware.FakeIdentityConfig{
@@ -66,14 +66,15 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 			TargetHeader: "X-Rh-Insights-Request-Id", // TODO Check this name is the expected
 		},
 	)
-	validationAPI := middleware.NewApiServiceValidator(skipperValidate)
+	var validateAPI echo.MiddlewareFunc = middleware.DefaultNooperation
+	if c.EnableAPIValidator {
+		validateAPI = middleware.NewApiServiceValidator(nil)
+	}
 
 	// Wire the middlewares
-	e.Use(middleware.CreateContext())
-	if c.IsFakeEnabled {
-		e.Use(fakeIdentityMiddleware)
-	}
 	e.Use(
+		middleware.CreateContext(),
+		fakeIdentityMiddleware,
 		systemIdentityMiddleware,
 		userIdentityMiddleware,
 		metricsMiddleware,
@@ -81,7 +82,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		// TODO Check if this is made by 3scale
 		// middleware.CORSWithConfig(middleware.CORSConfig{}),
 		requestIDMiddleware,
-		validationAPI,
+		validateAPI,
 	)
 
 	// Setup routes

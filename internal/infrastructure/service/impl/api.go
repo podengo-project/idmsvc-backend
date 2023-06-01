@@ -44,11 +44,12 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	result.logger = logger.NewApiLogger(cfg)
 	result.config = cfg
 	routerConfig := router.RouterConfig{
-		Version:     "1.0",
-		PublicPath:  "/api/hmsidm",
-		PrivatePath: "/private",
-		Handlers:    app,
-		Metrics:     metrics,
+		Version:            "1.0",
+		PublicPath:         "/api/hmsidm",
+		PrivatePath:        "/private",
+		Handlers:           app,
+		Metrics:            metrics,
+		EnableAPIValidator: cfg.Application.ValidateAPI,
 	}
 	if cfg.Application.AcceptXRHFakeIdentity {
 		routerConfig.IsFakeEnabled = true

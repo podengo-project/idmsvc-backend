@@ -11,13 +11,14 @@ import (
 )
 
 type RouterConfig struct {
-	Handlers      handler.Application
-	PublicPath    string
-	PrivatePath   string
-	Version       string
-	MetricsPath   string
-	IsFakeEnabled bool
-	Metrics       *metrics.Metrics
+	Handlers           handler.Application
+	PublicPath         string
+	PrivatePath        string
+	Version            string
+	MetricsPath        string
+	IsFakeEnabled      bool
+	EnableAPIValidator bool
+	Metrics            *metrics.Metrics
 }
 
 func getMajorVersion(version string) string {
@@ -67,6 +68,11 @@ func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 				c.PrivatePath+"/readyz",
 				c.PrivatePath+"/livez",
 			),
+			Format: `"time":"${time_rfc3339_nano}","id":"${id}","remote_ip":"${remote_ip}",` +
+				`"host":"${host}","method":"${method}","path":"${path}","route":"${route}",` +
+				`"uri":"${uri}","user_agent":"${user_agent}",` +
+				`"status":${status},"error":"${error}","latency":${latency},"latency_human":"${latency_human}"` +
+				`,"bytes_in":${bytes_in},"bytes_out":${bytes_out}}` + "\n",
 		},
 	))
 	e.Use(middleware.Recover())
