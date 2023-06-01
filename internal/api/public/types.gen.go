@@ -5,6 +5,8 @@ package public
 
 import (
 	"time"
+
+	openapi_types "github.com/deepmap/oapi-codegen/pkg/types"
 )
 
 const (
@@ -60,6 +62,7 @@ type Domain struct {
 
 	// DomainType Type of this domain. Currently only rhel-idm is supported.
 	DomainType DomainDomainType `json:"domain_type"`
+	DomainUuid *interface{}     `json:"domain_uuid,omitempty"`
 
 	// RhelIdm Options for ipa domains
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
@@ -105,13 +108,15 @@ type DomainIpaServer struct {
 	HccUpdateServer     bool   `json:"hcc_update_server"`
 
 	// Location A location identifier (lower-case DNS label).
-	Location              *string `json:"location,omitempty"`
-	PkinitServer          bool    `json:"pkinit_server"`
-	SubscriptionManagerId *string `json:"subscription_manager_id,omitempty"`
+	Location              *string             `json:"location,omitempty"`
+	PkinitServer          bool                `json:"pkinit_server"`
+	SubscriptionManagerId *openapi_types.UUID `json:"subscription_manager_id,omitempty"`
 }
 
 // Error General error schema
 type Error struct {
+	Detail *interface{} `json:"detail,omitempty"`
+
 	// Details A detailed explanation specific to this occurrence of the problem, e.g. a traceback.
 	Details string `json:"details"`
 
@@ -161,6 +166,7 @@ type ListDomainsData struct {
 	DomainId    string                    `json:"domain_id"`
 	DomainName  string                    `json:"domain_name"`
 	DomainType  ListDomainsDataDomainType `json:"domain_type"`
+	DomainUuid  *interface{}              `json:"domain_uuid,omitempty"`
 
 	// Title Human-friendly title for the domain entry.
 	Title string `json:"title"`

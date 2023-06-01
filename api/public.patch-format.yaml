@@ -1,7 +1,77 @@
 ---
 components:
   schemas:
+    Error:
+      properties:
+        id:
+          format: string
+        status:
+          format: http-status
+        detail:
+          format: string
     PaginationLinks:
       properties:
         first:
           format: url
+        next:
+          format: url
+        previous:
+          format: url
+        last:
+          format: url
+    ListDomainsData:
+      properties:
+        domain_name:
+          format: domain
+        domain_uuid:
+          format: uuid
+        title:
+          format: string
+        description:
+          format: string
+    CreateDomain:
+      properties:
+        description:
+          format: string
+        title:
+          format: string
+    CreateDomainIpa:
+      properties:
+        realm_name:
+          format: realm
+    CreateDomainIpaServer:
+      properties:
+        fqdn:
+          format: fqdn
+        subscription_manager_id:
+          format: uuid
+    DomainIpaCert:
+      properties:
+        issuer:
+          format: cert-issuer
+        pem:
+          format: cert-pem
+        subject:
+          format: cert-subject
+    Domain:
+      properties:
+        domain_uuid:
+          format: uuid
+        description:
+          format: domain-description
+        title:
+          format: domain-title
+    DomainIpa:
+      properties:
+        realm_name:
+          format: realm
+        realm_domains:
+          format: ipa-realm-domains
+    DomainIpaServer:
+      properties:
+        fqdn:
+          format: fqdn
+        subscription_manager_id:
+          format: uuid
+        location:
+          format: ipa-server-location
