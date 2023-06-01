@@ -648,7 +648,7 @@ func TestList(t *testing.T) {
 		Data: []public.ListDomainsData{
 			{
 				AutoEnrollmentEnabled: true,
-				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
+				DomainType:            public.RhelIdm,
 				DomainName:            "mydomain1.example",
 				DomainId:              testUUID1,
 				Title:                 "mydomain1 example title",
@@ -656,7 +656,7 @@ func TestList(t *testing.T) {
 			},
 			{
 				AutoEnrollmentEnabled: false,
-				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
+				DomainType:            public.RhelIdm,
 				DomainName:            "mydomain2.example",
 				DomainId:              testUUID2,
 				Title:                 "mydomain2 example title",

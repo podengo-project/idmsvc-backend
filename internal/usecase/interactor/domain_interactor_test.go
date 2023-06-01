@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	api_public "github.com/hmsidm/internal/api/public"
@@ -200,6 +201,7 @@ func TestRegisterIpa(t *testing.T) {
 		requestID = "TW9uIE1hciAyMCAyMDo1Mzoz"
 		token     = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
 		orgID     = "12345"
+		domainID  = "0851e1d6-003f-11ee-adf4-482ae3863d30"
 	)
 	var (
 		rhsmID      = pointy.String("cf26cd96-c75d-11ed-ae20-482ae3863d30")
@@ -237,6 +239,7 @@ func TestRegisterIpa(t *testing.T) {
 	)
 	type TestCaseGiven struct {
 		XRHID  *identity.XRHID
+		UUID   string
 		Params *api_public.RegisterDomainParams
 		Body   *public.Domain
 	}
@@ -256,6 +259,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "fail guards with xrhid is nil",
 			Given: TestCaseGiven{
 				XRHID:  nil,
+				UUID:   "",
 				Params: nil,
 				Body:   nil,
 			},
@@ -270,6 +274,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "No X-Rh-IDM-Version",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: paramsNoClientVersion,
 				Body:   &api_public.Domain{},
 			},
@@ -284,6 +289,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "Type is invalid",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
 					DomainType: "somethingwrong",
@@ -303,6 +309,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "Empty slices",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
 					Title:       "My Example Domain",
@@ -318,6 +325,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
+					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("My Example Domain"),
 					Description:           pointy.String("My Example Domain Description"),
@@ -337,6 +345,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "Empty slices and RealmName filled",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
 					Title:       "My Example Domain",
@@ -352,6 +361,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
+					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("My Example Domain"),
 					Description:           pointy.String("My Example Domain Description"),
@@ -371,6 +381,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "RealmDomains with some content",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
 					Title:       "My Example Domain",
@@ -387,6 +398,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
+					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("My Example Domain"),
 					Description:           pointy.String("My Example Domain Description"),
@@ -406,6 +418,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "CaCerts with some content",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
 					Title:       "My Example Domain",
@@ -432,6 +445,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
+					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("My Example Domain"),
 					Description:           pointy.String("My Example Domain Description"),
@@ -461,6 +475,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "Servers as some content",
 			Given: TestCaseGiven{
 				XRHID:  &xrhidSystem,
+				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
 					Title:       "My Example Domain",
@@ -473,6 +488,7 @@ func TestRegisterIpa(t *testing.T) {
 							{
 								Fqdn:                  "server.mydomain.example",
 								SubscriptionManagerId: rhsmID,
+								Location:              "europe",
 								CaServer:              true,
 								PkinitServer:          true,
 								HccEnrollmentServer:   true,
@@ -486,6 +502,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
+					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("My Example Domain"),
 					Description:           pointy.String("My Example Domain Description"),
@@ -498,6 +515,7 @@ func TestRegisterIpa(t *testing.T) {
 							{
 								FQDN:                "server.mydomain.example",
 								RHSMId:              rhsmID,
+								Location:            "europe",
 								CaServer:            true,
 								HCCEnrollmentServer: true,
 								HCCUpdateServer:     true,
@@ -514,7 +532,7 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		i := NewDomainInteractor()
-		orgId, clientVersion, output, err := i.Register(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
+		orgId, clientVersion, output, err := i.Register(testCase.Given.XRHID, domainID, testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Error != nil {
 			assert.EqualError(t, err, testCase.Expected.Error.Error())
 			assert.Equal(t, testCase.Expected.OrgId, orgId)
@@ -531,6 +549,7 @@ func TestRegisterIpa(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	const testOrgID = "12345"
+	testID := "658700b8-005b-11ee-9e09-482ae3863d30"
 	testXRHID := identity.XRHID{
 		Identity: identity.Identity{
 			OrgID: testOrgID,
@@ -562,7 +581,7 @@ func TestUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainId:              "54ac086a-e50d-11ed-b3f7-482ae3863d30",
+		DomainId:              testID,
 		DomainType:            "aninvalidtype",
 	}
 	testBody := api_public.Domain{
@@ -570,7 +589,7 @@ func TestUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainId:              "54ac086a-e50d-11ed-b3f7-482ae3863d30",
+		DomainId:              testID,
 		DomainType:            api_public.DomainDomainTypeRhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -582,30 +601,31 @@ func TestUpdate(t *testing.T) {
 	i := domainInteractor{}
 
 	// Get an error in guards
-	orgID, xrhidmVersion, domain, err := i.Update(nil, nil, nil)
+	orgID, xrhidmVersion, domain, err := i.Update(nil, "", nil, nil)
 	assert.EqualError(t, err, "'xrhid' is nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Error retrieving ipa-hcc version information
-	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testBadParams, &testBody)
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID, &testBadParams, &testBody)
 	assert.EqualError(t, err, "'X-Rh-Idm-Version' is invalid")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Error because of wrongtype
-	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testParams, &testWrongTypeBody)
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID, &testParams, &testWrongTypeBody)
 	assert.EqualError(t, err, "Unsupported domain_type='aninvalidtype'")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Success result
-	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testParams, &testBody)
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID, &testParams, &testBody)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
+	assert.Equal(t, testID, testBody.DomainId)
 	require.NotNil(t, xrhidmVersion)
 	require.NotNil(t, domain)
 }
@@ -683,27 +703,32 @@ func TestGuardRegister(t *testing.T) {
 func TestGuardUpdate(t *testing.T) {
 	var err error
 
-	err = domainInteractor{}.guardUpdate(nil, nil, nil)
+	err = domainInteractor{}.guardUpdate(nil, "", nil, nil)
 	assert.EqualError(t, err, "'xrhid' is nil")
 
 	xrhid := &identity.XRHID{}
-	err = domainInteractor{}.guardUpdate(xrhid, nil, nil)
+	err = domainInteractor{}.guardUpdate(xrhid, "", nil, nil)
+	assert.EqualError(t, err, "'UUID' is empty")
+
+	UUID := "b0264600-005c-11ee-ba48-482ae3863d30"
+	err = domainInteractor{}.guardUpdate(xrhid, UUID, nil, nil)
 	assert.EqualError(t, err, "'params' is nil")
 
 	params := &api_public.UpdateDomainParams{}
-	err = domainInteractor{}.guardUpdate(xrhid, params, nil)
+	err = domainInteractor{}.guardUpdate(xrhid, UUID, params, nil)
 	assert.EqualError(t, err, "'body' is nil")
 
 	body := &public.Domain{}
-	err = domainInteractor{}.guardUpdate(xrhid, params, body)
+	err = domainInteractor{}.guardUpdate(xrhid, UUID, params, body)
 	assert.NoError(t, err)
 }
 
 func TestCommonRegisterUpdate(t *testing.T) {
 	testOrgID := "12345"
+	testID := "c95c6e74-005c-11ee-82b5-482ae3863d30"
 	i := domainInteractor{}
 	assert.Panics(t, func() {
-		i.commonRegisterUpdate("", nil)
+		i.commonRegisterUpdate("", "", nil)
 	})
 
 	testBody := public.Domain{
@@ -711,7 +736,7 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainId:              "a3394fba-e512-11ed-8b96-482ae3863d30",
+		DomainId:              testID,
 		DomainType:            api_public.DomainDomainTypeRhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -725,7 +750,7 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainId:              "a3394fba-e512-11ed-8b96-482ae3863d30",
+		DomainId:              testID,
 		DomainType:            "wrongtype",
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -735,12 +760,14 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		},
 	}
 
-	domain, err := i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
+	domain, err := i.commonRegisterUpdate(testOrgID, testID, &testWrongTypeBody)
 	assert.EqualError(t, err, "Unsupported domain_type='wrongtype'")
 	assert.Nil(t, domain)
 
-	domain, err = i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
-	i.commonRegisterUpdate(testOrgID, &testBody)
+	// Success case
+	domain, err = i.commonRegisterUpdate(testOrgID, testID, &testBody)
+	assert.NoError(t, err)
+	assert.NotNil(t, domain)
 }
 
 func TestGetByID(t *testing.T) {
