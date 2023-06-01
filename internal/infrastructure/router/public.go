@@ -68,6 +68,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	)
 	var validateAPI echo.MiddlewareFunc = middleware.DefaultNooperation
 	if c.EnableAPIValidator {
+		middleware.InitOpenAPIFormats()
 		validateAPI = middleware.NewApiServiceValidator(nil)
 	}
 

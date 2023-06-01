@@ -1,7 +1,13 @@
 package middleware
 
 import (
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"regexp"
+
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
+	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	public_api "github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/errors"
@@ -42,4 +48,74 @@ func NewApiServiceValidator(Skipper echo_middleware.Skipper) echo.MiddlewareFunc
 			return errors.NewLocationErrorWithLevel(err, 1)
 		},
 	})
+}
+
+// InitOpenAPIFormats configure the admited formats in the openapi
+// specification. This function must be called before receive any
+// request. Suggested to call before instantiate the middleware.
+func InitOpenAPIFormats() {
+	// TODO Review all the regular expressions
+	openapi3.DefineStringFormat("http-status", `^[12345][0..9][0..9]$`)
+	openapi3.DefineStringFormat("fqdn", `^(([a-z0-9][a-z0-9\-]*[a-z0-9])|[a-z0-9]+\.)*([a-z]+|xn\-\-[a-z0-9]+)\.?$`)
+	openapi3.DefineStringFormat("domain", `^(([a-z0-9][a-z0-9\-]*[a-z0-9])|[a-z0-9]+\.)*([a-z]+|xn\-\-[a-z0-9]+)\.?$`)
+	openapi3.DefineStringFormat("url", `^https?:\/\/.*$`)
+	openapi3.DefineStringFormat("realm", `^(([A-Z0-9][A-Z0-9\-]*[A-Z0-9])|[A-Z0-9]+\.)*([A-Z]+|xn\-\-[A-Z0-9]+)\.?$`)
+
+	// FIXME Search the regular expressions for the below formats
+	openapi3.DefineStringFormatCallback("cert-issuer", func(value string) error {
+		return checkFormatIssuerSubject(value)
+	})
+	openapi3.DefineStringFormatCallback("cert-pem", func(value string) error {
+		return checkCertificateFormat(value)
+	})
+	openapi3.DefineStringFormatCallback("cert-subject", func(value string) error {
+		return checkFormatIssuerSubject(value)
+	})
+	openapi3.DefineStringFormat("domain-description", `^[\n\x20-\x7E]*$`)
+	openapi3.DefineStringFormat("domain-title", `^[a-zA-Z0-9\s]+$`)
+	openapi3.DefineStringFormatCallback("ipa-realm-domains", func(value string) error {
+		return checkFormatRealmDomains(value)
+	})
+	openapi3.DefineStringFormat("ipa-server-location", `^[a-zA-Z0-9\s]+$`)
+}
+
+func helperCheckRegEx(regex string, fieldName string, fieldValue string) error {
+	subjectRegEx := `^((?:[A-Za-z]+=[A-Z0-9\s]+)(?:, [A-Za-z]+=[A-Za-z0-9\s]+)*)$`
+	match, err := regexp.MatchString(subjectRegEx, fieldValue)
+	if err != nil {
+		return fmt.Errorf("error compiling regular expression: %w", err)
+	}
+	if !match {
+		return fmt.Errorf("'%s' format not matching", fieldName)
+	}
+	return nil
+}
+
+// checkCertificateFormat check the pem certificate string represented
+// by value that can be parsed.
+// Return an error or nil for success parsed data.
+func checkCertificateFormat(value string) error {
+	caCertBlock, _ := pem.Decode([]byte(value))
+	if caCertBlock == nil || caCertBlock.Type != "CERTIFICATE" {
+		return fmt.Errorf("Failed to decode CA certificate")
+	}
+	_, err := x509.ParseCertificate(caCertBlock.Bytes)
+	if err != nil {
+		return fmt.Errorf("Failed to parse CA certificate: %w", err)
+	}
+	return nil
+}
+
+// checkFormatIssuerSubject check the subject and issuer format in a certificate
+// is valid.
+// Return an error or nil for success parsed data.
+func checkFormatIssuerSubject(value string) error {
+	// FIXME wrong regular expression
+	subjectRegEx := `^((?:[A-Za-z]+=[A-Za-z0-9\s]+)(?:, [A-Za-z]+=[A-Za-z0-9\s]+)*)$`
+	return helperCheckRegEx(subjectRegEx, "issuer", value)
+}
+
+func checkFormatRealmDomains(value string) error {
+	// TODO Translate value in a slice, and all the items should validate for a domain
+	return nil
 }
