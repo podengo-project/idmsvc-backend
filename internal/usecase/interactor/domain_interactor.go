@@ -290,7 +290,7 @@ func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, do
 	domainIpa.Servers = make([]model.IpaServer, len(body.RhelIdm.Servers))
 	for idx, server := range body.RhelIdm.Servers {
 		domainIpa.Servers[idx].FQDN = server.Fqdn
-		domainIpa.Servers[idx].RHSMId = server.SubscriptionManagerId
+		domainIpa.Servers[idx].RHSMId = pointy.String(server.SubscriptionManagerId.String())
 		domainIpa.Servers[idx].Location = server.Location
 		domainIpa.Servers[idx].PKInitServer = server.PkinitServer
 		domainIpa.Servers[idx].CaServer = server.CaServer
