@@ -23,17 +23,7 @@ const (
 
 // Defines values for ListDomainsDataDomainType.
 const (
-	ListDomainsDataDomainTypeRhelIdm ListDomainsDataDomainType = "rhel-idm"
-)
-
-// Defines values for RegisterDomainDomainType.
-const (
-	RegisterDomainDomainTypeRhelIdm RegisterDomainDomainType = "rhel-idm"
-)
-
-// Defines values for UpdateDomainDomainType.
-const (
-	RhelIdm UpdateDomainDomainType = "rhel-idm"
+	RhelIdm ListDomainsDataDomainType = "rhel-idm"
 )
 
 // CreateDomain A domain resource
@@ -218,60 +208,6 @@ type PaginationMeta struct {
 	Offset int `json:"offset"`
 }
 
-// RegisterDomain defines model for RegisterDomain.
-type RegisterDomain struct {
-	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
-
-	// Description Human readable description abou the domain.
-	Description string `json:"description"`
-
-	// DomainId Internal id for this domain
-	DomainId string `json:"domain_id"`
-
-	// DomainName Domain name
-	DomainName string `json:"domain_name"`
-
-	// DomainType Type of this domain. Currently only rhel-idm is supported.
-	DomainType RegisterDomainDomainType `json:"domain_type"`
-
-	// RhelIdm Options for ipa domains
-	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
-
-	// Title Title to describe the domain.
-	Title string `json:"title"`
-}
-
-// RegisterDomainDomainType Type of this domain. Currently only rhel-idm is supported.
-type RegisterDomainDomainType string
-
-// UpdateDomain defines model for UpdateDomain.
-type UpdateDomain struct {
-	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
-
-	// Description Human readable description abou the domain.
-	Description string `json:"description"`
-
-	// DomainId Internal id for this domain
-	DomainId string `json:"domain_id"`
-
-	// DomainName Domain name
-	DomainName string `json:"domain_name"`
-
-	// DomainType Type of this domain. Currently only rhel-idm is supported.
-	DomainType UpdateDomainDomainType `json:"domain_type"`
-
-	// RhelIdm Options for ipa domains
-	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
-
-	// Title Title to describe the domain.
-	Title string `json:"title"`
-}
-
-// UpdateDomainDomainType Type of this domain. Currently only rhel-idm is supported.
-type UpdateDomainDomainType string
-
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain
 
@@ -376,10 +312,10 @@ type HostConfParams struct {
 type CreateDomainJSONRequestBody = CreateDomain
 
 // RegisterDomainJSONRequestBody defines body for RegisterDomain for application/json ContentType.
-type RegisterDomainJSONRequestBody = RegisterDomain
+type RegisterDomainJSONRequestBody = Domain
 
 // UpdateDomainJSONRequestBody defines body for UpdateDomain for application/json ContentType.
-type UpdateDomainJSONRequestBody = UpdateDomain
+type UpdateDomainJSONRequestBody = Domain
 
 // HostConfJSONRequestBody defines body for HostConf for application/json ContentType.
 type HostConfJSONRequestBody = HostConf

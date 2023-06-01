@@ -202,7 +202,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/RegisterDomain"
+                            $ref: "#/components/schemas/Domain"
                 required: true
             tags:
                 - actions
@@ -266,7 +266,7 @@ paths:
                 content:
                     application/json:
                         schema:
-                            $ref: "#/components/schemas/UpdateDomain"
+                            $ref: "#/components/schemas/Domain"
                 required: true
             tags:
                 - actions
@@ -625,7 +625,6 @@ components:
             description: A domain resource
             type: object
             allOf:
-                - type: object
                 - $ref: "#/components/schemas/Domain"
             additionalProperties: false
         Errors:
@@ -885,7 +884,6 @@ components:
             description: A domain resource
             type: object
             allOf:
-                - type: object
                 - $ref: "#/components/schemas/Domain"
             additionalProperties: false
             example:
@@ -933,7 +931,6 @@ components:
             description: Update a domain resource
             type: object
             allOf:
-                - type: object
                 - $ref: "#/components/schemas/Domain"
             additionalProperties: false
     responses:
