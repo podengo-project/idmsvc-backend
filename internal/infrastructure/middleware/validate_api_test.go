@@ -17,6 +17,6 @@ func TestValidateXRhIdentity(t *testing.T) {
 }
 
 func TestNewApiServiceValidator(t *testing.T) {
-	v := NewApiServiceValidator()
+	v := NewApiServiceValidator(nil)
 	assert.NotNil(t, v)
 }
