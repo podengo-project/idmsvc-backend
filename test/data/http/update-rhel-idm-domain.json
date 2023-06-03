@@ -1,4 +1,5 @@
 {
+  "domain_uuid": "{{createDomain.response.body.domain_uuid}}",
   "domain_name": "mydomain.example",
   "title": "Human readable title updated",
   "description": "My human friendly description updated",
@@ -10,6 +11,7 @@
       {
         "fqdn": "ipaserver.mydomain.example",
         "subscription_manager_id": "{{subscription_manager_id}}",
+        "location": "boston",
         "ca_server": true,
         "hcc_enrollment_server": true,
         "hcc_update_server": true,

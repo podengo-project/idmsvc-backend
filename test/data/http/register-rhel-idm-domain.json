@@ -1,8 +1,9 @@
 {
+  "domain_uuid": "{{createDomain.response.body.domain_uuid}}",
   "domain_name": "mydomain.example",
   "title": "Human readable title",
   "description": "My human friendly description",
-  "auto_enrollment_enabled": true,
+  "auto_enrollment_enabled": false,
   "domain_type": "rhel-idm",
   "rhel-idm": {
     "realm_name": "MYDOMAIN.EXAMPLE",
@@ -10,6 +11,7 @@
       {
         "fqdn": "ipaserver.mydomain.example",
         "subscription_manager_id": "{{subscription_manager_id}}",
+        "location": "europe",
         "ca_server": true,
         "hcc_enrollment_server": true,
         "hcc_update_server": true,
