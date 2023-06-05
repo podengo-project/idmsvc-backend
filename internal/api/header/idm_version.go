@@ -1,7 +1,6 @@
 package header
 
 import (
-	"encoding/base64"
 	"encoding/json"
 )
 
@@ -39,12 +38,8 @@ func NewXRHIDMVersionWithHeader(header string) *XRHIDMVersion {
 	if header == "" {
 		return nil
 	}
-	data, err := base64.StdEncoding.DecodeString(header)
-	if err != nil {
-		return nil
-	}
 	output := &XRHIDMVersion{}
-	if err = json.Unmarshal(data, output); err != nil {
+	if err := json.Unmarshal([]byte(header), output); err != nil {
 		return nil
 	}
 	return output
@@ -62,5 +57,5 @@ func EncodeXRHIDMVersion(data *XRHIDMVersion) string {
 	if err != nil {
 		return ""
 	}
-	return base64.StdEncoding.EncodeToString(jsonData)
+	return string(jsonData)
 }

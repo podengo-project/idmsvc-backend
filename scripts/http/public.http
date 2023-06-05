@@ -10,8 +10,7 @@
 @fqdn = ipaserver.mydomain.example
 @subscription_manager_id = 6f324116-b3d2-11ed-8a37-482ae3863d30
 @domain_uuid = b93b186b-8fd8-4978-a241-2ab0c3734136
-# X-Rh-IDM-Version = base64 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}'
-@x-rh-idm-version = eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEifQo=
+@x-rh-idm-version = {"ipa-hcc":"0.7","ipa":"4.10.0-8.el9_1","os-release-id":"rhel","os-release-version-id":"9.1"}
 @org_id = 12345
 
 ###

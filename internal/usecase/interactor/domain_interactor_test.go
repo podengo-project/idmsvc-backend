@@ -219,6 +219,7 @@ func TestRegisterIpa(t *testing.T) {
 			OSReleaseID:        "rhel",
 			OSReleaseVersionID: "8",
 		}
+		clientVersion         = header.EncodeXRHIDMVersion(clientVersionParsed)
 		xrhidSystemBase64     = header.EncodeXRHID(&xrhidSystem)
 		paramsNoClientVersion = &api_public.RegisterDomainParams{
 			XRhIdentity:             xrhidSystemBase64,
@@ -229,7 +230,7 @@ func TestRegisterIpa(t *testing.T) {
 			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIdmRegistrationToken: token,
-			XRhIdmVersion:           "eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEiLCAib3MtcmVsZWFzZS1pZCI6ICJyaGVsIiwgIm9zLXJlbGVhc2UtdmVyc2lvbi1pZCI6ICI4In0K",
+			XRhIdmVersion:           clientVersion,
 		}
 		notValidBefore = time.Now().UTC()
 		notValidAfter  = notValidBefore.Add(24 * time.Hour)

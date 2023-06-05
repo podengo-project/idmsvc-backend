@@ -21,6 +21,7 @@ func TestNewXRHIDMVersion(t *testing.T) {
 }
 
 func TestNewXRHIDMVersionWithHeader(t *testing.T) {
+	headerValue := `{"ipa-hcc":"0.7","ipa":"4.10.0-8.el9_1","os-release-id":"rhel","os-release-version-id":"9.1"}`
 	// Empty string
 	assert.Nil(t, NewXRHIDMVersionWithHeader(""))
 	// Invalid base64 content
@@ -28,7 +29,7 @@ func TestNewXRHIDMVersionWithHeader(t *testing.T) {
 	// Invalid json
 	assert.Nil(t, NewXRHIDMVersionWithHeader("ewo="))
 	// Valid header representation
-	data := NewXRHIDMVersionWithHeader("eyJpcGEtaGNjIjoiMC43IiwiaXBhIjoiNC4xMC4wLTguZWw5XzEiLCJvcy1yZWxlYXNlLWlkIjoicmhlbCIsIm9zLXJlbGVhc2UtdmVyc2lvbi1pZCI6IjkuMSJ9Cg==")
+	data := NewXRHIDMVersionWithHeader(headerValue)
 	assert.NotNil(t, data)
 	assert.Equal(t, "0.7", data.IPAHCCVersion)
 	assert.Equal(t, "4.10.0-8.el9_1", data.IPAVersion)
@@ -37,7 +38,7 @@ func TestNewXRHIDMVersionWithHeader(t *testing.T) {
 }
 
 func TestEncodeXRHIDMVersion(t *testing.T) {
-	const b64Header = "eyJpcGEtaGNjIjoiMC43IiwiaXBhIjoiNC4xMC4wLTguZWw5XzEiLCJvcy1yZWxlYXNlLWlkIjoicmhlbCIsIm9zLXJlbGVhc2UtdmVyc2lvbi1pZCI6IjkuMSJ9"
+	headerValue := `{"ipa-hcc":"0.7","ipa":"4.10.0-8.el9_1","os-release-id":"rhel","os-release-version-id":"9.1"}`
 	assert.Equal(t, "", EncodeXRHIDMVersion(nil))
-	assert.Equal(t, b64Header, EncodeXRHIDMVersion(NewXRHIDMVersionWithHeader(b64Header)))
+	assert.Equal(t, headerValue, EncodeXRHIDMVersion(NewXRHIDMVersionWithHeader(headerValue)))
 }
