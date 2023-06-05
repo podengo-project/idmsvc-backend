@@ -47,7 +47,7 @@ func TestGuardsRegisterIpa(t *testing.T) {
 		err = p.sharedDomainFillRhelIdm(domain, output)
 	})
 
-	output.Type = public.DomainTypeRhelIdm
+	output.DomainType = public.DomainDomainTypeRhelIdm
 	output.RhelIdm = &public.DomainIpa{}
 	err = p.sharedDomainFillRhelIdm(domain, output)
 	assert.NoError(t, err)
@@ -81,7 +81,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				Domain: &public.RegisterDomainResponse{
-					Type: public.DomainTypeRhelIdm,
+					DomainType: public.DomainDomainTypeRhelIdm,
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "",
 						CaCerts:      []public.DomainIpaCert{},
@@ -275,7 +275,7 @@ func TestSharedDomain(t *testing.T) {
 	*domain.Type = 999
 	output, err = p.sharedDomain(domain)
 	assert.Nil(t, output)
-	assert.EqualError(t, err, "'domain.Type=999' is invalid")
+	assert.EqualError(t, err, "'domain.DomainType=999' is invalid")
 
 	// Success minimal values
 	*domain.Type = model.DomainTypeIpa
@@ -287,7 +287,7 @@ func TestSharedDomain(t *testing.T) {
 		Description:           "",
 		DomainName:            "",
 		DomainUuid:            model.NilUUID.String(),
-		Type:                  public.DomainTypeRhelIdm,
+		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "",
 			CaCerts:      []public.DomainIpaCert{},
@@ -346,7 +346,7 @@ func TestSharedDomain(t *testing.T) {
 		Description:           "Test Description",
 		DomainName:            "mydomain.example",
 		DomainUuid:            testUUID.String(),
-		Type:                  public.DomainTypeRhelIdm,
+		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "MYDOMAIN.EXAMPLE",
 			RealmDomains: []string{"mydomain.example"},
@@ -449,13 +449,13 @@ func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.
 	assert.Equal(t, expected.Description, actual.Description)
 	assert.Equal(t, expected.DomainName, actual.DomainName)
 	assert.Equal(t, expected.DomainUuid, actual.DomainUuid)
-	assert.Equal(t, expected.Type, actual.Type)
-	switch expected.Type {
-	case public.DomainTypeRhelIdm:
+	assert.Equal(t, expected.DomainType, actual.DomainType)
+	switch expected.DomainType {
+	case public.DomainDomainTypeRhelIdm:
 		equalPresenterDomainRhelIdm(t, expected.RhelIdm, actual.RhelIdm)
 	case "":
 	default:
-		t.Errorf("asserting agains an invalid Type='%s'", expected.Type)
+		t.Errorf("asserting agains an invalid DomainType='%s'", expected.DomainType)
 	}
 }
 
@@ -517,7 +517,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 			Expected: TestCaseExpected{
 				Err: nil,
 				To: &public.Domain{
-					Type: public.DomainTypeRhelIdm,
+					DomainType: public.DomainDomainTypeRhelIdm,
 					RhelIdm: &public.DomainIpa{
 						Servers: []public.DomainIpaServer{
 							{

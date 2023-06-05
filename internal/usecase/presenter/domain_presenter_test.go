@@ -83,7 +83,7 @@ func TestGet(t *testing.T) {
 					AutoEnrollmentEnabled: true,
 					DomainUuid:            testUuid.String(),
 					DomainName:            "domain.example",
-					Type:                  public.DomainType(model.DomainTypeString(model.DomainTypeIpa)),
+					DomainType:            public.DomainDomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
 						CaCerts:      []public.DomainIpaCert{},
@@ -111,8 +111,8 @@ func TestGet(t *testing.T) {
 				testCase.Expected.Output.DomainName,
 				output.DomainName)
 			assert.Equal(t,
-				testCase.Expected.Output.Type,
-				output.Type)
+				testCase.Expected.Output.DomainType,
+				output.DomainType)
 			assert.Equal(t,
 				testCase.Expected.Output.AutoEnrollmentEnabled,
 				output.AutoEnrollmentEnabled)
@@ -257,7 +257,7 @@ func TestCreate(t *testing.T) {
 				Response: &public.CreateDomainResponse{
 					DomainName:            "domain.example",
 					AutoEnrollmentEnabled: true,
-					Type:                  model.DomainTypeIpaString,
+					DomainType:            model.DomainTypeIpaString,
 					DomainUuid:            "00000000-0000-0000-0000-000000000000",
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
@@ -369,8 +369,8 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 			Name: "Full success copy",
 			Given: TestCaseGiven{
 				To: &public.Domain{
-					Type:    public.DomainTypeRhelIdm,
-					RhelIdm: &public.DomainIpa{},
+					DomainType: public.DomainDomainTypeRhelIdm,
+					RhelIdm:    &public.DomainIpa{},
 				},
 				From: &model.Domain{
 					Type: pointy.Uint(model.DomainTypeIpa),
@@ -392,7 +392,7 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 			Expected: TestCaseExpected{
 				Err: nil,
 				To: &public.Domain{
-					Type: public.DomainTypeRhelIdm,
+					DomainType: public.DomainDomainTypeRhelIdm,
 					RhelIdm: &public.DomainIpa{
 						CaCerts: []public.DomainIpaCert{
 							{
@@ -459,7 +459,7 @@ func TestRegister(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		AutoEnrollmentEnabled: true,
-		Type:                  public.DomainTypeRhelIdm,
+		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    testDomainName,
 			RealmDomains: pq.StringArray{testDomainName},
@@ -503,7 +503,7 @@ func TestUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		AutoEnrollmentEnabled: true,
-		Type:                  public.DomainTypeRhelIdm,
+		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    testDomainName,
 			RealmDomains: pq.StringArray{testDomainName},
