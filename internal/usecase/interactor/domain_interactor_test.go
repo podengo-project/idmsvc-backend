@@ -296,7 +296,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'DomainType=somethingwrong' is invalid"),
+				Error:         fmt.Errorf("Unsupported domain_type='somethingwrong'"),
 			},
 		},
 		{
@@ -597,7 +597,7 @@ func TestUpdate(t *testing.T) {
 
 	// Error because of wrongtype
 	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, &testParams, &testWrongTypeBody)
-	assert.EqualError(t, err, "'DomainType=aninvalidtype' is invalid")
+	assert.EqualError(t, err, "Unsupported domain_type='aninvalidtype'")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
@@ -736,7 +736,7 @@ func TestCommonRegisterUpdate(t *testing.T) {
 	}
 
 	domain, err := i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
-	assert.EqualError(t, err, "'DomainType=wrongtype' is invalid")
+	assert.EqualError(t, err, "Unsupported domain_type='wrongtype'")
 	assert.Nil(t, domain)
 
 	domain, err = i.commonRegisterUpdate(testOrgID, &testWrongTypeBody)
