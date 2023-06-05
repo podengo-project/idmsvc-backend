@@ -11,14 +11,14 @@ const (
 	X_rh_identityScopes = "x_rh_identity.Scopes"
 )
 
-// Defines values for CreateDomainType.
+// Defines values for CreateDomainDomainType.
 const (
-	CreateDomainTypeRhelIdm CreateDomainType = "rhel-idm"
+	CreateDomainDomainTypeRhelIdm CreateDomainDomainType = "rhel-idm"
 )
 
-// Defines values for DomainType.
+// Defines values for DomainDomainType.
 const (
-	DomainTypeRhelIdm DomainType = "rhel-idm"
+	DomainDomainTypeRhelIdm DomainDomainType = "rhel-idm"
 )
 
 // Defines values for ListDomainsDataDomainType.
@@ -26,14 +26,14 @@ const (
 	ListDomainsDataDomainTypeRhelIdm ListDomainsDataDomainType = "rhel-idm"
 )
 
-// Defines values for RegisterDomainType.
+// Defines values for RegisterDomainDomainType.
 const (
-	RegisterDomainTypeRhelIdm RegisterDomainType = "rhel-idm"
+	RegisterDomainDomainTypeRhelIdm RegisterDomainDomainType = "rhel-idm"
 )
 
-// Defines values for UpdateDomainType.
+// Defines values for UpdateDomainDomainType.
 const (
-	RhelIdm UpdateDomainType = "rhel-idm"
+	RhelIdm UpdateDomainDomainType = "rhel-idm"
 )
 
 // CheckHosts Define the input data for the /check_host action.
@@ -62,15 +62,15 @@ type CreateDomain struct {
 	// Description Human readable description for this domain.
 	Description string `json:"description"`
 
+	// DomainType Type of this domain. Currently only rhel-idm is supported.
+	DomainType CreateDomainDomainType `json:"domain_type"`
+
 	// Title the title for the entry
 	Title string `json:"title"`
-
-	// Type Type of this domain. Currently only ipa is supported.
-	Type CreateDomainType `json:"type"`
 }
 
-// CreateDomainType Type of this domain. Currently only ipa is supported.
-type CreateDomainType string
+// CreateDomainDomainType Type of this domain. Currently only rhel-idm is supported.
+type CreateDomainDomainType string
 
 // Domain A domain resource
 type Domain struct {
@@ -83,6 +83,9 @@ type Domain struct {
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
+	// DomainType Type of this domain. Currently only rhel-idm is supported.
+	DomainType DomainDomainType `json:"domain_type"`
+
 	// DomainUuid Internal id for this domain
 	DomainUuid string `json:"domain_uuid"`
 
@@ -91,13 +94,10 @@ type Domain struct {
 
 	// Title Title to describe the domain.
 	Title string `json:"title"`
-
-	// Type Type of this domain. Currently only ipa is supported.
-	Type DomainType `json:"type"`
 }
 
-// DomainType Type of this domain. Currently only ipa is supported.
-type DomainType string
+// DomainDomainType Type of this domain. Currently only rhel-idm is supported.
+type DomainDomainType string
 
 // DomainIpa Options for ipa domains
 type DomainIpa struct {
@@ -244,6 +244,9 @@ type RegisterDomain struct {
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
+	// DomainType Type of this domain. Currently only rhel-idm is supported.
+	DomainType RegisterDomainDomainType `json:"domain_type"`
+
 	// DomainUuid Internal id for this domain
 	DomainUuid string `json:"domain_uuid"`
 
@@ -252,13 +255,10 @@ type RegisterDomain struct {
 
 	// Title Title to describe the domain.
 	Title string `json:"title"`
-
-	// Type Type of this domain. Currently only ipa is supported.
-	Type RegisterDomainType `json:"type"`
 }
 
-// RegisterDomainType Type of this domain. Currently only ipa is supported.
-type RegisterDomainType string
+// RegisterDomainDomainType Type of this domain. Currently only rhel-idm is supported.
+type RegisterDomainDomainType string
 
 // UpdateDomain defines model for UpdateDomain.
 type UpdateDomain struct {
@@ -271,6 +271,9 @@ type UpdateDomain struct {
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
+	// DomainType Type of this domain. Currently only rhel-idm is supported.
+	DomainType UpdateDomainDomainType `json:"domain_type"`
+
 	// DomainUuid Internal id for this domain
 	DomainUuid string `json:"domain_uuid"`
 
@@ -279,13 +282,10 @@ type UpdateDomain struct {
 
 	// Title Title to describe the domain.
 	Title string `json:"title"`
-
-	// Type Type of this domain. Currently only ipa is supported.
-	Type UpdateDomainType `json:"type"`
 }
 
-// UpdateDomainType Type of this domain. Currently only ipa is supported.
-type UpdateDomainType string
+// UpdateDomainDomainType Type of this domain. Currently only rhel-idm is supported.
+type UpdateDomainDomainType string
 
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain

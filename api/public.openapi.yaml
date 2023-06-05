@@ -539,7 +539,7 @@ components:
             example:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
-                domain_type: ipa
+                domain_type: rhel-idm
                 auto_enrollment_enabled: true
         HostConf:
             title: Root Type for HostConf
@@ -581,7 +581,7 @@ components:
                 domain_type:
                     description: Indicate the type of domain. Actually only ipa is supported.
                     type: string
-                    example: '"ipa"'
+                    example: '"rhel-idm"'
                 subscription_manager_id:
                     description: The subscription manager id for auto-enroll the host vm.
                     type: string
@@ -592,7 +592,7 @@ components:
                     example: '"2ea6db7e-cf74-4560-a286-4d7c9eaf698f"'
             example:
                 domain_name: domain.example
-                domain_type: ipa
+                domain_type: rhel-idm
                 subscription_manager_id: 2326738a-adf8-11ed-af7d-482ae3863d30
                 inventory_id: 2ea6db7e-cf74-4560-a286-4d7c9eaf698f
         HostConfResponseSchema:
@@ -621,8 +621,8 @@ components:
                                 type: string
             example:
                 domain_name: domain.example
-                domain_type: ipa
-                ipa:
+                domain_type: rhel-idm
+                rhel-idm:
                     realm_name: DOMAIN.EXAMPLE
                     ca_cert: |
                         -----BEGIN CERTIFICATE-----
@@ -683,14 +683,14 @@ components:
                 data:
                     - domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                       domain_name: mydomain.example
-                      domain_type: ipa
+                      domain_type: rhel-idm
                       auto_enrollment_enabled: true
         CreateDomain:
             title: Root Type for DomainResponse
             description: A domain resource
             required:
                 - auto_enrollment_enabled
-                - type
+                - domain_type
                 - description
                 - title
             type: object
@@ -699,12 +699,12 @@ components:
                     description: Enable or disable host vm auto-enrollment for this domain
                     type: boolean
                     example: "true"
-                type:
-                    description: Type of this domain. Currently only ipa is supported.
+                domain_type:
+                    description: Type of this domain. Currently only rhel-idm is supported.
                     enum:
                         - rhel-idm
                     type: string
-                    example: ipa
+                    example: rhel-idm
                 title:
                     description: the title for the entry
                     type: string
@@ -888,7 +888,7 @@ components:
             required:
                 - auto_enrollment_enabled
                 - domain_name
-                - type
+                - domain_type
                 - domain_uuid
                 - description
                 - title
@@ -912,12 +912,12 @@ components:
                 description:
                     description: Human readable description abou the domain.
                     type: string
-                type:
-                    description: Type of this domain. Currently only ipa is supported.
+                domain_type:
+                    description: Type of this domain. Currently only rhel-idm is supported.
                     enum:
                         - rhel-idm
                     type: string
-                    example: ipa
+                    example: rhel-idm
                 rhel-idm:
                     $ref: "#/components/schemas/DomainIpa"
             additionalProperties: false
@@ -925,7 +925,7 @@ components:
                 domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
                 domain_description: My awesome domain description.
-                domain_type: ipa
+                domain_type: rhel-idm
                 auto_enrollment_enabled: true
                 ipa:
                     realm_name: IPA.EXAMPLE
