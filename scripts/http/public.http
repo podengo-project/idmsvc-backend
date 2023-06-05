@@ -43,7 +43,7 @@ Content-Type: {{contentType}}
   "title": "My Domain Example",
   "description": "My human readable domain description",
   "auto_enrollment_enabled": true,
-  "type": "rhel-idm",
+  "domain_type": "rhel-idm",
   "rhel-idm": {
     "realm_name": "MYDOMAIN.EXAMPLE",
     "servers": [

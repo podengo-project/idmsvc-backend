@@ -2,5 +2,5 @@
   "title": "Human readable title",
   "description": "My human friendly description",
   "auto_enrollment_enabled": true,
-  "type": "rhel-idm"
+  "domain_type": "rhel-idm"
 }
