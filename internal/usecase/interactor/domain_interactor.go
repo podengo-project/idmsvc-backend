@@ -339,7 +339,7 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, body *public.Domain
 		domain.IpaDomain = &model.Ipa{}
 		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)
 	default:
-		err = fmt.Errorf("'DomainType=%s' is invalid", body.DomainType)
+		err = fmt.Errorf("Unsupported domain_type='%s'", body.DomainType)
 	}
 	if err != nil {
 		return nil, err
