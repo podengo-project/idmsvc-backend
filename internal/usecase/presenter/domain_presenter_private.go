@@ -101,11 +101,11 @@ func (p *domainPresenter) sharedDomain(
 	switch *domain.Type {
 	case model.DomainTypeIpa:
 		// Specific rhel-idm domain code
-		output.Type = model.DomainTypeIpaString
+		output.DomainType = model.DomainTypeIpaString
 		output.RhelIdm = &public.DomainIpa{}
 		err = p.sharedDomainFillRhelIdm(domain, output)
 	default:
-		err = fmt.Errorf("'domain.Type=%d' is invalid", *domain.Type)
+		err = fmt.Errorf("'domain.DomainType=%d' is invalid", *domain.Type)
 	}
 	if err != nil {
 		return nil, err

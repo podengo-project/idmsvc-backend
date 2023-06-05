@@ -24,9 +24,9 @@ func NewDomainInteractor() interactor.DomainInteractor {
 // helperDomainTypeToUint transform public.CreateDomainDomainType to an uint const
 // Return the uint representation or model.DomainTypeUndefined if it does not match
 // the current types.
-func helperDomainTypeToUint(domainType public.DomainType) uint {
+func helperDomainTypeToUint(domainType public.DomainDomainType) uint {
 	switch domainType {
-	case api_public.DomainTypeRhelIdm:
+	case api_public.DomainDomainTypeRhelIdm:
 		return model.DomainTypeIpa
 	default:
 		return model.DomainTypeUndefined
@@ -59,7 +59,7 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	domain.DomainName = nil
 	domain.Title = pointy.String(body.Title)
 	domain.Description = pointy.String(body.Description)
-	domain.Type = pointy.Uint(helperDomainTypeToUint(api_public.DomainType(body.Type)))
+	domain.Type = pointy.Uint(helperDomainTypeToUint(api_public.DomainDomainType(body.DomainType)))
 	switch *domain.Type {
 	case model.DomainTypeIpa:
 		domain.IpaDomain = &model.Ipa{
@@ -333,13 +333,13 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, body *public.Domain
 	domain.Description = pointy.String(body.Description)
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
 	domain.DomainName = pointy.String(body.DomainName)
-	switch body.Type {
-	case api_public.DomainType(api_public.DomainTypeRhelIdm):
+	switch body.DomainType {
+	case api_public.DomainDomainType(api_public.DomainDomainTypeRhelIdm):
 		domain.Type = pointy.Uint(model.DomainTypeIpa)
 		domain.IpaDomain = &model.Ipa{}
 		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)
 	default:
-		err = fmt.Errorf("'Type=%s' is invalid", body.Type)
+		err = fmt.Errorf("'DomainType=%s' is invalid", body.DomainType)
 	}
 	if err != nil {
 		return nil, err
