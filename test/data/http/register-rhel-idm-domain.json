@@ -1,5 +1,5 @@
 {
-  "domain_uuid": "{{createDomain.response.body.domain_uuid}}",
+  "domain_id": "{{createDomain.response.body.domain_id}}",
   "domain_name": "mydomain.example",
   "title": "Human readable title",
   "description": "My human friendly description",

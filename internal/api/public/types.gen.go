@@ -80,14 +80,14 @@ type Domain struct {
 	// Description Human readable description abou the domain.
 	Description string `json:"description"`
 
+	// DomainId Internal id for this domain
+	DomainId string `json:"domain_id"`
+
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
 	// DomainType Type of this domain. Currently only rhel-idm is supported.
 	DomainType DomainDomainType `json:"domain_type"`
-
-	// DomainUuid Internal id for this domain
-	DomainUuid string `json:"domain_uuid"`
 
 	// RhelIdm Options for ipa domains
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
@@ -186,9 +186,9 @@ type ListDomainsData struct {
 
 	// Description Human-readable description of the domain entry.
 	Description string                    `json:"description"`
+	DomainId    string                    `json:"domain_id"`
 	DomainName  string                    `json:"domain_name"`
 	DomainType  ListDomainsDataDomainType `json:"domain_type"`
-	DomainUuid  string                    `json:"domain_uuid"`
 
 	// Title Human-friendly title for the domain entry.
 	Title string `json:"title"`
@@ -244,14 +244,14 @@ type RegisterDomain struct {
 	// Description Human readable description abou the domain.
 	Description string `json:"description"`
 
+	// DomainId Internal id for this domain
+	DomainId string `json:"domain_id"`
+
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
 	// DomainType Type of this domain. Currently only rhel-idm is supported.
 	DomainType RegisterDomainDomainType `json:"domain_type"`
-
-	// DomainUuid Internal id for this domain
-	DomainUuid string `json:"domain_uuid"`
 
 	// RhelIdm Options for ipa domains
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
@@ -271,14 +271,14 @@ type UpdateDomain struct {
 	// Description Human readable description abou the domain.
 	Description string `json:"description"`
 
+	// DomainId Internal id for this domain
+	DomainId string `json:"domain_id"`
+
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
 
 	// DomainType Type of this domain. Currently only rhel-idm is supported.
 	DomainType UpdateDomainDomainType `json:"domain_type"`
-
-	// DomainUuid Internal id for this domain
-	DomainUuid string `json:"domain_uuid"`
 
 	// RhelIdm Options for ipa domains
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`

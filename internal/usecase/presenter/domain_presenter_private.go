@@ -117,7 +117,7 @@ func (p *domainPresenter) sharedDomainFill(
 	domain *model.Domain,
 	output *public.Domain,
 ) {
-	output.DomainUuid = domain.DomainUuid.String()
+	output.DomainId = domain.DomainUuid.String()
 	if domain.AutoEnrollmentEnabled != nil {
 		output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
 	}
@@ -236,7 +236,7 @@ func (p *domainPresenter) listFillItem(output *public.ListDomainsData, domain *m
 		output.DomainName = *domain.DomainName
 	}
 	output.DomainType = public.ListDomainsDataDomainType(model.DomainTypeString(*domain.Type))
-	output.DomainUuid = domain.DomainUuid.String()
+	output.DomainId = domain.DomainUuid.String()
 	if domain.Title != nil {
 		output.Title = *domain.Title
 	}

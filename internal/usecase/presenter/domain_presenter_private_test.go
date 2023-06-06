@@ -198,7 +198,7 @@ func TestSharedDomainFill(t *testing.T) {
 	domain.Title = pointy.String("My Domain Example")
 	domain.Description = pointy.String("My Domain Example Description")
 	p.sharedDomainFill(domain, &output)
-	assert.Equal(t, domainUUID, output.DomainUuid)
+	assert.Equal(t, domainUUID, output.DomainId)
 	assert.Equal(t, true, output.AutoEnrollmentEnabled)
 	assert.Equal(t, "mydomain.example", output.DomainName)
 	assert.Equal(t, "My Domain Example", output.Title)
@@ -286,7 +286,7 @@ func TestSharedDomain(t *testing.T) {
 		Title:                 "",
 		Description:           "",
 		DomainName:            "",
-		DomainUuid:            model.NilUUID.String(),
+		DomainId:              model.NilUUID.String(),
 		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "",
@@ -345,7 +345,7 @@ func TestSharedDomain(t *testing.T) {
 		Title:                 "Test Title",
 		Description:           "Test Description",
 		DomainName:            "mydomain.example",
-		DomainUuid:            testUUID.String(),
+		DomainId:              testUUID.String(),
 		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "MYDOMAIN.EXAMPLE",
@@ -448,7 +448,7 @@ func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.
 	assert.Equal(t, expected.Title, actual.Title)
 	assert.Equal(t, expected.Description, actual.Description)
 	assert.Equal(t, expected.DomainName, actual.DomainName)
-	assert.Equal(t, expected.DomainUuid, actual.DomainUuid)
+	assert.Equal(t, expected.DomainId, actual.DomainId)
 	assert.Equal(t, expected.DomainType, actual.DomainType)
 	switch expected.DomainType {
 	case public.DomainDomainTypeRhelIdm:

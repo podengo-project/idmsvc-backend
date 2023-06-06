@@ -520,12 +520,12 @@ components:
                 - auto_enrollment_enabled
                 - domain_name
                 - domain_type
-                - domain_uuid
+                - domain_id
                 - title
                 - description
             type: object
             properties:
-                domain_uuid:
+                domain_id:
                     type: string
                 domain_name:
                     type: string
@@ -543,7 +543,7 @@ components:
                     type: string
             additionalProperties: false
             example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_id: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
                 domain_type: rhel-idm
                 auto_enrollment_enabled: true
@@ -687,7 +687,7 @@ components:
                     next: /api/idm/v1/domains?limit=10&offset=10
                     previous: /api/idm/v1/domains?limit=10&offset=0
                 data:
-                    - domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                    - domain_id: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                       domain_name: mydomain.example
                       domain_type: rhel-idm
                       auto_enrollment_enabled: true
@@ -895,12 +895,12 @@ components:
                 - auto_enrollment_enabled
                 - domain_name
                 - domain_type
-                - domain_uuid
+                - domain_id
                 - description
                 - title
             type: object
             properties:
-                domain_uuid:
+                domain_id:
                     description: Internal id for this domain
                     type: string
                     example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
@@ -928,7 +928,7 @@ components:
                     $ref: "#/components/schemas/DomainIpa"
             additionalProperties: false
             example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_id: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
                 domain_description: My awesome domain description.
                 domain_type: rhel-idm
@@ -1036,7 +1036,7 @@ components:
                 - $ref: "#/components/schemas/Domain"
             additionalProperties: false
             example:
-                domain_uuid: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                domain_id: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name: mydomain.example
                 domain_description: My awesome domain description.
                 auto_enrollment_enabled: true

@@ -562,7 +562,7 @@ func TestUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainUuid:            "54ac086a-e50d-11ed-b3f7-482ae3863d30",
+		DomainId:              "54ac086a-e50d-11ed-b3f7-482ae3863d30",
 		DomainType:            "aninvalidtype",
 	}
 	testBody := api_public.Domain{
@@ -570,7 +570,7 @@ func TestUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainUuid:            "54ac086a-e50d-11ed-b3f7-482ae3863d30",
+		DomainId:              "54ac086a-e50d-11ed-b3f7-482ae3863d30",
 		DomainType:            api_public.DomainDomainTypeRhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -711,7 +711,7 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainUuid:            "a3394fba-e512-11ed-8b96-482ae3863d30",
+		DomainId:              "a3394fba-e512-11ed-8b96-482ae3863d30",
 		DomainType:            api_public.DomainDomainTypeRhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -725,7 +725,7 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
 		DomainName:            "mydomain.example",
-		DomainUuid:            "a3394fba-e512-11ed-8b96-482ae3863d30",
+		DomainId:              "a3394fba-e512-11ed-8b96-482ae3863d30",
 		DomainType:            "wrongtype",
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",

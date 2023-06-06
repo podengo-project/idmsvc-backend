@@ -9,7 +9,7 @@
 @basepath = /api/hmsidm/v1
 @fqdn = ipaserver.mydomain.example
 @subscription_manager_id = 6f324116-b3d2-11ed-8a37-482ae3863d30
-@domain_uuid = b93b186b-8fd8-4978-a241-2ab0c3734136
+@domain_id = b93b186b-8fd8-4978-a241-2ab0c3734136
 @x-rh-idm-version = {"ipa-hcc":"0.7","ipa":"4.10.0-8.el9_1","os-release-id":"rhel","os-release-version-id":"9.1"}
 @org_id = 12345
 
@@ -57,7 +57,7 @@ Content-Type: {{contentType}}
 #   UUID=""
 #   ./test/scripts/ephe-domains-read.sh $UUID
 
-GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
+GET  http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}
 X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: get_domains_uuid
 Content-Type: {{contentType}}
@@ -77,7 +77,7 @@ Content-Type: {{contentType}}
 #   TOKEN=""
 #   ./test/scripts/ephe-domains-register.sh "$UUID" "$TOKEN"
 
-PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/register
+PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}/register
 X-Rh-Identity: {{x-rh-identity-system}}
 # X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
 # X-Rh-Fake-Identity: {{x-rh-identity-system}}
@@ -100,7 +100,7 @@ Content-Type: {{contentType}}
 #   UUID=""
 #   ./test/scripts/ephe-domains-update.sh "$UUID"
 
-PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}/update
+PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}/update
 # X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
 X-Rh-Fake-Identity: {{x-rh-identity-system}}
@@ -112,7 +112,7 @@ Content-Type: {{contentType}}
 
 ### Partial Update Todo
 
-# PATCH http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
+# PATCH http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}
 # X-Rh-Identity: {{x-rh-identity-user}}
 # Content-Type: {{contentType}}
 
@@ -122,12 +122,12 @@ Content-Type: {{contentType}}
 
 ### Update Domain
 
-# PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
+# PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}
 # X-Rh-Identity: {{x-rh-identity-user}}
 # Content-Type: {{contentType}}
 
 # {
-#     "id": {{createDomain.response.body.domain_uuid}},
+#     "id": {{createDomain.response.body.domain_id}},
 #     "title": "Updated Todo Title",
 #     "body": "Updated body"
 # }
@@ -142,7 +142,7 @@ Content-Type: {{contentType}}
 #   UUID=""
 #   ./test/scripts/ephe-domains-delete.sh "$UUID"
 
-DELETE http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_uuid}}
+DELETE http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}
 X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: delete_domains
 Content-Type: {{contentType}}

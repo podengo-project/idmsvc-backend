@@ -81,7 +81,7 @@ func TestGet(t *testing.T) {
 				Err: nil,
 				Output: &public.ReadDomainResponse{
 					AutoEnrollmentEnabled: true,
-					DomainUuid:            testUuid.String(),
+					DomainId:              testUuid.String(),
 					DomainName:            "domain.example",
 					DomainType:            public.DomainDomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					RhelIdm: &public.DomainIpa{
@@ -105,8 +105,8 @@ func TestGet(t *testing.T) {
 		} else {
 			assert.NoError(t, err)
 			assert.Equal(t,
-				testCase.Expected.Output.DomainUuid,
-				output.DomainUuid)
+				testCase.Expected.Output.DomainId,
+				output.DomainId)
 			assert.Equal(t,
 				testCase.Expected.Output.DomainName,
 				output.DomainName)
@@ -258,7 +258,7 @@ func TestCreate(t *testing.T) {
 					DomainName:            "domain.example",
 					AutoEnrollmentEnabled: true,
 					DomainType:            model.DomainTypeIpaString,
-					DomainUuid:            "00000000-0000-0000-0000-000000000000",
+					DomainId:              "00000000-0000-0000-0000-000000000000",
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
 						RealmDomains: []string{},
@@ -454,7 +454,7 @@ func TestRegister(t *testing.T) {
 		},
 	}
 	testExpected := public.Domain{
-		DomainUuid:            testUUID,
+		DomainId:              testUUID,
 		DomainName:            testDomainName,
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
@@ -498,7 +498,7 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	testExpected := public.Domain{
-		DomainUuid:            testUUID,
+		DomainId:              testUUID,
 		DomainName:            testDomainName,
 		Title:                 "My Example Domain Title",
 		Description:           "My Example Domain Description",
@@ -650,7 +650,7 @@ func TestList(t *testing.T) {
 				AutoEnrollmentEnabled: true,
 				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
 				DomainName:            "mydomain1.example",
-				DomainUuid:            testUUID1,
+				DomainId:              testUUID1,
 				Title:                 "mydomain1 example title",
 				Description:           "mydomain1.example located in Boston",
 			},
@@ -658,7 +658,7 @@ func TestList(t *testing.T) {
 				AutoEnrollmentEnabled: false,
 				DomainType:            public.ListDomainsDataDomainTypeRhelIdm,
 				DomainName:            "mydomain2.example",
-				DomainUuid:            testUUID2,
+				DomainId:              testUUID2,
 				Title:                 "mydomain2 example title",
 				Description:           "mydomain2.example located in Brno",
 			},
