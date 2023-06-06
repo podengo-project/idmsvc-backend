@@ -86,8 +86,8 @@ func (s *Suite) TestCreate() {
 					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					SerialNumber:   "1",
-					NotValidBefore: currentTime,
-					NotValidAfter:  currentTime,
+					NotBefore: currentTime,
+					NotAfter:  currentTime,
 					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 				},
 			},
@@ -145,7 +145,7 @@ func (s *Suite) TestCreate() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.IpaDomain.ID))
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
 		WithArgs(
 			data.IpaDomain.CaCerts[0].CreatedAt,
 			data.IpaDomain.CaCerts[0].UpdatedAt,
@@ -154,8 +154,8 @@ func (s *Suite) TestCreate() {
 			data.IpaDomain.CaCerts[0].IpaID,
 			data.IpaDomain.CaCerts[0].Issuer,
 			data.IpaDomain.CaCerts[0].Nickname,
-			data.IpaDomain.CaCerts[0].NotValidAfter,
-			data.IpaDomain.CaCerts[0].NotValidBefore,
+			data.IpaDomain.CaCerts[0].NotAfter,
+			data.IpaDomain.CaCerts[0].NotBefore,
 			data.IpaDomain.CaCerts[0].Pem,
 			data.IpaDomain.CaCerts[0].SerialNumber,
 			data.IpaDomain.CaCerts[0].Subject,
@@ -419,8 +419,8 @@ func (s *Suite) TestCreateIpaDomain() {
 					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					SerialNumber:   "1",
-					NotValidBefore: currentTime,
-					NotValidAfter:  currentTime,
+					NotBefore: currentTime,
+					NotAfter:  currentTime,
 					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 				},
 			},
@@ -478,7 +478,7 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
 		WithArgs(
 			data.CaCerts[0].CreatedAt,
 			data.CaCerts[0].UpdatedAt,
@@ -487,8 +487,8 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.CaCerts[0].IpaID,
 			data.CaCerts[0].Issuer,
 			data.CaCerts[0].Nickname,
-			data.CaCerts[0].NotValidAfter,
-			data.CaCerts[0].NotValidBefore,
+			data.CaCerts[0].NotAfter,
+			data.CaCerts[0].NotBefore,
 			data.CaCerts[0].Pem,
 			data.CaCerts[0].SerialNumber,
 			data.CaCerts[0].Subject,
@@ -511,7 +511,7 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.ID).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
 		WithArgs(
 			data.CaCerts[0].CreatedAt,
 			data.CaCerts[0].UpdatedAt,
@@ -520,8 +520,8 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.CaCerts[0].IpaID,
 			data.CaCerts[0].Issuer,
 			data.CaCerts[0].Nickname,
-			data.CaCerts[0].NotValidAfter,
-			data.CaCerts[0].NotValidBefore,
+			data.CaCerts[0].NotAfter,
+			data.CaCerts[0].NotBefore,
 			data.CaCerts[0].Pem,
 			data.CaCerts[0].SerialNumber,
 			data.CaCerts[0].Subject,
@@ -562,7 +562,7 @@ func (s *Suite) TestCreateIpaDomain() {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(data.ID))
 
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_valid_after","not_valid_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
 		WithArgs(
 			data.CaCerts[0].CreatedAt,
 			data.CaCerts[0].UpdatedAt,
@@ -571,8 +571,8 @@ func (s *Suite) TestCreateIpaDomain() {
 			data.CaCerts[0].IpaID,
 			data.CaCerts[0].Issuer,
 			data.CaCerts[0].Nickname,
-			data.CaCerts[0].NotValidAfter,
-			data.CaCerts[0].NotValidBefore,
+			data.CaCerts[0].NotAfter,
+			data.CaCerts[0].NotBefore,
 			data.CaCerts[0].Pem,
 			data.CaCerts[0].SerialNumber,
 			data.CaCerts[0].Subject,
@@ -812,8 +812,8 @@ func (s *Suite) TestRhelIdmClearToken() {
 					IpaID:          1,
 					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
-					NotValidAfter:  currentTime.Add(24 * time.Hour),
-					NotValidBefore: currentTime,
+					NotAfter:  currentTime.Add(24 * time.Hour),
+					NotBefore: currentTime,
 					SerialNumber:   "1",
 					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----",
@@ -1097,8 +1097,8 @@ func (s *Suite) TestList() {
 					IpaID:          1,
 					Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
-					NotValidAfter:  currentTime.Add(24 * time.Hour),
-					NotValidBefore: currentTime,
+					NotAfter:  currentTime.Add(24 * time.Hour),
+					NotBefore: currentTime,
 					SerialNumber:   "1",
 					Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----",
@@ -1352,7 +1352,7 @@ func (s *Suite) TestFindByID() {
 			"id", "created_at", "updated_at", "deletet_at",
 
 			"ipa_id", "issuer", "nickname",
-			"not_valid_after", "not_valid_before", "serial_number",
+			"not_after", "not_before", "serial_number",
 			"subject", "pem",
 		}).
 			AddRow(
@@ -1428,8 +1428,8 @@ func (s *Suite) TestFindByID() {
 					Issuer:         "issuer",
 					Subject:        "Subject",
 					Nickname:       "nickname",
-					NotValidAfter:  validAfter,
-					NotValidBefore: validBefore,
+					NotAfter:  validAfter,
+					NotBefore: validBefore,
 					SerialNumber:   "1111111111",
 					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 				},

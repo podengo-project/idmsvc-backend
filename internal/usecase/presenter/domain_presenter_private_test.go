@@ -309,8 +309,8 @@ func TestSharedDomain(t *testing.T) {
 	domain.DomainUuid = testUUID
 	domain.OrgId = testOrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(true)
-	testNotValidBefore := time.Now()
-	testNotValidAfter := testNotValidBefore.Add(24 * time.Hour)
+	testNotBefore := time.Now()
+	testNotAfter := testNotBefore.Add(24 * time.Hour)
 	domain.IpaDomain.RealmDomains = pq.StringArray{"mydomain.example"}
 	domain.IpaDomain.RealmName = pointy.String("MYDOMAIN.EXAMPLE")
 	testToken := uuid.New()
@@ -321,8 +321,8 @@ func TestSharedDomain(t *testing.T) {
 		{
 			Issuer:         "Ca Cert Issuer test",
 			Nickname:       "Ca Cert Nickname test",
-			NotValidBefore: testNotValidBefore,
-			NotValidAfter:  testNotValidAfter,
+			NotBefore: testNotBefore,
+			NotAfter:  testNotAfter,
 			SerialNumber:   "1",
 			Subject:        "Ca Cert Subject",
 			Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
@@ -354,8 +354,8 @@ func TestSharedDomain(t *testing.T) {
 				{
 					Issuer:         "Ca Cert Issuer test",
 					Nickname:       "Ca Cert Nickname test",
-					NotValidBefore: testNotValidBefore,
-					NotValidAfter:  testNotValidAfter,
+					NotBefore: testNotBefore,
+					NotAfter:  testNotAfter,
 					SerialNumber:   "1",
 					Subject:        "Ca Cert Subject",
 					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
@@ -399,8 +399,8 @@ func equalPrensenterDomainRhelIdmCaCerts(t *testing.T, expected []public.DomainI
 		assert.Equal(t, expected[i].Issuer, actual[i].Issuer)
 		assert.Equal(t, expected[i].SerialNumber, actual[i].SerialNumber)
 		assert.Equal(t, expected[i].Subject, actual[i].Subject)
-		assert.Equal(t, expected[i].NotValidAfter, actual[i].NotValidAfter)
-		assert.Equal(t, expected[i].NotValidBefore, actual[i].NotValidBefore)
+		assert.Equal(t, expected[i].NotAfter, actual[i].NotAfter)
+		assert.Equal(t, expected[i].NotBefore, actual[i].NotBefore)
 		assert.Equal(t, expected[i].Pem, actual[i].Pem)
 	}
 }

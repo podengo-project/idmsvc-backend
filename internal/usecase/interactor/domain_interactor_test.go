@@ -232,8 +232,8 @@ func TestRegisterIpa(t *testing.T) {
 			XRhIdmRegistrationToken: token,
 			XRhIdmVersion:           clientVersion,
 		}
-		notValidBefore = time.Now().UTC()
-		notValidAfter  = notValidBefore.Add(24 * time.Hour)
+		NotBefore = time.Now().UTC()
+		NotAfter  = NotBefore.Add(24 * time.Hour)
 	)
 	type TestCaseGiven struct {
 		XRHID  *identity.XRHID
@@ -420,8 +420,8 @@ func TestRegisterIpa(t *testing.T) {
 								SerialNumber:   "1",
 								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								NotValidBefore: notValidBefore,
-								NotValidAfter:  notValidAfter,
+								NotBefore: NotBefore,
+								NotAfter:  NotAfter,
 								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 							},
 						},
@@ -445,8 +445,8 @@ func TestRegisterIpa(t *testing.T) {
 								SerialNumber:   "1",
 								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								NotValidBefore: notValidBefore,
-								NotValidAfter:  notValidAfter,
+								NotBefore: NotBefore,
+								NotAfter:  NotAfter,
 								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 							},
 						},

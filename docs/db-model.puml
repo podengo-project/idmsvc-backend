@@ -26,8 +26,8 @@ entity "**ipa_certs**" {
   ""ipa_id"": //integer [FK]//
   *""issuer"": //text //
   *""nickname"": //character varying(255) //
-  *""not_valid_after"": //timestamp without time zone //
-  *""not_valid_before"": //timestamp without time zone //
+  *""not_after"": //timestamp without time zone //
+  *""not_before"": //timestamp without time zone //
   *""serial_number"": //character varying(64) //
   *""subject"": //text //
   *""pem"": //text //

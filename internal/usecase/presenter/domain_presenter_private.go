@@ -58,10 +58,10 @@ func (p *domainPresenter) fillRhelIdmCerts(
 			domain.IpaDomain.CaCerts[i].Nickname
 		output.RhelIdm.CaCerts[i].Issuer =
 			domain.IpaDomain.CaCerts[i].Issuer
-		output.RhelIdm.CaCerts[i].NotValidAfter =
-			domain.IpaDomain.CaCerts[i].NotValidAfter
-		output.RhelIdm.CaCerts[i].NotValidBefore =
-			domain.IpaDomain.CaCerts[i].NotValidBefore
+		output.RhelIdm.CaCerts[i].NotAfter =
+			domain.IpaDomain.CaCerts[i].NotAfter
+		output.RhelIdm.CaCerts[i].NotBefore =
+			domain.IpaDomain.CaCerts[i].NotBefore
 		output.RhelIdm.CaCerts[i].SerialNumber =
 			domain.IpaDomain.CaCerts[i].SerialNumber
 		output.RhelIdm.CaCerts[i].Subject =

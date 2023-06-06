@@ -276,8 +276,8 @@ func (i domainInteractor) registerOrUpdateRhelIdmCaCertOne(caCert *model.IpaCert
 	caCert.Issuer = cert.Issuer
 	caCert.Subject = cert.Subject
 	caCert.SerialNumber = cert.SerialNumber
-	caCert.NotValidBefore = cert.NotValidBefore
-	caCert.NotValidAfter = cert.NotValidAfter
+	caCert.NotBefore = cert.NotBefore
+	caCert.NotAfter = cert.NotAfter
 	caCert.Pem = cert.Pem
 }
 

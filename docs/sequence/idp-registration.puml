@@ -156,8 +156,8 @@ X-Rh-Idm-Version: eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEiLCAib3
         "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
         "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
         "serial_number": "1",
-        "not_valid_before": "2023-01-31T13:23:36",
-        "not_valid_after": "2023-01-31T13:23:36",
+        "not_before": "2023-01-31T13:23:36",
+        "not_after": "2023-01-31T13:23:36",
         "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
       }
     ],
@@ -226,8 +226,8 @@ note right ipa_server
             "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
             "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
             "serial_number": "1",
-            "not_valid_before": "2023-01-31T13:23:36",
-            "not_valid_after": "2023-01-31T13:23:36",
+            "not_before": "2023-01-31T13:23:36",
+            "not_after": "2023-01-31T13:23:36",
             "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
         }
     ],
@@ -373,8 +373,8 @@ note right Administrator
         "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
         "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
         "serial_number": "1",
-        "not_valid_before": "2023-01-31T13:23:36",
-        "not_valid_after": "2023-01-31T13:23:36"
+        "not_before": "2023-01-31T13:23:36",
+        "not_after": "2023-01-31T13:23:36"
         "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
       }
     ],

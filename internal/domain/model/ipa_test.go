@@ -51,8 +51,8 @@ func TestAfterCreate(t *testing.T) {
 	err = entity.AfterCreate(nil)
 	require.NoError(t, err)
 
-	notValidBefore := time.Now()
-	notValidAfter := notValidBefore.Add(24 * time.Hour)
+	NotBefore := time.Now()
+	NotAfter := NotBefore.Add(24 * time.Hour)
 	entity = &Ipa{
 		Model: gorm.Model{
 			ID: 1,
@@ -63,8 +63,8 @@ func TestAfterCreate(t *testing.T) {
 				Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 				Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 				SerialNumber:   "1",
-				NotValidBefore: notValidBefore,
-				NotValidAfter:  notValidAfter,
+				NotBefore: NotBefore,
+				NotAfter:  NotAfter,
 				Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 				IpaID:          0,
 			},

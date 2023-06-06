@@ -24,8 +24,8 @@
         "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
         "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
         "serial_number": "1",
-        "not_valid_before": "2023-01-31T13:23:36Z",
-        "not_valid_after": "2023-01-31T13:23:36Z",
+        "not_before": "2023-01-31T13:23:36Z",
+        "not_after": "2023-01-31T13:23:36Z",
         "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
       }
     ],

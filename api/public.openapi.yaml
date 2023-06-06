@@ -650,10 +650,10 @@ components:
                     type: string
                 serial_number:
                     type: string
-                not_valid_before:
+                not_before:
                     format: date-time
                     type: string
-                not_valid_after:
+                not_after:
                     format: date-time
                     type: string
                 pem:
@@ -752,8 +752,8 @@ components:
                             "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
                             "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
                             "serial_number": "1",
-                            "not_valid_before": "2023-01-31T13:23:36Z",
-                            "not_valid_after": "2023-01-31T13:23:36Z",
+                            "not_before": "2023-01-31T13:23:36Z",
+                            "not_after": "2023-01-31T13:23:36Z",
                             "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
                           }
                         ]
@@ -846,8 +846,8 @@ components:
             required:
                 - issuer
                 - nickname
-                - not_valid_after
-                - not_valid_before
+                - not_after
+                - not_before
                 - pem
                 - serial_number
                 - subject
@@ -865,11 +865,11 @@ components:
                 serial_number:
                     type: string
                     example: "1"
-                not_valid_before:
+                not_before:
                     format: date-time
                     type: string
                     example: ""
-                not_valid_after:
+                not_after:
                     format: date-time
                     type: string
                     example: ""
@@ -968,8 +968,8 @@ components:
                             "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
                             "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
                             "serial_number": "1",
-                            "not_valid_before": "2023-01-31T13:23:36Z",
-                            "not_valid_after": "2023-01-31T13:23:36Z"
+                            "not_before": "2023-01-31T13:23:36Z",
+                            "not_after": "2023-01-31T13:23:36Z"
                             "pem": "-----BEGIN CERTIFICATE-----\nMIIE...\n-----END CERTIFICATE-----\n",
                           }
                         ]

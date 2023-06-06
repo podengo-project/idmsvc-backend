@@ -116,13 +116,13 @@ type DomainIpa struct {
 
 // DomainIpaCert Represent a certificate item in the cacerts list for the Ipa domain type.
 type DomainIpaCert struct {
-	Issuer         string    `json:"issuer"`
-	Nickname       string    `json:"nickname"`
-	NotValidAfter  time.Time `json:"not_valid_after"`
-	NotValidBefore time.Time `json:"not_valid_before"`
-	Pem            string    `json:"pem"`
-	SerialNumber   string    `json:"serial_number"`
-	Subject        string    `json:"subject"`
+	Issuer       string    `json:"issuer"`
+	Nickname     string    `json:"nickname"`
+	NotAfter     time.Time `json:"not_after"`
+	NotBefore    time.Time `json:"not_before"`
+	Pem          string    `json:"pem"`
+	SerialNumber string    `json:"serial_number"`
+	Subject      string    `json:"subject"`
 }
 
 // DomainIpaServer Server schema for an entry into the Ipa domain type.

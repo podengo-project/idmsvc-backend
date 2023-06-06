@@ -349,8 +349,8 @@ func TestFillRhelmIdmCertsPanics(t *testing.T) {
 }
 
 func TestFillRhelmIdmCerts(t *testing.T) {
-	notValidBefore := time.Now()
-	notValidAfter := notValidBefore.Add(time.Hour * 24)
+	NotBefore := time.Now()
+	NotAfter := NotBefore.Add(time.Hour * 24)
 	type TestCaseGiven struct {
 		To   *public.Domain
 		From *model.Domain
@@ -379,8 +379,8 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 							{
 								Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
 								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-								NotValidBefore: notValidBefore,
-								NotValidAfter:  notValidAfter,
+								NotBefore: NotBefore,
+								NotAfter:  NotAfter,
 								SerialNumber:   "1",
 								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
 								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
@@ -398,8 +398,8 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 							{
 								Nickname:       "MYDOMAIN.EXAMPLE.IPA CA",
 								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
-								NotValidBefore: notValidBefore,
-								NotValidAfter:  notValidAfter,
+								NotBefore: NotBefore,
+								NotAfter:  NotAfter,
 								SerialNumber:   "1",
 								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
 								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",

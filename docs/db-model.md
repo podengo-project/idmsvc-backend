@@ -60,9 +60,9 @@ of certificates in the same order?
 - **subject**: The subject field for this certificate.
 - **serial_number**: Unique identifier of this certificate for
   the given issuer.
-- **not_valid_before**: Timestamp included that indicate the begin
+- **not_before**: Timestamp included that indicate the begin
   of validity for this certificate.
-- **not_valid_after**: Timestamp included that indicate the end
+- **not_after**: Timestamp included that indicate the end
   of validity for this certificate.
 - **pem**: The content of the certificate using PEM format as a string.
 

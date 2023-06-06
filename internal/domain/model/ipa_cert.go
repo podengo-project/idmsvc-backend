@@ -11,8 +11,8 @@ type IpaCert struct {
 	IpaID          uint
 	Issuer         string
 	Nickname       string
-	NotValidAfter  time.Time
-	NotValidBefore time.Time
+	NotAfter  time.Time
+	NotBefore time.Time
 	Pem            string
 	SerialNumber   string
 	Subject        string
