@@ -48,3 +48,6 @@ export RH_REGISTRY_TOKEN :=
 # You can list them by 'bonfire pool list' command
 POOL ?= default
 # POOL ?= real-managed-kafka
+
+# Set token expiration time, expressed in seconds (default 2 hours)
+APP_TOKEN_EXPIRATION_SECONDS ?= 7200

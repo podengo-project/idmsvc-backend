@@ -19,8 +19,9 @@ import (
 const (
 	// DefaultAppName is used to compose the route paths
 	DefaultAppName = "hmsidm"
-	// DefatulExpirationTime is used for the default token expiration period
-	DefatulExpirationTime = 15
+	// DefaultExpirationTime is used for the default token expiration period
+	// expressed in seconds. The default value is set to 7200 (2 hours)
+	DefaultExpirationTimeSeconds = 7200
 	// DefaultWebPort is the default port where the public API is listening
 	DefaultWebPort = 8000
 
@@ -149,7 +150,7 @@ type InventoryClient struct {
 type Application struct {
 	// This is the default expiration time for the token
 	// generated when a RHEL IDM domain is created
-	ExpirationTime int `mapstructure:"expiration_time"`
+	ExpirationTimeSeconds int `mapstructure:"expiration_time_seconds"`
 	// Indicate the default pagination limit when it is 0 or not filled
 	PaginationDefaultLimit int `mapstructure:"pagination_default_limit"`
 	// Indicate the max pagination limit when it is grather
@@ -194,7 +195,7 @@ func setDefaults(v *viper.Viper) {
 
 	// Set default value for application expiration time for
 	// the token created by the RHEL IDM domains
-	v.SetDefault("app.expiration_time", DefatulExpirationTime)
+	v.SetDefault("app.expiration_time_seconds", DefaultExpirationTimeSeconds)
 	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)

@@ -280,7 +280,7 @@ func (r *domainRepository) RhelIdmClearToken(
 		}
 		if err = db.Table("ipas").
 			Where("id = ?", dataDomain.IpaDomain.Model.ID).
-			Update("token_expiration", nil).
+			Update("token_expiration_ts", nil).
 			Error; err != nil {
 			return err
 		}

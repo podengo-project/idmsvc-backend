@@ -51,6 +51,10 @@ ifneq (,$(APP_VALIDATE_API))
 EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_VALIDATE_API=$(APP_VALIDATE_API)"
 endif
 
+ifneq (,$(APP_TOKEN_EXPIRATION_SECONDS))
+EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_TOKEN_EXPIRATION_SECONDS=$(APP_TOKEN_EXPIRATION_SECONDS)"
+endif
+
 EPHEMERAL_BONFIRE_PATH ?= configs/bonfire.yaml
 
 # TODO Uncomment when the frontend is created

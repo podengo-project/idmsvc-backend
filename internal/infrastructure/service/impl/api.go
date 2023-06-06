@@ -74,8 +74,8 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 
 	model.SetDefaultTokenExpiration(
 		time.Duration(
-			cfg.Application.ExpirationTime,
-		) * time.Minute,
+			cfg.Application.ExpirationTimeSeconds,
+		) * time.Second,
 	)
 
 	return result

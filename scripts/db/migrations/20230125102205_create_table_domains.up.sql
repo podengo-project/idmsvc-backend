@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS ipas (
     realm_name VARCHAR(253) NOT NULL,
     realm_domains TEXT NOT NULL,
     token VARCHAR(256) DEFAULT NULL,
-    token_expiration TIMESTAMP DEFAULT NULL,
+    token_expiration_ts TIMESTAMP DEFAULT NULL,
 
     CONSTRAINT fk_ipas_id__domains_id
         FOREIGN KEY (id)

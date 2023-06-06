@@ -81,3 +81,7 @@ export APP_ACCEPT_X_RH_FAKE_IDENTITY
 # FIXME Change to true when API validation get working in ephemeral
 APP_VALIDATE_API ?= false
 export APP_VALIDATE_API
+
+# Set the default token expiration in seconds (2 hours)
+APP_TOKEN_EXPIRATION_SECONDS ?= 7200
+export APP_TOKEN_EXPIRATION_SECONDS

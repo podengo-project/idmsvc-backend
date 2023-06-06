@@ -14,7 +14,9 @@ import (
 )
 
 // See: https://gorm.io/docs/models.html
+// See: https://gorm.io/docs/conventions.html
 
+// Ipa represent the specific rhel-idm domain information
 type Ipa struct {
 	gorm.Model
 	CaCerts         []IpaCert
@@ -22,18 +24,27 @@ type Ipa struct {
 	RealmName       *string
 	RealmDomains    pq.StringArray `gorm:"type:text[]"`
 	Token           *string
-	TokenExpiration *time.Time
+	TokenExpiration *time.Time `gorm:"column:token_expiration_ts"`
 
 	Domain Domain `gorm:"foreignKey:ID;references:ID"`
 }
 
-// Set by the default tokenExpiration to 24hours once it is created
-var tokenExpirationDuration time.Duration = time.Hour * 24
+// tokenExpirationDuration is the duration to be used
+// when a domain is created into the database.
+var tokenExpirationDuration time.Duration = time.Hour * 2
 
+// SetDefaultTokenExpiration update the default expiration
+// period. This value is global value and is intendeed to be
+// set on initialization time.
+// d is the period of time during the token is valid.
 func SetDefaultTokenExpiration(d time.Duration) {
 	tokenExpirationDuration = d
 }
 
+// DefaultTokenExpiration get the value used to set
+// the expiration period for a new domain created.
+// Return the duration to be used for new creted domains
+// into the database.
 func DefaultTokenExpiration() time.Duration {
 	return tokenExpirationDuration
 }

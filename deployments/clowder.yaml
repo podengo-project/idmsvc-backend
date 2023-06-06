@@ -75,8 +75,8 @@ objects:
                 value: "true"
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
-              - name: APP_TOKEN_EXPIRATION
-                value: "${APP_TOKEN_EXPIRATION}"
+              - name: APP_TOKEN_EXPIRATION_SECONDS
+                value: "${APP_TOKEN_EXPIRATION_SECONDS}"
               - name: APP_PAGINATION_DEFAULT_LIMIT
                 value: ${APP_PAGINATION_DEFAULT_LIMIT}
               - name: APP_PAGINATION_MAX_LIMIT
@@ -160,9 +160,11 @@ parameters:
     description: |
       The log level for the deployment; valid values
       are "info", "warn", "error", "debug", "trace".
-  - name: APP_TOKEN_EXPIRATION
-    value: "15"
-    description: Indicate the token expiration period
+  - name: APP_TOKEN_EXPIRATION_SECONDS
+    value: "7200"
+    description: |
+      Indicate the token expiration duration expressed in
+      seconds. By default set to 7200 seconds (2 hours).
   - name: APP_PAGINATION_DEFAULT_LIMIT
     value: "10"
     description: |
