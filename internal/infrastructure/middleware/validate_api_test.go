@@ -21,17 +21,30 @@ func TestNewApiServiceValidator(t *testing.T) {
 	assert.NotNil(t, v)
 }
 
-func TestCheckFormatIssuerSubject(t *testing.T) {
+func TestCheckFormatIssuer(t *testing.T) {
 	var err error
 	// Empty string
-	err = checkFormatIssuerSubject("")
-	assert.EqualError(t, err, "'issuer' format not matching")
-	err = checkFormatIssuerSubject("CN=Value?")
-	assert.EqualError(t, err, "'issuer' format not matching")
-	err = checkFormatIssuerSubject("'")
-	assert.EqualError(t, err, "'issuer' format not matching")
-	// err = checkFormatIssuerSubject("CN=John Doe, O=Example Corp, OU=Engineering, DC=example, DC=com")
-	// assert.NoError(t, err)
+	err = checkFormatIssuer("")
+	assert.EqualError(t, err, "'issuer'='' format not matching")
+	err = checkFormatIssuer("CN=Value?")
+	assert.EqualError(t, err, "'issuer'='CN=Value?' format not matching")
+	err = checkFormatIssuer("'")
+	assert.EqualError(t, err, "'issuer'=''' format not matching")
+	err = checkFormatIssuer("CN=John Doe, O=Example Corp, OU=Engineering, DC=example, DC=com")
+	assert.NoError(t, err)
+}
+
+func TestCheckFormatSubject(t *testing.T) {
+	var err error
+	// Empty string
+	err = checkFormatSubject("")
+	assert.EqualError(t, err, "'subject'='' format not matching")
+	err = checkFormatSubject("CN=Value?")
+	assert.EqualError(t, err, "'subject'='CN=Value?' format not matching")
+	err = checkFormatSubject("'")
+	assert.EqualError(t, err, "'subject'=''' format not matching")
+	err = checkFormatSubject("CN=John Doe, O=Example Corp, OU=Engineering, DC=example, DC=com")
+	assert.NoError(t, err)
 }
 
 func TestCheckFormatRealmDomains(t *testing.T) {

@@ -63,13 +63,13 @@ func InitOpenAPIFormats() {
 
 	// FIXME Search the regular expressions for the below formats
 	openapi3.DefineStringFormatCallback("cert-issuer", func(value string) error {
-		return checkFormatIssuerSubject(value)
+		return checkFormatIssuer(value)
 	})
-	openapi3.DefineStringFormatCallback("cert-pem", func(value string) error {
-		return checkCertificateFormat(value)
-	})
+	// openapi3.DefineStringFormatCallback("cert-pem", func(value string) error {
+	// 	return checkCertificateFormat(value)
+	// })
 	openapi3.DefineStringFormatCallback("cert-subject", func(value string) error {
-		return checkFormatIssuerSubject(value)
+		return checkFormatSubject(value)
 	})
 	openapi3.DefineStringFormat("domain-description", `^[\n\x20-\x7E]*$`)
 	openapi3.DefineStringFormat("domain-title", `^[a-zA-Z0-9\s]+$`)
@@ -80,13 +80,13 @@ func InitOpenAPIFormats() {
 }
 
 func helperCheckRegEx(regex string, fieldName string, fieldValue string) error {
-	subjectRegEx := `^((?:[A-Za-z]+=[A-Z0-9\s]+)(?:, [A-Za-z]+=[A-Za-z0-9\s]+)*)$`
-	match, err := regexp.MatchString(subjectRegEx, fieldValue)
+	// https://regex101.com/
+	match, err := regexp.MatchString(regex, fieldValue)
 	if err != nil {
 		return fmt.Errorf("error compiling regular expression: %w", err)
 	}
 	if !match {
-		return fmt.Errorf("'%s' format not matching", fieldName)
+		return fmt.Errorf("'%s'='%s' format not matching", fieldName, fieldValue)
 	}
 	return nil
 }
@@ -106,13 +106,22 @@ func checkCertificateFormat(value string) error {
 	return nil
 }
 
-// checkFormatIssuerSubject check the subject and issuer format in a certificate
+// checkFormatIssuer check the subject and issuer format in a certificate
 // is valid.
 // Return an error or nil for success parsed data.
-func checkFormatIssuerSubject(value string) error {
-	// FIXME wrong regular expression
-	subjectRegEx := `^((?:[A-Za-z]+=[A-Za-z0-9\s]+)(?:, [A-Za-z]+=[A-Za-z0-9\s]+)*)$`
+func checkFormatIssuer(value string) error {
+	// https://regex101.com/
+	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\s]+)(?:, [A-Z]+=[A-Za-z0-9\.\s]+)*)$`
 	return helperCheckRegEx(subjectRegEx, "issuer", value)
+}
+
+// checkFormatSubject check the subject and issuer format in a certificate
+// is valid.
+// Return an error or nil for success parsed data.
+func checkFormatSubject(value string) error {
+	// https://regex101.com/
+	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\s]+)(?:, [A-Z]+=[A-Za-z0-9\.\s]+)*)$`
+	return helperCheckRegEx(subjectRegEx, "subject", value)
 }
 
 func checkFormatRealmDomains(value string) error {
