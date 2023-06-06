@@ -428,9 +428,10 @@ components:
             title: Root Type for Error
             description: General error schema
             required:
-                - detail
                 - id
                 - status
+                - title
+                - details
             type: object
             properties:
                 id:
@@ -447,11 +448,16 @@ components:
                     type: integer
                     readOnly: true
                     example: "400"
-                detail:
-                    description: A human-readable explanation specific to this occurrence of the
-                        problem. This field’s value can be localized.
+                title:
+                    description: A human-readable short explanation specific to this occurrence of
+                        the problem. This field’s value can be localized.
                     type: string
                     example: Bad request
+                details:
+                    description: A detailed explanation specific to this occurrence of the problem,
+                        e.g. a traceback.
+                    type: string
+                    example: An error occured at code.go:123.
             example:
                 id: ${X-RH-INSIGHTS-REQUEST-ID}
                 status: "400"

@@ -140,14 +140,17 @@ type DomainIpaServer struct {
 
 // Error General error schema
 type Error struct {
-	// Detail A human-readable explanation specific to this occurrence of the problem. This field’s value can be localized.
-	Detail string `json:"detail"`
+	// Details A detailed explanation specific to this occurrence of the problem, e.g. a traceback.
+	Details string `json:"details"`
 
 	// Id A unique identifier for this particular occurrence of the problem.
 	Id string `json:"id"`
 
 	// Status The HTTP status code applicable to this problem, expressed as a string value. This SHOULD be provided.
 	Status *int `json:"status,omitempty"`
+
+	// Title A human-readable short explanation specific to this occurrence of the problem. This field’s value can be localized.
+	Title string `json:"title"`
 }
 
 // Errors General error response returned by the hmsidm API
