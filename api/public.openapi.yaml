@@ -6,10 +6,12 @@ info:
     description: Backend API for hmsidm service
     contact: {}
 servers:
-    - url: http://localhost:8000/api/hmsidm/v1
-      description: Development environment
-    - url: https://console.redhat.com/api/hmsidm/v1
-      description: Production environment
+    - url: /api/hmsidm/v1
+      description: Production
+    - url: /beta/api/hmsidm/v1
+      description: Beta
+    - url: /preview/api/hmsidm/v1
+      description: Preview
 paths:
     "/domains/{uuid}":
         summary: Operations on a specific domain
