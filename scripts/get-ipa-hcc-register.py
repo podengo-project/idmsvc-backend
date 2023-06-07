@@ -15,6 +15,17 @@ CREATE_JSON = {
     "domain_type": "rhel-idm",
 }
 
+IDM_CI_SECRETS = """\
+# idm-ci/secrets
+export RHC_ENV="ephemeral"
+export RHC_ORG="12345"
+export RHC_KEY="not-used"
+export RH_API_TOKEN="not-used"
+export HMSIDM_BACKEND={hmsidm_backend}
+export EPHEMERAL_USERNAME={username}
+export EPHEMERAL_PASSWORD={password}
+"""
+
 
 def oc(*args) -> str:
     cmd = ["oc"]
@@ -38,8 +49,13 @@ def main() -> None:
         "-o",
         "jsonpath={.items[0].spec.host}",
     )
-
     url = f"https://{hmsidm_backend}/api/hmsidm/v1/domains"
+
+    filename = "idm-ci-secrets"
+    print(f"Writing idm-ci secrets to file '{filename}'.")
+    with open("idm-ci-secrets", "w") as f:
+        f.write(IDM_CI_SECRETS.format(**locals()))
+
     print(f"POST {url}")
     resp = requests.post(
         url,

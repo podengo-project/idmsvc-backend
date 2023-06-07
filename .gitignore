@@ -1,6 +1,7 @@
 .DS_Store
 .cicd_bootstrap.sh
 secrets
+/idm-ci-secrets
 .venv
 bin
 tmp.*/**
