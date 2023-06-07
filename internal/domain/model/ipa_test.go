@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -59,20 +60,20 @@ func TestAfterCreate(t *testing.T) {
 		},
 		CaCerts: []IpaCert{
 			{
-				Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
-				Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-				Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-				SerialNumber:   "1",
-				NotBefore: NotBefore,
-				NotAfter:  NotAfter,
-				Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-				IpaID:          0,
+				Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
+				Issuer:       "CN=Issuer Authority, O=MYDOMAIN.EXAMPLE",
+				Subject:      "CN=Subject, O=MYDOMAIN.EXAMPLE",
+				SerialNumber: "1",
+				NotBefore:    NotBefore,
+				NotAfter:     NotAfter,
+				Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+				IpaID:        0,
 			},
 		},
 		Servers: []IpaServer{
 			{
 				FQDN:                "ipaserver.mydomain.example",
-				RHSMId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
+				RHSMId:              pointy.String("547ce70c-9eb5-4783-a619-086aa26f88e5"),
 				CaServer:            true,
 				HCCEnrollmentServer: true,
 				PKInitServer:        true,

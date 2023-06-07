@@ -113,7 +113,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 					Servers: []model.IpaServer{
 						{
 							FQDN:                "server1.mydomain.example",
-							RHSMId:              "c4a80438-c768-11ed-a60e-482ae3863d30",
+							RHSMId:              pointy.String("c4a80438-c768-11ed-a60e-482ae3863d30"),
 							PKInitServer:        true,
 							CaServer:            true,
 							HCCEnrollmentServer: true,
@@ -139,7 +139,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 						Servers: []public.DomainIpaServer{
 							{
 								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: "c4a80438-c768-11ed-a60e-482ae3863d30",
+								SubscriptionManagerId: pointy.String("c4a80438-c768-11ed-a60e-482ae3863d30"),
 								PkinitServer:          true,
 								CaServer:              true,
 								HccEnrollmentServer:   true,
@@ -319,16 +319,16 @@ func TestSharedDomain(t *testing.T) {
 	domain.IpaDomain.TokenExpiration = &testTokenExpiration
 	domain.IpaDomain.CaCerts = []model.IpaCert{
 		{
-			Issuer:         "Ca Cert Issuer test",
-			Nickname:       "Ca Cert Nickname test",
-			NotBefore: testNotBefore,
-			NotAfter:  testNotAfter,
-			SerialNumber:   "1",
-			Subject:        "Ca Cert Subject",
-			Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+			Issuer:       "Ca Cert Issuer test",
+			Nickname:     "Ca Cert Nickname test",
+			NotBefore:    testNotBefore,
+			NotAfter:     testNotAfter,
+			SerialNumber: "1",
+			Subject:      "Ca Cert Subject",
+			Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 		},
 	}
-	testSubscriptionManagerId := "93a46bde-e760-11ed-9a5a-482ae3863d30"
+	testSubscriptionManagerId := pointy.String("93a46bde-e760-11ed-9a5a-482ae3863d30")
 	domain.IpaDomain.Servers = []model.IpaServer{
 		{
 			FQDN:                "server1.mydomain.example",
@@ -352,13 +352,13 @@ func TestSharedDomain(t *testing.T) {
 			RealmDomains: []string{"mydomain.example"},
 			CaCerts: []public.DomainIpaCert{
 				{
-					Issuer:         "Ca Cert Issuer test",
-					Nickname:       "Ca Cert Nickname test",
-					NotBefore: testNotBefore,
-					NotAfter:  testNotAfter,
-					SerialNumber:   "1",
-					Subject:        "Ca Cert Subject",
-					Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+					Issuer:       "Ca Cert Issuer test",
+					Nickname:     "Ca Cert Nickname test",
+					NotBefore:    testNotBefore,
+					NotAfter:     testNotAfter,
+					SerialNumber: "1",
+					Subject:      "Ca Cert Subject",
+					Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 				},
 			},
 			Servers: []public.DomainIpaServer{
@@ -504,7 +504,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 						Servers: []model.IpaServer{
 							{
 								FQDN:                "server1.mydomain.example",
-								RHSMId:              "547ce70c-9eb5-4783-a619-086aa26f88e5",
+								RHSMId:              pointy.String("547ce70c-9eb5-4783-a619-086aa26f88e5"),
 								CaServer:            true,
 								HCCEnrollmentServer: true,
 								HCCUpdateServer:     true,
@@ -522,7 +522,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 						Servers: []public.DomainIpaServer{
 							{
 								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: "547ce70c-9eb5-4783-a619-086aa26f88e5",
+								SubscriptionManagerId: pointy.String("547ce70c-9eb5-4783-a619-086aa26f88e5"),
 								CaServer:              true,
 								HccEnrollmentServer:   true,
 								HccUpdateServer:       true,

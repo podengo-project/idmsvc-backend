@@ -199,10 +199,10 @@ func TestRegisterIpa(t *testing.T) {
 		cn        = "21258fc8-c755-11ed-afc4-482ae3863d30"
 		requestID = "TW9uIE1hciAyMCAyMDo1Mzoz"
 		token     = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
-		rhsmId    = "cf26cd96-c75d-11ed-ae20-482ae3863d30"
 		orgID     = "12345"
 	)
 	var (
+		rhsmID      = pointy.String("cf26cd96-c75d-11ed-ae20-482ae3863d30")
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{
 				OrgID: orgID,
@@ -416,13 +416,13 @@ func TestRegisterIpa(t *testing.T) {
 						RealmName: "MYDOMAIN.EXAMPLE",
 						CaCerts: []api_public.DomainIpaCert{
 							{
-								Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
-								SerialNumber:   "1",
-								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								NotBefore: NotBefore,
-								NotAfter:  NotAfter,
-								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
+								SerialNumber: "1",
+								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								NotBefore:    NotBefore,
+								NotAfter:     NotAfter,
+								Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 							},
 						},
 					},
@@ -441,13 +441,13 @@ func TestRegisterIpa(t *testing.T) {
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
 						CaCerts: []model.IpaCert{
 							{
-								Nickname:       "MYDOMAIN.EXAMPLE IPA CA",
-								SerialNumber:   "1",
-								Issuer:         "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								Subject:        "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								NotBefore: NotBefore,
-								NotAfter:  NotAfter,
-								Pem:            "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
+								SerialNumber: "1",
+								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+								NotBefore:    NotBefore,
+								NotAfter:     NotAfter,
+								Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
 							},
 						},
 						Servers:      []model.IpaServer{},
@@ -472,7 +472,7 @@ func TestRegisterIpa(t *testing.T) {
 						Servers: []api_public.DomainIpaServer{
 							{
 								Fqdn:                  "server.mydomain.example",
-								SubscriptionManagerId: rhsmId,
+								SubscriptionManagerId: rhsmID,
 								CaServer:              true,
 								PkinitServer:          true,
 								HccEnrollmentServer:   true,
@@ -497,7 +497,7 @@ func TestRegisterIpa(t *testing.T) {
 						Servers: []model.IpaServer{
 							{
 								FQDN:                "server.mydomain.example",
-								RHSMId:              rhsmId,
+								RHSMId:              rhsmID,
 								CaServer:            true,
 								HCCEnrollmentServer: true,
 								HCCUpdateServer:     true,

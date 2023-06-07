@@ -992,7 +992,6 @@ components:
                 - hcc_enrollment_server
                 - hcc_update_server
                 - pkinit_server
-                - subscription_manager_id
                 - location
             type: object
             properties:
@@ -1012,6 +1011,8 @@ components:
                     type: boolean
                     example: "true"
                 subscription_manager_id:
+                    maxLength: 36
+                    minLength: 36
                     type: string
                     example: 03965a2c-bd24-11ed-968d-482ae3863d30
                 location:
@@ -1021,7 +1022,7 @@ components:
             additionalProperties: false
             example:
                 fqdn: ipaserver.mydomain.example
-                rhsm_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+                subscription_manager_id: 03965a2c-bd24-11ed-968d-482ae3863d30
                 location: europe
                 ca_server: true
                 hcc_enrollment_server: true

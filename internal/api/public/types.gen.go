@@ -133,9 +133,9 @@ type DomainIpaServer struct {
 	HccUpdateServer     bool   `json:"hcc_update_server"`
 
 	// Location A location identifier (lower-case DNS label).
-	Location              string `json:"location"`
-	PkinitServer          bool   `json:"pkinit_server"`
-	SubscriptionManagerId string `json:"subscription_manager_id"`
+	Location              string  `json:"location"`
+	PkinitServer          bool    `json:"pkinit_server"`
+	SubscriptionManagerId *string `json:"subscription_manager_id,omitempty"`
 }
 
 // Error General error schema

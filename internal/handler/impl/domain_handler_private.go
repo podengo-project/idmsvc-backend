@@ -87,7 +87,9 @@ func (a *application) isSubscriptionManagerIDAuthorizedToUpdate(
 		return fmt.Errorf("'servers' is nil")
 	}
 	for i := range servers {
-		if servers[i].HCCUpdateServer && servers[i].RHSMId == subscriptionManagerID {
+		if servers[i].HCCUpdateServer &&
+			servers[i].RHSMId != nil &&
+			*servers[i].RHSMId == subscriptionManagerID {
 			return nil
 		}
 	}

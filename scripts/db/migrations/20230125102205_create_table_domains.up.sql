@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS ipa_servers (
 
     ipa_id  INT,
     fqdn VARCHAR(253) NOT NULL,
-    rhsm_id VARCHAR(64) NOT NULL,
+    rhsm_id VARCHAR(64) DEFAULT NULL,
     location VARCHAR(63) NOT NULL,
     ca_server BOOLEAN NOT NULL,
     hcc_enrollment_server BOOLEAN NOT NULL,

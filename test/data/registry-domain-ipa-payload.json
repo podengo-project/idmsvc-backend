@@ -3,7 +3,7 @@
   "servers": [
     {
       "fqdn": "ipaserver.mydomain.example",
-      "rhsm_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+      "subscription_manager_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
       "ca_server": true,
       "hcc_enrollment_server": true,
       "pkinit_server": true
