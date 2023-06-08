@@ -9,7 +9,7 @@ type IpaServer struct {
 	IpaID               uint
 	FQDN                string
 	RHSMId              *string `gorm:"unique;column:rhsm_id"`
-	Location            string
+	Location            *string
 	CaServer            bool
 	HCCEnrollmentServer bool
 	HCCUpdateServer     bool

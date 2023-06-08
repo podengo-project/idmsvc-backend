@@ -333,7 +333,7 @@ func TestSharedDomain(t *testing.T) {
 		{
 			FQDN:                "server1.mydomain.example",
 			RHSMId:              testSubscriptionManagerId,
-			Location:            "europe",
+			Location:            pointy.String("europe"),
 			CaServer:            true,
 			PKInitServer:        true,
 			HCCEnrollmentServer: true,
@@ -365,7 +365,7 @@ func TestSharedDomain(t *testing.T) {
 				{
 					Fqdn:                  "server1.mydomain.example",
 					SubscriptionManagerId: testSubscriptionManagerId,
-					Location:              "europe",
+					Location:              pointy.String("europe"),
 					CaServer:              true,
 					PkinitServer:          true,
 					HccEnrollmentServer:   true,

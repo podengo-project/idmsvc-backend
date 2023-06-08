@@ -992,7 +992,6 @@ components:
                 - hcc_enrollment_server
                 - hcc_update_server
                 - pkinit_server
-                - location
             type: object
             properties:
                 fqdn:
