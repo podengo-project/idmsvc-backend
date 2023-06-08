@@ -16,6 +16,14 @@
         "hcc_enrollment_server": true,
         "hcc_update_server": true,
         "pkinit_server": true
+      },
+      {
+        "fqdn": "server2.mydomain.example",
+        "subscription_manager_id": "6f324116-b3d2-11ed-8a37-482ae3863d30",
+        "ca_server": false,
+        "hcc_enrollment_server": false,
+        "hcc_update_server": false,
+        "pkinit_server": false
       }
     ],
     "ca_certs": [
