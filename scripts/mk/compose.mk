@@ -36,7 +36,16 @@ DOCKER_COMPOSE_VARS= \
 compose-up: ## Start local infrastructure
 	$(DOCKER_COMPOSE_VARS) \
 	$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) up -d
+	$(MAKE) .compose-wait-db
 	$(MAKE) db-migrate-up
+
+.PHONY: .compose-wait-db
+.compose-wait-db:
+	@printf "Waiting database"; \
+	while [ "$$( podman container inspect --format '{{.State.Health.Status}}' "$(DOCKER_COMPOSE_PROJECT)_database_1" )" != "healthy" ]; \
+	do sleep 1; printf "."; \
+	done; \
+	printf "\n"
 
 .PHONY: compose-down
 compose-down: ## Stop local infrastructure
