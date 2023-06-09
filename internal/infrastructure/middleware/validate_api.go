@@ -111,8 +111,8 @@ func checkCertificateFormat(value string) error {
 // Return an error or nil for success parsed data.
 func checkFormatIssuer(value string) error {
 	// https://regex101.com/
-	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\s]+)(?:, [A-Z]+=[A-Za-z0-9\.\s]+)*)$`
-	return helperCheckRegEx(subjectRegEx, "issuer", value)
+	issuerRegEx := `^((?:[A-Z]+=[A-Za-z0-9\.\-\s]+)(?:[ ]*,[ ]*[A-Z]+=[A-Za-z0-9.\-]+)*)$`
+	return helperCheckRegEx(issuerRegEx, "issuer", value)
 }
 
 // checkFormatSubject check the subject and issuer format in a certificate
@@ -120,7 +120,7 @@ func checkFormatIssuer(value string) error {
 // Return an error or nil for success parsed data.
 func checkFormatSubject(value string) error {
 	// https://regex101.com/
-	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\s]+)(?:, [A-Z]+=[A-Za-z0-9\.\s]+)*)$`
+	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\.\-\s]+)(?:[ ]*,[ ]*[A-Z]+=[A-Za-z0-9.\-]+)*)$`
 	return helperCheckRegEx(subjectRegEx, "subject", value)
 }
 
