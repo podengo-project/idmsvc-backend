@@ -488,7 +488,7 @@ func TestRegisterIpa(t *testing.T) {
 							{
 								Fqdn:                  "server.mydomain.example",
 								SubscriptionManagerId: &rhsmID,
-								Location:              "europe",
+								Location:              pointy.String("europe"),
 								CaServer:              true,
 								PkinitServer:          true,
 								HccEnrollmentServer:   true,
@@ -515,7 +515,7 @@ func TestRegisterIpa(t *testing.T) {
 							{
 								FQDN:                "server.mydomain.example",
 								RHSMId:              pointy.String(rhsmID.String()),
-								Location:            "europe",
+								Location:            pointy.String("europe"),
 								CaServer:            true,
 								HCCEnrollmentServer: true,
 								HCCUpdateServer:     true,
