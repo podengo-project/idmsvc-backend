@@ -1,4 +1,3 @@
----
 openapi: 3.0.2
 info:
     title: hmsidm-backend
@@ -746,20 +745,19 @@ components:
             title: Root Type for DomainResponse
             description: A domain resource
             required:
-                - auto_enrollment_enabled
                 - domain_name
                 - domain_type
-                - domain_id
-                - description
-                - title
             type: object
             properties:
                 domain_id:
                     description: Internal id for this domain
+                    maxLength: 36
+                    minLength: 36
                     type: string
                     example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
                 domain_name:
                     description: Domain name
+                    pattern: ^[a-z0-9\.\-]+$
                     type: string
                     example: mydomain.example
                 auto_enrollment_enabled:
@@ -829,6 +827,9 @@ components:
                         ]
                 realm_name:
                     description: The kerberos realm name associated to this IPA domain.
+                    maxLength: 253
+                    minLength: 3
+                    pattern: ^[A-Z0-9\.\-]+$
                     type: string
                     example: MYDOMAIN.EXAMPLE
                 realm_domains:
@@ -836,6 +837,11 @@ components:
                     type: array
                     items:
                         type: string
+                locations:
+                    description: List of allowed locations
+                    type: array
+                    items:
+                        $ref: "#/components/schemas/DomainIpaLocation"
             additionalProperties: false
         DomainIpaServer:
             title: Root Type for CreateDomainIpaServer
@@ -871,6 +877,8 @@ components:
                 location:
                     description: A location identifier (lower-case DNS label).
                     maxLength: 63
+                    minLength: 1
+                    pattern: ^[a-z][a-z0-9\-]*$
                     type: string
             additionalProperties: false
             example:
@@ -935,6 +943,21 @@ components:
             allOf:
                 - $ref: "#/components/schemas/Domain"
             additionalProperties: false
+        DomainIpaLocation:
+            title: Root Type for DomainIpaLocation
+            description: Represent a location for rhel-idm instance.
+            required:
+                - name
+            type: object
+            properties:
+                name:
+                    type: string
+                description:
+                    description: Location description.
+                    type: string
+            example:
+                name: boston
+                description: Location at Boston
     responses:
         ErrorResponse:
             content:

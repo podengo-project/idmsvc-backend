@@ -49,13 +49,13 @@ type CreateDomainDomainType string
 // Domain A domain resource
 type Domain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
 
 	// Description Human readable description abou the domain.
-	Description string `json:"description"`
+	Description *string `json:"description,omitempty"`
 
 	// DomainId Internal id for this domain
-	DomainId string `json:"domain_id"`
+	DomainId *string `json:"domain_id,omitempty"`
 
 	// DomainName Domain name
 	DomainName string `json:"domain_name"`
@@ -68,7 +68,7 @@ type Domain struct {
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
 
 	// Title Title to describe the domain.
-	Title string `json:"title"`
+	Title *string `json:"title,omitempty"`
 }
 
 // DomainDomainType Type of this domain. Currently only rhel-idm is supported.
@@ -78,6 +78,9 @@ type DomainDomainType string
 type DomainIpa struct {
 	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
 	CaCerts []DomainIpaCert `json:"ca_certs"`
+
+	// Locations List of allowed locations
+	Locations *[]DomainIpaLocation `json:"locations,omitempty"`
 
 	// RealmDomains List of realm associated to the IPA domain.
 	RealmDomains []string `json:"realm_domains"`
@@ -98,6 +101,13 @@ type DomainIpaCert struct {
 	Pem          string    `json:"pem"`
 	SerialNumber string    `json:"serial_number"`
 	Subject      string    `json:"subject"`
+}
+
+// DomainIpaLocation Represent a location for rhel-idm instance.
+type DomainIpaLocation struct {
+	// Description Location description.
+	Description *string `json:"description,omitempty"`
+	Name        string  `json:"name"`
 }
 
 // DomainIpaServer Server schema for an entry into the Ipa domain type.
