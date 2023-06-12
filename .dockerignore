@@ -9,6 +9,7 @@ tmp.*/**
 *.log
 
 configs
+!configs/config.example.yaml
 
 # File generated when running unit tests
 coverage.out

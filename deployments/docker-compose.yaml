@@ -42,6 +42,8 @@ services:
   #   build:
   #     dockerfile: ./build/kafka/Dockerfile
   #     context: ..
+  #     tags:
+  #       - localhost/kafka:latest
   #   command: /opt/kafka/scripts/zookeeper-entrypoint.sh
   #   ports:
   #     - "8778:8778"
@@ -64,6 +66,8 @@ services:
   #   build:
   #     dockerfile: ./build/kafka/Dockerfile
   #     context: ..
+  #     tags:
+  #       - localhost/kafka:latest
   #   command: /opt/kafka/scripts/kafka-entrypoint.sh
   #   ports:
   #     - "9092:9092"
@@ -87,8 +91,13 @@ services:
   #   build:
   #     dockerfile: build/package/Dockerfile
   #     context: ..
+  #     tags:
+  #       - ${DOCKER_IMAGE_BASE}:${DOCKER_IMAGE_TAG}
   #   environment:
   #     - WEB_PORT=8000
+  #     - DATABASE_HOST=database
+  #   links:
+  #      - database
   #   ports:
   #     - 8000:8000/tcp
 
