@@ -290,7 +290,9 @@ func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, do
 	domainIpa.Servers = make([]model.IpaServer, len(body.RhelIdm.Servers))
 	for idx, server := range body.RhelIdm.Servers {
 		domainIpa.Servers[idx].FQDN = server.Fqdn
-		domainIpa.Servers[idx].RHSMId = pointy.String(server.SubscriptionManagerId.String())
+		if server.SubscriptionManagerId != nil {
+			domainIpa.Servers[idx].RHSMId = pointy.String(server.SubscriptionManagerId.String())
+		}
 		domainIpa.Servers[idx].Location = server.Location
 		domainIpa.Servers[idx].PKInitServer = server.PkinitServer
 		domainIpa.Servers[idx].CaServer = server.CaServer
@@ -334,9 +336,9 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, UUID string, body *
 	domain = &model.Domain{}
 	domain.OrgId = orgID
 	domain.DomainUuid = uuid.MustParse(UUID)
-	domain.Title = pointy.String(body.Title)
-	domain.Description = pointy.String(body.Description)
-	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
+	domain.Title = body.Title
+	domain.Description = body.Description
+	domain.AutoEnrollmentEnabled = body.AutoEnrollmentEnabled
 	domain.DomainName = pointy.String(body.DomainName)
 	switch body.DomainType {
 	case api_public.DomainDomainType(api_public.DomainDomainTypeRhelIdm):

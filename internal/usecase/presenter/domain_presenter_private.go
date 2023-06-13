@@ -122,18 +122,22 @@ func (p *domainPresenter) sharedDomainFill(
 	domain *model.Domain,
 	output *public.Domain,
 ) {
-	output.DomainId = domain.DomainUuid.String()
+	if domain.DomainUuid == (uuid.UUID{}) {
+		output.DomainId = nil
+	} else {
+		output.DomainId = pointy.String(domain.DomainUuid.String())
+	}
 	if domain.AutoEnrollmentEnabled != nil {
-		output.AutoEnrollmentEnabled = *domain.AutoEnrollmentEnabled
+		output.AutoEnrollmentEnabled = domain.AutoEnrollmentEnabled
 	}
 	if domain.DomainName != nil {
 		output.DomainName = *domain.DomainName
 	}
 	if domain.Title != nil {
-		output.Title = *domain.Title
+		output.Title = domain.Title
 	}
 	if domain.Description != nil {
-		output.Description = *domain.Description
+		output.Description = domain.Description
 	}
 }
 
