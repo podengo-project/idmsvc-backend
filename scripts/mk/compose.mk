@@ -42,7 +42,7 @@ compose-up: ## Start local infrastructure
 .PHONY: .compose-wait-db
 .compose-wait-db:
 	@printf "Waiting database"; \
-	while [ "$$( podman container inspect --format '{{.State.Health.Status}}' "$(DOCKER_COMPOSE_PROJECT)_database_1" )" != "healthy" ]; \
+	while [ "$$( $(DOCKER) container inspect --format '{{.State.Health.Status}}' "$(DOCKER_COMPOSE_PROJECT)_database_1" )" != "healthy" ]; \
 	do sleep 1; printf "."; \
 	done; \
 	printf "\n"
