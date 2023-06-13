@@ -158,7 +158,8 @@ parameters:
   - name: LOGGING_LEVEL
     value: warn
     description: |
-      The log level for the deployment
+      The log level for the deployment; valid values
+      are "info", "warn", "error", "debug", "trace".
   - name: APP_TOKEN_EXPIRATION
     value: "15"
     description: Indicate the token expiration period
@@ -178,5 +179,5 @@ parameters:
   - name: APP_VALIDATE_API
     value: "false"
     description: |
-      It allows to validate request and responses against the
+      It allows to validate API requests by using the
       service OpenAPI specification.
