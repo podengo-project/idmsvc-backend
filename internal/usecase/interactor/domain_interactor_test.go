@@ -197,14 +197,16 @@ func TestHelperDomainTypeToUint(t *testing.T) {
 
 func TestRegisterIpa(t *testing.T) {
 	const (
-		cn        = "21258fc8-c755-11ed-afc4-482ae3863d30"
-		requestID = "TW9uIE1hciAyMCAyMDo1Mzoz"
-		token     = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
-		orgID     = "12345"
-		domainID  = "0851e1d6-003f-11ee-adf4-482ae3863d30"
+		cn          = "21258fc8-c755-11ed-afc4-482ae3863d30"
+		requestID   = "TW9uIE1hciAyMCAyMDo1Mzoz"
+		token       = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
+		orgID       = "12345"
+		domainID    = "0851e1d6-003f-11ee-adf4-482ae3863d30"
+		description = "My Example Domain Description"
 	)
 	var (
 		rhsmID      = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
+		testTitle   = pointy.String("My Domain Example")
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{
 				OrgID: orgID,
@@ -312,8 +314,8 @@ func TestRegisterIpa(t *testing.T) {
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       "My Example Domain",
-					Description: "My Example Domain Description",
+					Title:       testTitle,
+					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
 					DomainType:  api_public.DomainDomainType(api_public.DomainDomainTypeRhelIdm),
 					RhelIdm: &api_public.DomainIpa{
@@ -327,9 +329,9 @@ func TestRegisterIpa(t *testing.T) {
 				Output: &model.Domain{
 					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 pointy.String("My Example Domain"),
-					Description:           pointy.String("My Example Domain Description"),
-					AutoEnrollmentEnabled: pointy.Bool(false),
+					Title:                 testTitle,
+					Description:           pointy.String(description),
+					AutoEnrollmentEnabled: nil,
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String(""),
@@ -348,8 +350,8 @@ func TestRegisterIpa(t *testing.T) {
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       "My Example Domain",
-					Description: "My Example Domain Description",
+					Title:       testTitle,
+					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
 					DomainType:  api_public.DomainDomainTypeRhelIdm,
 					RhelIdm: &api_public.DomainIpa{
@@ -363,9 +365,9 @@ func TestRegisterIpa(t *testing.T) {
 				Output: &model.Domain{
 					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 pointy.String("My Example Domain"),
-					Description:           pointy.String("My Example Domain Description"),
-					AutoEnrollmentEnabled: pointy.Bool(false),
+					Title:                 testTitle,
+					Description:           pointy.String(description),
+					AutoEnrollmentEnabled: nil,
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
@@ -384,8 +386,8 @@ func TestRegisterIpa(t *testing.T) {
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       "My Example Domain",
-					Description: "My Example Domain Description",
+					Title:       testTitle,
+					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
 					DomainType:  api_public.DomainDomainTypeRhelIdm,
 					RhelIdm: &api_public.DomainIpa{
@@ -400,9 +402,9 @@ func TestRegisterIpa(t *testing.T) {
 				Output: &model.Domain{
 					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 pointy.String("My Example Domain"),
-					Description:           pointy.String("My Example Domain Description"),
-					AutoEnrollmentEnabled: pointy.Bool(false),
+					Title:                 testTitle,
+					Description:           pointy.String(description),
+					AutoEnrollmentEnabled: nil,
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
@@ -421,8 +423,8 @@ func TestRegisterIpa(t *testing.T) {
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       "My Example Domain",
-					Description: "My Example Domain Description",
+					Title:       testTitle,
+					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
 					DomainType:  api_public.DomainDomainTypeRhelIdm,
 					RhelIdm: &api_public.DomainIpa{
@@ -447,9 +449,9 @@ func TestRegisterIpa(t *testing.T) {
 				Output: &model.Domain{
 					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 pointy.String("My Example Domain"),
-					Description:           pointy.String("My Example Domain Description"),
-					AutoEnrollmentEnabled: pointy.Bool(false),
+					Title:                 testTitle,
+					Description:           pointy.String(description),
+					AutoEnrollmentEnabled: nil,
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
@@ -478,8 +480,8 @@ func TestRegisterIpa(t *testing.T) {
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       "My Example Domain",
-					Description: "My Example Domain Description",
+					Title:       testTitle,
+					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
 					DomainType:  api_public.DomainDomainTypeRhelIdm,
 					RhelIdm: &api_public.DomainIpa{
@@ -504,9 +506,9 @@ func TestRegisterIpa(t *testing.T) {
 				Output: &model.Domain{
 					DomainUuid:            uuid.MustParse(domainID),
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 pointy.String("My Example Domain"),
-					Description:           pointy.String("My Example Domain Description"),
-					AutoEnrollmentEnabled: pointy.Bool(false),
+					Title:                 testTitle,
+					Description:           pointy.String(description),
+					AutoEnrollmentEnabled: nil,
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
@@ -550,6 +552,8 @@ func TestRegisterIpa(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	const testOrgID = "12345"
 	testID := uuid.MustParse("658700b8-005b-11ee-9e09-482ae3863d30")
+	testTitle := pointy.String("My Example Domain Title")
+	testDescription := "My Example Domain Description"
 	testXRHID := identity.XRHID{
 		Identity: identity.Identity{
 			OrgID: testOrgID,
@@ -577,19 +581,19 @@ func TestUpdate(t *testing.T) {
 		XRhIdmVersion:        "{",
 	}
 	testWrongTypeBody := api_public.Domain{
-		AutoEnrollmentEnabled: true,
-		Title:                 "My Example Domain Title",
-		Description:           "My Example Domain Description",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Title:                 testTitle,
+		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              testID.String(),
+		DomainId:              pointy.String(testID.String()),
 		DomainType:            "aninvalidtype",
 	}
 	testBody := api_public.Domain{
-		AutoEnrollmentEnabled: true,
-		Title:                 "My Example Domain Title",
-		Description:           "My Example Domain Description",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Title:                 testTitle,
+		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              testID.String(),
+		DomainId:              pointy.String(testID.String()),
 		DomainType:            api_public.DomainDomainTypeRhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -625,7 +629,7 @@ func TestUpdate(t *testing.T) {
 	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID.String(), &testParams, &testBody)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
-	assert.Equal(t, testID.String(), testBody.DomainId)
+	assert.Equal(t, testID.String(), *testBody.DomainId)
 	require.NotNil(t, xrhidmVersion)
 	require.NotNil(t, domain)
 }
@@ -726,17 +730,19 @@ func TestGuardUpdate(t *testing.T) {
 func TestCommonRegisterUpdate(t *testing.T) {
 	testOrgID := "12345"
 	testID := uuid.MustParse("c95c6e74-005c-11ee-82b5-482ae3863d30")
+	testTitle := pointy.String("My Example Domain Title")
 	i := domainInteractor{}
 	assert.Panics(t, func() {
 		i.commonRegisterUpdate("", "", nil)
 	})
 
+	testDescription := "My Example Domain Description"
 	testBody := public.Domain{
-		AutoEnrollmentEnabled: true,
-		Title:                 "My Example Domain Title",
-		Description:           "My Example Domain Description",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Title:                 testTitle,
+		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              testID.String(),
+		DomainId:              pointy.String(testID.String()),
 		DomainType:            api_public.DomainDomainTypeRhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
@@ -746,11 +752,11 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		},
 	}
 	testWrongTypeBody := public.Domain{
-		AutoEnrollmentEnabled: true,
-		Title:                 "My Example Domain Title",
-		Description:           "My Example Domain Description",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Title:                 testTitle,
+		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              testID.String(),
+		DomainId:              pointy.String(testID.String()),
 		DomainType:            "wrongtype",
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",

@@ -35,6 +35,7 @@ func TestNewTodoPresenter(t *testing.T) {
 
 func TestGet(t *testing.T) {
 	testUUID := &uuid.UUID{}
+	*testUUID = uuid.MustParse("188a62fc-0720-11ee-9dfd-482ae3863d30")
 	type TestCaseGiven struct {
 		Input  *model.Domain
 		Output *public.ReadDomainResponse
@@ -80,8 +81,8 @@ func TestGet(t *testing.T) {
 			Expected: TestCaseExpected{
 				Err: nil,
 				Output: &public.ReadDomainResponse{
-					AutoEnrollmentEnabled: true,
-					DomainId:              testUUID.String(),
+					AutoEnrollmentEnabled: pointy.Bool(true),
+					DomainId:              pointy.String(testUUID.String()),
 					DomainName:            "domain.example",
 					DomainType:            public.DomainDomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					RhelIdm: &public.DomainIpa{
@@ -255,10 +256,10 @@ func TestCreate(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				Response: &public.CreateDomainResponse{
+					DomainId:              nil,
 					DomainName:            "domain.example",
-					AutoEnrollmentEnabled: true,
+					AutoEnrollmentEnabled: pointy.Bool(true),
 					DomainType:            model.DomainTypeIpaString,
-					DomainId:              "00000000-0000-0000-0000-000000000000",
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
 						RealmDomains: []string{},
@@ -436,12 +437,13 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
-	testUUID := "ebac2444-e51b-11ed-a7f5-482ae3863d30"
+	testUUID := pointy.String("ebac2444-e51b-11ed-a7f5-482ae3863d30")
 	testDomainName := "mydomain.example"
+	testTitle := pointy.String("My Example Domain Title")
 	testModel := model.Domain{
-		DomainUuid:            uuid.MustParse(testUUID),
+		DomainUuid:            uuid.MustParse(*testUUID),
 		DomainName:            pointy.String(testDomainName),
-		Title:                 pointy.String("My Example Domain Title"),
+		Title:                 testTitle,
 		Description:           pointy.String("My Example Domain Description"),
 		OrgId:                 "12345",
 		AutoEnrollmentEnabled: pointy.Bool(true),
@@ -456,9 +458,9 @@ func TestRegister(t *testing.T) {
 	testExpected := public.Domain{
 		DomainId:              testUUID,
 		DomainName:            testDomainName,
-		Title:                 "My Example Domain Title",
-		Description:           "My Example Domain Description",
-		AutoEnrollmentEnabled: true,
+		Title:                 testTitle,
+		Description:           pointy.String("My Example Domain Description"),
+		AutoEnrollmentEnabled: pointy.Bool(true),
 		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    testDomainName,
@@ -480,13 +482,16 @@ func TestRegister(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	testUUID := uuid.MustParse("ebac2444-e51b-11ed-a7f5-482ae3863d30")
+	testUUIDString := pointy.String("ebac2444-e51b-11ed-a7f5-482ae3863d30")
+	testUUID := uuid.MustParse(*testUUIDString)
+	testTitle := pointy.String("My Example Domain Title")
+	testDescription := pointy.String("My Example Domain Description")
 	testDomainName := "mydomain.example"
 	testModel := model.Domain{
 		DomainUuid:            testUUID,
 		DomainName:            pointy.String(testDomainName),
-		Title:                 pointy.String("My Example Domain Title"),
-		Description:           pointy.String("My Example Domain Description"),
+		Title:                 testTitle,
+		Description:           testDescription,
 		OrgId:                 "12345",
 		AutoEnrollmentEnabled: pointy.Bool(true),
 		Type:                  pointy.Uint(model.DomainTypeIpa),
@@ -498,11 +503,11 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	testExpected := public.Domain{
-		DomainId:              testUUID.String(),
+		DomainId:              testUUIDString,
 		DomainName:            testDomainName,
-		Title:                 "My Example Domain Title",
-		Description:           "My Example Domain Description",
-		AutoEnrollmentEnabled: true,
+		Title:                 testTitle,
+		Description:           testDescription,
+		AutoEnrollmentEnabled: pointy.Bool(true),
 		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    testDomainName,

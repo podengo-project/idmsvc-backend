@@ -193,18 +193,21 @@ func TestSharedDomainFill(t *testing.T) {
 	})
 
 	output := public.RegisterDomainResponse{}
-	testDomainID := uuid.MustParse("6d9575f2-de94-11ed-af6e-482ae3863d30")
+	testDomainIDString := pointy.String("6d9575f2-de94-11ed-af6e-482ae3863d30")
+	testDomainID := uuid.MustParse(*testDomainIDString)
+	testTitle := pointy.String("My Domain Example")
 	domain.DomainUuid = testDomainID
 	domain.AutoEnrollmentEnabled = pointy.Bool(true)
 	domain.DomainName = pointy.String("mydomain.example")
-	domain.Title = pointy.String("My Domain Example")
+	domain.Title = testTitle
 	domain.Description = pointy.String("My Domain Example Description")
 	p.sharedDomainFill(domain, &output)
-	assert.Equal(t, testDomainID.String(), output.DomainId)
-	assert.Equal(t, true, output.AutoEnrollmentEnabled)
+	assert.Equal(t, testDomainIDString, output.DomainId)
+	assert.Equal(t, true, *output.AutoEnrollmentEnabled)
 	assert.Equal(t, "mydomain.example", output.DomainName)
-	assert.Equal(t, "My Domain Example", output.Title)
-	assert.Equal(t, "My Domain Example Description", output.Description)
+	assert.Equal(t, testTitle, output.Title)
+	require.NotNil(t, output.Description)
+	assert.Equal(t, "My Domain Example Description", *output.Description)
 }
 
 func TestFillRhelIdmCerts(t *testing.T) {
@@ -284,11 +287,11 @@ func TestSharedDomain(t *testing.T) {
 	domain.IpaDomain = &model.Ipa{}
 	output, err = p.sharedDomain(domain)
 	expected := public.Domain{
-		AutoEnrollmentEnabled: false,
-		Title:                 "",
-		Description:           "",
+		AutoEnrollmentEnabled: nil,
+		Title:                 nil,
+		Description:           nil,
 		DomainName:            "",
-		DomainId:              model.NilUUID.String(),
+		DomainId:              nil,
 		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "",
@@ -303,11 +306,13 @@ func TestSharedDomain(t *testing.T) {
 
 	// Success with full information
 	*domain.Type = model.DomainTypeIpa
-	domain.Title = pointy.String("Test Title")
+	testTitle := pointy.String("Test Title")
+	domain.Title = testTitle
 	domain.Description = pointy.String("Test Description")
 	domain.DomainName = pointy.String("mydomain.example")
+	testUUIDString := pointy.String("810f9112-0559-11ee-a54c-482ae3863d30")
 	testUUID := &uuid.UUID{}
-	*testUUID = uuid.MustParse("810f9112-0559-11ee-a54c-482ae3863d30")
+	*testUUID = uuid.MustParse(*testUUIDString)
 	testOrgID := "12345"
 	domain.DomainUuid = *testUUID
 	domain.OrgId = testOrgID
@@ -345,11 +350,11 @@ func TestSharedDomain(t *testing.T) {
 		},
 	}
 	expected = public.Domain{
-		AutoEnrollmentEnabled: true,
-		Title:                 "Test Title",
-		Description:           "Test Description",
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Title:                 testTitle,
+		Description:           pointy.String("Test Description"),
 		DomainName:            "mydomain.example",
-		DomainId:              testUUID.String(),
+		DomainId:              testUUIDString,
 		DomainType:            public.DomainDomainTypeRhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "MYDOMAIN.EXAMPLE",
