@@ -65,9 +65,9 @@ func InitOpenAPIFormats() {
 	openapi3.DefineStringFormatCallback("cert-issuer", func(value string) error {
 		return checkFormatIssuer(value)
 	})
-	// openapi3.DefineStringFormatCallback("cert-pem", func(value string) error {
-	// 	return checkCertificateFormat(value)
-	// })
+	openapi3.DefineStringFormatCallback("cert-pem", func(value string) error {
+		return checkCertificateFormat(value)
+	})
 	openapi3.DefineStringFormatCallback("cert-subject", func(value string) error {
 		return checkFormatSubject(value)
 	})
@@ -111,7 +111,7 @@ func checkCertificateFormat(value string) error {
 // Return an error or nil for success parsed data.
 func checkFormatIssuer(value string) error {
 	// https://regex101.com/
-	issuerRegEx := `^((?:[A-Z]+=[A-Za-z0-9\.\-\s]+)(?:[ ]*,[ ]*[A-Z]+=[A-Za-z0-9.\-]+)*)$`
+	issuerRegEx := `^((?:[A-Z]+=[A-Za-z0-9\.\-\s]+)(?:[ ]*,[ ]*[A-Z]+=[A-Za-z0-9.\-\s]+)*)$`
 	return helperCheckRegEx(issuerRegEx, "issuer", value)
 }
 
@@ -120,7 +120,7 @@ func checkFormatIssuer(value string) error {
 // Return an error or nil for success parsed data.
 func checkFormatSubject(value string) error {
 	// https://regex101.com/
-	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\.\-\s]+)(?:[ ]*,[ ]*[A-Z]+=[A-Za-z0-9.\-]+)*)$`
+	subjectRegEx := `^((?:[A-Z]+=[A-Za-z0-9\.\-\s]+)(?:[ ]*,[ ]*[A-Z]+=[A-Za-z0-9.\-\s]+)*)$`
 	return helperCheckRegEx(subjectRegEx, "subject", value)
 }
 
