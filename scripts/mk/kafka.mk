@@ -12,32 +12,32 @@ endif
 
 .PHONY: kafka-shell
 kafka-shell:  ## Open an interactive shell in the kafka container
-	$(DOCKER_COMPOSE_VARS) \
+	$(COMPOSE_VARS) \
 	KAFKA_OPTS= \
-	$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) \
+	$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) \
 	exec kafka /bin/bash
 
 .PHONY: kafka-topics-list
 kafka-topics-list:  ## List the kafka topics from the kafka container
-	$(DOCKER_COMPOSE_VARS) \
+	$(COMPOSE_VARS) \
 	KAFKA_OPTS= \
-	$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) \
+	$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) \
 	exec kafka /opt/kafka/bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 
 .PHONY: kafka-topics-create
 kafka-topics-create:  ## Create the kafka topics in KAFKA_TOPICS
 	for topic in $(KAFKA_TOPICS); do \
-		$(DOCKER_COMPOSE_VARS) \
+		$(COMPOSE_VARS) \
 		KAFKA_OPTS= \
-		$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) \
+		$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) \
 	    exec kafka /opt/kafka/bin/kafka-topics.sh --create --topic $$topic --bootstrap-server localhost:9092; \
 	done
 
 .PHONY: kafka-topics-describe
 kafka-topics-describe:  ## Execute kafka-topics.sh for KAFKA_TOPICS
 	for topic in $(KAFKA_TOPICS); do \
-		$(DOCKER_COMPOSE_VARS) \
-		$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) \
+		$(COMPOSE_VARS) \
+		$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) \
 	    exec kafka /opt/kafka/bin/kafka-topics.sh --describe --topic $$topic --bootstrap-server localhost:9092; \
 	done
 
@@ -45,8 +45,8 @@ kafka-topics-describe:  ## Execute kafka-topics.sh for KAFKA_TOPICS
 .PHONY: kafka-topics-offset
 kafka-topics-offset:  ## Display information about the topic offsets
 	for topic in $(KAFKA_TOPICS); do \
-		$(DOCKER_COMPOSE_VARS) \
-		$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) \
+		$(COMPOSE_VARS) \
+		$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) \
 	    exec kafka \
 		/opt/kafka/bin/kafka-consumer-groups.sh --bootstrap-server localhost:9092 --group $(KAFKA_GROUP_ID) --describe; \
 	done
@@ -61,8 +61,8 @@ KAFKA_PROPERTIES ?= \
 kafka-consume: KAFKA_TOPIC ?= $(firstword $(KAFKA_TOPICS))
 kafka-consume:  ## Consume on KAFKA_TOPIC (default first from KAFKA_TOPICS) using GROUP_ID
 	@[ "$(KAFKA_TOPIC)" != "" ] || { echo "error:KAFKA_TOPIC cannot be empty"; exit 1; }
-	$(DOCKER_COMPOSE_VARS) \
-	$(DOCKER_COMPOSE) -f $(DOCKER_COMPOSE_FILE) -p $(DOCKER_COMPOSE_PROJECT) \
+	$(COMPOSE_VARS) \
+	$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) \
 	exec kafka \
 	  /opt/kafka/bin/kafka-console-consumer.sh \
 	  $(KAFKA_PROPERTIES) \
@@ -80,7 +80,7 @@ kafka-produce-msg: KAFKA_REQUEST_ID ?= demo
 kafka-produce-msg: KAFKA_MESSAGE_KEY ?= c67cd587-3741-493d-9302-f655fcd3bd68
 kafka-produce-msg: KAFKA_MESSAGE_FILE ?= test/data/kafka/todo-created.json
 kafka-produce-msg: ## Produce a kafka event on KAFKA_TOPIC (default first on KAFKA_TOPICS) using KAFKA_IDENTITY and KAFKA_REQUEST_ID headers, KAFKA_MESSAGE_KEY for the key, and KAFKA_MESSAGE_FILE for the body
-	$(DOCKER) run \
+	$(CONTAINER_ENGINE) run \
 	  -i --rm \
 	  --net=host \
 	  docker.io/edenhill/kcat:1.7.1 \

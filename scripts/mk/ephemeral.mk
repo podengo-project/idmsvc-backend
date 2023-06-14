@@ -93,8 +93,8 @@ ephemeral-deploy:  ## Build image and deploy application using 'config/bonfire.y
 		--secrets-dir "$(PROJECT_DIR)/secrets/ephemeral" \
 		--import-secrets \
 		--namespace "$(NAMESPACE)" \
-		--set-parameter "$(APP_COMPONENT)/IMAGE=$(DOCKER_IMAGE_BASE)" \
-		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(DOCKER_IMAGE_TAG)" \
+		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
+		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
 		"$(APP)"
 
@@ -106,8 +106,8 @@ ephemeral-undeploy: ## Undeploy application from the current namespace
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--namespace "$(NAMESPACE)" \
-		--set-parameter "$(APP_COMPONENT)/IMAGE=$(DOCKER_IMAGE_BASE)" \
-		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(DOCKER_IMAGE_TAG)" \
+		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
+		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
 		"$(APP)" 2>/dev/null | json2yaml | oc delete -f -
 	! oc get secrets/content-sources-certs &>/dev/null || oc delete secrets/content-sources-certs
@@ -119,8 +119,8 @@ ephemeral-process: ## Process application from the current namespace
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
 		--namespace "$(NAMESPACE)" \
-		--set-parameter "$(APP_COMPONENT)/IMAGE=$(DOCKER_IMAGE_BASE)" \
-		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(DOCKER_IMAGE_TAG)" \
+		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
+		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
 		"$(APP)" 2>/dev/null | json2yaml
 
@@ -157,15 +157,15 @@ ephemeral-namespace-describe: ## Display information about the current namespace
 	bonfire namespace describe "$(NAMESPACE)"
 
 
-# DOCKER_IMAGE_BASE should be a public image
-# Tested by 'make ephemeral-build-deploy DOCKER_IMAGE_BASE=quay.io/avisied0/hmsidm-backend'
+# CONTAINER_IMAGE_BASE should be a public image
+# Tested by 'make ephemeral-build-deploy CONTAINER_IMAGE_BASE=quay.io/avisied0/hmsidm-backend'
 .PHONY: ephemeral-build-deploy
-ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scripts; It requires to pass DOCKER_IMAGE_BASE
-	IMAGE="$(DOCKER_IMAGE_BASE)" IMAGE_TAG="$(DOCKER_IMAGE_TAG)" ./build_deploy.sh 2>&1 | tee build_deploy.log
+ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scripts; It requires to pass CONTAINER_IMAGE_BASE
+	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" ./build_deploy.sh 2>&1 | tee build_deploy.log
 
 .PHONY: ephemeral-pr-checks
 ephemeral-pr-checks:
-	IMAGE="$(DOCKER_IMAGE_BASE)" bash ./pr_checks.sh
+	IMAGE="$(CONTAINER_IMAGE_BASE)" bash ./pr_checks.sh
 
 # FIXME This rule will require some updates but it will be something similar
 .PHONY: ephemeral-test-backend

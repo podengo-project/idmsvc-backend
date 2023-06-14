@@ -7,7 +7,7 @@
 APP_NAME="hmsidm"  # name of app-sre "application" folder this component lives in
 COMPONENT_NAME="${APP_NAME}-backend"  # name of resourceTemplate component for deploy
 IMAGE="quay.io/cloudservices/${COMPONENT_NAME}"  # image location on quay
-DOCKERFILE="build/Dockerfile"
+CONTAINERFILE="build/Dockerfile"
 
 # TODO Define IQE_PLUGINS value
 IQE_PLUGINS="${APP_NAME}"  # name of the IQE plugin for this app.

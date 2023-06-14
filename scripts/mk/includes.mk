@@ -32,8 +32,8 @@ include scripts/mk/api-doc.mk
 include scripts/mk/db.mk
 include scripts/mk/printvars.mk
 include scripts/mk/lint.mk
-include scripts/mk/meta-docker.mk
-include scripts/mk/docker.mk
+include scripts/mk/meta-container.mk
+include scripts/mk/container.mk
 include scripts/mk/meta-compose.mk
 include scripts/mk/compose.mk
 include scripts/mk/meta-kafka.mk

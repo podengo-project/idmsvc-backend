@@ -19,16 +19,16 @@ export QUAY_USER := myusername+robotaccount
 # QUAY_TOKEN is used by build_deploy.sh script which is called by the jenkins job automation
 # TODO Set your QUAY_TOKEN
 export QUAY_TOKEN := 238AKJNF8234ANSJ
-# QUAY_LOGIN is used to compose the default DOCKER_IMAGE_BASE
+# QUAY_LOGIN is used to compose the default CONTAINER_IMAGE_BASE
 export QUAY_LOGIN := $(firstword $(subst +, ,$(QUAY_USER)))
 # QUAY_REPOSITORY is used to compose the base image name when deploying into ephemeral
 # TODO Set your QUAY_REPOSITORY ; you have to create it and grant
 #      write permissions to the above robot account
 export QUAY_REPOSITORY :=
 
-# TODO Update DOCKER_IMAGE_BASE accoddingly to point out to your repository
+# TODO Update CONTAINER_IMAGE_BASE accoddingly to point out to your repository
 # This should point out to your repository
-DOCKER_IMAGE_BASE ?= quay.io/$(QUAY_LOGIN)/$(QUAY_REPOSITORY)
+CONTAINER_IMAGE_BASE ?= quay.io/$(QUAY_LOGIN)/$(QUAY_REPOSITORY)
 
 # TODO Fill the values:
 # You can get a token for you from:

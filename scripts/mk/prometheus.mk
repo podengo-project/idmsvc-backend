@@ -32,9 +32,9 @@ endif
 
 .PHONY: prometheus-up
 prometheus-up: ## Start prometheus service (local access at http://localhost:9090)
-	$(DOCKER) volume inspect prometheus &> /dev/null || $(DOCKER) volume create prometheus
-	$(DOCKER) container inspect prometheus &> /dev/null || \
-	$(DOCKER) run -d \
+	$(CONTAINER_ENGINE) volume inspect prometheus &> /dev/null || $(CONTAINER_ENGINE) volume create prometheus
+	$(CONTAINER_ENGINE) container inspect prometheus &> /dev/null || \
+	$(CONTAINER_ENGINE) run -d \
 	  --rm \
 	  --name prometheus \
 	  --network host \
@@ -44,16 +44,16 @@ prometheus-up: ## Start prometheus service (local access at http://localhost:909
 
 .PHONY: prometheus-down
 prometheus-down:  ## Stop prometheus service
-	! $(DOCKER) container inspect prometheus &> /dev/null || $(DOCKER) container stop prometheus
+	! $(CONTAINER_ENGINE) container inspect prometheus &> /dev/null || $(CONTAINER_ENGINE) container stop prometheus
 
 .PHONY: prometheus-clean
 prometheus-clean: prometheus-down  ## Clean the prometheus instance
-	! $(DOCKER) container inspect prometheus &> /dev/null || $(DOCKER) container rm prometheus
-	! $(DOCKER) volume inspect prometheus &> /dev/null || $(DOCKER) volume rm prometheus
+	! $(CONTAINER_ENGINE) container inspect prometheus &> /dev/null || $(CONTAINER_ENGINE) container rm prometheus
+	! $(CONTAINER_ENGINE) volume inspect prometheus &> /dev/null || $(CONTAINER_ENGINE) volume rm prometheus
 
 .PHONY: prometheus-logs
 prometheus-logs: ## Tail prometheus logs
-	$(DOCKER) container logs --tail 10 -f prometheus
+	$(CONTAINER_ENGINE) container logs --tail 10 -f prometheus
 
 .PHONY: prometheus-ui
 prometheus-ui:  ## Open browser with the prometheus ui

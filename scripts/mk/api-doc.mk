@@ -8,10 +8,10 @@ OPENAPI_FILE ?= $(PROJECT_DIR)/api/public.openapi.yaml
 
 .PHONY: open-api-doc
 open-api-doc:  ## Open OPENAPI_FILE to browse the documentation (by default the public openapi specification)
-	$(DOCKER) run -it --name open-api-doc -d --rm -p 8080:80 -v "$(OPENAPI_FILE):/usr/share/nginx/html/swagger.yaml:ro,z" -e SPEC_URL=swagger.yaml docker.io/redocly/redoc
+	$(CONTAINER_ENGINE) run -it --name open-api-doc -d --rm -p 8080:80 -v "$(OPENAPI_FILE):/usr/share/nginx/html/swagger.yaml:ro,z" -e SPEC_URL=swagger.yaml docker.io/redocly/redoc
 	xdg-open http://localhost:8080
 
 .PHONY: stop-api-doc
 stop-api-doc:  ## Stop open-api-doc container
-	$(DOCKER) stop open-api-doc
+	$(CONTAINER_ENGINE) stop open-api-doc
 

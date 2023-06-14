@@ -13,9 +13,9 @@ CONFIG_PATH ?= $(PROJECT_DIR)/configs
 export CONFIG_PATH
 CONFIG_YAML := $(CONFIG_PATH)/config.yaml
 
-DOCKER_COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
+COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
 
-DOCKER_IMAGE_BASE ?= quay.io/$(firstword $(subst +, ,$(QUAY_USER)))/$(APP_NAME)-$(APP_COMPONENT)
+CONTAINER_IMAGE_BASE ?= quay.io/$(firstword $(subst +, ,$(QUAY_USER)))/$(APP_NAME)-$(APP_COMPONENT)
 
 LOAD_DB_CFG_WITH_YQ := n
 ifneq (,$(shell "$(BIN)/yq" --version 2>/dev/null))

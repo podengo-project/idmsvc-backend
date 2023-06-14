@@ -3,7 +3,7 @@ set -e
 
 SERVICE="hmsidm"
 BASE_IMAGE="${SERVICE}-backend"
-DOCKER="${DOCKER:-docker}"
+CONTAINER_ENGINE="${CONTAINER_ENGINE:-podman}"
 
 IMAGE="${IMAGE:-quay.io/cloudservices/${BASE_IMAGE}}"
 IMAGE_TAG="$(git rev-parse --short=7 HEAD)"
@@ -20,23 +20,23 @@ if [[ -z "${RH_REGISTRY_USER}" || -z "${RH_REGISTRY_TOKEN}" ]]; then
 fi
 
 # Login to quay
-make docker-login \
-    DOCKER_LOGIN_USER="${QUAY_USER}" \
-    DOCKER_LOGIN_TOKEN="${QUAY_TOKEN}" \
-    DOCKER_REGISTRY="quay.io"
+make registry-login \
+    CONTAINER_REGISTRY_USER="${QUAY_USER}" \
+    CONTAINER_REGISTRY_TOKEN="${QUAY_TOKEN}" \
+    CONTAINER_REGISTRY="quay.io"
 
 # Login to registry.redhat
-make docker-login \
-    DOCKER_LOGIN_USER="${RH_REGISTRY_USER}" \
-    DOCKER_LOGIN_TOKEN="${RH_REGISTRY_TOKEN}" \
-    DOCKER_REGISTRY="registry.redhat.io"
+make registry-login \
+    CONTAINER_REGISTRY_USER="${RH_REGISTRY_USER}" \
+    CONTAINER_REGISTRY_TOKEN="${RH_REGISTRY_TOKEN}" \
+    CONTAINER_REGISTRY="registry.redhat.io"
 
 # Build and push
-make docker-build docker-push \
-    DOCKER_BUILD_OPTS=--no-cache \
-    DOCKER_IMAGE_BASE="${IMAGE}" \
-    DOCKER_IMAGE_TAG="${IMAGE_TAG}"
+make container-build container-push \
+    CONTAINER_BUILD_OPTS=--no-cache \
+    CONTAINER_IMAGE_BASE="${IMAGE}" \
+    CONTAINER_IMAGE_TAG="${IMAGE_TAG}"
 
 # Push to logged in registries and tag for SHA
-"${DOCKER}" tag "${IMAGE}:${IMAGE_TAG}" "${IMAGE}:${SMOKE_TEST_TAG}"
-"${DOCKER}" push "${IMAGE}:${SMOKE_TEST_TAG}"
+"${CONTAINER_ENGINE}" tag "${IMAGE}:${IMAGE_TAG}" "${IMAGE}:${SMOKE_TEST_TAG}"
+"${CONTAINER_ENGINE}" push "${IMAGE}:${SMOKE_TEST_TAG}"

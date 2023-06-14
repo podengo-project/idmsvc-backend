@@ -83,7 +83,7 @@ services:
   #     KAFKA_TOPICS: "${KAFKA_TOPICS}"
 
   # backend-service:
-  #   image: ${DOCKER_IMAGE_BASE}:${DOCKER_IMAGE_TAG}
+  #   image: ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
   #   build:
   #     dockerfile: build/package/Dockerfile
   #     context: ..
