@@ -36,24 +36,6 @@ const (
 	RhelIdm UpdateDomainDomainType = "rhel-idm"
 )
 
-// CheckHosts Define the input data for the /check_host action.
-//
-// This action is launched from the ipa server to check the host that is being
-// auto-enrolled.
-type CheckHosts struct {
-	// DomainName The domain name where to enroll the host vm.
-	DomainName string `json:"domain_name"`
-
-	// DomainType Indicate the type of domain. Actually only ipa is supported.
-	DomainType string `json:"domain_type"`
-
-	// InventoryId The id of the host vm into the insight host inventory.
-	InventoryId string `json:"inventory_id"`
-
-	// SubscriptionManagerId The subscription manager id for auto-enroll the host vm.
-	SubscriptionManagerId string `json:"subscription_manager_id"`
-}
-
 // CreateDomain A domain resource
 type CreateDomain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
@@ -312,15 +294,6 @@ type RegisterDomainResponse = Domain
 // UpdateDomainResponse A domain resource
 type UpdateDomainResponse = Domain
 
-// CheckHostParams defines parameters for CheckHost.
-type CheckHostParams struct {
-	// XRhIdentity Identity header.
-	XRhIdentity string `json:"X-Rh-Identity"`
-
-	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
-}
-
 // ListDomainsParams defines parameters for ListDomains.
 type ListDomainsParams struct {
 	// Offset pagination offset
@@ -398,9 +371,6 @@ type HostConfParams struct {
 	// XRhInsightsRequestId Unique request id for distributing tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
-
-// CheckHostJSONRequestBody defines body for CheckHost for application/json ContentType.
-type CheckHostJSONRequestBody = CheckHosts
 
 // CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
 type CreateDomainJSONRequestBody = CreateDomain

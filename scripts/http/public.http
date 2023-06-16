@@ -152,11 +152,3 @@ Content-Type: {{contentType}}
 # X-Rh-Identity: {{x-rh-identity-system}}
 # X-Rh-Insights-Request-Id: post_host_conf
 # Content-Type: {{contentType}}
-
-
-### CheckHost
-# POST http://{{host}}{{basepath}}/check-host/{{subscription_manager_id}}/{{fqdn}}
-# X-Rh-Identity: {{x-rh-identity-system}}
-# X-Rh-Insights-Request-Id: post_check_host
-# Content-Type: {{contentType}}
-

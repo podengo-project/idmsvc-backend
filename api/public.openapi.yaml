@@ -123,60 +123,6 @@ paths:
                   type: string
               in: path
               required: true
-    "/check-host/{subscription_manager_id}/{fqdn}":
-        post:
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/CheckHosts"
-                required: true
-            tags:
-                - actions
-            responses:
-                "204":
-                    description: The enroll of the host vm can be made.
-                "400":
-                    $ref: "#/components/responses/ErrorResponse"
-                "404":
-                    $ref: "#/components/responses/ErrorResponse"
-            security:
-                - x-rh-identity: []
-            operationId: checkHost
-            summary: Check a host vm before auto-enroll into the domain.
-            description: Called from the ipa server to check a host can be enrolled into the
-                domain.
-        parameters:
-            - examples:
-                  A random uuid generated from the terminal by 'uuid':
-                      value: '"2e8ce5a6-b370-11ed-9330-482ae3863d30"'
-              name: subscription_manager_id
-              description: The subscription manager id.
-              schema:
-                  type: string
-              in: path
-              required: true
-            - examples:
-                  An example fqdn for a host.:
-                      value: '"host1.domain.example"'
-              name: fqdn
-              description: The full qualified domain name for the host.
-              schema:
-                  type: string
-              in: path
-              required: true
-            - name: X-Rh-Identity
-              description: Identity header.
-              schema:
-                  type: string
-              in: header
-              required: true
-            - name: X-Rh-Insights-Request-Id
-              description: Request id for distributed tracing.
-              schema:
-                  type: string
-              in: header
-              required: false
     "/host-conf/{fqdn}":
         summary: Autoenroll host vm endpoint.
         description: Endpoint used by host vm for auto-enrollment.
@@ -564,43 +510,6 @@ components:
             example:
                 fqdn: host1.domain.example
                 subscription_manager_id: c3ac4b91-27cc-422c-a283-42aadfe730af
-        CheckHosts:
-            title: Root Type for CheckHosts
-            description: >-
-                Define the input data for the /check_host action.
-
-
-                This action is launched from the ipa server to check the host that is being
-
-                auto-enrolled.
-            required:
-                - inventory_id
-                - domain_type
-                - domain_name
-                - subscription_manager_id
-            type: object
-            properties:
-                domain_name:
-                    description: The domain name where to enroll the host vm.
-                    type: string
-                    example: '"domain.example"'
-                domain_type:
-                    description: Indicate the type of domain. Actually only ipa is supported.
-                    type: string
-                    example: '"rhel-idm"'
-                subscription_manager_id:
-                    description: The subscription manager id for auto-enroll the host vm.
-                    type: string
-                    example: '"2326738a-adf8-11ed-af7d-482ae3863d30"'
-                inventory_id:
-                    description: The id of the host vm into the insight host inventory.
-                    type: string
-                    example: '"2ea6db7e-cf74-4560-a286-4d7c9eaf698f"'
-            example:
-                domain_name: domain.example
-                domain_type: rhel-idm
-                subscription_manager_id: 2326738a-adf8-11ed-af7d-482ae3863d30
-                inventory_id: 2ea6db7e-cf74-4560-a286-4d7c9eaf698f
         HostConfResponseSchema:
             title: Root Type for HostConfResponse
             description: >-

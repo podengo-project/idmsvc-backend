@@ -124,10 +124,6 @@ func TestNewGroupPublic(t *testing.T) {
 			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
 		},
 
-		appPrefix + appName + versionFull + "/check-host/:subscription_manager_id/:fqdn": {
-			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).CheckHost-fm",
-		},
-
 		// This routes are added when the group is created
 		appPrefix + appName + versionFull + "/*": {
 			"GET":      "github.com/labstack/echo/v4.glob..func1",

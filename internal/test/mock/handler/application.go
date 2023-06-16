@@ -15,20 +15,6 @@ type Application struct {
 	mock.Mock
 }
 
-// CheckHost provides a mock function with given fields: ctx, subscriptionManagerId, fqdn, params
-func (_m *Application) CheckHost(ctx echo.Context, subscriptionManagerId string, fqdn string, params public.CheckHostParams) error {
-	ret := _m.Called(ctx, subscriptionManagerId, fqdn, params)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, string, string, public.CheckHostParams) error); ok {
-		r0 = rf(ctx, subscriptionManagerId, fqdn, params)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // CreateDomain provides a mock function with given fields: ctx, params
 func (_m *Application) CreateDomain(ctx echo.Context, params public.CreateDomainParams) error {
 	ret := _m.Called(ctx, params)

@@ -284,17 +284,6 @@ func (a *application) HostConf(
 	return http.ErrNotSupported
 }
 
-// TODO Document this method
-func (a *application) CheckHost(
-	ctx echo.Context,
-	subscriptionManagerId string,
-	fqdn string,
-	params public.CheckHostParams,
-) error {
-	// TODO Implement this endpoint
-	return http.ErrNotSupported
-}
-
 // RegisterIpaDomain (PUT /domains/{uuid}/register) initialize the
 // IPA domain information into the database. This requires
 // a valid X-Rh-IDM-Token. The token is removed when the
