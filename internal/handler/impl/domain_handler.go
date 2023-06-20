@@ -10,6 +10,7 @@ import (
 	"github.com/hmsidm/internal/domain/model"
 	"github.com/hmsidm/internal/infrastructure/middleware"
 	"github.com/labstack/echo/v4"
+	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"gorm.io/gorm"
 )
 
@@ -38,10 +39,14 @@ func (a *application) ListDomains(
 		limit  int
 		count  int64
 		tx     *gorm.DB
+		xrhid  *identity.XRHID
 	)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
-	domainCtx := ctx.(middleware.DomainContextInterface)
-	if orgID, offset, limit, err = a.domain.interactor.List(domainCtx.XRHID(), &params); err != nil {
+	if orgID, offset, limit, err = a.domain.interactor.List(xrhid, &params); err != nil {
 		return err
 	}
 	if tx = a.db.Begin(); tx.Error != nil {
@@ -91,11 +96,15 @@ func (a *application) ReadDomain(
 		output *public.Domain
 		orgID  string
 		tx     *gorm.DB
+		xrhid  *identity.XRHID
 	)
-	domainCtx := ctx.(middleware.DomainContextInterface)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
 
 	if orgID, err = a.domain.interactor.GetByID(
-		domainCtx.XRHID(),
+		xrhid,
 		&params,
 	); err != nil {
 		return err
@@ -195,12 +204,18 @@ func (a *application) CreateDomain(
 		output   *public.CreateDomainResponse
 		tx       *gorm.DB
 		tokenStr string
+		xrhid    *identity.XRHID
 	)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
 
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
 	if orgId, data, err = a.domain.interactor.Create(
+		xrhid,
 		&params,
 		&input,
 	); err != nil {
@@ -250,8 +265,14 @@ func (a *application) DeleteDomain(
 		tx          *gorm.DB
 		orgId       string
 		domain_uuid string
+		xrhid *identity.XRHID
 	)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
 	if orgId, domain_uuid, err = a.domain.interactor.Delete(
+		xrhid,
 		uuid,
 		&params,
 	); err != nil {
@@ -308,15 +329,18 @@ func (a *application) RegisterDomain(
 		orgId         string
 		tx            *gorm.DB
 		output        *public.Domain
-		domainCtx     middleware.DomainContextInterface
 		clientVersion *header.XRHIDMVersion
+		xrhid         *identity.XRHID
 	)
-	domainCtx = ctx.(middleware.DomainContextInterface)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
 	if orgId, clientVersion, data, err = a.domain.interactor.Register(
-		domainCtx.XRHID(),
+		xrhid,
 		UUID,
 		&params,
 		&input,
@@ -396,15 +420,19 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		orgID         string
 		tx            *gorm.DB
 		output        *public.Domain
-		domainCtx     middleware.DomainContextInterface
 		clientVersion *header.XRHIDMVersion
+		xrhid         *identity.XRHID
 	)
-	domainCtx = ctx.(middleware.DomainContextInterface)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
+
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
 	if orgID, clientVersion, data, err = a.domain.interactor.Update(
-		domainCtx.XRHID(),
+		xrhid,
 		UUID,
 		&params,
 		&input,
@@ -434,10 +462,6 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		return fmt.Errorf("Bad Request")
 	}
 
-	xrhid := domainCtx.XRHID()
-	if xrhid == nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
-	}
 	subscriptionManagerID := xrhid.Identity.System.CommonName
 	if err = a.isSubscriptionManagerIDAuthorizedToUpdate(
 		subscriptionManagerID,
@@ -467,4 +491,14 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 	}
 
 	return ctx.JSON(http.StatusOK, *output)
+}
+
+func getXRHID(ctx echo.Context) (*identity.XRHID, error) {
+	domainCtx := ctx.(middleware.DomainContextInterface)
+	xrhid := domainCtx.XRHID()
+	if xrhid == nil {
+		return nil, echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
+	} else {
+		return xrhid, nil
+	}
 }

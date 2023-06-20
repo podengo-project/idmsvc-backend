@@ -27,7 +27,25 @@ func TestNewTodoInteractor(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
+	const (
+		cn    = "21258fc8-c755-11ed-afc4-482ae3863d30"
+		orgID = "12345"
+	)
+	var (
+		xrhidSystem = identity.XRHID{
+			Identity: identity.Identity{
+				OrgID: orgID,
+				Type:  "System",
+				System: identity.System{
+					CommonName: cn,
+					CertType:   "system",
+				},
+			},
+		}
+	)
+
 	type TestCaseGiven struct {
+		XRHID  *identity.XRHID
 		Params *api_public.CreateDomainParams
 		Body   *api_public.CreateDomain
 	}
@@ -43,8 +61,21 @@ func TestCreate(t *testing.T) {
 	}
 	testCases := []TestCase{
 		{
+			Name: "nil for the 'xrhid'",
+			Given: TestCaseGiven{
+				XRHID:  nil,
+				Params: nil,
+				Body:   &api_public.CreateDomain{},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'xrhid' is nil"),
+				Out: nil,
+			},
+		},
+		{
 			Name: "nil for the 'params'",
 			Given: TestCaseGiven{
+				XRHID:  &xrhidSystem,
 				Params: nil,
 				Body:   &api_public.CreateDomain{},
 			},
@@ -56,6 +87,7 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "nil for the 'body'",
 			Given: TestCaseGiven{
+				XRHID:  &xrhidSystem,
 				Params: &api_public.CreateDomainParams{},
 				Body:   nil,
 			},
@@ -65,31 +97,10 @@ func TestCreate(t *testing.T) {
 			},
 		},
 		{
-			Name: "nil for the returned Model",
-			Given: TestCaseGiven{
-				Params: &api_public.CreateDomainParams{},
-				Body:   &api_public.CreateDomain{},
-			},
-			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'X-Rh-Identity' is an empty string"),
-				Out: nil,
-			},
-		},
-		{
 			Name: "wrong domain type",
 			Given: TestCaseGiven{
-				Params: &api_public.CreateDomainParams{
-					XRhIdentity: header.EncodeXRHID(
-						&identity.XRHID{
-							Identity: identity.Identity{
-								OrgID: "12345",
-								Internal: identity.Internal{
-									OrgID: "12345",
-								},
-							},
-						},
-					),
-				},
+				XRHID:  &xrhidSystem,
+				Params: &api_public.CreateDomainParams{},
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
 					DomainType:            api_public.CreateDomainDomainType("invalid"),
@@ -103,18 +114,8 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "success case",
 			Given: TestCaseGiven{
-				Params: &api_public.CreateDomainParams{
-					XRhIdentity: header.EncodeXRHID(
-						&identity.XRHID{
-							Identity: identity.Identity{
-								OrgID: "12345",
-								Internal: identity.Internal{
-									OrgID: "12345",
-								},
-							},
-						},
-					),
-				},
+				XRHID:  &xrhidSystem,
+				Params: &api_public.CreateDomainParams{},
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
 					DomainType:            api_public.CreateDomainDomainTypeRhelIdm,
@@ -132,18 +133,8 @@ func TestCreate(t *testing.T) {
 		{
 			Name: "success case - not empty ca list",
 			Given: TestCaseGiven{
-				Params: &api_public.CreateDomainParams{
-					XRhIdentity: header.EncodeXRHID(
-						&identity.XRHID{
-							Identity: identity.Identity{
-								OrgID: "12345",
-								Internal: identity.Internal{
-									OrgID: "12345",
-								},
-							},
-						},
-					),
-				},
+				XRHID:  &xrhidSystem,
+				Params: &api_public.CreateDomainParams{},
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
 					DomainType:            api_public.CreateDomainDomainTypeRhelIdm,
@@ -165,7 +156,7 @@ func TestCreate(t *testing.T) {
 	component := NewDomainInteractor()
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		orgId, data, err := component.Create(testCase.Given.Params, testCase.Given.Body)
+		orgId, data, err := component.Create(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
 			require.Equal(t, testCase.Expected.Err.Error(), err.Error())

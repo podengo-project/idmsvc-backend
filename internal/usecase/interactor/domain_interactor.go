@@ -39,7 +39,10 @@ func helperDomainTypeToUint(domainType public.DomainDomainType) uint {
 // body is the CreateDomain schema received for the POST request.
 // Return a reference to a new model.Domain instance and nil error for
 // a success transformation, else nil and an error instance.
-func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *api_public.CreateDomain) (string, *model.Domain, error) {
+func (i domainInteractor) Create(xrhid *identity.XRHID, params *api_public.CreateDomainParams, body *api_public.CreateDomain) (string, *model.Domain, error) {
+	if xrhid == nil {
+		return "", nil, fmt.Errorf("'xrhid' is nil")
+	}
 	if params == nil {
 		return "", nil, fmt.Errorf("'params' is nil")
 	}
@@ -48,13 +51,6 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 	}
 
 	domain := &model.Domain{}
-	// FIXME Pass the context decoded XRHID as argument, so we can use it
-	//       directly into the specific service handler and pass the
-	//       information to the interactors
-	xrhid, err := header.DecodeXRHID(string(params.XRhIdentity))
-	if err != nil {
-		return "", nil, err
-	}
 	domain.OrgId = xrhid.Identity.OrgID
 	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
 	domain.DomainName = nil
@@ -118,13 +114,12 @@ func (i domainInteractor) Create(params *api_public.CreateDomainParams, body *ap
 // }
 
 // TODO Document method
-func (i domainInteractor) Delete(uuid string, params *api_public.DeleteDomainParams) (string, string, error) {
+func (i domainInteractor) Delete(xrhid *identity.XRHID, uuid string, params *api_public.DeleteDomainParams) (string, string, error) {
+	if xrhid == nil {
+		return "", "", fmt.Errorf("'xrhid' is nil")
+	}
 	if params == nil {
 		return "", "", fmt.Errorf("'params' cannot be nil")
-	}
-	xrhid, err := header.DecodeXRHID(string(params.XRhIdentity))
-	if err != nil {
-		return "", "", err
 	}
 	return xrhid.Identity.OrgID, uuid, nil
 }
