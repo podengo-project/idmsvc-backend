@@ -215,14 +215,11 @@ func TestRegisterIpa(t *testing.T) {
 			OSReleaseVersionID: "8",
 		}
 		clientVersion         = header.EncodeXRHIDMVersion(clientVersionParsed)
-		xrhidSystemBase64     = header.EncodeXRHID(&xrhidSystem)
 		paramsNoClientVersion = &api_public.RegisterDomainParams{
-			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIdmRegistrationToken: token,
 		}
 		params = &api_public.RegisterDomainParams{
-			XRhIdentity:             xrhidSystemBase64,
 			XRhInsightsRequestId:    requestID,
 			XRhIdmRegistrationToken: token,
 			XRhIdmVersion:           clientVersion,
@@ -562,12 +559,10 @@ func TestUpdate(t *testing.T) {
 		OSReleaseVersionID: "8",
 	}
 	testParams := api_public.UpdateDomainParams{
-		XRhIdentity:          header.EncodeXRHID(&testXRHID),
 		XRhInsightsRequestId: "put_update_test",
 		XRhIdmVersion:        header.EncodeXRHIDMVersion(&testXRHIDMVersion),
 	}
 	testBadParams := api_public.UpdateDomainParams{
-		XRhIdentity:          header.EncodeXRHID(&testXRHID),
 		XRhInsightsRequestId: "put_update_test",
 		XRhIdmVersion:        "{",
 	}
@@ -789,7 +784,6 @@ func TestGetByID(t *testing.T) {
 
 	testRequestID := "getByID"
 	params := public.ReadDomainParams{
-		XRhIdentity:          header.EncodeXRHID(&xrhid),
 		XRhInsightsRequestId: &testRequestID,
 	}
 	orgID, err = i.GetByID(&xrhid, &params)

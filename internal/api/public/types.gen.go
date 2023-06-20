@@ -254,49 +254,34 @@ type ListDomainsParams struct {
 	// Limit Number of items per page
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
-	// XRhIdentity Identity header for the request
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // CreateDomainParams defines parameters for CreateDomain.
 type CreateDomainParams struct {
-	// XRhIdentity Identity header for the request
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // DeleteDomainParams defines parameters for DeleteDomain.
 type DeleteDomainParams struct {
-	// XRhIdentity Identity header for the request
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // ReadDomainParams defines parameters for ReadDomain.
 type ReadDomainParams struct {
-	// XRhIdentity Identity header for the request
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // RegisterDomainParams defines parameters for RegisterDomain.
 type RegisterDomainParams struct {
-	// XRhIdentity Identity header
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Request id
 	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 
-	// XRhIdmRegistrationToken One time use token to register ipa information.
+	// XRhIdmRegistrationToken One-time password to authenticate domain registration with ipa-hcc command.
 	XRhIdmRegistrationToken string `json:"X-Rh-Idm-Registration-Token"`
 
 	// XRhIdmVersion ipa-hcc agent version
@@ -305,9 +290,6 @@ type RegisterDomainParams struct {
 
 // UpdateDomainParams defines parameters for UpdateDomain.
 type UpdateDomainParams struct {
-	// XRhIdentity Identity header
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Request id
 	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 
@@ -317,9 +299,6 @@ type UpdateDomainParams struct {
 
 // HostConfParams defines parameters for HostConf.
 type HostConfParams struct {
-	// XRhIdentity The identity header of the request.
-	XRhIdentity string `json:"X-Rh-Identity"`
-
 	// XRhInsightsRequestId Unique request id for distributing tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
 }

@@ -64,23 +64,6 @@ func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 	}
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
@@ -112,23 +95,6 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 	var params CreateDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
@@ -167,23 +133,6 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	var params DeleteDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
@@ -222,23 +171,6 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	var params ReadDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
@@ -277,23 +209,6 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	var params RegisterDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
@@ -368,23 +283,6 @@ func (w *ServerInterfaceWrapper) UpdateDomain(ctx echo.Context) error {
 	var params UpdateDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string
@@ -442,23 +340,6 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	var params HostConfParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Identity" -------------
-	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Identity")]; found {
-		var XRhIdentity string
-		n := len(valueList)
-		if n != 1 {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Identity, got %d", n))
-		}
-
-		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Identity", runtime.ParamLocationHeader, valueList[0], &XRhIdentity)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Identity: %s", err))
-		}
-
-		params.XRhIdentity = XRhIdentity
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Identity is required, but not found"))
-	}
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
 		var XRhInsightsRequestId string

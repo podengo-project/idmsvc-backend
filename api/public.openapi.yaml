@@ -47,12 +47,6 @@ paths:
             summary: Delete domain.
             description: Delete an existing domain from the current organization.
         parameters:
-            - name: X-Rh-Identity
-              description: Identity header for the request
-              schema:
-                  type: string
-              in: header
-              required: true
             - name: X-Rh-Insights-Request-Id
               description: Request id for distributed tracing.
               schema:
@@ -96,12 +90,6 @@ paths:
             description: Action to retrieve the host information for the host vm being
                 enrolled.
         parameters:
-            - name: X-Rh-Identity
-              description: The identity header of the request.
-              schema:
-                  type: string
-              in: header
-              required: true
             - name: X-Rh-Insights-Request-Id
               description: Unique request id for distributing tracing.
               schema:
@@ -181,12 +169,6 @@ paths:
             summary: Create a domain.
             description: Create a domain in the current organization.
         parameters:
-            - name: X-Rh-Identity
-              description: Identity header for the request
-              schema:
-                  type: string
-              in: header
-              required: true
             - name: X-Rh-Insights-Request-Id
               description: Request id for distributed tracing.
               schema:
@@ -224,12 +206,6 @@ paths:
                 Use the one time use token to update the initial information for
                 a rhel-idm domain.
         parameters:
-            - name: X-Rh-Identity
-              description: Identity header
-              schema:
-                  type: string
-              in: header
-              required: true
             - name: X-Rh-Insights-Request-Id
               description: Request id
               schema:
@@ -237,7 +213,7 @@ paths:
               in: header
               required: true
             - name: X-Rh-Idm-Registration-Token
-              description: One time use token to register ipa information.
+              description: One-time password to authenticate domain registration with ipa-hcc command.
               schema:
                   type: string
               in: header
@@ -286,12 +262,6 @@ paths:
             summary: Update a previously registered domain.
             description: Update the initial information for a rhel-idm domain.
         parameters:
-            - name: X-Rh-Identity
-              description: Identity header
-              schema:
-                  type: string
-              in: header
-              required: true
             - name: X-Rh-Insights-Request-Id
               description: Request id
               schema:
@@ -1008,7 +978,7 @@ components:
     securitySchemes:
         x-rh-identity:
             type: apiKey
-            description: Require a valid X-Rh-Identity
+            description: Base64-encoded JSON identity header provided by 3Scale. It contains type (System, User), org_id, and either username or certificate CN.
             name: X-Rh-Identity
             in: header
 security:

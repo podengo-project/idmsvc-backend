@@ -265,7 +265,7 @@ func (a *application) DeleteDomain(
 		tx          *gorm.DB
 		orgId       string
 		domain_uuid string
-		xrhid *identity.XRHID
+		xrhid       *identity.XRHID
 	)
 	xrhid, err = getXRHID(ctx)
 	if err != nil {
