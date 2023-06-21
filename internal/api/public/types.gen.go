@@ -13,87 +13,13 @@ const (
 	X_rh_identityScopes = "x_rh_identity.Scopes"
 )
 
-// Defines values for CreateDomainDomainType.
+// Defines values for DomainType.
 const (
-	CreateDomainDomainTypeRhelIdm CreateDomainDomainType = "rhel-idm"
+	RhelIdm DomainType = "rhel-idm"
 )
 
-// Defines values for DomainDomainType.
-const (
-	DomainDomainTypeRhelIdm DomainDomainType = "rhel-idm"
-)
-
-// Defines values for ListDomainsDataDomainType.
-const (
-	RhelIdm ListDomainsDataDomainType = "rhel-idm"
-)
-
-// CreateDomain A domain resource
-type CreateDomain struct {
-	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
-
-	// Description Human readable description for this domain.
-	Description string `json:"description"`
-
-	// DomainType Type of this domain. Currently only rhel-idm is supported.
-	DomainType CreateDomainDomainType `json:"domain_type"`
-
-	// Title the title for the entry
-	Title string `json:"title"`
-}
-
-// CreateDomainDomainType Type of this domain. Currently only rhel-idm is supported.
-type CreateDomainDomainType string
-
-// Domain A domain resource
-type Domain struct {
-	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
-
-	// Description Human readable description abou the domain.
-	Description *string `json:"description,omitempty"`
-
-	// DomainId Internal id for this domain
-	DomainId *string `json:"domain_id,omitempty"`
-
-	// DomainName Domain name
-	DomainName string `json:"domain_name"`
-
-	// DomainType Type of this domain. Currently only rhel-idm is supported.
-	DomainType DomainDomainType `json:"domain_type"`
-	DomainUuid *interface{}     `json:"domain_uuid,omitempty"`
-
-	// RhelIdm Options for ipa domains
-	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
-
-	// Title Title to describe the domain.
-	Title *string `json:"title,omitempty"`
-}
-
-// DomainDomainType Type of this domain. Currently only rhel-idm is supported.
-type DomainDomainType string
-
-// DomainIpa Options for ipa domains
-type DomainIpa struct {
-	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
-	CaCerts []DomainIpaCert `json:"ca_certs"`
-
-	// Locations List of allowed locations
-	Locations *[]DomainIpaLocation `json:"locations,omitempty"`
-
-	// RealmDomains List of realm associated to the IPA domain.
-	RealmDomains []string `json:"realm_domains"`
-
-	// RealmName The kerberos realm name associated to this IPA domain.
-	RealmName string `json:"realm_name"`
-
-	// Servers List of auto-enrollment enabled servers for this domain.
-	Servers []DomainIpaServer `json:"servers"`
-}
-
-// DomainIpaCert Represent a certificate item in the cacerts list for the Ipa domain type.
-type DomainIpaCert struct {
+// Certificate defines model for Certificate.
+type Certificate struct {
 	Issuer       string    `json:"issuer"`
 	Nickname     string    `json:"nickname"`
 	NotAfter     time.Time `json:"not_after"`
@@ -103,40 +29,108 @@ type DomainIpaCert struct {
 	Subject      string    `json:"subject"`
 }
 
-// DomainIpaLocation Represent a location for rhel-idm instance.
-type DomainIpaLocation struct {
-	// Description Location description.
+// CreateDomain A domain resource
+type CreateDomain struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
+
+	// Description Human readable description for this domain.
+	Description string `json:"description"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType DomainType `json:"domain_type"`
+
+	// Title the title for the entry
+	Title string `json:"title"`
+}
+
+// Domain A domain resource
+type Domain struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
+
+	// Description Human readable description abou the domain.
 	Description *string `json:"description,omitempty"`
-	Name        string  `json:"name"`
+
+	// DomainId A domain id
+	DomainId *DomainId `json:"domain_id,omitempty"`
+
+	// DomainName A name of a domain (all lower-case)
+	DomainName DomainName `json:"domain_name"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType DomainType `json:"domain_type"`
+
+	// RhelIdm Options for ipa domains
+	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
+
+	// Title Title to describe the domain.
+	Title *string `json:"title,omitempty"`
+}
+
+// DomainId A domain id
+type DomainId = openapi_types.UUID
+
+// DomainIpa Options for ipa domains
+type DomainIpa struct {
+	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
+	CaCerts []Certificate `json:"ca_certs"`
+
+	// Locations List of allowed locations
+	Locations *[]struct {
+		Description *string `json:"description,omitempty"`
+
+		// Name A location identifier (lower-case DNS label)
+		Name LocationName `json:"name"`
+	} `json:"locations,omitempty"`
+
+	// RealmDomains List of realm associated to the IPA domain.
+	RealmDomains []DomainName `json:"realm_domains"`
+
+	// RealmName A Kerberos realm name (usually all upper-case domain name)
+	RealmName RealmName `json:"realm_name"`
+
+	// Servers List of auto-enrollment enabled servers for this domain.
+	Servers []DomainIpaServer `json:"servers"`
 }
 
 // DomainIpaServer Server schema for an entry into the Ipa domain type.
 type DomainIpaServer struct {
-	CaServer            bool   `json:"ca_server"`
-	Fqdn                string `json:"fqdn"`
-	HccEnrollmentServer bool   `json:"hcc_enrollment_server"`
-	HccUpdateServer     bool   `json:"hcc_update_server"`
+	CaServer bool `json:"ca_server"`
 
-	// Location A location identifier (lower-case DNS label).
-	Location              *string             `json:"location,omitempty"`
-	PkinitServer          bool                `json:"pkinit_server"`
-	SubscriptionManagerId *openapi_types.UUID `json:"subscription_manager_id,omitempty"`
+	// Fqdn A host's Fully Qualified Domain Name (all lower-case).
+	Fqdn                Fqdn `json:"fqdn"`
+	HccEnrollmentServer bool `json:"hcc_enrollment_server"`
+	HccUpdateServer     bool `json:"hcc_update_server"`
+
+	// Location A location identifier (lower-case DNS label)
+	Location     *LocationName `json:"location,omitempty"`
+	PkinitServer bool          `json:"pkinit_server"`
+
+	// SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
+	SubscriptionManagerId *SubscriptionManagerId `json:"subscription_manager_id,omitempty"`
 }
 
-// Error General error schema
+// DomainName A name of a domain (all lower-case)
+type DomainName = string
+
+// DomainType Type of domain (currently only rhel-idm)
+type DomainType string
+
+// Error defines model for Error.
 type Error struct {
 	Detail *interface{} `json:"detail,omitempty"`
 
-	// Details A detailed explanation specific to this occurrence of the problem, e.g. a traceback.
+	// Details A detailed explanation of the error, e.g. traceback.
 	Details string `json:"details"`
 
-	// Id A unique identifier for this particular occurrence of the problem.
+	// Id A unique, random error identifier
 	Id string `json:"id"`
 
-	// Status The HTTP status code applicable to this problem, expressed as a string value. This SHOULD be provided.
-	Status *int `json:"status,omitempty"`
+	// Status The HTTP status code for the error.
+	Status int `json:"status"`
 
-	// Title A human-readable short explanation specific to this occurrence of the problem. This field’s value can be localized.
+	// Title The human-readable HTTP status text for the error.
 	Title string `json:"title"`
 }
 
@@ -146,23 +140,31 @@ type Errors struct {
 	Errors *[]Error `json:"errors,omitempty"`
 }
 
+// Fqdn A host's Fully Qualified Domain Name (all lower-case).
+type Fqdn = string
+
 // HostConf Represent the request payload for the /hostconf/:fqdn endpoint.
 type HostConf struct {
-	// Fqdn The full qualified domain name of the host vm that is being enrolled.
-	Fqdn *string `json:"fqdn,omitempty"`
+	// Fqdn A host's Fully Qualified Domain Name (all lower-case).
+	Fqdn *Fqdn `json:"fqdn,omitempty"`
 
-	// SubscriptionManagerId The id for the subscription manager.
-	SubscriptionManagerId *string `json:"subscription_manager_id,omitempty"`
+	// SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
+	SubscriptionManagerId *SubscriptionManagerId `json:"subscription_manager_id,omitempty"`
 }
 
 // HostConfResponseSchema The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
 type HostConfResponseSchema struct {
-	DomainName *string `json:"domain_name,omitempty"`
-	DomainType *string `json:"domain_type,omitempty"`
+	// DomainName A name of a domain (all lower-case)
+	DomainName *DomainName `json:"domain_name,omitempty"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType *DomainType `json:"domain_type,omitempty"`
 	Ipa        *struct {
-		CaCert     *string   `json:"ca_cert,omitempty"`
-		RealmName  *string   `json:"realm_name,omitempty"`
-		ServerList *[]string `json:"server_list,omitempty"`
+		CaCert *string `json:"ca_cert,omitempty"`
+
+		// RealmName A Kerberos realm name (usually all upper-case domain name)
+		RealmName  *RealmName `json:"realm_name,omitempty"`
+		ServerList *[]string  `json:"server_list,omitempty"`
 	} `json:"ipa,omitempty"`
 }
 
@@ -171,18 +173,20 @@ type ListDomainsData struct {
 	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
 	// Description Human-readable description of the domain entry.
-	Description string                    `json:"description"`
-	DomainId    string                    `json:"domain_id"`
-	DomainName  string                    `json:"domain_name"`
-	DomainType  ListDomainsDataDomainType `json:"domain_type"`
-	DomainUuid  *interface{}              `json:"domain_uuid,omitempty"`
+	Description string `json:"description"`
+
+	// DomainId A domain id
+	DomainId DomainId `json:"domain_id"`
+
+	// DomainName A name of a domain (all lower-case)
+	DomainName DomainName `json:"domain_name"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType DomainType `json:"domain_type"`
 
 	// Title Human-friendly title for the domain entry.
 	Title string `json:"title"`
 }
-
-// ListDomainsDataDomainType defines model for ListDomainsData.DomainType.
-type ListDomainsDataDomainType string
 
 // ListDomainsResponseSchema Represent a paginated result for a list of domains
 type ListDomainsResponseSchema struct {
@@ -195,6 +199,9 @@ type ListDomainsResponseSchema struct {
 	// Meta Metadata for the paginated responses.
 	Meta PaginationMeta `json:"meta"`
 }
+
+// LocationName A location identifier (lower-case DNS label)
+type LocationName = string
 
 // PaginationLinks Represent the navigation links for the data paginated.
 type PaginationLinks struct {
@@ -222,6 +229,12 @@ type PaginationMeta struct {
 	// Offset Initial record of the page.
 	Offset int `json:"offset"`
 }
+
+// RealmName A Kerberos realm name (usually all upper-case domain name)
+type RealmName = string
+
+// SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
+type SubscriptionManagerId = openapi_types.UUID
 
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain

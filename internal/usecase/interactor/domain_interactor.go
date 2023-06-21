@@ -22,12 +22,12 @@ func NewDomainInteractor() interactor.DomainInteractor {
 	return domainInteractor{}
 }
 
-// helperDomainTypeToUint transform public.CreateDomainDomainType to an uint const
+// helperDomainTypeToUint transform public.DomainType to an uint const
 // Return the uint representation or model.DomainTypeUndefined if it does not match
 // the current types.
-func helperDomainTypeToUint(domainType public.DomainDomainType) uint {
+func helperDomainTypeToUint(domainType public.DomainType) uint {
 	switch domainType {
-	case api_public.DomainDomainTypeRhelIdm:
+	case api_public.RhelIdm:
 		return model.DomainTypeIpa
 	default:
 		return model.DomainTypeUndefined
@@ -56,7 +56,7 @@ func (i domainInteractor) Create(xrhid *identity.XRHID, params *api_public.Creat
 	domain.DomainName = nil
 	domain.Title = pointy.String(body.Title)
 	domain.Description = pointy.String(body.Description)
-	domain.Type = pointy.Uint(helperDomainTypeToUint(api_public.DomainDomainType(body.DomainType)))
+	domain.Type = pointy.Uint(helperDomainTypeToUint(api_public.DomainType(body.DomainType)))
 	switch *domain.Type {
 	case model.DomainTypeIpa:
 		domain.IpaDomain = &model.Ipa{
@@ -267,7 +267,7 @@ func (i domainInteractor) registerOrUpdateRhelIdmCaCerts(body *public.Domain, do
 	}
 }
 
-func (i domainInteractor) registerOrUpdateRhelIdmCaCertOne(caCert *model.IpaCert, cert *api_public.DomainIpaCert) {
+func (i domainInteractor) registerOrUpdateRhelIdmCaCertOne(caCert *model.IpaCert, cert *api_public.Certificate) {
 	caCert.Nickname = cert.Nickname
 	caCert.Issuer = cert.Issuer
 	caCert.Subject = cert.Subject
@@ -336,7 +336,7 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, UUID string, body *
 	domain.AutoEnrollmentEnabled = body.AutoEnrollmentEnabled
 	domain.DomainName = pointy.String(body.DomainName)
 	switch body.DomainType {
-	case api_public.DomainDomainType(api_public.DomainDomainTypeRhelIdm):
+	case api_public.DomainType(api_public.RhelIdm):
 		domain.Type = pointy.Uint(model.DomainTypeIpa)
 		domain.IpaDomain = &model.Ipa{}
 		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)

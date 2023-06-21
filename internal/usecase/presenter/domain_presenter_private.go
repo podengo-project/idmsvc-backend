@@ -55,7 +55,7 @@ func (p *domainPresenter) fillRhelIdmCerts(
 		return
 	}
 	output.RhelIdm.CaCerts = make(
-		[]public.DomainIpaCert,
+		[]public.Certificate,
 		len(domain.IpaDomain.CaCerts),
 	)
 	for i := range domain.IpaDomain.CaCerts {
@@ -125,7 +125,7 @@ func (p *domainPresenter) sharedDomainFill(
 	if domain.DomainUuid == (uuid.UUID{}) {
 		output.DomainId = nil
 	} else {
-		output.DomainId = pointy.String(domain.DomainUuid.String())
+		output.DomainId = &domain.DomainUuid
 	}
 	if domain.AutoEnrollmentEnabled != nil {
 		output.AutoEnrollmentEnabled = domain.AutoEnrollmentEnabled
@@ -247,8 +247,8 @@ func (p *domainPresenter) listFillItem(output *public.ListDomainsData, domain *m
 	if domain.DomainName != nil {
 		output.DomainName = *domain.DomainName
 	}
-	output.DomainType = public.ListDomainsDataDomainType(model.DomainTypeString(*domain.Type))
-	output.DomainId = domain.DomainUuid.String()
+	output.DomainType = public.DomainType(model.DomainTypeString(*domain.Type))
+	output.DomainId = domain.DomainUuid
 	if domain.Title != nil {
 		output.Title = *domain.Title
 	}

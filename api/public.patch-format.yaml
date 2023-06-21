@@ -1,6 +1,18 @@
 ---
 components:
     schemas:
+        Certificate:
+            properties:
+                issuer:
+                    format: cert-issuer
+                not_after:
+                    format: date-time
+                not_before:
+                    format: date-time
+                pem:
+                    format: cert-pem
+                subject:
+                    format: cert-subject
         CreateDomain:
             properties:
                 title:
@@ -11,42 +23,20 @@ components:
             properties:
                 realm_name:
                     format: realm
-        CreateDomainIpaServer:
-            properties:
-                fqdn:
-                    format: fqdn
-                subscription_manager_id:
-                    format: uuid
         Domain:
             properties:
                 title:
                     format: domain-title
                 description:
                     format: domain-description
-                domain_uuid:
-                    format: uuid
+        DomainId:
+            format: uuid
         DomainIpa:
             properties:
                 realm_domains:
                     format: ipa-realm-domains
                 realm_name:
                     format: realm
-        DomainIpaCert:
-            properties:
-                issuer:
-                    format: cert-issuer
-                pem:
-                    format: cert-pem
-                subject:
-                    format: cert-subject
-        DomainIpaServer:
-            properties:
-                fqdn:
-                    format: fqdn
-                location:
-                    format: ipa-server-location
-                subscription_manager_id:
-                    format: uuid
         Error:
             properties:
                 detail:
@@ -55,6 +45,10 @@ components:
                     format: string
                 status:
                     format: http-status
+        Fqdn:
+            format: idn-hostname
+        HostId:
+            format: uuid
         ListDomainsData:
             properties:
                 title:
@@ -63,8 +57,6 @@ components:
                     format: string
                 domain_name:
                     format: domain
-                domain_uuid:
-                    format: uuid
         PaginationLinks:
             properties:
                 first:
@@ -75,3 +67,5 @@ components:
                     format: url
                 previous:
                     format: url
+        SubscriptionManagerId:
+            format: uuid

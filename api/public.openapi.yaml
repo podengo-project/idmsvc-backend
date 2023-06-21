@@ -328,6 +328,51 @@ components:
                     schema:
                         $ref: '#/components/schemas/Domain'
     schemas:
+        CaCertBundle:
+            title: A bundle of CA certificates
+            description: A string of concatenated, PEM-encoded X.509 certificates
+            type: string
+        Certificate:
+            type: object
+            required:
+                - issuer
+                - nickname
+                - not_after
+                - not_before
+                - pem
+                - serial_number
+                - subject
+            additionalProperties: false
+            properties:
+                issuer:
+                    title: issuer name
+                    type: string
+                    example: O=DOMAIN.EXAMPLE, CN=Certificate Authority
+                nickname:
+                    title: Internal nick name in LDAP
+                    type: string
+                    example: DOMAIN.EXAMPLE CA
+                not_after:
+                    title: Not valid after timestamp (UTC)
+                    type: string
+                    example: '2043-03-21T05:38:09+00:00'
+                not_before:
+                    title: Not valid before timestamp (UTC)
+                    type: string
+                    example: '2023-03-21T05:38:09+00:00'
+                pem:
+                    title: PEM encoded X.509 certificate
+                    type: string
+                    example: '-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n'
+                serial_number:
+                    title: base 10 encoded serial number
+                    type: string
+                    pattern: ^[1-9][0-9]*$
+                    example: '1'
+                subject:
+                    title: subject name
+                    type: string
+                    example: O=DOMAIN.EXAMPLE, CN=Certificate Authority
         CreateDomain:
             title: Root Type for DomainResponse
             description: A domain resource
@@ -351,11 +396,7 @@ components:
                     type: boolean
                     example: 'true'
                 domain_type:
-                    description: Type of this domain. Currently only rhel-idm is supported.
-                    type: string
-                    enum:
-                        - rhel-idm
-                    example: rhel-idm
+                    $ref: '#/components/schemas/DomainType'
             example:
                 title: My Domain Example Title
                 description: My Domain Example Description
@@ -381,7 +422,7 @@ components:
                     description: A base64 representation of all the list of chain of certificates, including the server ca.
                     type: array
                     items:
-                        $ref: '#/components/schemas/CreateDomainIpaCert'
+                        $ref: '#/components/schemas/Certificate'
                     example: >-
                         [
                           {
@@ -400,31 +441,7 @@ components:
                     items:
                         type: string
                 realm_name:
-                    description: The kerberos realm name associated to the IPA domain.
-                    type: string
-                    example: MYDOMAIN.EXAMPLE
-        CreateDomainIpaCert:
-            title: Root Type for CreateDomainIpaCert
-            description: Represent a certificate item in the cacerts list for the Ipa domain type.
-            type: object
-            additionalProperties: false
-            properties:
-                issuer:
-                    type: string
-                nickname:
-                    type: string
-                not_after:
-                    type: string
-                    format: date-time
-                not_before:
-                    type: string
-                    format: date-time
-                pem:
-                    type: string
-                serial_number:
-                    type: string
-                subject:
-                    type: string
+                    $ref: '#/components/schemas/RealmName'
         CreateDomainIpaServer:
             title: Root Type for CreateDomainIpaServer
             description: Server schema for an entry into the Ipa domain type
@@ -442,8 +459,7 @@ components:
                     type: boolean
                     example: 'true'
                 fqdn:
-                    type: string
-                    example: server1.mydomain.example
+                    $ref: '#/components/schemas/Fqdn'
                 hcc_enrollment_server:
                     type: boolean
                     example: 'true'
@@ -454,8 +470,7 @@ components:
                     type: boolean
                     example: 'true'
                 subscription_manager_id:
-                    type: string
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                    $ref: '#/components/schemas/SubscriptionManagerId'
             example:
                 ca_server: true
                 fqdn: ipaserver.mydomain.example
@@ -483,22 +498,11 @@ components:
                     type: boolean
                     example: 'true'
                 domain_id:
-                    description: Internal id for this domain
-                    type: string
-                    maxLength: 36
-                    minLength: 36
-                    example: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+                    $ref: '#/components/schemas/DomainId'
                 domain_name:
-                    description: Domain name
-                    type: string
-                    pattern: ^[a-z0-9\.\-]+$
-                    example: mydomain.example
+                    $ref: '#/components/schemas/DomainName'
                 domain_type:
-                    description: Type of this domain. Currently only rhel-idm is supported.
-                    type: string
-                    enum:
-                        - rhel-idm
-                    example: rhel-idm
+                    $ref: '#/components/schemas/DomainType'
                 rhel-idm:
                     $ref: '#/components/schemas/DomainIpa'
             example:
@@ -514,6 +518,14 @@ components:
                     server_list:
                         - server1.mydomain.example
                         - Server2.mydomain.example
+        DomainId:
+            title: domain id
+            description: A domain id
+            type: string
+            maxLength: 36
+            minLength: 36
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            example: 772e9618-d0f8-4bf8-bfed-d2831f63c619
         DomainIpa:
             title: Root Type for ResponseIpaObject
             description: Options for ipa domains
@@ -534,7 +546,7 @@ components:
                     description: A base64 representation of all the list of chain of certificates, including the server ca.
                     type: array
                     items:
-                        $ref: '#/components/schemas/DomainIpaCert'
+                        $ref: '#/components/schemas/Certificate'
                     example: >-
                         [
                           {
@@ -551,71 +563,22 @@ components:
                     description: List of allowed locations
                     type: array
                     items:
-                        $ref: '#/components/schemas/DomainIpaLocation'
+                        type: object
+                        required:
+                            - name
+                        additionalProperties: false
+                        properties:
+                            name:
+                                $ref: '#/components/schemas/LocationName'
+                            description:
+                                type: string
                 realm_domains:
                     description: List of realm associated to the IPA domain.
                     type: array
                     items:
-                        type: string
+                        $ref: '#/components/schemas/DomainName'
                 realm_name:
-                    description: The kerberos realm name associated to this IPA domain.
-                    type: string
-                    maxLength: 253
-                    minLength: 3
-                    pattern: ^[A-Z0-9\.\-]+$
-                    example: MYDOMAIN.EXAMPLE
-        DomainIpaCert:
-            title: Root Type for CreateDomainIpaCert
-            description: Represent a certificate item in the cacerts list for the Ipa domain type.
-            type: object
-            required:
-                - issuer
-                - nickname
-                - not_after
-                - not_before
-                - pem
-                - serial_number
-                - subject
-            additionalProperties: false
-            properties:
-                issuer:
-                    type: string
-                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-                nickname:
-                    type: string
-                    example: MYDOMAIN.EXAMPLE IPA CA
-                not_after:
-                    type: string
-                    format: date-time
-                    example: ''
-                not_before:
-                    type: string
-                    format: date-time
-                    example: ''
-                pem:
-                    type: string
-                    example: '-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n'
-                serial_number:
-                    type: string
-                    example: '1'
-                subject:
-                    type: string
-                    example: CN=Certificate Authority,O=MYDOMAIN.EXAMPLE
-        DomainIpaLocation:
-            title: Root Type for DomainIpaLocation
-            description: Represent a location for rhel-idm instance.
-            type: object
-            required:
-                - name
-            properties:
-                name:
-                    type: string
-                description:
-                    description: Location description.
-                    type: string
-            example:
-                name: boston
-                description: Location at Boston
+                    $ref: '#/components/schemas/RealmName'
         DomainIpaServer:
             title: Root Type for CreateDomainIpaServer
             description: Server schema for an entry into the Ipa domain type.
@@ -632,8 +595,7 @@ components:
                     type: boolean
                     example: 'true'
                 fqdn:
-                    type: string
-                    example: server1.mydomain.example
+                    $ref: '#/components/schemas/Fqdn'
                 hcc_enrollment_server:
                     type: boolean
                     example: 'true'
@@ -641,19 +603,12 @@ components:
                     type: boolean
                     example: 'true'
                 location:
-                    description: A location identifier (lower-case DNS label).
-                    type: string
-                    maxLength: 63
-                    minLength: 1
-                    pattern: ^[a-z][a-z0-9\-]*$
+                    $ref: '#/components/schemas/LocationName'
                 pkinit_server:
                     type: boolean
                     example: 'true'
                 subscription_manager_id:
-                    type: string
-                    maxLength: 36
-                    minLength: 36
-                    example: 03965a2c-bd24-11ed-968d-482ae3863d30
+                    $ref: '#/components/schemas/SubscriptionManagerId'
             example:
                 ca_server: true
                 fqdn: ipaserver.mydomain.example
@@ -662,41 +617,53 @@ components:
                 location: europe
                 pkinit_server: true
                 subscription_manager_id: 03965a2c-bd24-11ed-968d-482ae3863d30
+        DomainName:
+            title: Fully qualified domain name
+            description: A name of a domain (all lower-case)
+            type: string
+            maxLength: 253
+            minLength: 3
+            pattern: ^[a-z0-9\.\-]+$
+            example: domain.example
+        DomainType:
+            title: Domain Type
+            description: Type of domain (currently only rhel-idm)
+            type: string
+            enum:
+                - rhel-idm
+            example: rhel-idm
         Error:
-            title: Root Type for Error
-            description: General error schema
+            title: Error information
             type: object
             required:
                 - details
                 - id
                 - status
                 - title
+            additionalProperties: false
             properties:
                 title:
-                    description: A human-readable short explanation specific to this occurrence of the problem. This field’s value can be localized.
+                    title: HTTP status text
+                    description: The human-readable HTTP status text for the error.
                     type: string
-                    example: Bad request
+                    example: Not Found
                 details:
-                    description: A detailed explanation specific to this occurrence of the problem, e.g. a traceback.
+                    title: Details
+                    description: A detailed explanation of the error, e.g. traceback.
                     type: string
-                    example: An error occured at code.go:123.
+                    example: Resource not found
                 id:
-                    description: A unique identifier for this particular occurrence of the problem.
+                    title: Error identifier
+                    description: A unique, random error identifier
                     type: string
-                    example: kjuadsfuashwe898w9jf
+                    example: 27c19744-29f2-42a0-8669-8fa050f8ffdf
                 status:
-                    description: The HTTP status code applicable to this problem, expressed as a string value. This SHOULD be provided.
+                    title: HTTP status code
+                    description: The HTTP status code for the error.
                     type: integer
-                    maxLength: 3
                     maximum: 599
-                    minLength: 3
                     minimum: 100
-                    readOnly: true
-                    example: '400'
-            example:
-                detail: 'Bad request: additional details: more additional details'
-                id: ${X-RH-INSIGHTS-REQUEST-ID}
-                status: '400'
+                    example: '404'
         Errors:
             title: Root Type for ErrorResponse
             description: General error response returned by the hmsidm API
@@ -714,7 +681,8 @@ components:
                           {
                             "id": "${X-RH-INSIGHTS-REQUEST-ID}",
                             "status": "400",
-                            "detail": "Bad request: additional details: more additional details"
+                            "title": "Bad Request",
+                            "detail": "additional details: more additional details"
                           }
                         ]
             example:
@@ -722,19 +690,23 @@ components:
                     - detail: 'Bad request: additional details: more additional details'
                       id: ${X-RH-INSIGHTS-REQUEST-ID}
                       status: '400'
+        Fqdn:
+            title: FQDN
+            description: A host's Fully Qualified Domain Name (all lower-case).
+            type: string
+            maxLength: 253
+            minLength: 3
+            pattern: ^[a-z0-9\.\-]+$
+            example: host.domain.example
         HostConf:
             title: Root Type for HostConf
             description: Represent the request payload for the /hostconf/:fqdn endpoint.
             type: object
             properties:
                 fqdn:
-                    description: The full qualified domain name of the host vm that is being enrolled.
-                    type: string
-                    example: '"myhost.domain.example"'
+                    $ref: '#/components/schemas/Fqdn'
                 subscription_manager_id:
-                    description: The id for the subscription manager.
-                    type: string
-                    example: '"c3ac4b91-27cc-422c-a283-42aadfe730af"'
+                    $ref: '#/components/schemas/SubscriptionManagerId'
             example:
                 fqdn: host1.domain.example
                 subscription_manager_id: c3ac4b91-27cc-422c-a283-42aadfe730af
@@ -745,33 +717,30 @@ components:
             required:
                 - ca_certs
             properties:
-                ca_certs:
-                    description: List of certificate data.
-                    type: array
-                    items:
-                        $ref: '#/components/schemas/CreateDomainIpaCert'
-                realm_domains:
-                    description: List of certificate data.
-                    type: array
-                    items:
-                        type: string
-                    example: '["mydomain.example"]'
-                realm_name:
-                    description: The realm name for the domain
-                    type: string
-                    example: IPA.EXAMPLE
-                server_list:
+                cabundle:
+                    $ref: '#/components/schemas/CaCertBundle'
+                enrollment_servers:
                     description: List of auto-enrollment enabled servers for this domain.
                     type: array
                     items:
-                        type: string
-                    example: '["server1.mydomain.example","server2.mydomain.example"]'
+                        type: object
+                        required:
+                            - fqdn
+                        additionalProperties: false
+                        properties:
+                            fqdn:
+                                $ref: '#/components/schemas/Fqdn'
+                            location:
+                                $ref: '#/components/schemas/LocationName'
+                    example: '[{"fqdn": "server1.mydomain.example"}, {"fqdn": "server2.mydomain.example"}]'
+                realm_name:
+                    $ref: '#/components/schemas/RealmName'
             example:
-                ca_list: base64
+                cabundle: base64
                 realm_name: IPA.EXAMPLE
                 server_list:
-                    - server1.mydomain.example
-                    - server2.mydomain.example
+                    - fqdn: server1.mydomain.example
+                    - fqdn: server2.mydomain.example
         HostConfResponseSchema:
             title: Root Type for HostConfResponse
             description: >-
@@ -781,16 +750,16 @@ components:
             type: object
             properties:
                 domain_name:
-                    type: string
+                    $ref: '#/components/schemas/DomainName'
                 domain_type:
-                    type: string
+                    $ref: '#/components/schemas/DomainType'
                 ipa:
                     type: object
                     properties:
                         ca_cert:
                             type: string
                         realm_name:
-                            type: string
+                            $ref: '#/components/schemas/RealmName'
                         server_list:
                             type: array
                             items:
@@ -806,6 +775,14 @@ components:
                     realm_name: DOMAIN.EXAMPLE
                     server_list:
                         - ipaserver.domain.example
+        HostId:
+            title: host id
+            description: A Host-Based Inventory ID of a host.
+            type: string
+            maxLength: 36
+            minLength: 36
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            example: f0468001-7632-4d3f-afd2-770c93825adf
         ListDomainsData:
             title: Root Type for ListDomainsData
             description: The data listed for the domains.
@@ -828,13 +805,11 @@ components:
                 auto_enrollment_enabled:
                     type: boolean
                 domain_id:
-                    type: string
+                    $ref: '#/components/schemas/DomainId'
                 domain_name:
-                    type: string
+                    $ref: '#/components/schemas/DomainName'
                 domain_type:
-                    type: string
-                    enum:
-                        - rhel-idm
+                    $ref: '#/components/schemas/DomainType'
             example:
                 auto_enrollment_enabled: true
                 domain_id: 1aa15eae-a88b-11ed-a2cb-482ae3863d30
@@ -872,6 +847,19 @@ components:
                     previous: /api/idm/v1/domains?limit=10&offset=0
                 meta:
                     count: 1
+        LocationName:
+            title: Location identifier (IPA location, AD site)
+            description: A location identifier (lower-case DNS label)
+            type: string
+            maxLength: 63
+            minLength: 1
+            pattern: ^[a-z][a-z0-9\-]*$
+            example: alpha
+        OrgId:
+            title: Organization id
+            description: The Org ID of the tenant that owns the host.
+            type: string
+            example: '000102'
         PaginationLinks:
             title: Root Type for PaginationLinks
             description: Represent the navigation links for the data paginated.
@@ -923,6 +911,14 @@ components:
                 count: 1
                 limit: 10
                 offset: 0
+        RealmName:
+            title: Kerberos realm name
+            description: A Kerberos realm name (usually all upper-case domain name)
+            type: string
+            maxLength: 253
+            minLength: 3
+            pattern: ^[A-Z0-9\.\-]+$
+            example: DOMAIN.EXAMPLE
         RegisterDomain:
             title: Root Type for DomainResponse
             description: A domain resource
@@ -953,6 +949,14 @@ components:
                     format: date-time
                 secret:
                     type: string
+        SubscriptionManagerId:
+            title: Subscription manager id
+            description: A Red Hat Subcription Manager ID of a RHEL host.
+            type: string
+            maxLength: 36
+            minLength: 36
+            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            example: e658e3eb-148c-46a6-b48a-099f9593191a
         UpdateDomain:
             title: Root Type for DomainResponse
             description: Update a domain resource

@@ -103,7 +103,7 @@ func TestCreate(t *testing.T) {
 				Params: &api_public.CreateDomainParams{},
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
-					DomainType:            api_public.CreateDomainDomainType("invalid"),
+					DomainType:            api_public.DomainType("invalid"),
 				},
 			},
 			Expected: TestCaseExpected{
@@ -118,7 +118,7 @@ func TestCreate(t *testing.T) {
 				Params: &api_public.CreateDomainParams{},
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
-					DomainType:            api_public.CreateDomainDomainTypeRhelIdm,
+					DomainType:            api_public.RhelIdm,
 				},
 			},
 			Expected: TestCaseExpected{
@@ -137,7 +137,7 @@ func TestCreate(t *testing.T) {
 				Params: &api_public.CreateDomainParams{},
 				Body: &api_public.CreateDomain{
 					AutoEnrollmentEnabled: true,
-					DomainType:            api_public.CreateDomainDomainTypeRhelIdm,
+					DomainType:            api_public.RhelIdm,
 				},
 			},
 			Expected: TestCaseExpected{
@@ -182,7 +182,7 @@ func TestHelperDomainTypeToUint(t *testing.T) {
 	result = helperDomainTypeToUint("")
 	assert.Equal(t, model.DomainTypeUndefined, result)
 
-	result = helperDomainTypeToUint(public.DomainDomainTypeRhelIdm)
+	result = helperDomainTypeToUint(public.RhelIdm)
 	assert.Equal(t, model.DomainTypeIpa, result)
 }
 
@@ -305,7 +305,7 @@ func TestRegisterIpa(t *testing.T) {
 					Title:       testTitle,
 					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
-					DomainType:  api_public.DomainDomainType(api_public.DomainDomainTypeRhelIdm),
+					DomainType:  api_public.DomainType(api_public.RhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "",
 					},
@@ -341,7 +341,7 @@ func TestRegisterIpa(t *testing.T) {
 					Title:       testTitle,
 					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
-					DomainType:  api_public.DomainDomainTypeRhelIdm,
+					DomainType:  api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 					},
@@ -377,7 +377,7 @@ func TestRegisterIpa(t *testing.T) {
 					Title:       testTitle,
 					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
-					DomainType:  api_public.DomainDomainTypeRhelIdm,
+					DomainType:  api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName:    "MYDOMAIN.EXAMPLE",
 						RealmDomains: []string{"server.domain.example"},
@@ -414,10 +414,10 @@ func TestRegisterIpa(t *testing.T) {
 					Title:       testTitle,
 					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
-					DomainType:  api_public.DomainDomainTypeRhelIdm,
+					DomainType:  api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
-						CaCerts: []api_public.DomainIpaCert{
+						CaCerts: []api_public.Certificate{
 							{
 								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
 								SerialNumber: "1",
@@ -471,7 +471,7 @@ func TestRegisterIpa(t *testing.T) {
 					Title:       testTitle,
 					Description: pointy.String(description),
 					DomainName:  "mydomain.example",
-					DomainType:  api_public.DomainDomainTypeRhelIdm,
+					DomainType:  api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 						Servers: []api_public.DomainIpaServer{
@@ -571,7 +571,7 @@ func TestUpdate(t *testing.T) {
 		Title:                 testTitle,
 		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              pointy.String(testID.String()),
+		DomainId:              &testID,
 		DomainType:            "aninvalidtype",
 	}
 	testBody := api_public.Domain{
@@ -579,12 +579,12 @@ func TestUpdate(t *testing.T) {
 		Title:                 testTitle,
 		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              pointy.String(testID.String()),
-		DomainType:            api_public.DomainDomainTypeRhelIdm,
+		DomainId:              &testID,
+		DomainType:            api_public.RhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
 			RealmDomains: []string{"mydomain.example"},
-			CaCerts:      []api_public.DomainIpaCert{},
+			CaCerts:      []api_public.Certificate{},
 			Servers:      []api_public.DomainIpaServer{},
 		},
 	}
@@ -615,7 +615,7 @@ func TestUpdate(t *testing.T) {
 	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID.String(), &testParams, &testBody)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
-	assert.Equal(t, testID.String(), *testBody.DomainId)
+	assert.Equal(t, testID, *testBody.DomainId)
 	require.NotNil(t, xrhidmVersion)
 	require.NotNil(t, domain)
 }
@@ -728,12 +728,12 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		Title:                 testTitle,
 		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              pointy.String(testID.String()),
-		DomainType:            api_public.DomainDomainTypeRhelIdm,
+		DomainId:              &testID,
+		DomainType:            api_public.RhelIdm,
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
 			RealmDomains: []string{"mydomain.example"},
-			CaCerts:      []api_public.DomainIpaCert{},
+			CaCerts:      []api_public.Certificate{},
 			Servers:      []api_public.DomainIpaServer{},
 		},
 	}
@@ -742,12 +742,12 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		Title:                 testTitle,
 		Description:           pointy.String(testDescription),
 		DomainName:            "mydomain.example",
-		DomainId:              pointy.String(testID.String()),
+		DomainId:              &testID,
 		DomainType:            "wrongtype",
 		RhelIdm: &api_public.DomainIpa{
 			RealmName:    "mydomain.example",
 			RealmDomains: []string{"mydomain.example"},
-			CaCerts:      []api_public.DomainIpaCert{},
+			CaCerts:      []api_public.Certificate{},
 			Servers:      []api_public.DomainIpaServer{},
 		},
 	}

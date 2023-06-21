@@ -82,12 +82,12 @@ func TestGet(t *testing.T) {
 				Err: nil,
 				Output: &public.ReadDomainResponse{
 					AutoEnrollmentEnabled: pointy.Bool(true),
-					DomainId:              pointy.String(testUUID.String()),
+					DomainId:              testUUID,
 					DomainName:            "domain.example",
-					DomainType:            public.DomainDomainType(model.DomainTypeString(model.DomainTypeIpa)),
+					DomainType:            public.DomainType(model.DomainTypeString(model.DomainTypeIpa)),
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
-						CaCerts:      []public.DomainIpaCert{},
+						CaCerts:      []public.Certificate{},
 						Servers:      []public.DomainIpaServer{},
 						RealmDomains: []string{"domain.example"},
 					},
@@ -263,7 +263,7 @@ func TestCreate(t *testing.T) {
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "DOMAIN.EXAMPLE",
 						RealmDomains: []string{},
-						CaCerts:      []public.DomainIpaCert{},
+						CaCerts:      []public.Certificate{},
 						Servers:      []public.DomainIpaServer{},
 					},
 				},
@@ -290,7 +290,7 @@ func TestCreate(t *testing.T) {
 		// 			DomainUuid:            "00000000-0000-0000-0000-000000000000",
 		// 			RhelIdm: &public.DomainIpa{
 		// 				RealmName: "DOMAIN.EXAMPLE",
-		// 				CaCerts:   []public.DomainIpaCert{},
+		// 				CaCerts:   []public.Certificate{},
 		// 				Servers:   []public.DomainIpaServer{},
 		// 			},
 		// 		},
@@ -370,7 +370,7 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 			Name: "Full success copy",
 			Given: TestCaseGiven{
 				To: &public.Domain{
-					DomainType: public.DomainDomainTypeRhelIdm,
+					DomainType: public.RhelIdm,
 					RhelIdm:    &public.DomainIpa{},
 				},
 				From: &model.Domain{
@@ -393,9 +393,9 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 			Expected: TestCaseExpected{
 				Err: nil,
 				To: &public.Domain{
-					DomainType: public.DomainDomainTypeRhelIdm,
+					DomainType: public.RhelIdm,
 					RhelIdm: &public.DomainIpa{
-						CaCerts: []public.DomainIpaCert{
+						CaCerts: []public.Certificate{
 							{
 								Nickname:     "MYDOMAIN.EXAMPLE.IPA CA",
 								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE.COM",
@@ -437,11 +437,11 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
-	testUUID := pointy.String("ebac2444-e51b-11ed-a7f5-482ae3863d30")
+	testUUID := uuid.MustParse("ebac2444-e51b-11ed-a7f5-482ae3863d30")
 	testDomainName := "mydomain.example"
 	testTitle := pointy.String("My Example Domain Title")
 	testModel := model.Domain{
-		DomainUuid:            uuid.MustParse(*testUUID),
+		DomainUuid:            testUUID,
 		DomainName:            pointy.String(testDomainName),
 		Title:                 testTitle,
 		Description:           pointy.String("My Example Domain Description"),
@@ -456,16 +456,16 @@ func TestRegister(t *testing.T) {
 		},
 	}
 	testExpected := public.Domain{
-		DomainId:              testUUID,
+		DomainId:              &testUUID,
 		DomainName:            testDomainName,
 		Title:                 testTitle,
 		Description:           pointy.String("My Example Domain Description"),
 		AutoEnrollmentEnabled: pointy.Bool(true),
-		DomainType:            public.DomainDomainTypeRhelIdm,
+		DomainType:            public.RhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    testDomainName,
 			RealmDomains: pq.StringArray{testDomainName},
-			CaCerts:      []public.DomainIpaCert{},
+			CaCerts:      []public.Certificate{},
 			Servers:      []public.DomainIpaServer{},
 		},
 	}
@@ -503,16 +503,16 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	testExpected := public.Domain{
-		DomainId:              testUUIDString,
+		DomainId:              &testUUID,
 		DomainName:            testDomainName,
 		Title:                 testTitle,
 		Description:           testDescription,
 		AutoEnrollmentEnabled: pointy.Bool(true),
-		DomainType:            public.DomainDomainTypeRhelIdm,
+		DomainType:            public.RhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    testDomainName,
 			RealmDomains: pq.StringArray{testDomainName},
-			CaCerts:      []public.DomainIpaCert{},
+			CaCerts:      []public.Certificate{},
 			Servers:      []public.DomainIpaServer{},
 		},
 	}
@@ -655,7 +655,7 @@ func TestList(t *testing.T) {
 				AutoEnrollmentEnabled: true,
 				DomainType:            public.RhelIdm,
 				DomainName:            "mydomain1.example",
-				DomainId:              testUUID1.String(),
+				DomainId:              testUUID1,
 				Title:                 "mydomain1 example title",
 				Description:           "mydomain1.example located in Boston",
 			},
@@ -663,7 +663,7 @@ func TestList(t *testing.T) {
 				AutoEnrollmentEnabled: false,
 				DomainType:            public.RhelIdm,
 				DomainName:            "mydomain2.example",
-				DomainId:              testUUID2.String(),
+				DomainId:              testUUID2,
 				Title:                 "mydomain2 example title",
 				Description:           "mydomain2.example located in Brno",
 			},

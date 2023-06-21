@@ -47,7 +47,7 @@ func TestGuardsRegisterIpa(t *testing.T) {
 		err = p.sharedDomainFillRhelIdm(domain, output)
 	})
 
-	output.DomainType = public.DomainDomainTypeRhelIdm
+	output.DomainType = public.RhelIdm
 	output.RhelIdm = &public.DomainIpa{}
 	err = p.sharedDomainFillRhelIdm(domain, output)
 	assert.NoError(t, err)
@@ -83,10 +83,10 @@ func TestRegisterRhelIdm(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				Domain: &public.RegisterDomainResponse{
-					DomainType: public.DomainDomainTypeRhelIdm,
+					DomainType: public.RhelIdm,
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "",
-						CaCerts:      []public.DomainIpaCert{},
+						CaCerts:      []public.Certificate{},
 						Servers:      []public.DomainIpaServer{},
 						RealmDomains: []string{},
 					},
@@ -129,7 +129,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 					RhelIdm: &public.DomainIpa{
 						RealmName:    "MYDOMAIN.EXAMPLE",
 						RealmDomains: pq.StringArray{"mydomain.example"},
-						CaCerts: []public.DomainIpaCert{
+						CaCerts: []public.Certificate{
 							{
 								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
 								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
@@ -202,7 +202,7 @@ func TestSharedDomainFill(t *testing.T) {
 	domain.Title = testTitle
 	domain.Description = pointy.String("My Domain Example Description")
 	p.sharedDomainFill(domain, &output)
-	assert.Equal(t, testDomainIDString, output.DomainId)
+	assert.Equal(t, testDomainID, *output.DomainId)
 	assert.Equal(t, true, *output.AutoEnrollmentEnabled)
 	assert.Equal(t, "mydomain.example", output.DomainName)
 	assert.Equal(t, testTitle, output.Title)
@@ -292,10 +292,10 @@ func TestSharedDomain(t *testing.T) {
 		Description:           nil,
 		DomainName:            "",
 		DomainId:              nil,
-		DomainType:            public.DomainDomainTypeRhelIdm,
+		DomainType:            public.RhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "",
-			CaCerts:      []public.DomainIpaCert{},
+			CaCerts:      []public.Certificate{},
 			Servers:      []public.DomainIpaServer{},
 			RealmDomains: []string{},
 		},
@@ -354,12 +354,12 @@ func TestSharedDomain(t *testing.T) {
 		Title:                 testTitle,
 		Description:           pointy.String("Test Description"),
 		DomainName:            "mydomain.example",
-		DomainId:              testUUIDString,
-		DomainType:            public.DomainDomainTypeRhelIdm,
+		DomainId:              testUUID,
+		DomainType:            public.RhelIdm,
 		RhelIdm: &public.DomainIpa{
 			RealmName:    "MYDOMAIN.EXAMPLE",
 			RealmDomains: []string{"mydomain.example"},
-			CaCerts: []public.DomainIpaCert{
+			CaCerts: []public.Certificate{
 				{
 					Issuer:       "Ca Cert Issuer test",
 					Nickname:     "Ca Cert Nickname test",
@@ -389,7 +389,7 @@ func TestSharedDomain(t *testing.T) {
 	equalPresenterDomain(t, output, &expected)
 }
 
-func equalPrensenterDomainRhelIdmCaCerts(t *testing.T, expected []public.DomainIpaCert, actual []public.DomainIpaCert) {
+func equalPrensenterDomainRhelIdmCaCerts(t *testing.T, expected []public.Certificate, actual []public.Certificate) {
 	if expected == nil && actual == nil {
 		return
 	}
@@ -460,7 +460,7 @@ func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.
 	assert.Equal(t, expected.DomainId, actual.DomainId)
 	assert.Equal(t, expected.DomainType, actual.DomainType)
 	switch expected.DomainType {
-	case public.DomainDomainTypeRhelIdm:
+	case public.RhelIdm:
 		equalPresenterDomainRhelIdm(t, expected.RhelIdm, actual.RhelIdm)
 	case "":
 	default:
@@ -528,7 +528,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 			Expected: TestCaseExpected{
 				Err: nil,
 				To: &public.Domain{
-					DomainType: public.DomainDomainTypeRhelIdm,
+					DomainType: public.RhelIdm,
 					RhelIdm: &public.DomainIpa{
 						Servers: []public.DomainIpaServer{
 							{
