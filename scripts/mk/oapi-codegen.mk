@@ -16,3 +16,7 @@ $(OAPI_CODEGEN):
 
 .PHONY: install-oapi-codegen
 install-oapi-codegen: $(OAPI_CODEGEN)
+
+.PHONY: openapi-sort
+openapi-sort: $(PYTHON_VENV)  ## sort and lint OpenAPI YAML files
+	$(PYTHON_VENV)/bin/python $(PWD)/scripts/yamlsort.py $(PWD)/api/*.yaml

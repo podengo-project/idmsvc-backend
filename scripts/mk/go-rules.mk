@@ -66,6 +66,10 @@ get-deps: ## Download golang dependencies
 vet:  ## Run go vet ignoring /vendor directory
 	go vet $(shell go list ./... | grep -v /vendor/)
 
+.PHONY: go-fmt
+go-fmt:  ## Run go fmt ignoring /vendor directory
+	go fmt $(shell go list ./... | grep -v /vendor/)
+
 .PHONY: vendor
 vendor: ## Generate vendor/ directory populated with the dependencies
 	go mod vendor

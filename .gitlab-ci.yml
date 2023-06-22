@@ -25,11 +25,17 @@ check missed commits:
     - echo "get dependencies"
     - go get ./...
 
+    - echo "Checking missed 'make openapi-sort'"
+    - make openapi-sort && git diff --exit-code api/
+
     - echo "Checking missed 'make generate-api'"
     - make generate-api && git diff --exit-code internal/api/public/
 
     - echo "Checking missed 'make generate-mock'"
     - make generate-mock && git diff --exit-code internal/test/mock/
+
+    - echo "Checking missed 'go fmt'"
+    - make go-fmt && git diff --exit-code .
 
 run tests:
   stage: test
@@ -37,7 +43,6 @@ run tests:
     - shared
   needs: []
   script:
-    - go fmt $(go list ./... | grep -v /vendor/)
     - go vet $(go list ./... | grep -v /vendor/)
     - make test
     - go get github.com/boumenot/gocover-cobertura
