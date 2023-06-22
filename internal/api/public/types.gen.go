@@ -155,8 +155,7 @@ type HostConf struct {
 	SubscriptionManagerId *string `json:"subscription_manager_id,omitempty"`
 }
 
-// HostConfResponseSchema The response for the action to retrieve the host vm information when
-// it is being enrolled. This action is taken from the host vm.
+// HostConfResponseSchema The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
 type HostConfResponseSchema struct {
 	DomainName *string `json:"domain_name,omitempty"`
 	DomainType *string `json:"domain_type,omitempty"`
@@ -230,8 +229,7 @@ type CreateDomainResponse = Domain
 // ErrorResponse General error response returned by the hmsidm API
 type ErrorResponse = Errors
 
-// HostConfResponse The response for the action to retrieve the host vm information when
-// it is being enrolled. This action is taken from the host vm.
+// HostConfResponse The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
 type HostConfResponse = HostConfResponseSchema
 
 // ListDomainsResponse Represent a paginated result for a list of domains

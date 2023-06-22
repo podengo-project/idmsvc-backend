@@ -1,44 +1,39 @@
 ---
 # https://swagger.io/specification/
 # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md
-openapi: "3.0.3"
-
+openapi: 3.0.3
 # https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.3.md#info-object
 info:
-  title: Instrumentation API
-  description: Example of API design first approach and using golang stack (viper+echo+gorm+confluent+cleanarchitecture)
-  version: "0.0.1"
-  termsOfService: https://console.redhat.com/api/hmsidm/v1
-
+    title: Instrumentation API
+    description: Example of API design first approach and using golang stack (viper+echo+gorm+confluent+cleanarchitecture)
+    termsOfService: https://console.redhat.com/api/hmsidm/v1
+    version: 0.0.1
 servers:
-  - url: /
-    description: Use for Development
-
-tags:
-  - name: metrics
-    description: instrumentation endpoint
-
+    - description: Use for Development
+      url: /
 paths:
-  "":
-    get:
-      summary: Expose the metrics
-      description: Endpoint to expose the metrics for the instrumentation component
-      tags: ["metrics"]
-      operationId: getMetrics
-      responses:
-        '200':
-          $ref: '#/components/responses/Metrics'
-
+    '':
+        get:
+            description: Endpoint to expose the metrics for the instrumentation component
+            summary: Expose the metrics
+            operationId: getMetrics
+            responses:
+                '200':
+                    $ref: '#/components/responses/Metrics'
+            tags:
+                - metrics
 components:
-  schemas:
-    Data:
-      description: Metrics schema as text/plain
-      type: string
-
-  responses:
-    Metrics:
-      description: Metrics response
-      content:
-        text/plain; version=0.0.4; charset=utf-8:
-          schema:
-            $ref: '#/components/schemas/Data'
+    responses:
+        Metrics:
+            description: Metrics response
+            content:
+                text/plain; version=0.0.4; charset=utf-8:
+                    schema:
+                        $ref: '#/components/schemas/Data'
+    schemas:
+        Data:
+            description: Metrics schema as text/plain
+            type: string
+tags:
+    - name: metrics
+      description: instrumentation endpoint
