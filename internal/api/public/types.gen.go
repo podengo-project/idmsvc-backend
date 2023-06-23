@@ -18,6 +18,9 @@ const (
 	RhelIdm DomainType = "rhel-idm"
 )
 
+// CaCertBundle A string of concatenated, PEM-encoded X.509 certificates
+type CaCertBundle = string
+
 // Certificate defines model for Certificate.
 type Certificate struct {
 	Issuer       string    `json:"issuer"`
@@ -145,28 +148,52 @@ type Fqdn = string
 
 // HostConf Represent the request payload for the /hostconf/:fqdn endpoint.
 type HostConf struct {
-	// Fqdn A host's Fully Qualified Domain Name (all lower-case).
-	Fqdn *Fqdn `json:"fqdn,omitempty"`
+	// DomainId A domain id
+	DomainId *DomainId `json:"domain_id,omitempty"`
 
-	// SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
-	SubscriptionManagerId *SubscriptionManagerId `json:"subscription_manager_id,omitempty"`
-}
-
-// HostConfResponseSchema The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
-type HostConfResponseSchema struct {
 	// DomainName A name of a domain (all lower-case)
 	DomainName *DomainName `json:"domain_name,omitempty"`
 
 	// DomainType Type of domain (currently only rhel-idm)
 	DomainType *DomainType `json:"domain_type,omitempty"`
-	Ipa        *struct {
-		CaCert *string `json:"ca_cert,omitempty"`
+}
+
+// HostConfResponseSchema The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
+type HostConfResponseSchema struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
+
+	// DomainId A domain id
+	DomainId *DomainId `json:"domain_id,omitempty"`
+
+	// DomainName A name of a domain (all lower-case)
+	DomainName *DomainName `json:"domain_name,omitempty"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType *DomainType `json:"domain_type,omitempty"`
+
+	// InventoryId A Host-Based Inventory ID of a host.
+	InventoryId *HostId `json:"inventory_id,omitempty"`
+	RhelIdm     *struct {
+		// Cabundle A string of concatenated, PEM-encoded X.509 certificates
+		Cabundle CaCertBundle `json:"cabundle"`
+
+		// EnrollmentServers List of auto-enrollment enabled servers for this domain.
+		EnrollmentServers []struct {
+			// Fqdn A host's Fully Qualified Domain Name (all lower-case).
+			Fqdn Fqdn `json:"fqdn"`
+
+			// Location A location identifier (lower-case DNS label)
+			Location *LocationName `json:"location,omitempty"`
+		} `json:"enrollment_servers"`
 
 		// RealmName A Kerberos realm name (usually all upper-case domain name)
-		RealmName  *RealmName `json:"realm_name,omitempty"`
-		ServerList *[]string  `json:"server_list,omitempty"`
-	} `json:"ipa,omitempty"`
+		RealmName RealmName `json:"realm_name"`
+	} `json:"rhel-idm,omitempty"`
 }
+
+// HostId A Host-Based Inventory ID of a host.
+type HostId = openapi_types.UUID
 
 // ListDomainsData The data listed for the domains.
 type ListDomainsData struct {
