@@ -345,7 +345,7 @@ components:
             additionalProperties: false
             properties:
                 issuer:
-                    title: issuer name
+                    title: Issuer name (RFC 4514 string)
                     type: string
                     example: O=DOMAIN.EXAMPLE, CN=Certificate Authority
                 nickname:
@@ -355,22 +355,24 @@ components:
                 not_after:
                     title: Not valid after timestamp (UTC)
                     type: string
+                    format: date-time
                     example: '2043-03-21T05:38:09+00:00'
                 not_before:
                     title: Not valid before timestamp (UTC)
                     type: string
+                    format: date-time
                     example: '2023-03-21T05:38:09+00:00'
                 pem:
                     title: PEM encoded X.509 certificate
                     type: string
                     example: '-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n'
                 serial_number:
-                    title: base 10 encoded serial number
+                    title: Serial number (base 10)
                     type: string
                     pattern: ^[1-9][0-9]*$
                     example: '1'
                 subject:
-                    title: subject name
+                    title: Subject name (RFC 4514 string)
                     type: string
                     example: O=DOMAIN.EXAMPLE, CN=Certificate Authority
         CreateDomain:
@@ -522,9 +524,9 @@ components:
             title: domain id
             description: A domain id
             type: string
+            format: uuid
             maxLength: 36
             minLength: 36
-            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
             example: 772e9618-d0f8-4bf8-bfed-d2831f63c619
         DomainIpa:
             title: Root Type for ResponseIpaObject
@@ -621,9 +623,9 @@ components:
             title: Fully qualified domain name
             description: A name of a domain (all lower-case)
             type: string
+            format: idn-hostname
             maxLength: 253
             minLength: 3
-            pattern: ^[a-z0-9\.\-]+$
             example: domain.example
         DomainType:
             title: Domain Type
@@ -694,9 +696,9 @@ components:
             title: FQDN
             description: A host's Fully Qualified Domain Name (all lower-case).
             type: string
+            format: idn-hostname
             maxLength: 253
             minLength: 3
-            pattern: ^[a-z0-9\.\-]+$
             example: host.domain.example
         HostConf:
             title: Root Type for HostConf
@@ -779,9 +781,9 @@ components:
             title: host id
             description: A Host-Based Inventory ID of a host.
             type: string
+            format: uuid
             maxLength: 36
             minLength: 36
-            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
             example: f0468001-7632-4d3f-afd2-770c93825adf
         ListDomainsData:
             title: Root Type for ListDomainsData
@@ -953,9 +955,9 @@ components:
             title: Subscription manager id
             description: A Red Hat Subcription Manager ID of a RHEL host.
             type: string
+            format: uuid
             maxLength: 36
             minLength: 36
-            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
             example: e658e3eb-148c-46a6-b48a-099f9593191a
         UpdateDomain:
             title: Root Type for DomainResponse

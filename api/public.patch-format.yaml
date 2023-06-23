@@ -5,10 +5,6 @@ components:
             properties:
                 issuer:
                     format: cert-issuer
-                not_after:
-                    format: date-time
-                not_before:
-                    format: date-time
                 pem:
                     format: cert-pem
                 subject:
@@ -29,8 +25,6 @@ components:
                     format: domain-title
                 description:
                     format: domain-description
-        DomainId:
-            format: uuid
         DomainIpa:
             properties:
                 realm_domains:
@@ -45,10 +39,6 @@ components:
                     format: string
                 status:
                     format: http-status
-        Fqdn:
-            format: idn-hostname
-        HostId:
-            format: uuid
         ListDomainsData:
             properties:
                 title:
@@ -67,5 +57,3 @@ components:
                     format: url
                 previous:
                     format: url
-        SubscriptionManagerId:
-            format: uuid
