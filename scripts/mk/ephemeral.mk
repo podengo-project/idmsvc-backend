@@ -107,7 +107,7 @@ ephemeral-deploy: $(BONFIRE) ## Deploy application using 'config/bonfire.yaml'. 
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-undeploy
-ephemeral-undeploy: $(BONFIRE) $(json2yaml) ## Undeploy application from the current namespace
+ephemeral-undeploy: $(BONFIRE) $(JSON2YAML) ## Undeploy application from the current namespace
 	$(BONFIRE) process \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
@@ -115,11 +115,11 @@ ephemeral-undeploy: $(BONFIRE) $(json2yaml) ## Undeploy application from the cur
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)" 2>/dev/null | json2yaml | oc delete -f -
+		"$(APP)" 2>/dev/null | $(JSON2YAML) | oc delete -f -
 	! oc get secrets/content-sources-certs &>/dev/null || oc delete secrets/content-sources-certs
 
 .PHONY: ephemeral-process
-ephemeral-process: $(BONFIRE) $(json2yaml) ## Process application from the current namespace
+ephemeral-process: $(BONFIRE) $(JSON2YAML) ## Process application from the current namespace
 	$(BONFIRE) process \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
@@ -127,7 +127,7 @@ ephemeral-process: $(BONFIRE) $(json2yaml) ## Process application from the curre
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)" 2>/dev/null | json2yaml
+		"$(APP)" 2>/dev/null | $(JSON2YAML)
 
 .PHONY: ephemeral-db-cli
 ephemeral-db-cli: ## Open a database client
