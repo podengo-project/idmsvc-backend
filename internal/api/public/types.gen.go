@@ -122,16 +122,17 @@ type DomainType string
 
 // Error defines model for Error.
 type Error struct {
-	Detail *interface{} `json:"detail,omitempty"`
+	// Code an application-specific error code
+	Code *string `json:"code,omitempty"`
 
-	// Details A detailed explanation of the error, e.g. traceback.
-	Details string `json:"details"`
+	// Detail A detailed explanation of the error, e.g. traceback.
+	Detail *string `json:"detail,omitempty"`
 
-	// Id A unique, random error identifier
+	// Id a unique identifier for this particular occurrence of the problem.
 	Id string `json:"id"`
 
 	// Status The HTTP status code for the error.
-	Status int `json:"status"`
+	Status string `json:"status"`
 
 	// Title The human-readable HTTP status text for the error.
 	Title string `json:"title"`

@@ -657,7 +657,6 @@ components:
             title: Error information
             type: object
             required:
-                - details
                 - id
                 - status
                 - title
@@ -668,22 +667,26 @@ components:
                     description: The human-readable HTTP status text for the error.
                     type: string
                     example: Not Found
-                details:
-                    title: Details
+                code:
+                    description: an application-specific error code
+                    type: string
+                detail:
+                    title: Detail
                     description: A detailed explanation of the error, e.g. traceback.
                     type: string
                     example: Resource not found
                 id:
                     title: Error identifier
-                    description: A unique, random error identifier
+                    description: a unique identifier for this particular occurrence of the problem.
                     type: string
                     example: 27c19744-29f2-42a0-8669-8fa050f8ffdf
                 status:
                     title: HTTP status code
                     description: The HTTP status code for the error.
-                    type: integer
-                    maximum: 599
-                    minimum: 100
+                    type: string
+                    maxLength: 3
+                    minLength: 3
+                    pattern: ^[1-5][0-9][0-9]$
                     example: '404'
             x-rh-ipa-hcc:
                 type: defs
@@ -691,6 +694,9 @@ components:
             title: Root Type for ErrorResponse
             description: General error response returned by the hmsidm API
             type: object
+            required:
+                - errors
+            additionalProperties: false
             properties:
                 errors:
                     description: Error objects provide additional information about problems encountered while performing an operation.
