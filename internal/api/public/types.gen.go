@@ -162,20 +162,20 @@ type HostConf struct {
 // HostConfResponseSchema The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
 type HostConfResponseSchema struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
+	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
 
 	// DomainId A domain id
-	DomainId *DomainId `json:"domain_id,omitempty"`
+	DomainId DomainId `json:"domain_id"`
 
 	// DomainName A name of a domain (all lower-case)
-	DomainName *DomainName `json:"domain_name,omitempty"`
+	DomainName DomainName `json:"domain_name"`
 
 	// DomainType Type of domain (currently only rhel-idm)
-	DomainType *DomainType `json:"domain_type,omitempty"`
+	DomainType DomainType `json:"domain_type"`
 
 	// InventoryId A Host-Based Inventory ID of a host.
-	InventoryId *HostId `json:"inventory_id,omitempty"`
-	RhelIdm     *struct {
+	InventoryId HostId `json:"inventory_id"`
+	RhelIdm     struct {
 		// Cabundle A string of concatenated, PEM-encoded X.509 certificates
 		Cabundle CaCertBundle `json:"cabundle"`
 
@@ -190,7 +190,7 @@ type HostConfResponseSchema struct {
 
 		// RealmName A Kerberos realm name (usually all upper-case domain name)
 		RealmName RealmName `json:"realm_name"`
-	} `json:"rhel-idm,omitempty"`
+	} `json:"rhel-idm"`
 }
 
 // HostId A Host-Based Inventory ID of a host.
