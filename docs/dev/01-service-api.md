@@ -327,6 +327,22 @@ process will be more complicated, sometimes requiring two deployments
 
 See: https://consoledot.pages.redhat.com/docs/dev/best-practices/db-migrations.html
 
+## Synchronize schema changes with *ipa-hcc* project
+
+The enrollment agent and registration service from *ipa-hcc* project are
+sharing the OpenAPI schema with the backend. Shared schema components in
+`api/public.openapi.yaml` are marked with the vendor extension `x-rh-ipa-hcc`.
+Any time a component is modified, added, or removed, the changes must be
+synchronized with `ipa-hcc`. The script `ipa-hcc/contrib/convert_schema.py`
+reads the OpenAPI file and generates *ipa-hcc*'s JSON schema files.
+
+The `x-rh-ipa-hcc` is an object with a `type` field and an optional `name`
+field:
+
+- `type` must be one of `request`, `response`, or `defs`. The `defs` schemas
+  are shared definitions (`$defs`).
+- `name` is an optional field. By default, the schema component name is used.
+
 ## TODOs
 
 - Rename the Service interface at: `internal/infrastructure/
