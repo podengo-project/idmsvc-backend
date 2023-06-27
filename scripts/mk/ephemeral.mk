@@ -9,6 +9,9 @@ endif
 
 APP_COMPONENT ?= backend
 
+# namespace extend duration
+DURATION ?= 1h
+
 NAMESPACE ?= $(shell oc project -q 2>/dev/null)
 # POOL could be:
 #   default
@@ -81,7 +84,7 @@ ephemeral-login: .old-ephemeral-login ## Help in login to the ephemeral cluster
 	@echo '# make ephemeral-namespace-list'
 	@echo ""
 	@echo "If you need to extend 1hour the time for the namespace reservation"
-	@echo '# make ephemeral-namespace-extend-1h'
+	@echo '# make ephemeral-namespace-extend DURATION=1h'
 	@echo ""
 	@echo "Finally if you don't need the reserved namespace or just you want to cleanup and restart with a fresh namespace you run:"
 	@echo '# make ephemeral-namespace-delete-all'
@@ -153,9 +156,9 @@ ephemeral-namespace-delete-all: $(BONFIRE) ## Delete all namespace created by us
 ephemeral-namespace-list: $(BONFIRE) ## List all the namespaces reserved to the current user (requires ephemeral environment)
 	$(BONFIRE) namespace list --mine
 
-.PHONY: ephemeral-namespace-extend-1h
-ephemeral-namespace-extend-1h: $(BONFIRE) ## Extend for 1 hour the usage of the current ephemeral environment
-	$(BONFIRE) namespace extend --duration 1h "$(NAMESPACE)"
+.PHONY: ephemeral-namespace-extend
+ephemeral-namespace-extend: $(BONFIRE) ## Extend duration of the current ephemeral environment (default: DURATION=1h)
+	$(BONFIRE) namespace extend --duration $(DURATION) "$(NAMESPACE)"
 
 .PHONY: ephemeral-namespace-describe
 ephemeral-namespace-describe: $(BONFIRE) ## Display information about the current namespace
