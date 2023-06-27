@@ -2,6 +2,9 @@
 # Rules related with the database operations
 ##
 
+.PHONY: install-db-tool
+install-db-tool: $(BIN)/db-tool
+
 .PHONY: db-migrate-up
 db-migrate-up: $(BIN)/db-tool  ## Migrate the database upto the current state
 	$(BIN)/db-tool migrate up 0

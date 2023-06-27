@@ -1,0 +1,46 @@
+---
+version: "2.4"
+services:
+  database:
+    image: docker.io/postgres:13
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+    ports:
+      - ${DATABASE_EXTERNAL_PORT}:5432/tcp
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 3s
+
+  backend-service:
+    image: ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
+    build:
+      dockerfile: build/package/Dockerfile
+      context: ..
+      tags:
+        - ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
+    environment:
+      - WEB_PORT=8000
+      - DATABASE_HOST=database
+    depends_on:
+      database:
+        condition: service_healthy
+    links:
+      - database
+    ports:
+      - 8000:8000/tcp
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
+        interval: 5s
+        retries: 10
+        timeout: 3s
+        start_period: 3s
+
+volumes:
+  database:
