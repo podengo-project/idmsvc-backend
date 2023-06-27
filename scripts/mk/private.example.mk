@@ -51,3 +51,12 @@ POOL ?= default
 
 # Set token expiration time, expressed in seconds (default 2 hours)
 APP_TOKEN_EXPIRATION_SECONDS ?= 7200
+
+########### NO SECRETS BUT GENERAL OVERRIDES
+
+# Uncomment the next line if you use to need more than 1hour for your
+# ephemeral namespace reservation, and update to your wished value.
+# Remember that this value will be used for the initial reservation and for
+# extending the reservation.
+#
+# DURATION ?= 4h

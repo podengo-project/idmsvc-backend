@@ -140,7 +140,7 @@ ephemeral-db-cli: ## Open a database client
 # TODO Add command to specify to bonfire the clowdenv template to be used
 .PHONY: ephemeral-namespace-create
 ephemeral-namespace-create: $(BONFIRE)  ## Create a namespace (requires ephemeral environment)
-	oc project "$(shell $(BONFIRE) namespace reserve --force --pool "$(POOL)" 2>/dev/null)"
+	oc project "$(shell $(BONFIRE) namespace reserve --force --duration "$(DURATION)" --pool "$(POOL)" 2>/dev/null)"
 
 .PHONY: ephemeral-namespace-delete
 ephemeral-namespace-delete: $(BONFIRE) ## Delete current namespace (requires ephemeral environment)
