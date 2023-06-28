@@ -24,8 +24,8 @@ export RHC_ORG="12345"
 export RHC_KEY="not-used"
 export RH_API_TOKEN="not-used"
 export HMSIDM_BACKEND={hmsidm_backend}
-export EPHEMERAL_USERNAME={username}
-export EPHEMERAL_PASSWORD={password}
+export DEV_USERNAME={username}
+export DEV_PASSWORD={password}
 """
 
 XRHID = {
