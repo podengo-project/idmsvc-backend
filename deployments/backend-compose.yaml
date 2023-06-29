@@ -2,7 +2,8 @@
 version: "2.4"
 services:
   database:
-    image: docker.io/postgres:13
+    # Image Builder's mirror
+    image: quay.io/osbuild/postgres:13-alpine
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}

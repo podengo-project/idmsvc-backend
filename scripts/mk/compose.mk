@@ -55,6 +55,11 @@ compose-build: ## Build the images at docker-compose.yaml
 	$(COMPOSE_VARS) \
 	$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) build
 
+.PHONY: compose-pull
+compose-pull: ## Pull images
+	$(COMPOSE_VARS) \
+	$(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) pull
+
 .PHONY: compose-logs
 compose-logs: ## Print out infrastructure logs
 	$(COMPOSE_VARS) \
