@@ -10,7 +10,7 @@ import (
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Expose the metrics
-	// (GET )
+	// (GET /)
 	GetMetrics(ctx echo.Context) error
 }
 
@@ -56,6 +56,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 		Handler: si,
 	}
 
-	router.GET(baseURL+"", wrapper.GetMetrics)
+	router.GET(baseURL+"/", wrapper.GetMetrics)
 
 }

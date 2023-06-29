@@ -10,7 +10,7 @@ servers:
     - description: Use for Development
       url: /
 paths:
-    '':
+    '/':
         get:
             description: Endpoint to expose the metrics for the instrumentation component
             summary: Expose the metrics
