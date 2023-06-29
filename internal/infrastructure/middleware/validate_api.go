@@ -55,9 +55,6 @@ func NewApiServiceValidator(Skipper echo_middleware.Skipper) echo.MiddlewareFunc
 // request. Suggested to call before instantiate the middleware.
 func InitOpenAPIFormats() {
 	// TODO Review all the regular expressions
-	openapi3.DefineStringFormat("http-status", `^[12345][0..9][0..9]$`)
-	openapi3.DefineStringFormat("fqdn", `^(([a-z0-9][a-z0-9\-]*[a-z0-9])|[a-z0-9]+\.)*([a-z]+|xn\-\-[a-z0-9]+)\.?$`)
-	openapi3.DefineStringFormat("domain", `^(([a-z0-9][a-z0-9\-]*[a-z0-9])|[a-z0-9]+\.)*([a-z]+|xn\-\-[a-z0-9]+)\.?$`)
 	openapi3.DefineStringFormat("url", `^https?:\/\/.*$`)
 	openapi3.DefineStringFormat("realm", `^(([A-Z0-9][A-Z0-9\-]*[A-Z0-9])|[A-Z0-9]+\.)*([A-Z]+|xn\-\-[A-Z0-9]+)\.?$`)
 

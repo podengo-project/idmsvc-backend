@@ -349,6 +349,7 @@ components:
                 issuer:
                     title: Issuer name (RFC 4514 string)
                     type: string
+                    format: cert-issuer
                     example: O=DOMAIN.EXAMPLE, CN=Certificate Authority
                 nickname:
                     title: Internal nick name in LDAP
@@ -367,6 +368,7 @@ components:
                 pem:
                     title: PEM encoded X.509 certificate
                     type: string
+                    format: cert-pem
                     example: '-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n'
                 serial_number:
                     title: Serial number (base 10)
@@ -376,6 +378,7 @@ components:
                 subject:
                     title: Subject name (RFC 4514 string)
                     type: string
+                    format: cert-subject
                     example: O=DOMAIN.EXAMPLE, CN=Certificate Authority
             x-rh-ipa-hcc:
                 type: defs
@@ -496,9 +499,11 @@ components:
                 title:
                     description: Title to describe the domain.
                     type: string
+                    format: domain-title
                 description:
                     description: Human readable description abou the domain.
                     type: string
+                    format: domain-description
                 auto_enrollment_enabled:
                     description: Enable or disable host vm auto-enrollment for this domain
                     type: boolean
@@ -588,6 +593,7 @@ components:
                     type: array
                     items:
                         $ref: '#/components/schemas/DomainName'
+                    format: ipa-realm-domains
                     minItems: 1
                 realm_name:
                     $ref: '#/components/schemas/RealmName'
@@ -685,6 +691,7 @@ components:
                     title: HTTP status code
                     description: The HTTP status code for the error.
                     type: string
+                    format: http-status
                     maxLength: 3
                     minLength: 3
                     pattern: ^[1-5][0-9][0-9]$
@@ -755,7 +762,7 @@ components:
             description: Options for ipa domains
             type: object
             required:
-                - ca_certs
+                - cabundle
             additionalProperties: false
             properties:
                 cabundle:
@@ -785,9 +792,7 @@ components:
         HostConfResponseSchema:
             title: Root Type for HostConfResponse
             description: >-
-                The response for the action to retrieve the host vm information
-                when
-                it is being enrolled. This action is taken from the host vm.
+                The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
             type: object
             required:
                 - auto_enrollment_enabled
@@ -950,15 +955,19 @@ components:
                 first:
                     description: Reference to the first page of the request.
                     type: string
+                    format: url
                 last:
                     description: Reference to the last page of the request.
                     type: string
+                    format: url
                 next:
                     description: Reference to the next page of the request.
                     type: string
+                    format: url
                 previous:
                     description: Reference to the previous page of the request.
                     type: string
+                    format: url
             example:
                 first: /api/idm/v1/domains?limit=10&offset=0
                 last: /api/idm/v1/domains?limit=10&offset=10
@@ -996,6 +1005,7 @@ components:
             title: Kerberos realm name
             description: A Kerberos realm name (usually all upper-case domain name)
             type: string
+            format: realm
             maxLength: 253
             minLength: 3
             pattern: ^[A-Z0-9\.\-]+$
