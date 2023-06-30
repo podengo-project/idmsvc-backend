@@ -106,8 +106,10 @@ $(patsubst cmd/%,$(BIN)/%,$(wildcard cmd/*)): $(shell find $(PROJECT_DIR)/cmd -t
 ############### TOOLS
 
 # https://github.com/RedHatInsights/playbook-dispatcher/blob/master/Makefile
+API_LIST := api/public.openapi.yaml api/internal.openapi.yaml api/metrics.openapi.yaml
 .PHONY: generate-api
-generate-api: $(OAPI_CODEGEN)  ## Generate server stubs from openapi
+generate-api: $(OAPI_CODEGEN) $(API_LIST) ## Generate server stubs from openapi
+
 	# Public API
 	$(OAPI_CODEGEN) -generate spec -package public -o internal/api/public/spec.gen.go api/public.openapi.yaml
 	$(OAPI_CODEGEN) -generate server -package public -o internal/api/public/server.gen.go api/public.openapi.yaml
@@ -120,6 +122,9 @@ generate-api: $(OAPI_CODEGEN)  ## Generate server stubs from openapi
 	$(OAPI_CODEGEN) -generate spec -package metrics -o internal/api/metrics/spec.gen.go api/metrics.openapi.yaml
 	$(OAPI_CODEGEN) -generate server -package metrics -o internal/api/metrics/server.gen.go api/metrics.openapi.yaml
 	$(OAPI_CODEGEN) -generate types -package metrics -o internal/api/metrics/types.gen.go api/metrics.openapi.yaml
+
+$(API_LIST):
+	git submodule update --init
 
 EVENTS := todo_created
 # Generate event types
