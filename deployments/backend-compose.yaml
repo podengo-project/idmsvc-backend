@@ -31,7 +31,7 @@ services:
       - DATABASE_HOST=database
       - DATABASE_NAME=${DATABASE_NAME:-hmsidm-db}
       - DATABASE_USER=${DATABASE_USER:-hmsidm-user}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-hmsidm-password}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-hmsidm-secret}
     depends_on:
       database:
         condition: service_healthy

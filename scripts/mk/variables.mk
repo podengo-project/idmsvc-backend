@@ -42,7 +42,7 @@ DATABASE_HOST ?= localhost
 DATABASE_EXTERNAL_PORT ?= 5432
 DATABASE_NAME ?= hmsidm-db
 DATABASE_USER ?= hmsidm-user
-DATABASE_PASSWORD ?= hmsidm-password
+DATABASE_PASSWORD ?= hmsidm-secret
 endif
 
 
