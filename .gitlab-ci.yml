@@ -10,8 +10,11 @@ check missed commits:
   stage: check
   tags:
     - shared
-  # TODO Remove the line below or set to false after the pipeline is stable
-  allow_failure: true
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - apt-get update
+    - apt-get install -y python3-venv
   script:
     - make install-oapi-codegen
     - make install-mockery
