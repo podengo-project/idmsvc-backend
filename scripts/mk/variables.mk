@@ -40,9 +40,9 @@ else
 $(info info:Using DATABASE_* defaults)
 DATABASE_HOST ?= localhost
 DATABASE_EXTERNAL_PORT ?= 5432
-DATABASE_NAME ?= hmsidm
-DATABASE_USER ?= hmsidm
-DATABASE_PASSWORD ?= hmsidm
+DATABASE_NAME ?= hmsidm-db
+DATABASE_USER ?= hmsidm-user
+DATABASE_PASSWORD ?= hmsidm-password
 endif
 
 

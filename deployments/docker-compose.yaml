@@ -2,7 +2,7 @@
 # https://docs.docker.com/compose/compose-file/compose-file-v3/
 ---
 # TODO To be defined as the infrastructure is added
-version: "2.4"
+version: "3.0"
 services:
   mock:
     # https://github.com/mock-server/mockserver
@@ -22,11 +22,11 @@ services:
   database:
     image: docker.io/postgres:13
     environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_DB=${DATABASE_NAME:-hmsidm-db}
+      - POSTGRES_USER=${DATABASE_USER:-hmsidm-user}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-hmsidm-secret}
     ports:
-      - ${DATABASE_EXTERNAL_PORT}:5432/tcp
+      - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
     volumes:
       - database:/var/lib/postgresql/data
     healthcheck:
@@ -34,7 +34,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-      start_period: 3s
+      start_period: 5s
 
   # TODO Uncomment or clean-up when using or not kafka
   # zookeeper:
@@ -50,7 +50,7 @@ services:
   #     - "2181:2181"
   #   environment:
   #     ZOOKEEPER_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
-  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT:-2181}
   #   volumes:
   #     - zookeeper:/tmp/zookeeper
   #     - ${KAFKA_CONFIG_DIR}:/tmp/config:z
@@ -80,22 +80,25 @@ services:
   #     KAFKA_BROKER_ID: 1
   #     KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
   #     KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
-  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT}
+  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT:-2181}
   #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
   #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
   #     KAFKA_OPTS: '-javaagent:/usr/jolokia/agents/jolokia-jvm.jar=host=0.0.0.0'
   #     KAFKA_TOPICS: "${KAFKA_TOPICS}"
 
   # backend-service:
-  #   image: ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
+  #   image: ${CONTAINER_IMAGE_BASE:-hmsidm-backend}:${CONTAINER_IMAGE_TAG:-latest}
   #   build:
   #     dockerfile: build/package/Dockerfile
   #     context: ..
   #     tags:
-  #       - ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
+  #       - ${CONTAINER_IMAGE_BASE:-hmsidm-backend}:${CONTAINER_IMAGE_TAG:-latest}
   #   environment:
   #     - WEB_PORT=8000
   #     - DATABASE_HOST=database
+  #     - DATABASE_NAME=${DATABASE_NAME:-hmsidm-db}
+  #     - DATABASE_USER=${DATABASE_USER:-hmsidm-user}
+  #     - DATABASE_PASSWORD=${DATABASE_PASSWORD:-hmsidm-password}
   #   depends_on:
   #     database:
   #       condition: service_healthy
@@ -103,12 +106,14 @@ services:
   #     - database
   #   ports:
   #     - 8000:8000/tcp
+  #   restart: "on-failure:5"
   #   healthcheck:
   #       test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
   #       interval: 5s
   #       retries: 10
   #       timeout: 3s
-  #       start_period: 3s
+  #       start_period: 5s
+
 
 
 volumes:

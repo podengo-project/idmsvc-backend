@@ -1,15 +1,15 @@
 ---
-version: "2.4"
+version: "3.0"
 services:
   database:
     # Image Builder's mirror
     image: quay.io/osbuild/postgres:13-alpine
     environment:
-      - POSTGRES_USER=${DATABASE_USER}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_DB=${DATABASE_NAME:-hmsidm-db}
+      - POSTGRES_USER=${DATABASE_USER:-hmsidm-user}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-hmsidm-secret}
     ports:
-      - ${DATABASE_EXTERNAL_PORT}:5432/tcp
+      - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
     volumes:
       - database:/var/lib/postgresql/data
     healthcheck:
@@ -17,18 +17,21 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-      start_period: 3s
+      start_period: 5s
 
   backend-service:
-    image: ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
+    image: ${CONTAINER_IMAGE_BASE:-hmsidm-backend}:${CONTAINER_IMAGE_TAG:-latest}
     build:
       dockerfile: build/package/Dockerfile
       context: ..
       tags:
-        - ${CONTAINER_IMAGE_BASE}:${CONTAINER_IMAGE_TAG}
+        - ${CONTAINER_IMAGE_BASE:-hmsidm-backend}:${CONTAINER_IMAGE_TAG:-latest}
     environment:
       - WEB_PORT=8000
       - DATABASE_HOST=database
+      - DATABASE_NAME=${DATABASE_NAME:-hmsidm-db}
+      - DATABASE_USER=${DATABASE_USER:-hmsidm-user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-hmsidm-password}
     depends_on:
       database:
         condition: service_healthy
@@ -36,12 +39,13 @@ services:
       - database
     ports:
       - 8000:8000/tcp
+    restart: "on-failure:5"
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
         interval: 5s
         retries: 10
         timeout: 3s
-        start_period: 3s
+        start_period: 5s
 
 volumes:
   database:

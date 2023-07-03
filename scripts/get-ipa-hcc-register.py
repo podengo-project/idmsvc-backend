@@ -117,7 +117,7 @@ def main() -> None:
     token = json.loads(base64.b64decode(hdr))
     domain_secret = token["secret"]
 
-    print(f"ipa-hcc register {domain_id} {domain_secret}")
+    print(f"ipa-hcc register --unattended {domain_id} {domain_secret}")
 
 
 if __name__ == "__main__":
