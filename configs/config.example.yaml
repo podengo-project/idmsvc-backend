@@ -12,9 +12,9 @@ web:
 database:
   host: localhost
   port: 5432
-  user: hmsidm
-  password: hmsidm
-  name: hmsidm
+  user: hmsidm-user
+  password: hmsidm-secret
+  name: hmsidm-db
 
 kafka:
   auto:
