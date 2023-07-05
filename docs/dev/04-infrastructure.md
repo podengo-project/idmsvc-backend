@@ -39,7 +39,7 @@ NOTE: It requires a robot token with write permissions to your personal quay.io 
   (aka EE).
 - First of all we need to log in to the Ephemeral Environment by: `make ephemeral-login`
 - Reserve an ephemeral namespace by: `make ephemeral-namespace-create`
-- Build and deploy the image to be used (it uses the `build_deploy.sh`
+- Build and deploy the image to be used (it uses the `.rhcicd/build_deploy.sh`
   script that use the jenkins job, so we can detect situations when running this),
   by the command: `make ephemeral-deploy`
 - You can check the output generated when the template at `deployments/clowder.yaml`
@@ -55,8 +55,8 @@ NOTE: It requires a robot token with write permissions to your personal quay.io 
 ## Pipelines supporting scripts
 
 - The PoC includes the scripts to integrate with the platform jenkins jobs.
-  - `build_deploy.sh` build and deploy the container image for our service.
-  - `pr_check.sh` launch the necessary checks, that will be used to check
+  - `.rhcicd/build_deploy.sh` build and deploy the container image for our service.
+  - `.rhcicd/pr_check.sh` launch the necessary checks, that will be used to check
     every pull request in out service repository.
 - The PoC includes the service descriptor that manage `clowder` operator;
   the descriptor is found at: `deployments/clowder.yaml`

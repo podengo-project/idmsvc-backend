@@ -20,8 +20,8 @@ apps:
   - name: idmsvc
     components:
       - name: backend
-        # host: github
-        # repo: content-services/content-sources-backend
+        # host: gitlab
+        # repo: identity-management/idmocp/idm-domains-backend
         host: local
         repo: ./
         path: deployments/clowder.yaml
