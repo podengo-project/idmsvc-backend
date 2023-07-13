@@ -67,6 +67,9 @@ type Domain struct {
 	// RhelIdm Options for ipa domains
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
 
+	// SigningKeys Serialized JWKs with revocation information
+	SigningKeys *SigningKeys `json:"signing_keys,omitempty"`
+
 	// Title Title to describe the domain.
 	Title *string `json:"title,omitempty"`
 }
@@ -120,8 +123,8 @@ type DomainName = string
 // DomainType Type of domain (currently only rhel-idm)
 type DomainType string
 
-// Error defines model for Error.
-type Error struct {
+// ErrorInfo defines model for ErrorInfo.
+type ErrorInfo struct {
 	// Code an application-specific error code
 	Code *string `json:"code,omitempty"`
 
@@ -141,7 +144,7 @@ type Error struct {
 // Errors General error response returned by the hmsidm API
 type Errors struct {
 	// Errors Error objects provide additional information about problems encountered while performing an operation.
-	Errors *[]Error `json:"errors,omitempty"`
+	Errors *[]ErrorInfo `json:"errors,omitempty"`
 }
 
 // Fqdn A host's Fully Qualified Domain Name (all lower-case).
@@ -172,10 +175,7 @@ type HostConfResponseSchema struct {
 
 	// DomainType Type of domain (currently only rhel-idm)
 	DomainType DomainType `json:"domain_type"`
-
-	// InventoryId A Host-Based Inventory ID of a host.
-	InventoryId HostId `json:"inventory_id"`
-	RhelIdm     struct {
+	RhelIdm    struct {
 		// Cabundle A string of concatenated, PEM-encoded X.509 certificates
 		Cabundle CaCertBundle `json:"cabundle"`
 
@@ -191,10 +191,13 @@ type HostConfResponseSchema struct {
 		// RealmName A Kerberos realm name (usually all upper-case domain name)
 		RealmName RealmName `json:"realm_name"`
 	} `json:"rhel-idm"`
+
+	// Token A serialized JWS token or JWT to authenticate a host registration request.
+	Token *HostToken `json:"token,omitempty"`
 }
 
-// HostId A Host-Based Inventory ID of a host.
-type HostId = openapi_types.UUID
+// HostToken A serialized JWS token or JWT to authenticate a host registration request.
+type HostToken = string
 
 // ListDomainsData The data listed for the domains.
 type ListDomainsData struct {
@@ -260,6 +263,15 @@ type PaginationMeta struct {
 
 // RealmName A Kerberos realm name (usually all upper-case domain name)
 type RealmName = string
+
+// SigningKeys Serialized JWKs with revocation information
+type SigningKeys struct {
+	// Keys An array of serialized JSON Web Keys (JWK strings)
+	Keys []string `json:"keys"`
+
+	// RevokedKids An array of revoked key identifiers (JWK kid)
+	RevokedKids *[]string `json:"revoked_kids,omitempty"`
+}
 
 // SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
 type SubscriptionManagerId = openapi_types.UUID

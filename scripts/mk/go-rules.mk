@@ -109,7 +109,6 @@ $(patsubst cmd/%,$(BIN)/%,$(wildcard cmd/*)): $(shell find $(PROJECT_DIR)/cmd -t
 API_LIST := api/public.openapi.yaml api/internal.openapi.yaml api/metrics.openapi.yaml
 .PHONY: generate-api
 generate-api: $(OAPI_CODEGEN) $(API_LIST) ## Generate server stubs from openapi
-
 	# Public API
 	$(OAPI_CODEGEN) -generate spec -package public -o internal/api/public/spec.gen.go api/public.openapi.yaml
 	$(OAPI_CODEGEN) -generate server -package public -o internal/api/public/server.gen.go api/public.openapi.yaml
@@ -125,6 +124,11 @@ generate-api: $(OAPI_CODEGEN) $(API_LIST) ## Generate server stubs from openapi
 
 $(API_LIST):
 	git submodule update --init
+
+.PHONY: update-api
+update-api:
+	git submodule update --remote
+	$(MAKE) generate-api
 
 EVENTS := todo_created
 # Generate event types
