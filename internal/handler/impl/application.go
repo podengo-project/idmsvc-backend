@@ -20,10 +20,17 @@ type domainComponent struct {
 	presenter  presenter.DomainPresenter
 }
 
+type hostComponent struct {
+	interactor interactor.HostInteractor
+	repository repository.HostRepository
+	presenter  presenter.HostPresenter
+}
+
 type application struct {
 	config    *config.Config
 	metrics   *metrics.Metrics
 	domain    domainComponent
+	host      hostComponent
 	db        *gorm.DB
 	inventory client.HostInventory
 }
@@ -35,20 +42,24 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 	if db == nil {
 		panic("db is nil")
 	}
-	i := usecase_interactor.NewDomainInteractor()
-	r := usecase_repository.NewDomainRepository()
-	p := usecase_presenter.NewDomainPresenter(config)
+	dc := domainComponent{
+		usecase_interactor.NewDomainInteractor(),
+		usecase_repository.NewDomainRepository(),
+		usecase_presenter.NewDomainPresenter(config),
+	}
+	hc := hostComponent{
+		usecase_interactor.NewHostInteractor(),
+		usecase_repository.NewHostRepository(),
+		usecase_presenter.NewHostPresenter(config),
+	}
 
 	// Instantiate application
 	return &application{
-		config:  config,
-		db:      db,
-		metrics: m,
-		domain: domainComponent{
-			interactor: i,
-			repository: r,
-			presenter:  p,
-		},
+		config:    config,
+		db:        db,
+		metrics:   m,
+		domain:    dc,
+		host:      hc,
 		inventory: inventory,
 	}
 }

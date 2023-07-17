@@ -8,7 +8,6 @@ import (
 	"github.com/hmsidm/internal/api/header"
 	"github.com/hmsidm/internal/api/public"
 	"github.com/hmsidm/internal/domain/model"
-	"github.com/hmsidm/internal/infrastructure/middleware"
 	"github.com/labstack/echo/v4"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"gorm.io/gorm"
@@ -295,16 +294,6 @@ func (a *application) DeleteDomain(
 	return ctx.NoContent(http.StatusNoContent)
 }
 
-// TODO Document this method
-func (a *application) HostConf(
-	ctx echo.Context,
-	fqdn string,
-	params public.HostConfParams,
-) error {
-	// TODO Implement this endpoint
-	return http.ErrNotSupported
-}
-
 // RegisterIpaDomain (PUT /domains/{uuid}/register) initialize the
 // IPA domain information into the database. This requires
 // a valid X-Rh-IDM-Token. The token is removed when the
@@ -491,14 +480,4 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 	}
 
 	return ctx.JSON(http.StatusOK, *output)
-}
-
-func getXRHID(ctx echo.Context) (*identity.XRHID, error) {
-	domainCtx := ctx.(middleware.DomainContextInterface)
-	xrhid := domainCtx.XRHID()
-	if xrhid == nil {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
-	} else {
-		return xrhid, nil
-	}
 }
