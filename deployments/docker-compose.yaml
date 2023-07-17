@@ -114,8 +114,6 @@ services:
   #       timeout: 3s
   #       start_period: 5s
 
-
-
 volumes:
   database:
   zookeeper:

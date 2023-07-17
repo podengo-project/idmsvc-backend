@@ -41,11 +41,11 @@ services:
       - 8000:8000/tcp
     restart: "on-failure:5"
     healthcheck:
-        test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
-        interval: 5s
-        retries: 10
-        timeout: 3s
-        start_period: 5s
+      test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
+      interval: 5s
+      retries: 10
+      timeout: 3s
+      start_period: 5s
 
 volumes:
   database:

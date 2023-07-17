@@ -14,7 +14,8 @@ check missed commits:
     GIT_SUBMODULE_STRATEGY: recursive
   before_script:
     - apt-get update
-    - apt-get install -y python3-venv
+    - apt-get install -y python3-venv python3-pip
+    - pip install --user yamllint
   script:
     - make install-oapi-codegen
     - make install-mockery
@@ -39,6 +40,9 @@ check missed commits:
 
     - echo "Checking missed 'go fmt'"
     - make go-fmt && git diff --exit-code .
+
+    - echo "Checking yaml files"
+    - python3 -m yamllint .
 
 run tests:
   stage: test
