@@ -20,6 +20,7 @@ var userEnforceRoutes = []string{
 var systemEnforceRoutes = []string{
 	"/api/hmsidm/v1/domains/:uuid/register",
 	"/api/hmsidm/v1/domains/:uuid/update",
+	"/api/hmsidm/v1/host-conf/:fqdn",
 }
 
 func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
