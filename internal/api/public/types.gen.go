@@ -162,6 +162,27 @@ type HostConf struct {
 	DomainType *DomainType `json:"domain_type,omitempty"`
 }
 
+// HostConfIpa Options for ipa domains
+type HostConfIpa struct {
+	// Cabundle A string of concatenated, PEM-encoded X.509 certificates
+	Cabundle CaCertBundle `json:"cabundle"`
+
+	// EnrollmentServers List of auto-enrollment enabled servers for this domain.
+	EnrollmentServers []HostConfIpaServer `json:"enrollment_servers"`
+
+	// RealmName A Kerberos realm name (usually all upper-case domain name)
+	RealmName RealmName `json:"realm_name"`
+}
+
+// HostConfIpaServer Auto-enrollment enabled server for this domain.
+type HostConfIpaServer struct {
+	// Fqdn A host's Fully Qualified Domain Name (all lower-case).
+	Fqdn Fqdn `json:"fqdn"`
+
+	// Location A location identifier (lower-case DNS label)
+	Location *LocationName `json:"location,omitempty"`
+}
+
 // HostConfResponseSchema The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
 type HostConfResponseSchema struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
@@ -175,22 +196,9 @@ type HostConfResponseSchema struct {
 
 	// DomainType Type of domain (currently only rhel-idm)
 	DomainType DomainType `json:"domain_type"`
-	RhelIdm    struct {
-		// Cabundle A string of concatenated, PEM-encoded X.509 certificates
-		Cabundle CaCertBundle `json:"cabundle"`
 
-		// EnrollmentServers List of auto-enrollment enabled servers for this domain.
-		EnrollmentServers []struct {
-			// Fqdn A host's Fully Qualified Domain Name (all lower-case).
-			Fqdn Fqdn `json:"fqdn"`
-
-			// Location A location identifier (lower-case DNS label)
-			Location *LocationName `json:"location,omitempty"`
-		} `json:"enrollment_servers"`
-
-		// RealmName A Kerberos realm name (usually all upper-case domain name)
-		RealmName RealmName `json:"realm_name"`
-	} `json:"rhel-idm"`
+	// RhelIdm Options for ipa domains
+	RhelIdm HostConfIpa `json:"rhel-idm"`
 
 	// Token A serialized JWS token or JWT to authenticate a host registration request.
 	Token *HostToken `json:"token,omitempty"`
