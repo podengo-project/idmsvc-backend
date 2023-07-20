@@ -21,6 +21,7 @@ type Ipa struct {
 	gorm.Model
 	CaCerts         []IpaCert
 	Servers         []IpaServer
+	Locations       []IpaLocation
 	RealmName       *string
 	RealmDomains    pq.StringArray `gorm:"type:text[]"`
 	Token           *string

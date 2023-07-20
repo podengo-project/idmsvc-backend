@@ -7,5 +7,6 @@ DROP TABLE IF EXISTS domains;
 DROP TABLE IF EXISTS ipas;
 DROP TABLE IF EXISTS ipa_certs;
 DROP TABLE IF EXISTS ipa_servers;
+DROP TABLE IF EXISTS ipa_locations;
 
 COMMIT;

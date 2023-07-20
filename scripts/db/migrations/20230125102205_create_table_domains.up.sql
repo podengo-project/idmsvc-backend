@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS ipa_certs (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL,
 
-    ipa_id  INT,
+    ipa_id INT,
     issuer TEXT NOT NULL,
     nickname VARCHAR(255) NOT NULL,
     not_after TIMESTAMP NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS ipa_servers (
     updated_at TIMESTAMP,
     deleted_at TIMESTAMP DEFAULT NULL,
 
-    ipa_id  INT,
+    ipa_id INT,
     fqdn VARCHAR(253) NOT NULL,
     rhsm_id VARCHAR(64) DEFAULT NULL,
     location VARCHAR(63) DEFAULT NULL,
@@ -80,6 +80,22 @@ CREATE TABLE IF NOT EXISTS ipa_servers (
     pk_init_server BOOLEAN NOT NULL,
 
     CONSTRAINT fk_ipa_servers_ipa_id__ipas_id
+        FOREIGN KEY (ipa_id)
+            REFERENCES ipas(id)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ipa_locations (
+    id SERIAL UNIQUE NOT NULL PRIMARY KEY,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP,
+    deleted_at TIMESTAMP DEFAULT NULL,
+
+    ipa_id INT,
+    name VARCHAR(253) NOT NULL,
+    description VARCHAR(63) NOT NULL,
+
+    CONSTRAINT fk_ipa_locations_ipa_id__ipas_id
         FOREIGN KEY (ipa_id)
             REFERENCES ipas(id)
     ON DELETE CASCADE
