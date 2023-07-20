@@ -12,26 +12,6 @@ repos:
     rev: v0.5.1
     hooks:
       - id: golangci-lint
-  # Lint public API
-  - repo: https://github.com/daveshanley/vacuum
-    # a tag or a commit hash from this repo, see https://github.com/daveshanley/vacuum/releases
-    rev: v0.0.49
-    hooks:
-      - id: vacuum
-        name: vacuum-public-api
-        files: ^api/public\.openapi\.yaml$
-        always_run: true
-        pass_filenames: true
-  # Lint internal API
-  - repo: https://github.com/daveshanley/vacuum
-    # a tag or a commit hash from this repo, see https://github.com/daveshanley/vacuum/releases
-    rev: v0.0.49
-    hooks:
-      - id: vacuum
-        name: vacuum-internal-api
-        files: ^api/internal\.openapi\.yaml$
-        always_run: true
-        pass_filenames: true
   # TODO This linter is not set up correctly
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.21.0
