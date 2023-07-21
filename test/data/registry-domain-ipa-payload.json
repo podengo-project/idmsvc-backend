@@ -20,6 +20,12 @@
       "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
     }
   ],
+  "locations": [
+    {
+      "name": "boston",
+      "description": "Boston data center"
+    }
+  ],
   "realm_domains": [
     "mydomain.example"
   ]

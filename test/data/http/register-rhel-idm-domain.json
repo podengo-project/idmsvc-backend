@@ -11,7 +11,7 @@
       {
         "fqdn": "ipaserver.mydomain.example",
         "subscription_manager_id": "{{subscription_manager_id}}",
-        "location": "europe",
+        "location": "boston",
         "ca_server": true,
         "hcc_enrollment_server": true,
         "hcc_update_server": true,
@@ -24,6 +24,15 @@
         "hcc_enrollment_server": false,
         "hcc_update_server": false,
         "pkinit_server": false
+      }
+    ],
+    "locations": [
+      {
+        "name": "boston",
+        "description": "Boston data center"
+      },
+      {
+        "name": "europe"
       }
     ],
     "ca_certs": [

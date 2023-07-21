@@ -453,6 +453,7 @@ func TestRegister(t *testing.T) {
 			RealmDomains: pq.StringArray{testDomainName},
 			CaCerts:      []model.IpaCert{},
 			Servers:      []model.IpaServer{},
+			Locations:    []model.IpaLocation{},
 		},
 	}
 	testExpected := public.Domain{
@@ -467,6 +468,7 @@ func TestRegister(t *testing.T) {
 			RealmDomains: pq.StringArray{testDomainName},
 			CaCerts:      []public.Certificate{},
 			Servers:      []public.DomainIpaServer{},
+			Locations:    []public.Location{},
 		},
 	}
 
@@ -514,6 +516,7 @@ func TestUpdate(t *testing.T) {
 			RealmDomains: pq.StringArray{testDomainName},
 			CaCerts:      []public.Certificate{},
 			Servers:      []public.DomainIpaServer{},
+			Locations:    []public.Location{},
 		},
 	}
 

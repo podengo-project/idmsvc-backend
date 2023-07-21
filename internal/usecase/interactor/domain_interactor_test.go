@@ -325,6 +325,7 @@ func TestRegisterIpa(t *testing.T) {
 						RealmName:    pointy.String(""),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
+						Locations:    []model.IpaLocation{},
 						RealmDomains: pq.StringArray{},
 					},
 				},
@@ -361,6 +362,7 @@ func TestRegisterIpa(t *testing.T) {
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
+						Locations:    []model.IpaLocation{},
 						RealmDomains: pq.StringArray{},
 					},
 				},
@@ -398,6 +400,7 @@ func TestRegisterIpa(t *testing.T) {
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
 						CaCerts:      []model.IpaCert{},
 						Servers:      []model.IpaServer{},
+						Locations:    []model.IpaLocation{},
 						RealmDomains: pq.StringArray{"server.domain.example"},
 					},
 				},
@@ -455,6 +458,7 @@ func TestRegisterIpa(t *testing.T) {
 							},
 						},
 						Servers:      []model.IpaServer{},
+						Locations:    []model.IpaLocation{},
 						RealmDomains: pq.StringArray{},
 					},
 				},
@@ -512,6 +516,7 @@ func TestRegisterIpa(t *testing.T) {
 								PKInitServer:        true,
 							},
 						},
+						Locations:    []model.IpaLocation{},
 						RealmDomains: pq.StringArray{},
 					},
 				},
@@ -522,15 +527,15 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		i := NewDomainInteractor()
-		orgId, clientVersion, output, err := i.Register(testCase.Given.XRHID, domainID, testCase.Given.Params, testCase.Given.Body)
+		orgID, clientVersion, output, err := i.Register(testCase.Given.XRHID, domainID, testCase.Given.Params, testCase.Given.Body)
 		if testCase.Expected.Error != nil {
 			assert.EqualError(t, err, testCase.Expected.Error.Error())
-			assert.Equal(t, testCase.Expected.OrgId, orgId)
+			assert.Equal(t, testCase.Expected.OrgId, orgID)
 			assert.Equal(t, testCase.Expected.Output, output)
 			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
 		} else {
 			require.NoError(t, err)
-			assert.Equal(t, testCase.Expected.OrgId, orgId)
+			assert.Equal(t, testCase.Expected.OrgId, orgID)
 			assert.Equal(t, testCase.Expected.Output, output)
 			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
 		}
@@ -789,4 +794,85 @@ func TestGetByID(t *testing.T) {
 	orgID, err = i.GetByID(&xrhid, &params)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
+}
+
+func TestRegisterOrUpdateRhelIdmLocations(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    *api_public.Domain
+		Expected *model.Ipa
+	}
+	testCases := []TestCase{
+		{
+			Name: "nil Locations",
+			Given: &api_public.Domain{
+				RhelIdm: &api_public.DomainIpa{
+					Locations: nil,
+				},
+			},
+			Expected: &model.Ipa{
+				Locations: []model.IpaLocation{},
+			},
+		},
+		{
+			Name: "Empty Locations slice",
+			Given: &api_public.Domain{
+				RhelIdm: &api_public.DomainIpa{
+					Locations: []api_public.Location{},
+				},
+			},
+			Expected: &model.Ipa{
+				Locations: []model.IpaLocation{},
+			},
+		},
+		{
+			Name: "Location without description",
+			Given: &api_public.Domain{
+				RhelIdm: &api_public.DomainIpa{
+					Locations: []api_public.Location{
+						{
+							Name:        "boston",
+							Description: nil,
+						},
+					},
+				},
+			},
+			Expected: &model.Ipa{
+				Locations: []model.IpaLocation{
+					{
+						Name:        "boston",
+						Description: nil,
+					},
+				},
+			},
+		},
+		{
+			Name: "Location with description",
+			Given: &api_public.Domain{
+				RhelIdm: &api_public.DomainIpa{
+					Locations: []api_public.Location{
+						{
+							Name:        "boston",
+							Description: pointy.String("Boston data center"),
+						},
+					},
+				},
+			},
+			Expected: &model.Ipa{
+				Locations: []model.IpaLocation{
+					{
+						Name:        "boston",
+						Description: pointy.String("Boston data center"),
+					},
+				},
+			},
+		},
+	}
+	for _, item := range testCases {
+		t.Log(item.Name)
+		d := domainInteractor{}
+		ipa := &model.Ipa{}
+		d.registerOrUpdateRhelIdmLocations(item.Given, ipa)
+		assert.Equal(t, item.Expected, ipa)
+	}
 }

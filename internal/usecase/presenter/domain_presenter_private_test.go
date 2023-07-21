@@ -468,6 +468,100 @@ func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.
 	}
 }
 
+func TestFillRhelIdmLocationsError(t *testing.T) {
+	p := &domainPresenter{cfg: &cfg}
+
+	assert.Panics(t, func() {
+		p.fillRhelIdmLocations(nil, nil)
+	}, "'target' or 'target.RhelIdm' are nil")
+
+	output := public.Domain{}
+	assert.Panics(t, func() {
+		p.fillRhelIdmLocations(&output, nil)
+	}, "'target' or 'target.RhelIdm' are nil")
+
+	domain := model.Domain{}
+	assert.Panics(t, func() {
+		p.fillRhelIdmLocations(&output, &domain)
+	}, "'target' or 'target.RhelIdm' are nil")
+
+}
+
+func TestFillRhelIdmLocations(t *testing.T) {
+	type TestCaseGiven struct {
+		To   *public.Domain
+		From *model.Domain
+	}
+	type TestCaseExpected struct {
+		Err error
+		To  *public.Domain
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+	testSubscriptionManagerID := &uuid.UUID{}
+	*testSubscriptionManagerID = uuid.MustParse("547ce70c-9eb5-4783-a619-086aa26f88e5")
+	testCases := []TestCase{
+		{
+			Name: "Full success copy",
+			Given: TestCaseGiven{
+				To: &public.Domain{
+					RhelIdm: &public.DomainIpa{},
+				},
+				From: &model.Domain{
+					Type: pointy.Uint(model.DomainTypeIpa),
+					IpaDomain: &model.Ipa{
+						Locations: []model.IpaLocation{
+							{
+								Name:        "boston",
+								Description: pointy.String("Boston data center"),
+							},
+						},
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				To: &public.Domain{
+					DomainType: public.RhelIdm,
+					RhelIdm: &public.DomainIpa{
+						Locations: []public.Location{
+							{
+								Name:        "boston",
+								Description: pointy.String("Boston data center"),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		// I instantiate directly because the public methods
+		// are not part of the interface
+		p := &domainPresenter{cfg: &cfg}
+		if testCase.Expected.Err != nil {
+			assert.Panics(t, func() {
+				p.fillRhelIdmLocations(testCase.Given.To, testCase.Given.From)
+			})
+		} else {
+			assert.NotPanics(t, func() {
+				p.fillRhelIdmLocations(testCase.Given.To, testCase.Given.From)
+			})
+			require.NotNil(t, testCase.Expected.To)
+			require.NotNil(t, testCase.Expected.To.RhelIdm)
+			require.NotNil(t, testCase.Expected.To.RhelIdm.Locations)
+			require.NotNil(t, testCase.Given.To)
+			require.NotNil(t, testCase.Given.To.RhelIdm)
+			require.NotNil(t, testCase.Given.To.RhelIdm.Locations)
+			assert.Equal(t, testCase.Expected.To.RhelIdm.Locations, testCase.Given.To.RhelIdm.Locations)
+		}
+	}
+}
+
 func TestFillRhelIdmServersError(t *testing.T) {
 	p := &domainPresenter{cfg: &cfg}
 
