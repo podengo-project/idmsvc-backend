@@ -218,6 +218,7 @@ func (r *domainRepository) FindByID(
 			Model(&model.Ipa{}).
 			Preload("CaCerts").
 			Preload("Servers").
+			Preload("Locations").
 			First(output.IpaDomain, "id = ?", output.ID).
 			Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -373,6 +374,12 @@ func (r *domainRepository) createIpaDomain(
 			return err
 		}
 	}
+	for idx := range data.Locations {
+		data.Servers[idx].IpaID = data.ID
+		if err = db.Create(&data.Locations[idx]).Error; err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -380,15 +387,14 @@ func (r *domainRepository) updateIpaDomain(
 	db *gorm.DB,
 	data *model.Ipa,
 ) (err error) {
+	if db == nil {
+		return fmt.Errorf("'db' is nil")
+	}
 	if data == nil {
 		return fmt.Errorf("'data' of type '*model.Ipa' is nil")
 	}
 	if err = db.Unscoped().
-		Delete(
-			data,
-			"id = ?",
-			data.ID,
-		).Error; err != nil {
+		Delete(data).Error; err != nil {
 		return err
 	}
 
@@ -409,9 +415,17 @@ func (r *domainRepository) updateIpaDomain(
 	}
 
 	// Servers
-	for i := range data.CaCerts {
+	for i := range data.Servers {
 		data.Servers[i].IpaID = data.ID
 		if err = db.Create(&data.Servers[i]).Error; err != nil {
+			return err
+		}
+	}
+
+	// Locations
+	for i := range data.Locations {
+		data.Locations[i].IpaID = data.ID
+		if err = db.Create(&data.Locations[i]).Error; err != nil {
 			return err
 		}
 	}

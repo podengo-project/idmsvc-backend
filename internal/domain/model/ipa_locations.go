@@ -7,7 +7,7 @@ import "gorm.io/gorm"
 type IpaLocation struct {
 	gorm.Model
 	IpaID       uint
-	Name        *string
+	Name        string
 	Description *string
 	Ipa         Ipa `gorm:"foreignKey:ID;references:IpaID"`
 }

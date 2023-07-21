@@ -157,6 +157,11 @@ func (a *application) fillDomainIpa(target *model.Ipa, source *model.Ipa) error 
 		target.Servers[i] = source.Servers[i]
 		target.Servers[i].IpaID = target.ID
 	}
+	target.Locations = make([]model.IpaLocation, len(source.Locations))
+	for i := range source.Locations {
+		target.Locations[i] = source.Locations[i]
+		target.Locations[i].IpaID = target.ID
+	}
 	target.RealmDomains = source.RealmDomains
 	return nil
 }

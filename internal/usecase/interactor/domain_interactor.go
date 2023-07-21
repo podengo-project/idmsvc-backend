@@ -241,6 +241,9 @@ func (i domainInteractor) registerOrUpdateRhelIdm(body *public.Domain, domainIpa
 	// Server list
 	i.registerOrUpdateRhelIdmServers(body, domainIpa)
 
+	// Location list
+	i.registerOrUpdateRhelIdmLocations(body, domainIpa)
+
 	return nil
 }
 
@@ -293,6 +296,18 @@ func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, do
 		domainIpa.Servers[idx].CaServer = server.CaServer
 		domainIpa.Servers[idx].HCCEnrollmentServer = server.HccEnrollmentServer
 		domainIpa.Servers[idx].HCCUpdateServer = server.HccUpdateServer
+	}
+}
+
+func (i domainInteractor) registerOrUpdateRhelIdmLocations(body *public.Domain, domainIpa *model.Ipa) {
+	if body.RhelIdm.Locations == nil {
+		domainIpa.Locations = []model.IpaLocation{}
+		return
+	}
+	domainIpa.Locations = make([]model.IpaLocation, len(body.RhelIdm.Locations))
+	for idx, location := range body.RhelIdm.Locations {
+		domainIpa.Locations[idx].Name = location.Name
+		domainIpa.Locations[idx].Description = location.Description
 	}
 }
 

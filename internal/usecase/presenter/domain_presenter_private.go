@@ -11,6 +11,26 @@ import (
 	"github.com/openlyinc/pointy"
 )
 
+func (p *domainPresenter) fillRhelIdmLocations(
+	target *public.Domain,
+	source *model.Domain,
+) {
+	if target == nil || target.RhelIdm == nil {
+		panic("'target' or 'target.RhelIdm' are nil")
+	}
+	if source == nil || source.IpaDomain == nil {
+		panic("'source' or 'source.IpaDomain' are nil")
+	}
+	target.RhelIdm.Locations = make(
+		[]public.Location,
+		len(source.IpaDomain.Locations),
+	)
+	for idx := range source.IpaDomain.Locations {
+		target.RhelIdm.Locations[idx].Name = source.IpaDomain.Locations[idx].Name
+		target.RhelIdm.Locations[idx].Description = source.IpaDomain.Locations[idx].Description
+	}
+}
+
 func (p *domainPresenter) fillRhelIdmServers(
 	target *public.Domain,
 	source *model.Domain,
@@ -171,8 +191,8 @@ func (p *domainPresenter) sharedDomainFillRhelIdm(
 	}
 
 	p.fillRhelIdmCerts(output, domain)
-
 	p.fillRhelIdmServers(output, domain)
+	p.fillRhelIdmLocations(output, domain)
 
 	return nil
 }
