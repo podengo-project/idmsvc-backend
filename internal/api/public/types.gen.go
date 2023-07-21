@@ -83,12 +83,7 @@ type DomainIpa struct {
 	CaCerts []Certificate `json:"ca_certs"`
 
 	// Locations List of allowed locations
-	Locations *[]struct {
-		Description *string `json:"description,omitempty"`
-
-		// Name A location identifier (lower-case DNS label)
-		Name LocationName `json:"name"`
-	} `json:"locations,omitempty"`
+	Locations []Location `json:"locations"`
 
 	// RealmDomains List of realm associated to the IPA domain.
 	RealmDomains []DomainName `json:"realm_domains"`
@@ -237,6 +232,14 @@ type ListDomainsResponseSchema struct {
 
 	// Meta Metadata for the paginated responses.
 	Meta PaginationMeta `json:"meta"`
+}
+
+// Location RHEL IdM server location
+type Location struct {
+	Description *string `json:"description,omitempty"`
+
+	// Name A location identifier (lower-case DNS label)
+	Name LocationName `json:"name"`
 }
 
 // LocationName A location identifier (lower-case DNS label)
