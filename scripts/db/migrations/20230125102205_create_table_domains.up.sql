@@ -92,8 +92,8 @@ CREATE TABLE IF NOT EXISTS ipa_locations (
     deleted_at TIMESTAMP DEFAULT NULL,
 
     ipa_id INT,
-    name VARCHAR(253) NOT NULL,
-    description VARCHAR(63) NOT NULL,
+    name VARCHAR(64) NOT NULL,
+    description TEXT DEFAULT NULL,
 
     CONSTRAINT fk_ipa_locations_ipa_id__ipas_id
         FOREIGN KEY (ipa_id)
