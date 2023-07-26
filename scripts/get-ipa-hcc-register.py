@@ -23,7 +23,7 @@ export RHC_ENV="ephemeral"
 export RHC_ORG="12345"
 export RHC_KEY="not-used"
 export RH_API_TOKEN="not-used"
-export HMSIDM_BACKEND={hmsidm_backend}
+export IDMSVC_BACKEND={idmsvc_backend}
 export DEV_USERNAME={username}
 export DEV_PASSWORD={password}
 """
@@ -81,8 +81,8 @@ def main() -> None:
     if args.backend is not None:
         username = "compose"
         password = "compose"
-        hmsidm_backend = args.backend
-        url = f"http://{hmsidm_backend}/api/hmsidm/v1/domains"
+        idmsvc_backend = args.backend
+        url = f"http://{idmsvc_backend}/api/hmsidm/v1/domains"
         auth = None
         headers["X-Rh-Identity"] = base64.urlsafe_b64encode(
             json.dumps(XRHID).encode("utf-8")
@@ -93,15 +93,15 @@ def main() -> None:
         secrets = json.loads(keycloak)
         username = base64.b64decode(secrets["data"]["defaultUsername"]).decode("utf-8")
         password = base64.b64decode(secrets["data"]["defaultPassword"]).decode("utf-8")
-        hmsidm_backend = oc(
+        idmsvc_backend = oc(
             "get",
             "routes",
             "-l",
-            "app=hmsidm-backend",
+            "app=idmsvc-backend",
             "-o",
             "jsonpath={.items[0].spec.host}",
         )
-        url = f"https://{hmsidm_backend}/api/hmsidm/v1/domains"
+        url = f"https://{idmsvc_backend}/api/hmsidm/v1/domains"
         auth = requests.auth.HTTPBasicAuth(username, password)
 
     if args.secrets_file:

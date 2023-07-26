@@ -9,7 +9,7 @@ CONTAINER_COMPOSE ?= docker-compose
 endif
 
 COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
-COMPOSE_PROJECT ?= hmsidm
+COMPOSE_PROJECT ?= idmsvc
 
 COMPOSE_VARS_DATABASE=\
 	DATABASE_USER="$(DATABASE_USER)" \
