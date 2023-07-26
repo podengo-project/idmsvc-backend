@@ -5,9 +5,9 @@ services:
     # Image Builder's mirror
     image: quay.io/osbuild/postgres:13-alpine
     environment:
-      - POSTGRES_DB=${DATABASE_NAME:-hmsidm-db}
-      - POSTGRES_USER=${DATABASE_USER:-hmsidm-user}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-hmsidm-secret}
+      - POSTGRES_DB=${DATABASE_NAME:-idmsvc-db}
+      - POSTGRES_USER=${DATABASE_USER:-idmsvc-user}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
     ports:
       - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
     volumes:
@@ -20,18 +20,18 @@ services:
       start_period: 5s
 
   backend-service:
-    image: ${CONTAINER_IMAGE_BASE:-hmsidm-backend}:${CONTAINER_IMAGE_TAG:-latest}
+    image: ${CONTAINER_IMAGE_BASE:-idmsvc-backend}:${CONTAINER_IMAGE_TAG:-latest}
     build:
       dockerfile: build/package/Dockerfile
       context: ..
       tags:
-        - ${CONTAINER_IMAGE_BASE:-hmsidm-backend}:${CONTAINER_IMAGE_TAG:-latest}
+        - ${CONTAINER_IMAGE_BASE:-idmsvc-backend}:${CONTAINER_IMAGE_TAG:-latest}
     environment:
       - WEB_PORT=8000
       - DATABASE_HOST=database
-      - DATABASE_NAME=${DATABASE_NAME:-hmsidm-db}
-      - DATABASE_USER=${DATABASE_USER:-hmsidm-user}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-hmsidm-secret}
+      - DATABASE_NAME=${DATABASE_NAME:-idmsvc-db}
+      - DATABASE_USER=${DATABASE_USER:-idmsvc-user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
     depends_on:
       database:
         condition: service_healthy

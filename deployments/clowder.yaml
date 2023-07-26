@@ -3,7 +3,7 @@
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: hmsidm
+  name: idmsvc
 
 objects:
   - apiVersion: cloud.redhat.com/v1alpha1
@@ -14,7 +14,7 @@ objects:
       envName: ${ENV_NAME}
       testing:
         # TODO Rename to your IQE plugin name
-        iqePlugin: hmsidm
+        iqePlugin: idmsvc
       # FIXME Update dependencies when integration with rbac is made
       # dependencies: ["rbac"]
       # https://consoledot.pages.redhat.com/clowder/dev/providers/dependencies.html
@@ -36,7 +36,7 @@ objects:
             public:
               enabled: true
               # TODO Define the service name
-              # For /api/hmsidm/v*/* endpoints
+              # For /api/idmsvc/v*/* endpoints
               apiPath: ${APP_NAME}
           podSpec:
             initContainers:
@@ -131,12 +131,12 @@ parameters:
   - name: ENV_NAME
     required: true
   - name: APP_NAME
-    value: hmsidm
+    value: idmsvc
     description: |
       The internal application name that is used to
       compose the API path for its routes.
   - name: IMAGE
-    value: quay.io/cloudservices/hmsidm-backend
+    value: quay.io/cloudservices/idmsvc-backend
   - name: IMAGE_TAG
     required: true
   - name: CPU_LIMIT
