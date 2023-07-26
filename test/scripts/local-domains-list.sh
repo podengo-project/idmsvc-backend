@@ -4,6 +4,6 @@ export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-o
 unset X_RH_FAKE_IDENTITY
 unset CREDS
 unset X_RH_IDM_VERSION
-BASE_URL="http://localhost:8000/api/hmsidm/v1"
+BASE_URL="http://localhost:8000/api/idmsvc/v1"
 ./scripts/curl.sh -i "${BASE_URL}/domains"
 

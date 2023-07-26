@@ -15,5 +15,5 @@ export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-o
 unset CREDS
 export X_RH_IDM_REGISTRATION_TOKEN="$TOKEN"
 export X_RH_IDM_VERSION="$( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"
-BASE_URL="http://localhost:8000/api/hmsidm/v1"
+BASE_URL="http://localhost:8000/api/idmsvc/v1"
 ./scripts/curl.sh -i -X DELETE "${BASE_URL}/domains/${UUID}"

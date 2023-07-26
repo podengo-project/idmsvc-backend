@@ -7,6 +7,6 @@ export CREDS
 
 unset X_RH_IDENTITY
 unset X_RH_FAKE_IDENTITY
-BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1"
+BASE_URL="https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/idmsvc/v1"
 ./scripts/curl.sh -i "${BASE_URL}/domains" -X POST -d @./test/data/http/create-rhel-idm-domain.json
 
