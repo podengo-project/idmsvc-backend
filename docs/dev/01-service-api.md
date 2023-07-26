@@ -59,7 +59,7 @@ API Groups:
       `private.openapi.yaml` is a better name for this).
     - `/metrics` will be used for exposing the metrics endpoint, it
       will be defined at `api/metrics.openapi.yaml`.
-    - `/api/hmsidm/vX/todo` is defined at `api/public.openapi.yaml`; this will
+    - `/api/idmsvc/vX/todo` is defined at `api/public.openapi.yaml`; this will
       define our service API.
 
 The code generated from the openapi specification:
@@ -67,7 +67,7 @@ The code generated from the openapi specification:
 - It is generated one directory per file at `internal/api` directory.
 - `server.gen.go`
 - `spec.gen.go`: Contains a compressed binary copy of the openapi
-   spefecification. It will help on the `/api/hmsidm/v1/openapi.json`
+   spefecification. It will help on the `/api/idmsvc/v1/openapi.json`
    endpoint, which is required.
 - `type.gen.go`: Contains the data structures matching the schemas
   defined into the openapi specification file.
@@ -90,7 +90,7 @@ For each resource we will find the following different components:
   the resulting data model after execute the business logic to the API response.
 
 > The granularity of the above three components would be per API resource,
-> so that if we had `/api/hmsidm/v1/domains`, we will repeat the above 3 components
+> so that if we had `/api/idmsvc/v1/domains`, we will repeat the above 3 components
 > for the `/domains` resource.
 
 > it is missed to add common presenters for the error responses.

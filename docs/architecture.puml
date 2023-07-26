@@ -15,7 +15,7 @@ cloud "Client AWS" {
 
 cloud "Console.Dot Platform" {
     [HBI] as service_hbi
-    cloud "hmsidm" {
+    cloud "idmsvc" {
         ' () "Kafka Consumers" as kafka_consumer
         ' () "Kafka Producers" as kafka_producer
         ' () "Http Clients" as http_clients
@@ -24,14 +24,14 @@ cloud "Console.Dot Platform" {
             () "Data" as database
         }
 
-        [Service] as service_hmsidm
+        [Service] as service_idmsvc
 
-        http_requests - service_hmsidm: /api/hmsidm/v*
-        service_hmsidm --> service_hbi: /api/inventory/v1/*
+        http_requests - service_idmsvc: /api/idmsvc/v*
+        service_idmsvc --> service_hbi: /api/inventory/v1/*
         ' service - http_clients: third party services
         ' service - kafka_producer: produce event topics
         ' kafka_consumer - service: kafka handler
-        service_hmsidm - database
+        service_idmsvc - database
     }
 }
 

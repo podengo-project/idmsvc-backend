@@ -26,7 +26,7 @@ For no string values:
 apiVersion: template.openshift.io/v1
 kind: Template
 metadata:
-  name: hmsidm
+  name: idmsvc
 
 objects:
   - apiVersion: cloud.redhat.com/v1alpha1

@@ -65,14 +65,14 @@ podman run -ti \
 
 ```sh
 # IQE plugins are comma separated
-IQE_PLUGINS="hmsidm"
+IQE_PLUGINS="idmsvc"
 ENV_FOR_DYNACONF=clowder_smoke
 bonfire deploy-iqe-cji \
   --plugins "${IQE_PLUGINS}" \
   --env "${ENV_FOR_DYNACONF}" \
-  --cji-name hmsidm-backend \
+  --cji-name idmsvc-backend \
   --namespace "$( oc project -q )" \
-  hmsidm-backend
+  idmsvc-backend
 # see: bonfire deploy-iqe-cji --help
 ```
 

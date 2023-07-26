@@ -55,7 +55,7 @@ TODO:
 - Add the new structure at `internal/api/event/schemas.go`:
 
   ```golang
-  const TopicMyTopicName = "platform.hmsidm.my-topic-name"
+  const TopicMyTopicName = "platform.idmsvc.my-topic-name"
   ...
   var AllowedTopic = []string{
     TopicTodoCreated,

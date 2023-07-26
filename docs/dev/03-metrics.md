@@ -9,7 +9,7 @@ for visualizing the metrics.
 Define which metrics want to be exposed:
 
 - Read the naming conventions at: https://prometheus.io/docs/practices/naming/
-- Add a namespace for your metrics (eg 'hmsidm'), this will prefix
+- Add a namespace for your metrics (eg 'idmsvc'), this will prefix
   your metric names.
 - Common metric could be the http_status_count with `status`, `method`, `path` labels; this can raise state information of our API.
 - Other common is a histogram for the service latency.
@@ -42,7 +42,7 @@ Define which metrics want to be exposed:
 ## About the metrics endpoint
 
 - Prometheus launch a http request to an internal endpoint exposed at some port
-  eg: http://hmsidm:9000/metrics
+  eg: http://idmsvc:9000/metrics
 - The metrics endpoint are specified into the cluster by a ServiceMonitor resource.
   Eg: 
 

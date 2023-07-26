@@ -5,7 +5,7 @@
 TODO Create PlantUML diagram
 
 The components on this repository provides entrypoint through
-api service at /api/hmsidm/v1/todos (TODO with your service) and
+api service at /api/idmsvc/v1/todos (TODO with your service) and
 consuming kafka topics (todo-created) (TODO update list for your service).
 
 (not added yet) The components on this repository make requests to `/api/rbac/v1`
