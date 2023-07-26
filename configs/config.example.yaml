@@ -12,9 +12,9 @@ web:
 database:
   host: localhost
   port: 5432
-  user: hmsidm-user
-  password: hmsidm-secret
-  name: hmsidm-db
+  user: idmsvc-user
+  password: idmsvc-secret
+  name: idmsvc-db
 
 kafka:
   auto:
@@ -26,7 +26,7 @@ kafka:
   bootstrap:
     servers: localhost:9092
   group:
-    id: content-sources
+    id: idmsvc
   message:
     send:
       max:
@@ -41,7 +41,7 @@ kafka:
       ms: 100
   timeout: 10000
   topics:
-    - platform.content-sources.introspect
+    - platform.idmsvc.introspect
   # sasl:
   #   username: someusername
   #   passowrd: somepassword

@@ -17,7 +17,7 @@
 # override config for app
 # <name> in above fetched config.
 apps:
-  - name: hmsidm
+  - name: idmsvc
     components:
       - name: backend
         # host: github
@@ -32,7 +32,7 @@ apps:
 
 #      - name: frontend
 #        host: github
-#        repo: content-services/content-sources-frontend
+#        repo: content-services/idmsvc-frontend
 #        parameters:
 #          ENV_NAME: ""
 #        path: /deploy/frontend.yaml
