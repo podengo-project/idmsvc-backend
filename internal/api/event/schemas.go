@@ -45,7 +45,7 @@ import (
 
 const (
 	// Topic constants
-	TopicTodoCreated = "platform.hmsidm.todo-created"
+	TopicTodoCreated = "platform.idmsvc.todo-created"
 )
 
 // FIXME Refactor this to make it more dynamic and reduce work for the developer

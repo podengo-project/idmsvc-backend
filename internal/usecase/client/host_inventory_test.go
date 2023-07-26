@@ -141,7 +141,7 @@ func TestGetHostByCN(t *testing.T) {
 		id    = "93bb346a-4297-4952-9ec4-f53b3a5006c2"
 		cn    = "c91e72f6-c518-11ed-bd88-482ae3863d30"
 		orgId = "11111"
-		fqdn  = "server.hmsidm-dev.test"
+		fqdn  = "server.idmsvc-dev.test"
 	)
 	cfg := config.Config{}
 
@@ -182,7 +182,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 		cn      = "c91e72f6-c518-11ed-bd88-482ae3863d30"
 		cnWrong = "f2f45bc2-c897-11ed-a09f-482ae3863d30"
 		orgId   = "11111"
-		fqdn    = "server.hmsidm-dev.test"
+		fqdn    = "server.idmsvc-dev.test"
 	)
 	var (
 		// rec *httptest.ResponseRecorder

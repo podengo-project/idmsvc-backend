@@ -18,7 +18,7 @@ import (
 
 const (
 	// DefaultAppName is used to compose the route paths
-	DefaultAppName = "hmsidm"
+	DefaultAppName = "idmsvc"
 	// DefaultExpirationTime is used for the default token expiration period
 	// expressed in seconds. The default value is set to 7200 (2 hours)
 	DefaultExpirationTimeSeconds = 7200

@@ -13,14 +13,14 @@ import (
 var skipperValidate echo_middleware.Skipper = skipperUserPredicate
 
 var userEnforceRoutes = []string{
-	"/api/hmsidm/v1/domains",
-	"/api/hmsidm/v1/domains/:uuid",
+	"/api/idmsvc/v1/domains",
+	"/api/idmsvc/v1/domains/:uuid",
 }
 
 var systemEnforceRoutes = []string{
-	"/api/hmsidm/v1/domains/:uuid/register",
-	"/api/hmsidm/v1/domains/:uuid/update",
-	"/api/hmsidm/v1/host-conf/:fqdn",
+	"/api/idmsvc/v1/domains/:uuid/register",
+	"/api/idmsvc/v1/domains/:uuid/update",
+	"/api/idmsvc/v1/host-conf/:fqdn",
 }
 
 func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {

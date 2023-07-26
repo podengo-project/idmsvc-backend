@@ -47,7 +47,7 @@ func TestCheckRouterConfig(t *testing.T) {
 		{
 			Name: "PrivatePath is empty",
 			Given: RouterConfig{
-				PublicPath:  "/api/hmsidm/v1",
+				PublicPath:  "/api/idmsvc/v1",
 				PrivatePath: "",
 			},
 			Expected: fmt.Errorf("PrivatePath cannot be empty"),
@@ -55,8 +55,8 @@ func TestCheckRouterConfig(t *testing.T) {
 		{
 			Name: "PublicPath and PrivatePath are equal",
 			Given: RouterConfig{
-				PublicPath:  "/api/hmsidm/v1",
-				PrivatePath: "/api/hmsidm/v1",
+				PublicPath:  "/api/idmsvc/v1",
+				PrivatePath: "/api/idmsvc/v1",
 				Version:     "",
 			},
 			Expected: fmt.Errorf("PublicPath and PrivatePath cannot be equal"),
@@ -64,7 +64,7 @@ func TestCheckRouterConfig(t *testing.T) {
 		{
 			Name: "Version is empty",
 			Given: RouterConfig{
-				PublicPath:  "/api/hmsidm/v1",
+				PublicPath:  "/api/idmsvc/v1",
 				PrivatePath: "/private",
 				Version:     "",
 			},
@@ -73,7 +73,7 @@ func TestCheckRouterConfig(t *testing.T) {
 		{
 			Name: "Metrics is nil",
 			Given: RouterConfig{
-				PublicPath:  "/api/hmsidm/v1",
+				PublicPath:  "/api/idmsvc/v1",
 				PrivatePath: "/private",
 				Version:     "1.0",
 			},
@@ -82,7 +82,7 @@ func TestCheckRouterConfig(t *testing.T) {
 		{
 			Name: "Success scenario",
 			Given: RouterConfig{
-				PublicPath:  "/api/hmsidm/v1",
+				PublicPath:  "/api/idmsvc/v1",
 				PrivatePath: "/private",
 				Version:     "1.0",
 				Metrics:     metrics,
@@ -175,7 +175,7 @@ func TestNewRouterWithConfig(t *testing.T) {
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",
-		PublicPath:  "/api/hmsidm",
+		PublicPath:  "/api/idmsvc",
 		PrivatePath: "/private",
 		Handlers:    app,
 		Metrics:     metrics,
@@ -212,7 +212,7 @@ func TestNewRouterForMetrics(t *testing.T) {
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",
-		PublicPath:  "/api/hmsidm",
+		PublicPath:  "/api/idmsvc",
 		PrivatePath: "/private",
 		MetricsPath: "/metrics",
 		Handlers:    app,
@@ -220,7 +220,7 @@ func TestNewRouterForMetrics(t *testing.T) {
 	}
 	badConfig := RouterConfig{
 		Version:     "1.0",
-		PublicPath:  "/api/hmsidm",
+		PublicPath:  "/api/idmsvc",
 		PrivatePath: "/private",
 		Handlers:    app,
 		Metrics:     metrics,

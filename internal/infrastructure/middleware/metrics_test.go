@@ -84,7 +84,7 @@ func TestMetricsMiddlewareWithConfigCreation(t *testing.T) {
 	e := echo.New()
 	m := MetricsMiddlewareWithConfig(config)
 	e.Use(m)
-	path := "/api/hmsidm/v1/domains/"
+	path := "/api/idmsvc/v1/domains/"
 	e.Add(http.MethodGet, path, h)
 
 	resp := httptest.NewRecorder()

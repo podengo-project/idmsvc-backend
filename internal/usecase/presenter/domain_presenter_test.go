@@ -536,7 +536,7 @@ func TestList(t *testing.T) {
 	testOrgID := "12345"
 	testUUID1 := uuid.MustParse("5427c3d6-eaa1-11ed-99da-482ae3863d30")
 	testUUID2 := uuid.MustParse("5ae8e844-eaa1-11ed-8f71-482ae3863d30")
-	prefix := "/api/hmsidm/v1"
+	prefix := "/api/idmsvc/v1"
 	cfg := config.Config{
 		Application: config.Application{
 			PaginationDefaultLimit: 10,

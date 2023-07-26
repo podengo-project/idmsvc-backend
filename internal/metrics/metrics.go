@@ -8,7 +8,7 @@ import (
 
 // TODO Update metric names according to: https://prometheus.io/docs/instrumenting/writing_exporters/#naming
 const (
-	NameSpace           = "hmsidm"
+	NameSpace           = "idmsvc"
 	HttpStatusHistogram = "http_status_histogram"
 )
 

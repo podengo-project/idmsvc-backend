@@ -39,7 +39,7 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	)
 	// FIXME Refactor in the future; it is too complex
 	const appPrefix = "/api"
-	const appName = "/hmsidm"
+	const appName = "/idmsvc"
 
 	reg := prometheus.NewRegistry()
 	require.NotNil(t, reg)
@@ -83,7 +83,7 @@ func TestNewGroupPublic(t *testing.T) {
 	)
 	const (
 		appPrefix   = "/api"
-		appName     = "/hmsidm"
+		appName     = "/idmsvc"
 		versionFull = "/v1.0"
 	)
 	type TestCaseExpected map[string]map[string]string

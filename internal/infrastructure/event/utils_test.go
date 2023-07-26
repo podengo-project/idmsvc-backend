@@ -60,7 +60,7 @@ func TestLogEventMessageInfo(t *testing.T) {
 		},
 		"Some message",
 	)
-	assert.Equal(t, "{\"level\":\"info\",\"Topic\":\"platform.hmsidm.todo-created\",\"Key\":\"\",\"Headers\":\"{}\",\"message\":\"Some message\"}\n", buf.String())
+	assert.Equal(t, "{\"level\":\"info\",\"Topic\":\"platform.idmsvc.todo-created\",\"Key\":\"\",\"Headers\":\"{}\",\"message\":\"Some message\"}\n", buf.String())
 }
 
 func TestLogEventMessageError(t *testing.T) {

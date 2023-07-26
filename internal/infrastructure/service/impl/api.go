@@ -45,7 +45,7 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	result.config = cfg
 	routerConfig := router.RouterConfig{
 		Version:            "1.0",
-		PublicPath:         "/api/hmsidm",
+		PublicPath:         "/api/idmsvc",
 		PrivatePath:        "/private",
 		Handlers:           app,
 		Metrics:            metrics,

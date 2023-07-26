@@ -666,7 +666,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 }
 
 func TestBuildPaginationLink(t *testing.T) {
-	const prefix = "/api/hmsidm/v1"
+	const prefix = "/api/idmsvc/v1"
 	cfg := config.Config{
 		Application: config.Application{
 			PaginationDefaultLimit: 10,
