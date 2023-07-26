@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-SERVICE="hmsidm"
+SERVICE="idmsvc"
 BASE_IMAGE="${SERVICE}-backend"
 CONTAINER_ENGINE="${CONTAINER_ENGINE:-podman}"
 

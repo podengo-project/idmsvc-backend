@@ -2,7 +2,7 @@
 # Set default variable values for the project
 ##
 
-APP ?= hmsidm
+APP ?= idmsvc
 export APP
 
 BIN ?= $(PROJECT_DIR)/bin
@@ -40,9 +40,9 @@ else
 $(info info:Using DATABASE_* defaults)
 DATABASE_HOST ?= localhost
 DATABASE_EXTERNAL_PORT ?= 5432
-DATABASE_NAME ?= hmsidm-db
-DATABASE_USER ?= hmsidm-user
-DATABASE_PASSWORD ?= hmsidm-secret
+DATABASE_NAME ?= idmsvc-db
+DATABASE_USER ?= idmsvc-user
+DATABASE_PASSWORD ?= idmsvc-secret
 endif
 
 
@@ -59,14 +59,14 @@ KAFKA_CONFIG_DIR ?= $(PROJECT_DIR)/build/kafka/config
 
 # The topics used by the repository
 # Updated to follow the pattern used at playbook-dispatcher
-KAFKA_TOPICS ?= platform.hmsidm.todo-created
+KAFKA_TOPICS ?= platform.idmsvc.todo-created
 
 # The group id for the consumers; every consumer subscribed to
 # a topic with different group-id will receive a copy of the
 # message. In our scenario, any replica of the consumer wants
 # only one message to be processed, so we only use a unique
 # group id at the moment.
-KAFKA_GROUP_ID ?= hmsidm
+KAFKA_GROUP_ID ?= idmsvc
 
 # Application specific parameters
 APP_EXPIRATION_TIME ?= 15

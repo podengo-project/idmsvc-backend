@@ -4,7 +4,7 @@
 # Options that must be configured by app owner
 # --------------------------------------------
 # TODO Define the APP_NAME to be used
-APP_NAME="hmsidm"  # name of app-sre "application" folder this component lives in
+APP_NAME="idmsvc"  # name of app-sre "application" folder this component lives in
 COMPONENT_NAME="${APP_NAME}-backend"  # name of resourceTemplate component for deploy
 IMAGE="quay.io/cloudservices/${COMPONENT_NAME}"  # image location on quay
 CONTAINERFILE="build/Dockerfile"
