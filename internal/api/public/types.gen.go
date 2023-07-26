@@ -136,7 +136,7 @@ type ErrorInfo struct {
 	Title string `json:"title"`
 }
 
-// Errors General error response returned by the hmsidm API
+// Errors General error response returned by the idmsvc API
 type Errors struct {
 	// Errors Error objects provide additional information about problems encountered while performing an operation.
 	Errors *[]ErrorInfo `json:"errors,omitempty"`
@@ -290,7 +290,7 @@ type SubscriptionManagerId = openapi_types.UUID
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain
 
-// ErrorResponse General error response returned by the hmsidm API
+// ErrorResponse General error response returned by the idmsvc API
 type ErrorResponse = Errors
 
 // HostConfResponse The response for the action to retrieve the host vm information when it is being enrolled. This action is taken from the host vm.
