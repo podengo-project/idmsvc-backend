@@ -11,7 +11,7 @@ participant "RBAC\nService" as rbac
 
 
 group Create Domain from UI
-Administrator -> hmsidm_backend: (1) (https) POST /api/hmsidm/v1/domains
+Administrator -> hmsidm_backend: (1) (https) POST /api/idmsvc/v1/domains
 note left hmsidm_backend
 X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
 X-Rh-Insights-Request-Id: kjasdf01
@@ -95,7 +95,7 @@ end group
 
 group Populate domains data from IPA Server
 Administrator -> ipa_server: (5) (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 271e6f20-de76-11ed-9f7b-482ae3863d30
-ipa_server -> hmsidm_backend: (6) (https) PUT /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/register
+ipa_server -> hmsidm_backend: (6) (https) PUT /api/idmsvc/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/register
 note left hmsidm_backend
 Here it is used an X-Rh-Identity header resulting
 from the certificate issued for the host by RHSM.
@@ -264,7 +264,7 @@ end group
 ' Update domain information from Rhel-Idm Server
 ' group Automatic Update domains data from IPA Server
 ' Administrator -> ipa_server: (8) (cmd) ipa-hcc update 1aa15eae-a88b-11ed-a2cb-482ae3863d30
-' ipa_server -> hmsidm_backend: (9) (https) PUT /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/update
+' ipa_server -> hmsidm_backend: (9) (https) PUT /api/idmsvc/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/update
 ' note left hmsidm_backend
 ' - Build ResourceDefinition for the permission.
 ' - Evaluate if the required permission is allowed.
@@ -333,7 +333,7 @@ end group
 
 ' Retrieve domain information from UI
 group Get Domain information (UI)
-Administrator -> hmsidm_backend: (8) (https) GET /api/hmsidm/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
+Administrator -> hmsidm_backend: (8) (https) GET /api/idmsvc/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
 note left hmsidm_backend
 X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
 X-Rh-Insights-Request-Id: kjasdf03

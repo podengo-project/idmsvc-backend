@@ -93,7 +93,7 @@ To test our API locally, we can start the service by `make compose-up run` and l
 curl command against it as the below request:
 
     ```sh
-    curl -X GET -H "$( ./scripts/x-rh-identity.sh 12345 jdoe )" http://localhost:8000/api/hmsidm/v1/todo
+    curl -X GET -H "$( ./scripts/x-rh-identity.sh 12345 jdoe )" http://localhost:8000/api/idmsvc/v1/todo
     ```
 
 ### Ephemeral
@@ -101,7 +101,7 @@ curl command against it as the below request:
 * Quick in-cluster request:
 
       ```sh
-      oc exec -it "$( oc get pods -l pod=hmsidm-backend-service -o jsonpath='{.items[0].metadata.name}' )" -- curl -H "$( ./scripts/x-rh-identity.sh 12345 jdoe )" "http://localhost:8000/api/hmsidm/v1/todo"
+      oc exec -it "$( oc get pods -l pod=hmsidm-backend-service -o jsonpath='{.items[0].metadata.name}' )" -- curl -H "$( ./scripts/x-rh-identity.sh 12345 jdoe )" "http://localhost:8000/api/idmsvc/v1/todo"
       ```
 
 * Quick out-cluster request:
@@ -109,5 +109,5 @@ curl command against it as the below request:
       ```sh
       USER=jdoe
       PASSWORD="$( base64 -d <<< "$(oc get "secrets/env-$( oc project -q )-keycloak" -o jsonpath='{.data.defaultPassword}' )" )"
-      curl -u "$USER:$PASSWORD" "https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/hmsidm/v1/todo"
+      curl -u "$USER:$PASSWORD" "https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/idmsvc/v1/todo"
       ```

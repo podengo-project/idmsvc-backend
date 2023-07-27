@@ -36,7 +36,7 @@ XRHID = {
         "org_id": "12345",
         "type": "User",
         "user": {
-            "email": "test@hsmidm.test",
+            "email": "test@hmsidm.test",
             "first_name": "HMS",
             "is_active": True,
             "is_internal": False,
@@ -82,7 +82,7 @@ def main() -> None:
         username = "compose"
         password = "compose"
         idmsvc_backend = args.backend
-        url = f"http://{idmsvc_backend}/api/hmsidm/v1/domains"
+        url = f"http://{idmsvc_backend}/api/idmsvc/v1/domains"
         auth = None
         headers["X-Rh-Identity"] = base64.urlsafe_b64encode(
             json.dumps(XRHID).encode("utf-8")
@@ -101,7 +101,7 @@ def main() -> None:
             "-o",
             "jsonpath={.items[0].spec.host}",
         )
-        url = f"https://{idmsvc_backend}/api/hmsidm/v1/domains"
+        url = f"https://{idmsvc_backend}/api/idmsvc/v1/domains"
         auth = requests.auth.HTTPBasicAuth(username, password)
 
     if args.secrets_file:

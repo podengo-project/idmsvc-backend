@@ -8,7 +8,7 @@
 > authorizing the request.
 
 * (1) The Administrator create a new domain.
-  So a `POST /api/hmsidm/v1/domains` request is sent, using
+  So a `POST /api/idmsvc/v1/domains` request is sent, using
   a user credentials with `hmsidm:domains:write` permission.
 * (2) idm-domains-backend request ACL for the current x-rh-identity.
 * (3) rbac service return the ACL list:
@@ -18,7 +18,7 @@
   If RBAC validation fails, return **403 Forbidden**.
 * (5) Administrator run the `ipa-hcc register <domain_uuid> <token>`
   as indicated into the UI step indications.
-* (6) A `PUT /api/hmsidm/v1/domains/<domain_uuid>/ipa` http
+* (6) A `PUT /api/idmsvc/v1/domains/<domain_uuid>/ipa` http
   request is sent to the service, using the RHSM certificate
   assigned to the host by `rhc`, and the `X-Rh-Idm-Registration-Token`
   returned when the domain was created. The `X-Rh-Identity` has the
@@ -37,7 +37,7 @@
   If the token validation failed then a **403 Forbidden** response
   is returned.
 * (12) The administrator come back to the UI and request the
-  information for the domain by `GET /api/hmsidm/v1/domains/<domain_uuid>`.
+  information for the domain by `GET /api/idmsvc/v1/domains/<domain_uuid>`.
 * (13) idm-domains-backend request ACL for the current x-rh-identity.
 * (14) rbac service return the ACL list.
   * Check the `hmsidm:domain:read` permission exists into the list.
