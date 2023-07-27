@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -89,4 +90,30 @@ func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 		}
 	}
 	return nil
+}
+
+// Helper method to fill and preload a domain object based
+// TODO: use "AfterFind" hook instead?
+func (d *Domain) FillAndPreload(db *gorm.DB) (err error) {
+	if d.Type == nil {
+		return fmt.Errorf("'Type' is nil")
+	}
+	switch *d.Type {
+	case DomainTypeIpa:
+		d.IpaDomain = &Ipa{}
+		if err := db.
+			Model(&Ipa{}).
+			Preload("CaCerts").
+			Preload("Servers").
+			Preload("Locations").
+			First(d.IpaDomain, "id = ?", d.ID).
+			Error; err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return err
+			}
+		}
+		return nil
+	default:
+		return fmt.Errorf("'Type' is invalid")
+	}
 }

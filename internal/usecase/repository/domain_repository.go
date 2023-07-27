@@ -1,7 +1,6 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -208,27 +207,10 @@ func (r *domainRepository) FindByID(
 		Error; err != nil {
 		return nil, err
 	}
-	if output.Type == nil {
-		return nil, fmt.Errorf("'Type' is nil")
+	if err = output.FillAndPreload(db); err != nil {
+		return nil, err
 	}
-	switch *output.Type {
-	case model.DomainTypeIpa:
-		output.IpaDomain = &model.Ipa{}
-		if err = db.
-			Model(&model.Ipa{}).
-			Preload("CaCerts").
-			Preload("Servers").
-			Preload("Locations").
-			First(output.IpaDomain, "id = ?", output.ID).
-			Error; err != nil {
-			if errors.Is(err, gorm.ErrRecordNotFound) {
-				return nil, err
-			}
-		}
-		return output, nil
-	default:
-		return nil, fmt.Errorf("'Type' is invalid")
-	}
+	return output, nil
 }
 
 // See: https://gorm.io/docs/delete.html

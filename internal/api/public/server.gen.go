@@ -32,8 +32,8 @@ type ServerInterface interface {
 	// (PUT /domains/{uuid}/update)
 	UpdateDomain(ctx echo.Context, uuid string, params UpdateDomainParams) error
 	// Get host vm information.
-	// (POST /host-conf/{fqdn})
-	HostConf(ctx echo.Context, fqdn string, params HostConfParams) error
+	// (POST /host-conf/{inventory_id}/{fqdn})
+	HostConf(ctx echo.Context, inventoryId HostId, fqdn Fqdn, params HostConfParams) error
 }
 
 // ServerInterfaceWrapper converts echo contexts to parameters.
@@ -326,8 +326,16 @@ func (w *ServerInterfaceWrapper) UpdateDomain(ctx echo.Context) error {
 // HostConf converts echo context to params.
 func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	var err error
+	// ------------- Path parameter "inventory_id" -------------
+	var inventoryId HostId
+
+	err = runtime.BindStyledParameterWithLocation("simple", false, "inventory_id", runtime.ParamLocationPath, ctx.Param("inventory_id"), &inventoryId)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter inventory_id: %s", err))
+	}
+
 	// ------------- Path parameter "fqdn" -------------
-	var fqdn string
+	var fqdn Fqdn
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "fqdn", runtime.ParamLocationPath, ctx.Param("fqdn"), &fqdn)
 	if err != nil {
@@ -357,7 +365,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
-	err = w.Handler.HostConf(ctx, fqdn, params)
+	err = w.Handler.HostConf(ctx, inventoryId, fqdn, params)
 	return err
 }
 
@@ -395,6 +403,6 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
 	router.PUT(baseURL+"/domains/:uuid/register", wrapper.RegisterDomain)
 	router.PUT(baseURL+"/domains/:uuid/update", wrapper.UpdateDomain)
-	router.POST(baseURL+"/host-conf/:fqdn", wrapper.HostConf)
+	router.POST(baseURL+"/host-conf/:inventory_id/:fqdn", wrapper.HostConf)
 
 }

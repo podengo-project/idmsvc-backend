@@ -7,14 +7,15 @@ import (
 )
 
 type HostConfOptions struct {
-	OrgId      string
-	CommonName string
-	Fqdn       string
-	DomainId   *uuid.UUID
-	DomainName *string
-	DomainType *api_public.DomainType
+	OrgId       string
+	CommonName  string
+	InventoryId uuid.UUID
+	Fqdn        string
+	DomainId    *uuid.UUID
+	DomainName  *string
+	DomainType  *api_public.DomainType
 }
 
 type HostInteractor interface {
-	HostConf(xrhid *identity.XRHID, fqdn string, params *api_public.HostConfParams, body *api_public.HostConf) (*HostConfOptions, error)
+	HostConf(xrhid *identity.XRHID, inventoryId api_public.HostId, fqdn string, params *api_public.HostConfParams, body *api_public.HostConf) (*HostConfOptions, error)
 }

@@ -120,7 +120,7 @@ func TestNewGroupPublic(t *testing.T) {
 			"PUT": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
 		},
 
-		appPrefix + appName + versionFull + "/host-conf/:fqdn": {
+		appPrefix + appName + versionFull + "/host-conf/:inventory_id/:fqdn": {
 			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
 		},
 

@@ -145,7 +145,7 @@ type Errors struct {
 // Fqdn A host's Fully Qualified Domain Name (all lower-case).
 type Fqdn = string
 
-// HostConf Represent the request payload for the /hostconf/:fqdn endpoint.
+// HostConf Represent the request payload for the /host-conf/:inventory_id/:fqdn endpoint.
 type HostConf struct {
 	// DomainId A domain id
 	DomainId *DomainId `json:"domain_id,omitempty"`
@@ -198,6 +198,9 @@ type HostConfResponseSchema struct {
 	// Token A serialized JWS token or JWT to authenticate a host registration request.
 	Token *HostToken `json:"token,omitempty"`
 }
+
+// HostId A Host-Based Inventory ID of a host.
+type HostId = openapi_types.UUID
 
 // HostToken A serialized JWS token or JWT to authenticate a host registration request.
 type HostToken = string

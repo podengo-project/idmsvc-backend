@@ -14,20 +14,12 @@ func NewHostInteractor() interactor.HostInteractor {
 	return hostInteractor{}
 }
 
-func (i hostInteractor) getXRHIDParams(xrhid *identity.XRHID) (orgID string, cn string, err error) {
+func (i hostInteractor) HostConf(xrhid *identity.XRHID, inventoryId api_public.HostId, fqdn string, params *api_public.HostConfParams, body *api_public.HostConf) (*interactor.HostConfOptions, error) {
 	if xrhid == nil {
-		return "", "", fmt.Errorf("'xrhid' is nil")
+		return nil, fmt.Errorf("'xrhid' is nil")
 	}
 	if xrhid.Identity.Type != "System" {
-		return "", "", fmt.Errorf("invalid 'xrhid' type '%s'", xrhid.Identity.Type)
-	}
-	return xrhid.Identity.OrgID, xrhid.Identity.System.CommonName, nil
-}
-
-func (i hostInteractor) HostConf(xrhid *identity.XRHID, fqdn string, params *api_public.HostConfParams, body *api_public.HostConf) (*interactor.HostConfOptions, error) {
-	orgID, cn, err := i.getXRHIDParams(xrhid)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid 'xrhid' type '%s'", xrhid.Identity.Type)
 	}
 	if fqdn == "" {
 		return nil, fmt.Errorf("'fqdn' is empty")
@@ -40,12 +32,13 @@ func (i hostInteractor) HostConf(xrhid *identity.XRHID, fqdn string, params *api
 	}
 
 	options := &interactor.HostConfOptions{
-		OrgId:      orgID,
-		CommonName: cn,
-		Fqdn:       fqdn,
-		DomainId:   body.DomainId,
-		DomainName: body.DomainName,
-		DomainType: body.DomainType,
+		OrgId:       xrhid.Identity.OrgID,
+		CommonName:  xrhid.Identity.System.CommonName,
+		InventoryId: inventoryId,
+		Fqdn:        fqdn,
+		DomainId:    body.DomainId,
+		DomainName:  body.DomainName,
+		DomainType:  body.DomainType,
 	}
 	return options, nil
 }

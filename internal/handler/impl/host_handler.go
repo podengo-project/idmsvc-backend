@@ -13,6 +13,7 @@ import (
 
 func (a *application) HostConf(
 	ctx echo.Context,
+	inventoryId public.HostId,
 	fqdn string,
 	params public.HostConfParams,
 ) error {
@@ -32,7 +33,7 @@ func (a *application) HostConf(
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	if options, err = a.host.interactor.HostConf(xrhid, fqdn, &params, &input); err != nil {
+	if options, err = a.host.interactor.HostConf(xrhid, inventoryId, fqdn, &params, &input); err != nil {
 		return err
 	}
 
