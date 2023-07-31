@@ -142,6 +142,134 @@ s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_a
 			AddRow(data.IpaDomain.ID))
 ```
 
+---
+
+Sometimes we could need more tracing; the below it was used to troubleshoot
+some unit tests providing more traces without change the code.
+
+```golang
+func (s *Suite) SetupTest() {
+	var err error
+	s.mock, s.DB, err = test.NewSqlMock(&gorm.Session{
+		SkipHooks: true,
+		Logger: logger.NewGormLog(&config.Config{
+			Logging: config.Logging{
+				Console: true,
+				Level:   "trace",
+			},
+		}),
+	})
+	if err != nil {
+		s.Suite.FailNow("Error calling gorm.Open: %s", err.Error())
+		return
+	}
+	s.repository = &domainRepository{}
+}
+```
+
+---
+
+One last tip when creating unit tests for the repository layer, we
+could duplicate code very quickly trying to cover all the different
+paths for the repository layer. One thing that have been used is
+a helper function that prepare the database mock in several stages
+in an incremental way; for hms-1937 it was used to reduce code
+duplication.
+
+```golang
+func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+				WithArgs(
+					data.OrgId,
+					data.DomainUuid,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				autoenrollment := false
+				if data.AutoEnrollmentEnabled != nil {
+					autoenrollment = *data.AutoEnrollmentEnabled
+				}
+				expectQuery.WillReturnRows(sqlmock.NewRows([]string{
+					"id", "created_at", "updated_at", "deletet_at",
+
+					"org_id", "domain_uuid", "domain_name",
+					"title", "description", "type",
+					"auto_enrollment_enabled",
+				}).
+					AddRow(
+						data.ID,
+						data.CreatedAt,
+						data.UpdatedAt,
+						nil,
+
+						data.OrgId,
+						data.DomainUuid,
+						data.DomainName,
+						data.Title,
+						data.Description,
+						data.Type,
+						autoenrollment,
+					))
+			}
+    // ... Additional stages here
+		case 5:
+			expectedQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."ipa_id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
+				WithArgs(1)
+			if i == stage && expectedErr != nil {
+				expectedQuery.WillReturnError(expectedErr)
+			} else {
+				expectedQuery.WillReturnRows(sqlmock.NewRows([]string{
+					"id", "created_at", "updated_at", "deletet_at",
+
+					"ipa_id", "fqdn", "rhsm_id", "location",
+					"ca_server", "hcc_enrollment_server", "hcc_update_server",
+					"pk_init_server",
+				}).
+					AddRow(
+						data.IpaDomain.Servers[0].Model.ID,
+						data.IpaDomain.Servers[0].Model.CreatedAt,
+						data.IpaDomain.Servers[0].Model.UpdatedAt,
+						data.IpaDomain.Servers[0].Model.DeletedAt,
+
+						data.IpaDomain.Servers[0].IpaID,
+						data.IpaDomain.Servers[0].FQDN,
+						data.IpaDomain.Servers[0].RHSMId,
+						data.IpaDomain.Servers[0].Location,
+						data.IpaDomain.Servers[0].CaServer,
+						data.IpaDomain.Servers[0].HCCEnrollmentServer,
+						data.IpaDomain.Servers[0].HCCUpdateServer,
+						data.IpaDomain.Servers[0].PKInitServer,
+					))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+```
+
+Later in the unit test we just do:
+
+```golang
+// Check for 'ipas' record not found
+expectedErr = gorm.ErrRecordNotFound
+s.helperTestFindByID(2, data, s.mock, expectedErr)
+domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid.String())
+require.NoError(t, s.mock.ExpectationsWereMet())
+assert.EqualError(t, err, expectedErr.Error())
+assert.Nil(t, domain)
+```
+
+The above could not be valid for all our scenarios, but is an
+option to keep in mind when we are implementing the unit tests
+for the repository layer.
+
+---
+
 References:
 
 - https://medium.com/@rosaniline/unit-testing-gorm-with-go-sqlmock-in-go-93cbce1f6b5b
