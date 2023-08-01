@@ -171,9 +171,6 @@ ephemeral-namespace-describe: $(BONFIRE) ## Display information about the curren
 ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scripts; It requires to pass CONTAINER_IMAGE_BASE
 	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" ./.rhcicd/build_deploy.sh 2>&1 | tee build_deploy.log
 
-.PHONY: ephemeral-pr-checks
-ephemeral-pr-checks:
-	IMAGE="$(CONTAINER_IMAGE_BASE)" bash ./.rhcicd/pr_checks.sh
 
 # FIXME This rule will require some updates but it will be something similar
 .PHONY: ephemeral-test-backend
