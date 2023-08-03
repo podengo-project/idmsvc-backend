@@ -1,8 +1,12 @@
 package router
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/api/openapi"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 )
@@ -22,6 +26,24 @@ var systemEnforceRoutes = []string{
 	"/api/idmsvc/v1/domains/:uuid/register",
 	"/api/idmsvc/v1/domains/:uuid/update",
 	"/api/idmsvc/v1/host-conf/:inventory_id/:fqdn",
+}
+
+func getOpenapiPaths(c RouterConfig) func() []string {
+	if c == (RouterConfig{}) {
+		panic(fmt.Errorf("'c' is empty"))
+	}
+	if c.Version == "" {
+		panic(fmt.Errorf("'c.Version' is empty"))
+	}
+	majorVersion := strings.Split(c.Version, ".")[0]
+	fullVersion := c.Version
+	cachedPaths := []string{
+		fmt.Sprintf("%s/v%s/openapi.json", c.PublicPath, fullVersion),
+		fmt.Sprintf("%s/v%s/openapi.json", c.PublicPath, majorVersion),
+	}
+	return func() []string {
+		return cachedPaths
+	}
 }
 
 func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
@@ -71,7 +93,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	var validateAPI echo.MiddlewareFunc = middleware.DefaultNooperation
 	if c.EnableAPIValidator {
 		middleware.InitOpenAPIFormats()
-		validateAPI = middleware.NewApiServiceValidator(nil)
+		validateAPI = middleware.NewApiServiceValidator(newSkipperOpenapi(c))
 	}
 
 	// Wire the middlewares
@@ -90,6 +112,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 
 	// Setup routes
 	public.RegisterHandlersWithBaseURL(e, c.Handlers, "")
+	openapi.RegisterHandlersWithBaseURL(e, c.Handlers, "")
 	return e
 }
 
@@ -125,4 +148,18 @@ func skipperSystemPredicate(ctx echo.Context) bool {
 		}
 	}
 	return true
+}
+
+// skipperOpenapi skip /api/idmsvc/v*/openapi.json path
+func newSkipperOpenapi(c RouterConfig) echo_middleware.Skipper {
+	paths := getOpenapiPaths(c)()
+	return func(ctx echo.Context) bool {
+		route := ctx.Path()
+		for i := range paths {
+			if paths[i] == route {
+				return true
+			}
+		}
+		return false
+	}
 }
