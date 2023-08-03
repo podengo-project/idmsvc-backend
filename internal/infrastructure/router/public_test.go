@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -283,4 +284,53 @@ func TestSkipperSystem(t *testing.T) {
 		result := skipperSystemPredicate(ctx)
 		assert.Equal(t, testCase.Expected, result)
 	}
+}
+
+func TestGetOpenapiPaths(t *testing.T) {
+	assert.PanicsWithError(t, "'c' is empty", func() {
+		getOpenapiPaths(RouterConfig{})
+	})
+
+	assert.PanicsWithError(t, "'c.Version' is empty", func() {
+		getOpenapiPaths(RouterConfig{
+			Version:    "",
+			PublicPath: "/api/idmsvc",
+		})
+	})
+
+	cachedPaths := getOpenapiPaths(RouterConfig{
+		Version:    "1.4",
+		PublicPath: "/api/idmsvc",
+	})
+	assert.NotNil(t, cachedPaths)
+	assert.Equal(t,
+		[]string{
+			"/api/idmsvc/v1.4/openapi.json",
+			"/api/idmsvc/v1/openapi.json",
+		},
+		cachedPaths(),
+	)
+}
+
+func TestNewSkipperOpenapi(t *testing.T) {
+	assert.PanicsWithError(t, "'c' is empty", func() {
+		newSkipperOpenapi(RouterConfig{})
+	})
+
+	c := RouterConfig{
+		PublicPath: "/api/idmsvc",
+		Version:    "1.4",
+	}
+	skipper := newSkipperOpenapi(c)
+	assert.NotNil(t, skipper)
+
+	path := fmt.Sprintf("%s/v%s/openapi.json", c.PublicPath, c.Version)
+	ctx := helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
+	assert.True(t, skipper(ctx))
+	path = fmt.Sprintf("%s/v%s/openapi.json", c.PublicPath, strings.Split(c.Version, ".")[0])
+	ctx = helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
+	assert.True(t, skipper(ctx))
+	path = fmt.Sprintf("%s/v%s/openapi2.json", c.PublicPath, strings.Split(c.Version, ".")[0])
+	ctx = helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
+	assert.False(t, skipper(ctx))
 }

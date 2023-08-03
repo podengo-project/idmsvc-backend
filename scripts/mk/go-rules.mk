@@ -151,6 +151,7 @@ $(EVENT_SCHEMA_DIR)/%.event.json: $(EVENT_MESSAGE_DIR)/%.event.yaml
 # Mockery support
 MOCK_DIRS := internal/api/private \
     internal/api/public \
+    internal/api/openapi \
 	internal/interface/repository \
 	internal/interface/interactor \
 	internal/interface/presenter \

@@ -13,6 +13,20 @@
 @x-rh-idm-version = {"ipa-hcc":"0.7","ipa":"4.10.0-8.el9_1","os-release-id":"rhel","os-release-version-id":"9.1"}
 @org_id = 12345
 
+### Get api specification
+
+# @name GetOpenapiSpecification
+
+# Request for localhost
+#   ./test/scripts/local-get-openapi.sh
+#
+# Request for ephemeral:
+#   ./test/scripts/ephe-get-openapi.sh
+GET {{schema}}://{{host}}{{basepath}}/openapi.json
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: get_openapi
+Content-Type: {{contentType}}
+
 ### Create with no certs nor servers nor realm_domains
 
 # @name createDomain
