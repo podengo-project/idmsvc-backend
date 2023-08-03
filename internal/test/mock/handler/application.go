@@ -87,6 +87,20 @@ func (_m *Application) GetMetrics(ctx echo.Context) error {
 	return r0
 }
 
+// GetOpenapi provides a mock function with given fields: ctx
+func (_m *Application) GetOpenapi(ctx echo.Context) error {
+	ret := _m.Called(ctx)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context) error); ok {
+		r0 = rf(ctx)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetReadyz provides a mock function with given fields: ctx
 func (_m *Application) GetReadyz(ctx echo.Context) error {
 	ret := _m.Called(ctx)

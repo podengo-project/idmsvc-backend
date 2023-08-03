@@ -96,7 +96,7 @@ func TestNewGroupPublic(t *testing.T) {
 		},
 
 		appPrefix + appName + versionFull + "/openapi.json": {
-			"GET": "github.com/podengo-project/idmsvc-backend/internal/public.openapi",
+			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/openapi.(*ServerInterfaceWrapper).GetOpenapi-fm",
 		},
 
 		appPrefix + appName + versionFull + "/domains": {
