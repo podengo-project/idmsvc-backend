@@ -127,7 +127,7 @@ $(API_LIST):
 
 .PHONY: update-api
 update-api:
-	git submodule update --remote
+	git submodule update --init --remote
 	$(MAKE) generate-api
 
 EVENTS := todo_created

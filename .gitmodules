@@ -1,3 +1,3 @@
 [submodule "api"]
 	path = api
-	url = https://gitlab.cee.redhat.com/identity-management/idmocp/idm-domains-api.git
+	url = https://github.com/podengo-project/idmsvc-api.git
