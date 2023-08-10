@@ -14,8 +14,8 @@ func TestNamespaceIDMSVC(t *testing.T) {
 }
 
 func TestTokenDomainId(t *testing.T) {
-	tok := DomainRegistrationToken("F3kVxQP4sIs.cjbtH-GB8JuszfqrQnnudLoLzJH3zkw5jnhmTgKP_HU")
-	exp := uuid.MustParse("681abfd7-18ce-51b3-a9cc-10d386c8dc35")
+	tok := DomainRegistrationToken("F3n-iOZn1VI.wbzIH7v-kRrdvfIvia4nBKAvEpIKGdv6MSIFXeUtqVY")
+	exp := uuid.MustParse("7b160558-8273-5a24-b559-6de3ff053c63")
 	domain_id := TokenDomainId(tok)
 	assert.Equal(t, exp, domain_id)
 }
@@ -23,50 +23,52 @@ func TestTokenDomainId(t *testing.T) {
 func TestNewDomainRegistrationToken(t *testing.T) {
 	var (
 		err        error
-		expiration uint64                  = 1691407070973702283
-		knownToken DomainRegistrationToken = "F3kVxQP4sIs.cjbtH-GB8JuszfqrQnnudLoLzJH3zkw5jnhmTgKP_HU"
+		expiration uint64                  = 1691662998988903762
+		knownToken DomainRegistrationToken = "F3n-iOZn1VI.wbzIH7v-kRrdvfIvia4nBKAvEpIKGdv6MSIFXeUtqVY"
 		token      DomainRegistrationToken
+		domainType string = "rhel-idm"
 		orgId      string = "123456"
 		key        []byte = []byte("secretkey")
 	)
 
-	token, err = newDomainRegistrationTokenAt(key, orgId, expiration)
+	token, err = newDomainRegistrationTokenAt(key, domainType, orgId, expiration)
 	assert.NoError(t, err)
 	assert.Equal(t, token, knownToken)
 
-	_, err = NewDomainRegistrationToken(key, orgId, time.Hour)
+	_, err = NewDomainRegistrationToken(key, domainType, orgId, time.Hour)
 	assert.NoError(t, err)
 }
 
 func TestVerifyDomainRegistrationToken(t *testing.T) {
 	var (
 		err        error
-		expiration uint64                  = 1691407070973702283
-		knownToken DomainRegistrationToken = "F3kVxQP4sIs.cjbtH-GB8JuszfqrQnnudLoLzJH3zkw5jnhmTgKP_HU"
+		expiration uint64                  = 1691662998988903762
+		knownToken DomainRegistrationToken = "F3n-iOZn1VI.wbzIH7v-kRrdvfIvia4nBKAvEpIKGdv6MSIFXeUtqVY"
 		token      DomainRegistrationToken
+		domainType string = "rhel-idm"
 		orgId      string = "123456"
 		otherOrgId string = "789789"
 		key        []byte = []byte("secretkey")
 		domainId   uuid.UUID
 	)
-	exp, err := parseDomainRegistrationToken(key, orgId, knownToken)
+	exp, err := parseDomainRegistrationToken(key, domainType, orgId, knownToken)
 	assert.NoError(t, err)
 	assert.Equal(t, expiration, exp)
 	// known token has expired
-	domainId, err = VerifyDomainRegistrationToken(key, orgId, token)
+	domainId, err = VerifyDomainRegistrationToken(key, domainType, orgId, token)
 	assert.Error(t, err)
 	assert.Equal(t, domainId, uuid.Nil)
 
-	token, err = NewDomainRegistrationToken(key, orgId, time.Hour)
+	token, err = NewDomainRegistrationToken(key, domainType, orgId, time.Hour)
 	assert.NoError(t, err)
-	exp, err = parseDomainRegistrationToken(key, orgId, token)
+	exp, err = parseDomainRegistrationToken(key, domainType, orgId, token)
 	assert.NoError(t, err)
-	domainId, err = VerifyDomainRegistrationToken(key, orgId, token)
+	domainId, err = VerifyDomainRegistrationToken(key, domainType, orgId, token)
 	assert.NoError(t, err)
 	assert.NotEqual(t, domainId, uuid.Nil)
 
 	// wrong orgId == invalid signature
-	domainId, err = VerifyDomainRegistrationToken(key, otherOrgId, token)
+	domainId, err = VerifyDomainRegistrationToken(key, domainType, otherOrgId, token)
 	assert.Error(t, err)
 	assert.Equal(t, domainId, uuid.Nil)
 }

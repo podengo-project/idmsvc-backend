@@ -65,10 +65,11 @@ complexity and key management of an asymmetric signature scheme is not
 required. A symmetric signature with HMAC-SHA256 is an easy and efficient
 solution.
 
-The MAC digest is calculated over a personality string (UTF-8 bytes),
-the *organization id* (UTF-8 bytes), and the expiration time stamp (`uint64_t`
-as 8 bytes in *big endian* notation). The personality string
-`"register domain"` binds the MAC to a specific purpose. The *organization
+The MAC digest is calculated over a personality string (UTF-8 bytes), the
+*domain type* (UTF-8 bytes), the *organization id* (UTF-8 bytes), and the
+expiration time stamp (`uint64_t` as 8 bytes in *big endian* notation).
+The *personality* string `"register domain"` and *domain type* string bind
+the MAC to a specific purpose and domain type. The *organization
 id* is included, because the value is not part of the payload. Instead the
 organization id is transmitted out-of-band in the `X-Rh-Identity` header.
 
@@ -155,8 +156,9 @@ domain registration token.
 
 ```python
 key = b"secretkey"
+domain_type = "rhel-idm"
 org_id = "123456"
-expiration = 1691407070973702283
-token = "F3kVxQP4sIs.cjbtH-GB8JuszfqrQnnudLoLzJH3zkw5jnhmTgKP_HU"
-domain_id = "681abfd7-18ce-51b3-a9cc-10d386c8dc35"
+expiration = 1691662998988903762
+token = "F3n-iOZn1VI.wbzIH7v-kRrdvfIvia4nBKAvEpIKGdv6MSIFXeUtqVY"
+domain_id = "7b160558-8273-5a24-b559-6de3ff053c63"
 ```
