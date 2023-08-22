@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	api_public "github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/interface/interactor"
 	"github.com/openlyinc/pointy"
+	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

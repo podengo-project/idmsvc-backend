@@ -6,12 +6,12 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/handler/impl"
-	"github.com/hmsidm/internal/metrics"
-	"github.com/hmsidm/internal/test"
-	"github.com/hmsidm/internal/test/mock/interface/client"
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/handler/impl"
+	"github.com/podengo-project/idmsvc-backend/internal/metrics"
+	"github.com/podengo-project/idmsvc-backend/internal/test"
+	"github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -90,38 +90,38 @@ func TestNewGroupPublic(t *testing.T) {
 
 	testCases := TestCaseExpected{
 		"/private/readyz": {
-			"GET": "github.com/hmsidm/internal/api/handler.ping",
+			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/handler.ping",
 		},
 		"/private/livez": {
-			"GET": "github.com/hmsidm/internal/api/public.ping",
+			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/public.ping",
 		},
 
 		appPrefix + appName + versionFull + "/openapi.json": {
-			"GET": "github.com/hmsidm/internal/public.openapi",
+			"GET": "github.com/podengo-project/idmsvc-backend/internal/public.openapi",
 		},
 
 		appPrefix + appName + versionFull + "/domains": {
-			"GET":  "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).ListDomains-fm",
-			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).CreateDomain-fm",
+			"GET":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ListDomains-fm",
+			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).CreateDomain-fm",
 		},
 
 		appPrefix + appName + versionFull + "/domains/:uuid": {
-			"GET":    "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).ReadDomain-fm",
-			"PUT":    "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
-			"PATCH":  "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).PartialUpdateDomain-fm",
-			"DELETE": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
+			"GET":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ReadDomain-fm",
+			"PUT":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
+			"PATCH":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).PartialUpdateDomain-fm",
+			"DELETE": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
 		},
 
 		appPrefix + appName + versionFull + "/domains/:uuid/register": {
-			"PUT": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).RegisterDomain-fm",
+			"PUT": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).RegisterDomain-fm",
 		},
 
 		appPrefix + appName + versionFull + "/domains/:uuid/update": {
-			"PUT": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
+			"PUT": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
 		},
 
 		appPrefix + appName + versionFull + "/host-conf/:inventory_id/:fqdn": {
-			"POST": "github.com/hmsidm/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
+			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
 		},
 
 		// This routes are added when the group is created

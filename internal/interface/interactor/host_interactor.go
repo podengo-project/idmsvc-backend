@@ -2,7 +2,7 @@ package interactor
 
 import (
 	"github.com/google/uuid"
-	api_public "github.com/hmsidm/internal/api/public"
+	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 

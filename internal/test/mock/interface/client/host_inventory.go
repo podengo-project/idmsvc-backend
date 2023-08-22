@@ -3,7 +3,7 @@
 package client
 
 import (
-	client "github.com/hmsidm/internal/interface/client"
+	client "github.com/podengo-project/idmsvc-backend/internal/interface/client"
 	mock "github.com/stretchr/testify/mock"
 )
 

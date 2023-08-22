@@ -6,7 +6,7 @@ import (
 	echo "github.com/labstack/echo/v4"
 	mock "github.com/stretchr/testify/mock"
 
-	public "github.com/hmsidm/internal/api/public"
+	public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 
 	uuid "github.com/google/uuid"
 )

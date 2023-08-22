@@ -3,8 +3,8 @@ package event
 import (
 	"testing"
 
-	"github.com/hmsidm/internal/api/event"
-	"github.com/hmsidm/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/api/event"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/stretchr/testify/assert"
 )

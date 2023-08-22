@@ -8,12 +8,12 @@ import (
 	"os"
 	"sync"
 
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/handler"
-	"github.com/hmsidm/internal/infrastructure/router"
-	"github.com/hmsidm/internal/infrastructure/service"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/handler"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

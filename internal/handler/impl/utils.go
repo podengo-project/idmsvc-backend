@@ -3,8 +3,8 @@ package impl
 import (
 	"net/http"
 
-	"github.com/hmsidm/internal/infrastructure/middleware"
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 

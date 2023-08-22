@@ -4,11 +4,11 @@ import (
 	"context"
 	"sync"
 
-	"github.com/hmsidm/internal/config"
-	handler_impl "github.com/hmsidm/internal/handler/impl"
-	"github.com/hmsidm/internal/infrastructure/service"
-	"github.com/hmsidm/internal/interface/client"
-	"github.com/hmsidm/internal/metrics"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	handler_impl "github.com/podengo-project/idmsvc-backend/internal/handler/impl"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
+	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/gorm"
 )

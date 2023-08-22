@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"github.com/hmsidm/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"gorm.io/gorm"
 )
 

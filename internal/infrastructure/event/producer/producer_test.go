@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hmsidm/internal/api/event"
-	"github.com/hmsidm/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/api/event"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hmsidm/internal/handler"
-	"github.com/hmsidm/internal/metrics"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/handler"
+	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 )
 
 type RouterConfig struct {

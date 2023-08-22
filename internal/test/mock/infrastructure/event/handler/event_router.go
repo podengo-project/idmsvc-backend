@@ -3,7 +3,7 @@
 package handler
 
 import (
-	event "github.com/hmsidm/internal/infrastructure/event"
+	event "github.com/podengo-project/idmsvc-backend/internal/infrastructure/event"
 
 	mock "github.com/stretchr/testify/mock"
 )

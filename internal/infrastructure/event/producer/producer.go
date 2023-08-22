@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hmsidm/internal/config"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/rs/zerolog/log"
 )
 

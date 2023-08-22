@@ -3,10 +3,10 @@ package impl
 import (
 	"net/http"
 
-	"github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/domain/model"
-	"github.com/hmsidm/internal/interface/interactor"
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"gorm.io/gorm"
 )

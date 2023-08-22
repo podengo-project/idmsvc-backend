@@ -1,6 +1,6 @@
 {
     "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "https://github.com/hmsidm/internal/api/todo_created.event.yaml",
+    "$id": "https://github.com/podengo-project/idmsvc-backend/internal/api/todo_created.event.yaml",
     "title": "Event Todo created",
     "description": "Message schema for todo creation event",
     "type": "object",

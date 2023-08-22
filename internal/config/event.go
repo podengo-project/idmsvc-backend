@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/hmsidm/internal/api/event"
+	"github.com/podengo-project/idmsvc-backend/internal/api/event"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/rs/zerolog/log"
 )

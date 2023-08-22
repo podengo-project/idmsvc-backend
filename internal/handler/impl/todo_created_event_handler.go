@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hmsidm/internal/infrastructure/event"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event"
 	"gorm.io/gorm"
 )
 

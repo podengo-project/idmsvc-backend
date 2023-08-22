@@ -3,9 +3,9 @@ package middleware
 import (
 	"time"
 
-	"github.com/hmsidm/internal/metrics"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 )
 

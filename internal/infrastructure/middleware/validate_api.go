@@ -9,11 +9,11 @@ import (
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
-	public_api "github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/errors"
-	internal_errors "github.com/hmsidm/internal/errors"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	public_api "github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/errors"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 

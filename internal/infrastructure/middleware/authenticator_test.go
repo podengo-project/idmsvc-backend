@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	mock_middleware "github.com/hmsidm/internal/test/mock/infrastructure/middleware"
+	mock_middleware "github.com/podengo-project/idmsvc-backend/internal/test/mock/infrastructure/middleware"
 )
 
 func TestCheckGuardsAuthenticate(t *testing.T) {

@@ -181,7 +181,7 @@ generate-mock: $(MOCKERY)  ## Generate mock by using mockery tool
 
 .PHONY: generate-deps
 generate-deps: $(GODA)
-	$(GODA) graph "github.com/hmsidm/..." | dot -Tsvg -o docs/service-dependencies.svg
+	$(GODA) graph "github.com/podengo-project/idmsvc-backend/..." | dot -Tsvg -o docs/service-dependencies.svg
 
 .PHONY: coverage
 coverage:  ## Printout coverage

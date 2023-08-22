@@ -1,7 +1,7 @@
 package logger
 
 import (
-	"github.com/hmsidm/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/rs/zerolog"
 )
 

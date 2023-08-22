@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hmsidm/internal/infrastructure/event/message"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/gommon/random"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/message"
 )
 
 // KafkaHeaders is the adapter interface to translate to kafka.Header slice

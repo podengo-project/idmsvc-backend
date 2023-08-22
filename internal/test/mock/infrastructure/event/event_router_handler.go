@@ -3,7 +3,7 @@
 package event
 
 import (
-	event "github.com/hmsidm/internal/infrastructure/event"
+	event "github.com/podengo-project/idmsvc-backend/internal/infrastructure/event"
 
 	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
 

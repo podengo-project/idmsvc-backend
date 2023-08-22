@@ -3,10 +3,10 @@ package impl
 import (
 	"testing"
 
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/metrics"
-	"github.com/hmsidm/internal/test"
-	"github.com/hmsidm/internal/test/mock/interface/client"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/metrics"
+	"github.com/podengo-project/idmsvc-backend/internal/test"
+	"github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"

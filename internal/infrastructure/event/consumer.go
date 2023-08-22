@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	schema "github.com/hmsidm/internal/api/event"
-	"github.com/hmsidm/internal/config"
+	schema "github.com/podengo-project/idmsvc-backend/internal/api/event"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/rs/zerolog/log"
 )
 

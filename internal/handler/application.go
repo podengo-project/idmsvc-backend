@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"github.com/hmsidm/internal/api/metrics"
-	"github.com/hmsidm/internal/api/private"
-	"github.com/hmsidm/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/api/metrics"
+	"github.com/podengo-project/idmsvc-backend/internal/api/private"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 )
 
 type Application interface {

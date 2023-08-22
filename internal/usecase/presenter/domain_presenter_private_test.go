@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/domain/model"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

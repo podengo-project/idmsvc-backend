@@ -1,10 +1,10 @@
 package interactor
 
 import (
-	"github.com/hmsidm/internal/api/header"
-	"github.com/hmsidm/internal/api/public"
-	api_public "github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 

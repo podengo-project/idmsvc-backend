@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hmsidm/internal/domain/model"
 	"github.com/labstack/echo/v4"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"gorm.io/gorm"
 )
 

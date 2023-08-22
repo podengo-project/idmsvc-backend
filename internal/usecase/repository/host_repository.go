@@ -3,9 +3,9 @@ package repository
 import (
 	"fmt"
 
-	"github.com/hmsidm/internal/domain/model"
-	"github.com/hmsidm/internal/interface/interactor"
-	"github.com/hmsidm/internal/interface/repository"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
 )
 

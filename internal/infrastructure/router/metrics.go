@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/hmsidm/internal/api/metrics"
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/api/metrics"
 )
 
 func newGroupMetrics(e *echo.Group, c RouterConfig) *echo.Group {

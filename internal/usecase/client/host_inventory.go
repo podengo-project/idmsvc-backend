@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/hmsidm/internal/config"
-	interface_client "github.com/hmsidm/internal/interface/client"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	interface_client "github.com/podengo-project/idmsvc-backend/internal/interface/client"
 )
 
 type hostInventory struct {

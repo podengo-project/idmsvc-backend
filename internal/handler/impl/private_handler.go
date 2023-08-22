@@ -3,8 +3,8 @@ package impl
 import (
 	"net/http"
 
-	api_private "github.com/hmsidm/internal/api/private"
 	"github.com/labstack/echo/v4"
+	api_private "github.com/podengo-project/idmsvc-backend/internal/api/private"
 )
 
 // Liveness kubernetes probe endpoint

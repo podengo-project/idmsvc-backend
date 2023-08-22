@@ -3,7 +3,7 @@
 package repository
 
 import (
-	model "github.com/hmsidm/internal/domain/model"
+	model "github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	mock "github.com/stretchr/testify/mock"
 	gorm "gorm.io/gorm"
 )

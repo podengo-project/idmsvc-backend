@@ -5,8 +5,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/infrastructure/datastore"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
 )
 
 func printUsage(args []string) {

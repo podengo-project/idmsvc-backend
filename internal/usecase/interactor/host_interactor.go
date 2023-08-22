@@ -3,8 +3,8 @@ package interactor
 import (
 	"fmt"
 
-	api_public "github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/interface/interactor"
+	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 

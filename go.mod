@@ -1,4 +1,4 @@
-module github.com/hmsidm
+module github.com/podengo-project/idmsvc-backend
 
 go 1.18
 

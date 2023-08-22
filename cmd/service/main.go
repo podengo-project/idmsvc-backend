@@ -7,11 +7,11 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/infrastructure/datastore"
-	"github.com/hmsidm/internal/infrastructure/logger"
-	impl_service "github.com/hmsidm/internal/infrastructure/service/impl"
-	"github.com/hmsidm/internal/usecase/client"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
+	impl_service "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl"
+	"github.com/podengo-project/idmsvc-backend/internal/usecase/client"
 )
 
 func startSignalHandler(c context.Context) (context.Context, context.CancelFunc) {

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/domain/model"
-	"github.com/hmsidm/internal/interface/presenter"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
 )
 
 type hostPresenter struct {

@@ -6,9 +6,9 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/domain/model"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 )
 
 func (p *domainPresenter) fillRhelIdmLocations(

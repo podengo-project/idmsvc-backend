@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hmsidm/internal/domain/model"
-	"github.com/hmsidm/internal/interface/repository"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

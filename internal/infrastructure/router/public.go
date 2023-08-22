@@ -1,10 +1,10 @@
 package router
 
 import (
-	"github.com/hmsidm/internal/api/public"
-	"github.com/hmsidm/internal/infrastructure/middleware"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 )
 
 // skipperValidate is an alias to represent skipper for API validation middleware

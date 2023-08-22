@@ -1,16 +1,16 @@
 package impl
 
 import (
-	"github.com/hmsidm/internal/config"
-	"github.com/hmsidm/internal/handler"
-	"github.com/hmsidm/internal/interface/client"
-	"github.com/hmsidm/internal/interface/interactor"
-	"github.com/hmsidm/internal/interface/presenter"
-	"github.com/hmsidm/internal/interface/repository"
-	metrics "github.com/hmsidm/internal/metrics"
-	usecase_interactor "github.com/hmsidm/internal/usecase/interactor"
-	usecase_presenter "github.com/hmsidm/internal/usecase/presenter"
-	usecase_repository "github.com/hmsidm/internal/usecase/repository"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/handler"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
+	metrics "github.com/podengo-project/idmsvc-backend/internal/metrics"
+	usecase_interactor "github.com/podengo-project/idmsvc-backend/internal/usecase/interactor"
+	usecase_presenter "github.com/podengo-project/idmsvc-backend/internal/usecase/presenter"
+	usecase_repository "github.com/podengo-project/idmsvc-backend/internal/usecase/repository"
 	"gorm.io/gorm"
 )
 

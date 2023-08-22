@@ -6,9 +6,9 @@ import (
 	"testing"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/hmsidm/internal/api/event"
-	"github.com/hmsidm/internal/infrastructure/event/message"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/api/event"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/message"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"

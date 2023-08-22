@@ -1,8 +1,8 @@
 package router
 
 import (
-	"github.com/hmsidm/internal/api/private"
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/api/private"
 )
 
 func newGroupPrivate(e *echo.Group, c RouterConfig) *echo.Group {

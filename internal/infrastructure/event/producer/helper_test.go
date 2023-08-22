@@ -1,7 +1,7 @@
 package producer
 
 import (
-	"github.com/hmsidm/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 )
 
 func helperGetKafkaConfig() *config.Kafka {

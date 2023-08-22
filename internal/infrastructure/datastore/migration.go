@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/hmsidm/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/rs/zerolog/log"
 )
 
