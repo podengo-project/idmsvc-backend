@@ -3,6 +3,7 @@ package impl
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -482,8 +483,49 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 	return ctx.JSON(http.StatusOK, *output)
 }
 
-// CreateDomainToken (POST /domains/token)
-// Create a domain registration token
+// domains/token route
 func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDomainTokenParams) error {
-	return fmt.Errorf("Not implemented")
+	var (
+		err        error
+		input      public.DomainRegTokenRequest
+		token      *public.DomainRegToken
+		domainType public.DomainType
+		orgID      string
+		output     *public.DomainRegToken
+		xrhid      *identity.XRHID
+	)
+	xrhid, err = getXRHID(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err = ctx.Bind(&input); err != nil {
+		return err
+	}
+	if orgID, domainType, err = a.domain.interactor.CreateDomainToken(
+		xrhid,
+		&params,
+		&input,
+	); err != nil {
+		return err
+	}
+
+	validity := time.Duration(a.config.Application.ExpirationTimeSeconds) * time.Second
+	if token, err = a.domain.repository.CreateDomainToken(
+		a.secrets.domainRegKey,
+		validity,
+		orgID,
+		domainType,
+	); err != nil {
+		return err
+	}
+
+	// TODO: logging
+	// ctx.Logger().Info()
+
+	if output, err = a.domain.presenter.CreateDomainToken(token); err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, *output)
 }

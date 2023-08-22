@@ -876,3 +876,120 @@ func TestRegisterOrUpdateRhelIdmLocations(t *testing.T) {
 		assert.Equal(t, item.Expected, ipa)
 	}
 }
+
+func TestCreateDomainToken(t *testing.T) {
+	const (
+		testOrgID = "12345"
+	)
+	var (
+		xrhidUser = identity.XRHID{
+			Identity: identity.Identity{
+				OrgID: testOrgID,
+				Type:  "User",
+				User:  identity.User{},
+				Internal: identity.Internal{
+					OrgID: testOrgID,
+				},
+			},
+		}
+	)
+
+	type TestCaseGiven struct {
+		XRHID  *identity.XRHID
+		Params *api_public.CreateDomainTokenParams
+		Body   *api_public.DomainRegTokenRequest
+	}
+	type TestCaseExpected struct {
+		OrgID      string
+		DomainType public.DomainType
+		Err        error
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected TestCaseExpected
+	}
+	testCases := []TestCase{
+		{
+			Name: "nil 'xrhid'",
+			Given: TestCaseGiven{
+				XRHID:  nil,
+				Params: nil,
+				Body:   &api_public.DomainRegTokenRequest{},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'xrhid' is nil"),
+			},
+		},
+		{
+			Name: "nil 'params'",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidUser,
+				Params: nil,
+				Body:   &api_public.DomainRegTokenRequest{},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'params' is nil"),
+			},
+		},
+		{
+			Name: "nil 'body'",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidUser,
+				Params: &api_public.CreateDomainTokenParams{},
+				Body:   nil,
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("'body' is nil"),
+			},
+		},
+		{
+			Name: "wrong domain type",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidUser,
+				Params: &api_public.CreateDomainTokenParams{},
+				Body: &api_public.DomainRegTokenRequest{
+					DomainType: api_public.DomainType("invalid"),
+				},
+			},
+			Expected: TestCaseExpected{
+				Err: fmt.Errorf("Unsupported domain_type='invalid'"),
+			},
+		},
+		{
+			Name: "success case",
+			Given: TestCaseGiven{
+				XRHID:  &xrhidUser,
+				Params: &api_public.CreateDomainTokenParams{},
+				Body: &api_public.DomainRegTokenRequest{
+					DomainType: api_public.RhelIdm,
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgID:      testOrgID,
+				DomainType: api_public.RhelIdm,
+				Err:        nil,
+			},
+		},
+	}
+
+	component := NewDomainInteractor()
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		orgID, domainType, err := component.CreateDomainToken(
+			testCase.Given.XRHID,
+			testCase.Given.Params,
+			testCase.Given.Body,
+		)
+		if testCase.Expected.Err != nil {
+			require.Error(t, err)
+			require.Equal(t, testCase.Expected.Err.Error(), err.Error())
+			assert.Equal(t, "", orgID)
+			assert.Equal(t, public.DomainType(""), domainType)
+		} else {
+			assert.Equal(t, testCase.Expected.OrgID, orgID)
+			assert.Equal(t, testCase.Expected.DomainType, domainType)
+			assert.NoError(t, err)
+		}
+	}
+}

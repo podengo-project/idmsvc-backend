@@ -111,3 +111,7 @@ func (p *domainPresenter) Update(
 // ) (output *public.Domain, err error) {
 // 	return p.sharedDomain(domain)
 // }
+
+func (p *domainPresenter) CreateDomainToken(token *public.DomainRegToken) (*public.DomainRegToken, error) {
+	return token, nil
+}

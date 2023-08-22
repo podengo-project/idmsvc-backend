@@ -24,7 +24,12 @@ func TestNewHandler(t *testing.T) {
 	assert.Panics(t, func() {
 		NewHandler(&config.Config{}, nil, nil, nil)
 	})
-	assert.NotPanics(t, func() {
+	// no app secrets
+	assert.Panics(t, func() {
 		NewHandler(&config.Config{}, gormDB, &metrics.Metrics{}, inventoryMock)
+	})
+	cfg := test.GetTestConfig()
+	assert.NotPanics(t, func() {
+		NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock)
 	})
 }

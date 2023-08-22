@@ -77,3 +77,6 @@ app:
   accept_x_rh_fake_identity: true
   # Validate API requests and response against the openapi specification
   validate_api: true
+  # HMAC key for domain registration token (raw standard base64).
+  # "random" generates an ephemeral, random key
+  domain_reg_key: random

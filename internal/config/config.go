@@ -161,6 +161,8 @@ type Application struct {
 	// ValidateAPI indicate when the middleware to validate the API
 	// requests and responses is disabled; by default it is enabled.
 	ValidateAPI bool `mapstructure:"validate_api"`
+	// Secret HMAC key for domain registration token
+	DomainRegTokenKey string `mapstructure:"domain_reg_key"`
 }
 
 var config *Config = nil
@@ -200,6 +202,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)
 	v.SetDefault("app.validate_api", DefaultValidateAPI)
+	// Domain registration token key is a standard base64 encoded string,
+	// which is used as HMAC key. The string "random" creates an random,
+	// ephemeral key for testing.
+	v.SetDefault("app.domain_reg_key", "")
 }
 
 func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {

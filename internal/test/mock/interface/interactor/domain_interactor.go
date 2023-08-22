@@ -48,6 +48,34 @@ func (_m *DomainInteractor) Create(xrhid *identity.XRHID, params *public.CreateD
 	return r0, r1, r2
 }
 
+// CreateDomainToken provides a mock function with given fields: xrhid, params, body
+func (_m *DomainInteractor) CreateDomainToken(xrhid *identity.XRHID, params *public.CreateDomainTokenParams, body *public.DomainRegTokenRequest) (string, public.DomainType, error) {
+	ret := _m.Called(xrhid, params, body)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.CreateDomainTokenParams, *public.DomainRegTokenRequest) string); ok {
+		r0 = rf(xrhid, params, body)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 public.DomainType
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.CreateDomainTokenParams, *public.DomainRegTokenRequest) public.DomainType); ok {
+		r1 = rf(xrhid, params, body)
+	} else {
+		r1 = ret.Get(1).(public.DomainType)
+	}
+
+	var r2 error
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.CreateDomainTokenParams, *public.DomainRegTokenRequest) error); ok {
+		r2 = rf(xrhid, params, body)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // Delete provides a mock function with given fields: xrhid, uuid, params
 func (_m *DomainInteractor) Delete(xrhid *identity.XRHID, uuid string, params *public.DeleteDomainParams) (string, string, error) {
 	ret := _m.Called(xrhid, uuid, params)

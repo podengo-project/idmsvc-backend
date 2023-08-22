@@ -84,3 +84,7 @@ export APP_VALIDATE_API
 # Set the default token expiration in seconds (2 hours)
 APP_TOKEN_EXPIRATION_SECONDS ?= 7200
 export APP_TOKEN_EXPIRATION_SECONDS
+
+# Use random MAC key for domain registration token
+APP_DOMAIN_REG_KEY ?= random
+export APP_DOMAIN_REG_KEY

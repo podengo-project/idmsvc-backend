@@ -13,7 +13,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1867,6 +1869,26 @@ func (s *Suite) TestCheckCommonAndDataAndType() {
 
 	err = r.checkCommonAndData(s.DB, "12345", &model.Domain{})
 	assert.NoError(t, err)
+}
+
+func (s *Suite) TestCreateDomainToken() {
+	var (
+		key       []byte        = []byte("secret")
+		validity  time.Duration = 2 * time.Hour
+		testOrgID string        = "12345"
+	)
+	t := s.T()
+	r := &domainRepository{}
+	drt, err := r.CreateDomainToken(key, validity, testOrgID, public.RhelIdm)
+	assert.NoError(t, err)
+	assert.Equal(t, drt.DomainType, public.RhelIdm)
+	assert.NotEmpty(t, drt.DomainId)
+	assert.Equal(
+		t,
+		drt.DomainId,
+		token.TokenDomainId(token.DomainRegistrationToken(drt.DomainToken)),
+	)
+	assert.Greater(t, drt.Expiration, time.Now().Nanosecond())
 }
 
 func TestSuite(t *testing.T) {

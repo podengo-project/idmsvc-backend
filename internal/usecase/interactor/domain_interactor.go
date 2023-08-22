@@ -227,6 +227,33 @@ func (i domainInteractor) Update(xrhid *identity.XRHID, UUID string, params *api
 	return orgId, clientVersion, domain, nil
 }
 
+func (i domainInteractor) CreateDomainToken(
+	xrhid *identity.XRHID,
+	params *public.CreateDomainTokenParams,
+	body *public.DomainRegTokenRequest,
+) (orgID string, domainType public.DomainType, err error) {
+	if xrhid == nil {
+		return "", "", fmt.Errorf("'xrhid' is nil")
+	}
+	if params == nil {
+		return "", "", fmt.Errorf("'params' is nil")
+	}
+	if body == nil {
+		return "", "", fmt.Errorf("'body' is nil")
+	}
+
+	orgID = xrhid.Identity.OrgID
+
+	switch body.DomainType {
+	case api_public.DomainType(api_public.RhelIdm):
+		domainType = body.DomainType
+	default:
+		return "", "", fmt.Errorf("Unsupported domain_type='%s'", body.DomainType)
+	}
+
+	return orgID, domainType, nil
+}
+
 // --------- Private methods -----------
 
 func (i domainInteractor) registerOrUpdateRhelIdm(body *public.Domain, domainIpa *model.Ipa) error {

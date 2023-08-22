@@ -15,4 +15,5 @@ type DomainInteractor interface {
 	GetByID(xrhid *identity.XRHID, params *public.ReadDomainParams) (orgID string, err error)
 	Register(xrhid *identity.XRHID, UUID string, params *api_public.RegisterDomainParams, body *api_public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error)
 	Update(xrhid *identity.XRHID, UUID string, params *api_public.UpdateDomainParams, body *api_public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error)
+	CreateDomainToken(xrhid *identity.XRHID, params *api_public.CreateDomainTokenParams, body *api_public.DomainRegTokenRequest) (orgID string, domainType public.DomainType, err error)
 }

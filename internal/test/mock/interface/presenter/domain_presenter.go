@@ -37,6 +37,29 @@ func (_m *DomainPresenter) Create(domain *model.Domain) (*public.Domain, error) 
 	return r0, r1
 }
 
+// CreateDomainToken provides a mock function with given fields: token
+func (_m *DomainPresenter) CreateDomainToken(token *public.DomainRegToken) (*public.DomainRegToken, error) {
+	ret := _m.Called(token)
+
+	var r0 *public.DomainRegToken
+	if rf, ok := ret.Get(0).(func(*public.DomainRegToken) *public.DomainRegToken); ok {
+		r0 = rf(token)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*public.DomainRegToken)
+		}
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func(*public.DomainRegToken) error); ok {
+		r1 = rf(token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Get provides a mock function with given fields: domain
 func (_m *DomainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 	ret := _m.Called(domain)

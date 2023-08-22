@@ -5,7 +5,9 @@ import (
 	"time"
 
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -270,6 +272,26 @@ func (r *domainRepository) RhelIdmClearToken(
 	}
 
 	return nil
+}
+
+func (r *domainRepository) CreateDomainToken(
+	key []byte,
+	validity time.Duration,
+	orgID string,
+	domainType public.DomainType,
+) (drt *public.DomainRegToken, err error) {
+	tok, expireNS, err := token.NewDomainRegistrationToken(key, string(domainType), orgID, validity)
+	if err != nil {
+		return nil, err
+	}
+	domainId := token.TokenDomainId(tok)
+	drt = &public.DomainRegToken{
+		DomainId:    domainId,
+		DomainToken: string(tok),
+		DomainType:  domainType,
+		Expiration:  int(expireNS / 1_000_000_000),
+	}
+	return drt, nil
 }
 
 // ------- PRIVATE METHODS --------
