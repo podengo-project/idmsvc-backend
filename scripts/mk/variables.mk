@@ -4,8 +4,8 @@
 APP ?= idmsvc
 export APP
 
-BIN ?= $(PROJECT_DIR)/bin
-PATH := $(BIN):$(PATH)
+BIN ?= bin
+PATH := $(CURDIR)/$(BIN):$(PATH)
 export PATH
 
 CONFIG_PATH ?= $(PROJECT_DIR)/configs

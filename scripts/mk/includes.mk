@@ -21,14 +21,21 @@
 include scripts/mk/projectdir.mk
 -include secrets/private.mk
 include scripts/mk/variables.mk
-
+# tools
+include scripts/mk/mockery.mk
+include scripts/mk/oapi-codegen.mk
+include scripts/mk/goda.mk
+include scripts/mk/meta-prometheus.mk
+include scripts/mk/prometheus.mk
+include scripts/mk/plantuml.mk
+include scripts/mk/xrhidgen.mk
+include scripts/mk/venv.mk
+include scripts/mk/yq.mk
+# commands
 include scripts/mk/help.mk
 include scripts/mk/meta-general.mk
 include scripts/mk/gojsonschema.mk
-include scripts/mk/yq.mk
-include scripts/mk/venv.mk
 include scripts/mk/go-rules.mk
-include scripts/mk/plantuml.mk
 include scripts/mk/api-doc.mk
 include scripts/mk/db.mk
 include scripts/mk/printvars.mk
@@ -42,9 +49,3 @@ include scripts/mk/kafka.mk
 include scripts/mk/meta-ephemeral.mk
 include scripts/mk/ephemeral.mk
 
-include scripts/mk/mockery.mk
-include scripts/mk/oapi-codegen.mk
-include scripts/mk/goda.mk
-include scripts/mk/meta-prometheus.mk
-include scripts/mk/prometheus.mk
-include scripts/mk/xrhidgen.mk

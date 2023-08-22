@@ -4,11 +4,6 @@
 # the generated binaries.
 ##
 
-# Directory where the built binaries will be generated
-BIN ?= $(PROJECT_DIR)/bin
-PATH := $(BIN):$(PATH)
-export PATH
-
 ifeq (,$(shell ls -1d vendor 2>/dev/null))
 MOD_VENDOR :=
 else
@@ -39,10 +34,12 @@ build-all: ## Generate code and build binaries
 .PHONY: build
 build: $(patsubst cmd/%,$(BIN)/%,$(wildcard cmd/*)) ## Build binaries
 
+$(BIN):
+	mkdir -p $@
+
 # export CGO_ENABLED
 # $(BIN)/%: CGO_ENABLED=0
-$(BIN)/%: cmd/%/main.go
-	@[ -e "$(BIN)" ] || mkdir -p "$(BIN)"
+$(BIN)/%: cmd/%/main.go $(BIN)
 	go build $(MOD_VENDOR) -o "$@" "$<"
 
 .PHONY: clean

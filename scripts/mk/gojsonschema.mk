@@ -27,14 +27,5 @@ install-gojsonschema: $(GOJSONSCHEMA)
 
 # This rule install gojsonschema into your system
 # go install github.com/atombender/go-jsonschema/cmd/gojsonschema
-$(GOJSONSCHEMA):
-	@{\
-	        export GOPATH="$(shell mktemp -d "$(PROJECT_DIR)/tmp.XXXXXXXX" 2>/dev/null)" ; \
-	        echo "Using GOPATH='$${GOPATH}'" ; \
-	        [ "$${GOPATH}" != "" ] || { echo "error:GOPATH is empty"; exit 1; } ; \
-	        export GOBIN="$(dir $(GOJSONSCHEMA))" ; \
-	        echo "Installing 'gojsonschema' at '$(GOJSONSCHEMA)'" ; \
-	        go install github.com/atombender/go-jsonschema/cmd/gojsonschema@$(GOJSONSCHEMA_VERSION) ; \
-	        find "$${GOPATH}" -type d -exec chmod u+w {} \; ; \
-	        rm -rf "$${GOPATH}" ; \
-	}
+$(GOJSONSCHEMA): $(BIN)
+	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/atombender/go-jsonschema/cmd/gojsonschema@$(GOJSONSCHEMA_VERSION)"
