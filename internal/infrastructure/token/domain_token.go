@@ -30,42 +30,51 @@ func TokenDomainId(token DomainRegistrationToken) uuid.UUID {
 }
 
 // Create a new domain registration token
-// The token is signed by *key*, bound to *orgId*, and validate until
+// The token is signed by *key*, bound to *orgID*, and validate until
 // now + validity duration.
-func NewDomainRegistrationToken(key []byte, domainType string, orgId string, validity time.Duration) (token DomainRegistrationToken, err error) {
-	expires := time.Now().UnixNano() + validity.Nanoseconds()
-	return newDomainRegistrationTokenAt(key, domainType, orgId, uint64(expires))
+func NewDomainRegistrationToken(
+	key []byte, domainType string, orgID string, validity time.Duration,
+) (token DomainRegistrationToken, expireNS uint64, err error) {
+	expireNS = uint64(time.Now().UnixNano() + validity.Nanoseconds())
+	tok, err := newDomainRegistrationTokenAt(key, domainType, orgID, uint64(expireNS))
+	return tok, expireNS, err
 }
 
-// Create a domain registration token that expires at *expirens* nanoseconds
+// Create a domain registration token that expires at *expireNS* nanoseconds
 // after Unix epoch.
-func newDomainRegistrationTokenAt(key []byte, domainType string, orgId string, expirens uint64) (token DomainRegistrationToken, err error) {
+func newDomainRegistrationTokenAt(
+	key []byte, domainType string, orgID string, expireNS uint64,
+) (token DomainRegistrationToken, err error) {
 	payload_bytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(payload_bytes, expirens)
+	binary.BigEndian.PutUint64(payload_bytes, expireNS)
 	payload_b64 := base64.RawURLEncoding.EncodeToString(payload_bytes)
 
-	sig := mac_digest(key, domainType, orgId, payload_bytes)
+	sig := mac_digest(key, domainType, orgID, payload_bytes)
 	sig_b64 := base64.RawURLEncoding.EncodeToString(sig)
 
 	return DomainRegistrationToken(fmt.Sprintf("%s.%s", payload_b64, sig_b64)), nil
 }
 
-// Verify signature, *orgId* binding, and expiration time stamp of a token.
+// Verify signature, *orgID* binding, and expiration time stamp of a token.
 // Returns the domain UUID on success.
-func VerifyDomainRegistrationToken(key []byte, domainType string, orgId string, token DomainRegistrationToken) (domainId uuid.UUID, err error) {
-	var expirens uint64
-	if expirens, err = parseDomainRegistrationToken(key, domainType, orgId, token); err != nil {
+func VerifyDomainRegistrationToken(
+	key []byte, domainType string, orgID string, token DomainRegistrationToken,
+) (domainId uuid.UUID, err error) {
+	var expireNS uint64
+	if expireNS, err = parseDomainRegistrationToken(key, domainType, orgID, token); err != nil {
 		return uuid.Nil, err
 	}
 	var now uint64 = uint64(time.Now().Nanosecond())
-	if now > expirens {
-		return uuid.Nil, fmt.Errorf("Token has expired: %d > %d", now, expirens)
+	if now > expireNS {
+		return uuid.Nil, fmt.Errorf("Token has expired: %d > %d", now, expireNS)
 	}
 	return TokenDomainId(token), nil
 }
 
 // Parse and check signature of token
-func parseDomainRegistrationToken(key []byte, domainType string, orgId string, token DomainRegistrationToken) (expirens uint64, err error) {
+func parseDomainRegistrationToken(
+	key []byte, domainType string, orgID string, token DomainRegistrationToken,
+) (expireNS uint64, err error) {
 	var (
 		payload_bytes []byte
 		sig           []byte
@@ -83,20 +92,20 @@ func parseDomainRegistrationToken(key []byte, domainType string, orgId string, t
 	if sig, err = base64.RawURLEncoding.DecodeString(parts[1]); err != nil {
 		return 0, err
 	}
-	expected_sig := mac_digest(key, domainType, orgId, payload_bytes)
+	expected_sig := mac_digest(key, domainType, orgID, payload_bytes)
 	if !hmac.Equal(sig, expected_sig) {
 		return 0, fmt.Errorf("Signature mismatch")
 	}
 	return binary.BigEndian.Uint64(payload_bytes), nil
 }
 
-// Calculate keyed MAC digest from orgId and payload
-func mac_digest(key []byte, domainType string, orgId string, payload []byte) []byte {
+// Calculate keyed MAC digest from orgID and payload
+func mac_digest(key []byte, domainType string, orgID string, payload []byte) []byte {
 	mac := hmac.New(sha256.New, key)
 	// Hash.Write() never returns an error
 	mac.Write(RegisterDomainPersonality)
 	mac.Write([]byte(domainType))
-	mac.Write([]byte(orgId))
+	mac.Write([]byte(orgID))
 	mac.Write(payload)
 	return mac.Sum(nil)
 }

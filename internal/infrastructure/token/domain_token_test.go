@@ -35,14 +35,16 @@ func TestNewDomainRegistrationToken(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, token, knownToken)
 
-	_, err = NewDomainRegistrationToken(key, domainType, orgId, time.Hour)
+	_, _, err = NewDomainRegistrationToken(key, domainType, orgId, time.Hour)
 	assert.NoError(t, err)
 }
 
 func TestVerifyDomainRegistrationToken(t *testing.T) {
 	var (
 		err        error
-		expiration uint64                  = 1691662998988903762
+		expiration uint64 = 1691662998988903762
+		expireNS   uint64
+		validity   time.Duration           = time.Hour
 		knownToken DomainRegistrationToken = "F3n-iOZn1VI.wbzIH7v-kRrdvfIvia4nBKAvEpIKGdv6MSIFXeUtqVY"
 		token      DomainRegistrationToken
 		domainType string = "rhel-idm"
@@ -54,15 +56,24 @@ func TestVerifyDomainRegistrationToken(t *testing.T) {
 	exp, err := parseDomainRegistrationToken(key, domainType, orgId, knownToken)
 	assert.NoError(t, err)
 	assert.Equal(t, expiration, exp)
+
 	// known token has expired
 	domainId, err = VerifyDomainRegistrationToken(key, domainType, orgId, token)
 	assert.Error(t, err)
 	assert.Equal(t, domainId, uuid.Nil)
 
-	token, err = NewDomainRegistrationToken(key, domainType, orgId, time.Hour)
+	token, expireNS, err = NewDomainRegistrationToken(key, domainType, orgId, validity)
 	assert.NoError(t, err)
+	assert.InEpsilon(
+		t,
+		expireNS,
+		uint64(time.Now().UnixNano()+validity.Nanoseconds()),
+		float64(time.Minute.Nanoseconds()),
+	)
+
 	exp, err = parseDomainRegistrationToken(key, domainType, orgId, token)
 	assert.NoError(t, err)
+
 	domainId, err = VerifyDomainRegistrationToken(key, domainType, orgId, token)
 	assert.NoError(t, err)
 	assert.NotEqual(t, domainId, uuid.Nil)
