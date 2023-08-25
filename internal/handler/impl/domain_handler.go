@@ -481,3 +481,9 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 
 	return ctx.JSON(http.StatusOK, *output)
 }
+
+// CreateDomainToken (POST /domains/token)
+// Create a domain registration token
+func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDomainTokenParams) error {
+	return fmt.Errorf("Not implemented")
+}

@@ -14,6 +14,7 @@ var skipperValidate echo_middleware.Skipper = skipperUserPredicate
 
 var userEnforceRoutes = []string{
 	"/api/idmsvc/v1/domains",
+	"/api/idmsvc/v1/domains/token",
 	"/api/idmsvc/v1/domains/:uuid",
 }
 

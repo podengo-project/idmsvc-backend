@@ -104,6 +104,10 @@ func TestNewGroupPublic(t *testing.T) {
 			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).CreateDomain-fm",
 		},
 
+		appPrefix + appName + versionFull + "/domains/token": {
+			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).CreateDomainToken-fm",
+		},
+
 		appPrefix + appName + versionFull + "/domains/:uuid": {
 			"GET":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ReadDomain-fm",
 			"PUT":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",

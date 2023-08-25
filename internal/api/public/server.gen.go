@@ -19,6 +19,9 @@ type ServerInterface interface {
 	// Create a domain.
 	// (POST /domains)
 	CreateDomain(ctx echo.Context, params CreateDomainParams) error
+	// Domain registration token request
+	// (POST /domains/token)
+	CreateDomainToken(ctx echo.Context, params CreateDomainTokenParams) error
 	// Delete domain.
 	// (DELETE /domains/{uuid})
 	DeleteDomain(ctx echo.Context, uuid string, params DeleteDomainParams) error
@@ -113,6 +116,39 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 
 	// Invoke the callback with all the unmarshalled arguments
 	err = w.Handler.CreateDomain(ctx, params)
+	return err
+}
+
+// CreateDomainToken converts echo context to params.
+func (w *ServerInterfaceWrapper) CreateDomainToken(ctx echo.Context) error {
+	var err error
+
+	ctx.Set(X_rh_identityScopes, []string{""})
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateDomainTokenParams
+
+	headers := ctx.Request().Header
+	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
+		var XRhInsightsRequestId string
+		n := len(valueList)
+		if n != 1 {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
+		}
+
+		err = runtime.BindStyledParameterWithLocation("simple", false, "X-Rh-Insights-Request-Id", runtime.ParamLocationHeader, valueList[0], &XRhInsightsRequestId)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
+		}
+
+		params.XRhInsightsRequestId = XRhInsightsRequestId
+	} else {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+	}
+
+	// Invoke the callback with all the unmarshalled arguments
+	err = w.Handler.CreateDomainToken(ctx, params)
 	return err
 }
 
@@ -399,6 +435,7 @@ func RegisterHandlersWithBaseURL(router EchoRouter, si ServerInterface, baseURL 
 
 	router.GET(baseURL+"/domains", wrapper.ListDomains)
 	router.POST(baseURL+"/domains", wrapper.CreateDomain)
+	router.POST(baseURL+"/domains/token", wrapper.CreateDomainToken)
 	router.DELETE(baseURL+"/domains/:uuid", wrapper.DeleteDomain)
 	router.GET(baseURL+"/domains/:uuid", wrapper.ReadDomain)
 	router.PUT(baseURL+"/domains/:uuid/register", wrapper.RegisterDomain)

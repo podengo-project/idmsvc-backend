@@ -115,6 +115,27 @@ type DomainIpaServer struct {
 // DomainName A name of a domain (all lower-case)
 type DomainName = string
 
+// DomainRegToken A domain registration response
+type DomainRegToken struct {
+	// DomainId A domain id
+	DomainId DomainId `json:"domain_id"`
+
+	// DomainToken A domain registration token string
+	DomainToken string `json:"domain_token"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType DomainType `json:"domain_type"`
+
+	// Expiration Expiration time stamp (Unix timestamp)
+	Expiration int `json:"expiration"`
+}
+
+// DomainRegTokenRequest A domain registration request
+type DomainRegTokenRequest struct {
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType DomainType `json:"domain_type"`
+}
+
 // DomainType Type of domain (currently only rhel-idm)
 type DomainType string
 
@@ -293,6 +314,9 @@ type SubscriptionManagerId = openapi_types.UUID
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain
 
+// DomainRegTokenResponse A domain registration response
+type DomainRegTokenResponse = DomainRegToken
+
 // ErrorResponse General error response returned by the idmsvc API
 type ErrorResponse = Errors
 
@@ -327,6 +351,12 @@ type ListDomainsParams struct {
 type CreateDomainParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+}
+
+// CreateDomainTokenParams defines parameters for CreateDomainToken.
+type CreateDomainTokenParams struct {
+	// XRhInsightsRequestId Request id
+	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
 }
 
 // DeleteDomainParams defines parameters for DeleteDomain.
@@ -370,6 +400,9 @@ type HostConfParams struct {
 
 // CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
 type CreateDomainJSONRequestBody = CreateDomain
+
+// CreateDomainTokenJSONRequestBody defines body for CreateDomainToken for application/json ContentType.
+type CreateDomainTokenJSONRequestBody = DomainRegTokenRequest
 
 // RegisterDomainJSONRequestBody defines body for RegisterDomain for application/json ContentType.
 type RegisterDomainJSONRequestBody = Domain

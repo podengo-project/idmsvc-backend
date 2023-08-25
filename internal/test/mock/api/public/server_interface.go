@@ -30,6 +30,20 @@ func (_m *ServerInterface) CreateDomain(ctx echo.Context, params public.CreateDo
 	return r0
 }
 
+// CreateDomainToken provides a mock function with given fields: ctx, params
+func (_m *ServerInterface) CreateDomainToken(ctx echo.Context, params public.CreateDomainTokenParams) error {
+	ret := _m.Called(ctx, params)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(echo.Context, public.CreateDomainTokenParams) error); ok {
+		r0 = rf(ctx, params)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteDomain provides a mock function with given fields: ctx, _a1, params
 func (_m *ServerInterface) DeleteDomain(ctx echo.Context, _a1 string, params public.DeleteDomainParams) error {
 	ret := _m.Called(ctx, _a1, params)
