@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client"
@@ -164,14 +163,14 @@ func TestNewRouterWithConfig(t *testing.T) {
 		NewRouterWithConfig(e, RouterConfig{})
 	})
 
-	cfg := config.Config{}
+	cfg := test.GetTestConfig()
 	reg := prometheus.NewRegistry()
 	metrics := metrics.NewMetrics(reg)
 	_, db, _ := test.NewSqlMock(&gorm.Session{SkipHooks: true})
 	inventory := client.NewHostInventory(t)
 
 	// Create application handlers
-	app := handler_impl.NewHandler(&cfg, db, metrics, inventory)
+	app := handler_impl.NewHandler(cfg, db, metrics, inventory)
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",
@@ -201,14 +200,14 @@ func TestNewRouterForMetrics(t *testing.T) {
 		NewRouterForMetrics(e, RouterConfig{})
 	})
 
-	cfg := config.Config{}
+	cfg := test.GetTestConfig()
 	reg := prometheus.NewRegistry()
 	metrics := metrics.NewMetrics(reg)
 	_, db, _ := test.NewSqlMock(&gorm.Session{SkipHooks: true})
 	inventory := client.NewHostInventory(t)
 
 	// Create application handlers
-	app := handler_impl.NewHandler(&cfg, db, metrics, inventory)
+	app := handler_impl.NewHandler(cfg, db, metrics, inventory)
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",

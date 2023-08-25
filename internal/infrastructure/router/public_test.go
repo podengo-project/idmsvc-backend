@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
@@ -47,7 +46,7 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	require.NotNil(t, metrics)
 	inventory := client.NewHostInventory(t)
 
-	cfg := config.Get()
+	cfg := test.GetTestConfig()
 	_, db, err = test.NewSqlMock(&gorm.Session{})
 	require.NoError(t, err)
 	require.NotNil(t, db)
@@ -160,7 +159,7 @@ func TestNewGroupPublic(t *testing.T) {
 	inventory := client.NewHostInventory(t)
 	require.NotNil(t, inventory)
 
-	cfg := config.Get()
+	cfg := test.GetTestConfig()
 	_, db, err = test.NewSqlMock(&gorm.Session{})
 	require.NoError(t, err)
 	require.NotNil(t, db)
