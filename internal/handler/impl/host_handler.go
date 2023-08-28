@@ -26,10 +26,10 @@ func (a *application) HostConf(
 		tx      *gorm.DB
 		xrhid   *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
+
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}

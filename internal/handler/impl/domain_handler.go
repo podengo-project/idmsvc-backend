@@ -41,8 +41,7 @@ func (a *application) ListDomains(
 		tx     *gorm.DB
 		xrhid  *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
@@ -98,8 +97,7 @@ func (a *application) ReadDomain(
 		tx     *gorm.DB
 		xrhid  *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
 
@@ -206,8 +204,7 @@ func (a *application) CreateDomain(
 		tokenStr string
 		xrhid    *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
 
@@ -267,10 +264,10 @@ func (a *application) DeleteDomain(
 		domain_uuid string
 		xrhid       *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
+
 	if orgId, domain_uuid, err = a.domain.interactor.Delete(
 		xrhid,
 		uuid,
@@ -322,10 +319,10 @@ func (a *application) RegisterDomain(
 		clientVersion *header.XRHIDMVersion
 		xrhid         *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
+
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
@@ -413,8 +410,7 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		clientVersion *header.XRHIDMVersion
 		xrhid         *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
 
@@ -494,8 +490,7 @@ func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDo
 		output     *public.DomainRegToken
 		xrhid      *identity.XRHID
 	)
-	xrhid, err = getXRHID(ctx)
-	if err != nil {
+	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
 	}
 
