@@ -10,6 +10,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"gorm.io/gorm"
 )
@@ -480,11 +481,12 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 }
 
 // domains/token route
+// Create a domain token for given orgID, domainType, and current time stamp
 func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDomainTokenParams) error {
 	var (
 		err        error
 		input      public.DomainRegTokenRequest
-		token      *public.DomainRegToken
+		token      *repository.DomainRegToken
 		domainType public.DomainType
 		orgID      string
 		output     *public.DomainRegToken

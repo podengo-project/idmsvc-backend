@@ -279,17 +279,17 @@ func (r *domainRepository) CreateDomainToken(
 	validity time.Duration,
 	orgID string,
 	domainType public.DomainType,
-) (drt *public.DomainRegToken, err error) {
+) (drt *repository.DomainRegToken, err error) {
 	tok, expireNS, err := token.NewDomainRegistrationToken(key, string(domainType), orgID, validity)
 	if err != nil {
 		return nil, err
 	}
 	domainId := token.TokenDomainId(tok)
-	drt = &public.DomainRegToken{
-		DomainId:    domainId,
-		DomainToken: string(tok),
-		DomainType:  domainType,
-		Expiration:  int(expireNS / 1_000_000_000),
+	drt = &repository.DomainRegToken{
+		DomainId:     domainId,
+		DomainToken:  string(tok),
+		DomainType:   domainType,
+		ExpirationNS: expireNS,
 	}
 	return drt, nil
 }

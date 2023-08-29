@@ -13,6 +13,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 )
 
 type domainPresenter struct {
@@ -112,6 +113,14 @@ func (p *domainPresenter) Update(
 // 	return p.sharedDomain(domain)
 // }
 
-func (p *domainPresenter) CreateDomainToken(token *public.DomainRegToken) (*public.DomainRegToken, error) {
-	return token, nil
+// Create domain registration token
+// Translate the internal token represenatation to public API
+func (p *domainPresenter) CreateDomainToken(token *repository.DomainRegToken) (*public.DomainRegToken, error) {
+	drt := &public.DomainRegToken{
+		DomainId:    token.DomainId,
+		DomainToken: token.DomainToken,
+		DomainType:  token.DomainType,
+		Expiration:  int(token.ExpirationNS / 1_000_000_000),
+	}
+	return drt, nil
 }

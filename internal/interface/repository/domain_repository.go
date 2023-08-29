@@ -3,10 +3,18 @@ package repository
 import (
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"gorm.io/gorm"
 )
+
+type DomainRegToken struct {
+	DomainId     uuid.UUID
+	DomainToken  string
+	DomainType   public.DomainType
+	ExpirationNS uint64
+}
 
 // DomainRepository interface
 type DomainRepository interface {
@@ -18,5 +26,5 @@ type DomainRepository interface {
 	DeleteById(db *gorm.DB, orgID string, uuid string) (err error)
 	Update(db *gorm.DB, orgID string, data *model.Domain) (err error)
 	RhelIdmClearToken(db *gorm.DB, orgID string, uuid string) (err error)
-	CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (token *public.DomainRegToken, err error)
+	CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (token *DomainRegToken, err error)
 }

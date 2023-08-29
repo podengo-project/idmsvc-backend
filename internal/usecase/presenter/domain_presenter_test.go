@@ -11,6 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -679,15 +680,17 @@ func TestList(t *testing.T) {
 }
 
 func TestCreateDomainToken(t *testing.T) {
-	tok := &public.DomainRegToken{
-		DomainId:    uuid.New(),
-		DomainToken: "",
-		DomainType:  public.RhelIdm,
-		Expiration:  0,
+	tok := &repository.DomainRegToken{
+		DomainId:     uuid.New(),
+		DomainToken:  "",
+		DomainType:   public.RhelIdm,
+		ExpirationNS: 0,
 	}
 	cfg := test.GetTestConfig()
 	p := &domainPresenter{cfg: cfg}
 	newTok, err := p.CreateDomainToken(tok)
-	assert.Equal(t, tok, newTok)
+	assert.Equal(t, tok.DomainToken, newTok.DomainToken)
+	assert.Equal(t, tok.DomainId, newTok.DomainId)
+	assert.Equal(t, tok.DomainType, newTok.DomainType)
 	assert.NoError(t, err)
 }

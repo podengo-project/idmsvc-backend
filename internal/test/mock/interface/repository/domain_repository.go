@@ -9,6 +9,8 @@ import (
 
 	public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 
+	repository "github.com/podengo-project/idmsvc-backend/internal/interface/repository"
+
 	time "time"
 )
 
@@ -32,15 +34,15 @@ func (_m *DomainRepository) Create(db *gorm.DB, orgID string, data *model.Domain
 }
 
 // CreateDomainToken provides a mock function with given fields: key, validity, orgID, domainType
-func (_m *DomainRepository) CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (*public.DomainRegToken, error) {
+func (_m *DomainRepository) CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (*repository.DomainRegToken, error) {
 	ret := _m.Called(key, validity, orgID, domainType)
 
-	var r0 *public.DomainRegToken
-	if rf, ok := ret.Get(0).(func([]byte, time.Duration, string, public.DomainType) *public.DomainRegToken); ok {
+	var r0 *repository.DomainRegToken
+	if rf, ok := ret.Get(0).(func([]byte, time.Duration, string, public.DomainType) *repository.DomainRegToken); ok {
 		r0 = rf(key, validity, orgID, domainType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*public.DomainRegToken)
+			r0 = ret.Get(0).(*repository.DomainRegToken)
 		}
 	}
 

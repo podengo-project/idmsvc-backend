@@ -227,6 +227,9 @@ func (i domainInteractor) Update(xrhid *identity.XRHID, UUID string, params *api
 	return orgId, clientVersion, domain, nil
 }
 
+// Create domain registration token /domains/token
+//
+// Verify input parameters and check for supported domain types.
 func (i domainInteractor) CreateDomainToken(
 	xrhid *identity.XRHID,
 	params *public.CreateDomainTokenParams,
@@ -234,6 +237,9 @@ func (i domainInteractor) CreateDomainToken(
 ) (orgID string, domainType public.DomainType, err error) {
 	if xrhid == nil {
 		return "", "", fmt.Errorf("'xrhid' is nil")
+	}
+	if xrhid.Identity.Type != "User" {
+		return "", "", fmt.Errorf("Invalid identity type '%s'.", xrhid.Identity.Type)
 	}
 	if params == nil {
 		return "", "", fmt.Errorf("'params' is nil")

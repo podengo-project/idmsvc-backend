@@ -1888,7 +1888,7 @@ func (s *Suite) TestCreateDomainToken() {
 		drt.DomainId,
 		token.TokenDomainId(token.DomainRegistrationToken(drt.DomainToken)),
 	)
-	assert.Greater(t, drt.Expiration, time.Now().Nanosecond())
+	assert.Greater(t, drt.ExpirationNS, uint64(time.Now().Nanosecond()))
 }
 
 func TestSuite(t *testing.T) {

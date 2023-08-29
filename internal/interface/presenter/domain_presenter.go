@@ -3,6 +3,7 @@ package presenter
 import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 )
 
 type DomainPresenter interface {
@@ -13,5 +14,5 @@ type DomainPresenter interface {
 	// FullUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
 	Register(domain *model.Domain) (*public.Domain, error)
 	Update(domain *model.Domain) (*public.Domain, error)
-	CreateDomainToken(token *public.DomainRegToken) (*public.DomainRegToken, error)
+	CreateDomainToken(token *repository.DomainRegToken) (*public.DomainRegToken, error)
 }
