@@ -27,6 +27,20 @@ X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: get_openapi
 Content-Type: {{contentType}}
 
+### Create token
+
+# Request for localhost
+#   ./test/scripts/local-domain-token.sh
+#
+# Request for ephemeral
+#   ./test/scripts/ephe-domain-token.sh
+POST {{schema}}://{{host}}{{basepath}}/domains/token
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: create_token
+Content-Type: {{contentType}}
+
+{"domain_type": "rhel-idm"}
+
 ### Create with no certs nor servers nor realm_domains
 
 # @name createDomain
