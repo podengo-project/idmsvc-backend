@@ -24,16 +24,16 @@ type ServerInterface interface {
 	CreateDomainToken(ctx echo.Context, params CreateDomainTokenParams) error
 	// Delete domain.
 	// (DELETE /domains/{uuid})
-	DeleteDomain(ctx echo.Context, uuid DomainId, params DeleteDomainParams) error
+	DeleteDomain(ctx echo.Context, uuid DomainIdParam, params DeleteDomainParams) error
 	// Read a domain.
 	// (GET /domains/{uuid})
-	ReadDomain(ctx echo.Context, uuid DomainId, params ReadDomainParams) error
+	ReadDomain(ctx echo.Context, uuid DomainIdParam, params ReadDomainParams) error
 	// Update a domain.
 	// (PUT /domains/{uuid}/register)
-	RegisterDomain(ctx echo.Context, uuid DomainId, params RegisterDomainParams) error
+	RegisterDomain(ctx echo.Context, uuid DomainIdParam, params RegisterDomainParams) error
 	// Update a previously registered domain.
 	// (PUT /domains/{uuid}/update)
-	UpdateDomain(ctx echo.Context, uuid DomainId, params UpdateDomainParams) error
+	UpdateDomain(ctx echo.Context, uuid DomainIdParam, params UpdateDomainParams) error
 	// Get host vm information.
 	// (POST /host-conf/{inventory_id}/{fqdn})
 	HostConf(ctx echo.Context, inventoryId HostId, fqdn Fqdn, params HostConfParams) error
@@ -69,7 +69,7 @@ func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -100,7 +100,7 @@ func (w *ServerInterfaceWrapper) CreateDomain(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -129,9 +129,9 @@ func (w *ServerInterfaceWrapper) CreateDomainToken(ctx echo.Context) error {
 	var params CreateDomainTokenParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -142,9 +142,7 @@ func (w *ServerInterfaceWrapper) CreateDomainToken(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 
 	// Invoke the callback with all the unmarshalled arguments
@@ -156,7 +154,7 @@ func (w *ServerInterfaceWrapper) CreateDomainToken(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid DomainId
+	var uuid DomainIdParam
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -171,7 +169,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -194,7 +192,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid DomainId
+	var uuid DomainIdParam
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -209,7 +207,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -232,7 +230,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid DomainId
+	var uuid DomainIdParam
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -245,9 +243,9 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	var params RegisterDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -258,13 +256,11 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 	// ------------- Required header parameter "X-Rh-Idm-Registration-Token" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Idm-Registration-Token")]; found {
-		var XRhIdmRegistrationToken string
+		var XRhIdmRegistrationToken XRhIdmRegistrationTokenHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Idm-Registration-Token, got %d", n))
@@ -281,7 +277,7 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	}
 	// ------------- Required header parameter "X-Rh-Idm-Version" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Idm-Version")]; found {
-		var XRhIdmVersion string
+		var XRhIdmVersion XRhIdmVersionHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Idm-Version, got %d", n))
@@ -306,7 +302,7 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) UpdateDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid DomainId
+	var uuid DomainIdParam
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -319,9 +315,9 @@ func (w *ServerInterfaceWrapper) UpdateDomain(ctx echo.Context) error {
 	var params UpdateDomainParams
 
 	headers := ctx.Request().Header
-	// ------------- Required header parameter "X-Rh-Insights-Request-Id" -------------
+	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))
@@ -332,13 +328,11 @@ func (w *ServerInterfaceWrapper) UpdateDomain(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter X-Rh-Insights-Request-Id: %s", err))
 		}
 
-		params.XRhInsightsRequestId = XRhInsightsRequestId
-	} else {
-		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Header parameter X-Rh-Insights-Request-Id is required, but not found"))
+		params.XRhInsightsRequestId = &XRhInsightsRequestId
 	}
 	// ------------- Required header parameter "X-Rh-Idm-Version" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Idm-Version")]; found {
-		var XRhIdmVersion string
+		var XRhIdmVersion XRhIdmVersionHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Idm-Version, got %d", n))
@@ -386,7 +380,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 	headers := ctx.Request().Header
 	// ------------- Optional header parameter "X-Rh-Insights-Request-Id" -------------
 	if valueList, found := headers[http.CanonicalHeaderKey("X-Rh-Insights-Request-Id")]; found {
-		var XRhInsightsRequestId string
+		var XRhInsightsRequestId XRhInsightsRequestIdHeader
 		n := len(valueList)
 		if n != 1 {
 			return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Expected one value for X-Rh-Insights-Request-Id, got %d", n))

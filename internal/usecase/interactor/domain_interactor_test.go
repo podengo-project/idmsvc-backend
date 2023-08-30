@@ -189,7 +189,6 @@ func TestHelperDomainTypeToUint(t *testing.T) {
 func TestRegisterIpa(t *testing.T) {
 	const (
 		cn          = "21258fc8-c755-11ed-afc4-482ae3863d30"
-		requestID   = "TW9uIE1hciAyMCAyMDo1Mzoz"
 		token       = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
 		orgID       = "12345"
 		description = "My Example Domain Description"
@@ -197,6 +196,7 @@ func TestRegisterIpa(t *testing.T) {
 	var (
 		rhsmID      = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
 		domainID    = uuid.MustParse("0851e1d6-003f-11ee-adf4-482ae3863d30")
+		requestID   = pointy.String("TW9uIE1hciAyMCAyMDo1Mzoz")
 		testTitle   = pointy.String("My Domain Example")
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{
@@ -564,11 +564,11 @@ func TestUpdate(t *testing.T) {
 		OSReleaseVersionID: "8",
 	}
 	testParams := api_public.UpdateDomainParams{
-		XRhInsightsRequestId: "put_update_test",
+		XRhInsightsRequestId: pointy.String("put_update_test"),
 		XRhIdmVersion:        header.EncodeXRHIDMVersion(&testXRHIDMVersion),
 	}
 	testBadParams := api_public.UpdateDomainParams{
-		XRhInsightsRequestId: "put_update_test",
+		XRhInsightsRequestId: pointy.String("put_update_test"),
 		XRhIdmVersion:        "{",
 	}
 	testWrongTypeBody := api_public.Domain{

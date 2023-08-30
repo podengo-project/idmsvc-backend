@@ -311,6 +311,18 @@ type SigningKeys struct {
 // SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
 type SubscriptionManagerId = openapi_types.UUID
 
+// DomainIdParam A domain id
+type DomainIdParam = DomainId
+
+// XRhIdmRegistrationTokenHeader defines model for XRhIdmRegistrationTokenHeader.
+type XRhIdmRegistrationTokenHeader = string
+
+// XRhIdmVersionHeader defines model for XRhIdmVersionHeader.
+type XRhIdmVersionHeader = string
+
+// XRhInsightsRequestIdHeader defines model for XRhInsightsRequestIdHeader.
+type XRhInsightsRequestIdHeader = string
+
 // CreateDomainResponse A domain resource
 type CreateDomainResponse = Domain
 
@@ -344,58 +356,58 @@ type ListDomainsParams struct {
 	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // CreateDomainParams defines parameters for CreateDomain.
 type CreateDomainParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // CreateDomainTokenParams defines parameters for CreateDomainToken.
 type CreateDomainTokenParams struct {
-	// XRhInsightsRequestId Request id
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // DeleteDomainParams defines parameters for DeleteDomain.
 type DeleteDomainParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // ReadDomainParams defines parameters for ReadDomain.
 type ReadDomainParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // RegisterDomainParams defines parameters for RegisterDomain.
 type RegisterDomainParams struct {
-	// XRhInsightsRequestId Request id
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 
 	// XRhIdmRegistrationToken One-time password to authenticate domain registration with ipa-hcc command.
-	XRhIdmRegistrationToken string `json:"X-Rh-Idm-Registration-Token"`
+	XRhIdmRegistrationToken XRhIdmRegistrationTokenHeader `json:"X-Rh-Idm-Registration-Token"`
 
 	// XRhIdmVersion ipa-hcc agent version
-	XRhIdmVersion string `json:"X-Rh-Idm-Version"`
+	XRhIdmVersion XRhIdmVersionHeader `json:"X-Rh-Idm-Version"`
 }
 
 // UpdateDomainParams defines parameters for UpdateDomain.
 type UpdateDomainParams struct {
-	// XRhInsightsRequestId Request id
-	XRhInsightsRequestId string `json:"X-Rh-Insights-Request-Id"`
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 
 	// XRhIdmVersion ipa-hcc agent version
-	XRhIdmVersion string `json:"X-Rh-Idm-Version"`
+	XRhIdmVersion XRhIdmVersionHeader `json:"X-Rh-Idm-Version"`
 }
 
 // HostConfParams defines parameters for HostConf.
 type HostConfParams struct {
-	// XRhInsightsRequestId Unique request id for distributing tracing.
-	XRhInsightsRequestId *string `json:"X-Rh-Insights-Request-Id,omitempty"`
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
 // CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
