@@ -12,7 +12,6 @@ import (
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	public_api "github.com/podengo-project/idmsvc-backend/internal/api/public"
-	"github.com/podengo-project/idmsvc-backend/internal/errors"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
@@ -44,9 +43,6 @@ func NewApiServiceValidator(Skipper echo_middleware.Skipper) echo.MiddlewareFunc
 			AuthenticationFunc:    openapi3filter.NoopAuthenticationFunc,
 		},
 		Skipper: Skipper,
-		ErrorHandler: func(c echo.Context, err *echo.HTTPError) error {
-			return errors.NewLocationErrorWithLevel(err, 1)
-		},
 	})
 }
 
