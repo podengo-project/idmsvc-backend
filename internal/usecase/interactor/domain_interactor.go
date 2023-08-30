@@ -114,14 +114,14 @@ func (i domainInteractor) Create(xrhid *identity.XRHID, params *api_public.Creat
 // }
 
 // TODO Document method
-func (i domainInteractor) Delete(xrhid *identity.XRHID, uuid string, params *api_public.DeleteDomainParams) (string, string, error) {
+func (i domainInteractor) Delete(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.DeleteDomainParams) (string, uuid.UUID, error) {
 	if xrhid == nil {
-		return "", "", fmt.Errorf("'xrhid' is nil")
+		return "", uuid.Nil, fmt.Errorf("'xrhid' is nil")
 	}
 	if params == nil {
-		return "", "", fmt.Errorf("'params' cannot be nil")
+		return "", uuid.Nil, fmt.Errorf("'params' cannot be nil")
 	}
-	return xrhid.Identity.OrgID, uuid, nil
+	return xrhid.Identity.OrgID, UUID, nil
 }
 
 // List is the input adapter to list the domains that belongs to
@@ -174,7 +174,7 @@ func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDoma
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Register(xrhid *identity.XRHID, UUID string, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
@@ -204,7 +204,7 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, UUID string, params *a
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Update(xrhid *identity.XRHID, UUID string, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Update(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
@@ -358,12 +358,12 @@ func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_publi
 	return nil
 }
 
-func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID string, params *api_public.UpdateDomainParams, body *public.Domain) (err error) {
+func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainParams, body *public.Domain) (err error) {
 	if xrhid == nil {
 		return fmt.Errorf("'xrhid' is nil")
 	}
-	if UUID == "" {
-		return fmt.Errorf("'UUID' is empty")
+	if UUID == uuid.Nil {
+		return fmt.Errorf("'UUID' is invalid")
 	}
 	if params == nil {
 		return fmt.Errorf("'params' is nil")
@@ -375,10 +375,10 @@ func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID string, params
 	return nil
 }
 
-func (i domainInteractor) commonRegisterUpdate(orgID string, UUID string, body *public.Domain) (domain *model.Domain, err error) {
+func (i domainInteractor) commonRegisterUpdate(orgID string, UUID uuid.UUID, body *public.Domain) (domain *model.Domain, err error) {
 	domain = &model.Domain{}
 	domain.OrgId = orgID
-	domain.DomainUuid = uuid.MustParse(UUID)
+	domain.DomainUuid = UUID
 	domain.Title = body.Title
 	domain.Description = body.Description
 	domain.AutoEnrollmentEnabled = body.AutoEnrollmentEnabled

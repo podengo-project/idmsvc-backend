@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
@@ -132,12 +133,11 @@ func (r *domainRepository) Update(
 		return err
 	}
 
-	uuid := data.DomainUuid.String()
 	// Check the entity exists
 	if currentDomain, err = r.FindByID(
 		db,
 		orgID,
-		uuid,
+		data.DomainUuid,
 	); err != nil {
 		return err
 	}
@@ -198,14 +198,14 @@ func (r *domainRepository) Update(
 func (r *domainRepository) FindByID(
 	db *gorm.DB,
 	orgID string,
-	uuid string,
+	UUID uuid.UUID,
 ) (output *model.Domain, err error) {
 	// See: https://gorm.io/docs/query.html
-	if err = r.checkCommonAndUUID(db, orgID, uuid); err != nil {
+	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
 		return nil, err
 	}
 	if err = db.Model(&model.Domain{}).
-		First(&output, "org_id = ? AND domain_uuid = ?", orgID, uuid).
+		First(&output, "org_id = ? AND domain_uuid = ?", orgID, UUID).
 		Error; err != nil {
 		return nil, err
 	}
@@ -219,22 +219,22 @@ func (r *domainRepository) FindByID(
 func (r *domainRepository) DeleteById(
 	db *gorm.DB,
 	orgID string,
-	uuid string,
+	UUID uuid.UUID,
 ) (err error) {
 	var (
 		data  model.Domain
 		count int64
 	)
-	if err = r.checkCommonAndUUID(db, orgID, uuid); err != nil {
+	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
 		return err
 	}
-	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgID, uuid).Count(&count).Error; err != nil {
+	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Count(&count).Error; err != nil {
 		return err
 	}
 	if count == 0 {
 		return fmt.Errorf("Register not found")
 	}
-	if err = db.Unscoped().Delete(&data, "org_id = ? AND domain_uuid = ?", orgID, uuid).Error; err != nil {
+	if err = db.Unscoped().Delete(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Error; err != nil {
 		return err
 	}
 	return nil
@@ -243,13 +243,13 @@ func (r *domainRepository) DeleteById(
 func (r *domainRepository) RhelIdmClearToken(
 	db *gorm.DB,
 	orgID string,
-	uuid string,
+	UUID uuid.UUID,
 ) (err error) {
-	if err = r.checkCommonAndUUID(db, orgID, uuid); err != nil {
+	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
 		return err
 	}
 	var dataDomain *model.Domain
-	if dataDomain, err = r.FindByID(db, orgID, uuid); err != nil {
+	if dataDomain, err = r.FindByID(db, orgID, UUID); err != nil {
 		return err
 	}
 	if dataDomain.OrgId != orgID {
@@ -312,13 +312,13 @@ func (r *domainRepository) checkCommon(
 func (r *domainRepository) checkCommonAndUUID(
 	db *gorm.DB,
 	orgID string,
-	uuid string,
+	UUID uuid.UUID,
 ) error {
 	if err := r.checkCommon(db, orgID); err != nil {
 		return err
 	}
-	if uuid == "" {
-		return fmt.Errorf("'uuid' is empty")
+	if UUID == uuid.Nil {
+		return fmt.Errorf("'uuid' is invalid")
 	}
 	return nil
 }

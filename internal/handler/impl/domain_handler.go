@@ -87,7 +87,7 @@ func (a *application) ListDomains(
 // interface providing the error details.
 func (a *application) ReadDomain(
 	ctx echo.Context,
-	uuid string,
+	UUID uuid.UUID,
 	params public.ReadDomainParams,
 ) error {
 	var (
@@ -115,7 +115,7 @@ func (a *application) ReadDomain(
 	if data, err = a.domain.repository.FindByID(
 		tx,
 		orgID,
-		uuid,
+		UUID,
 	); err != nil {
 		return err
 	}
@@ -255,14 +255,14 @@ func (a *application) CreateDomain(
 // (DELETE /domains/{uuid})
 func (a *application) DeleteDomain(
 	ctx echo.Context,
-	uuid string,
+	UUID uuid.UUID,
 	params public.DeleteDomainParams,
 ) error {
 	var (
 		err         error
 		tx          *gorm.DB
 		orgId       string
-		domain_uuid string
+		domain_uuid uuid.UUID
 		xrhid       *identity.XRHID
 	)
 	if xrhid, err = getXRHID(ctx); err != nil {
@@ -271,7 +271,7 @@ func (a *application) DeleteDomain(
 
 	if orgId, domain_uuid, err = a.domain.interactor.Delete(
 		xrhid,
-		uuid,
+		UUID,
 		&params,
 	); err != nil {
 		return err
@@ -305,7 +305,7 @@ func (a *application) DeleteDomain(
 // and x-rh-idm-token header contents.
 func (a *application) RegisterDomain(
 	ctx echo.Context,
-	UUID string,
+	UUID uuid.UUID,
 	params public.RegisterDomainParams,
 ) error {
 	var (
@@ -366,7 +366,7 @@ func (a *application) RegisterDomain(
 
 	data.IpaDomain.Token = nil
 	data.IpaDomain.TokenExpiration = nil
-	data.DomainUuid = uuid.MustParse(UUID)
+	data.DomainUuid = UUID
 	data.ID = oldData.ID
 
 	if err = a.domain.repository.Update(tx, orgId, data); err != nil {
@@ -398,7 +398,7 @@ func (a *application) RegisterDomain(
 // UUID the domain uuid that identify
 // params contains the x-rh-identity, x-rh-insights-request-id
 // and x-rh-idm-token header contents.
-func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.UpdateDomainParams) error {
+func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params public.UpdateDomainParams) error {
 	var (
 		err         error
 		input       public.Domain
@@ -465,7 +465,7 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID string, params public.
 		return err
 	}
 
-	if err = a.domain.repository.RhelIdmClearToken(tx, orgID, currentData.DomainUuid.String()); err != nil {
+	if err = a.domain.repository.RhelIdmClearToken(tx, orgID, currentData.DomainUuid); err != nil {
 		return err
 	}
 

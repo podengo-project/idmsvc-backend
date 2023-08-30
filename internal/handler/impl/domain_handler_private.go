@@ -5,14 +5,15 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"gorm.io/gorm"
 )
 
-func (a *application) findIpaById(tx *gorm.DB, orgId string, uuid string) (data *model.Domain, err error) {
-	if data, err = a.domain.repository.FindByID(tx, orgId, uuid); err != nil {
+func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (data *model.Domain, err error) {
+	if data, err = a.domain.repository.FindByID(tx, orgId, UUID); err != nil {
 		return nil, err
 	}
 	if *data.Type != model.DomainTypeIpa {

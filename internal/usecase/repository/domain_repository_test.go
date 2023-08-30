@@ -887,7 +887,7 @@ func (s *Suite) TestUpdateIpaDomain() {
 	t := s.Suite.T()
 	currentTime := time.Now()
 	orgID := "11111"
-	uuidString := "3bccb88e-dd25-11ed-99e0-482ae3863d30"
+	domainId := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
 	subscriptionManagerID := pointy.String("fe106208-dd32-11ed-aa87-482ae3863d30")
 	data := model.Domain{
 		Model: gorm.Model{
@@ -897,7 +897,7 @@ func (s *Suite) TestUpdateIpaDomain() {
 			DeletedAt: gorm.DeletedAt{},
 		},
 		OrgId:                 orgID,
-		DomainUuid:            uuid.MustParse(uuidString),
+		DomainUuid:            domainId,
 		DomainName:            pointy.String("mydomain.example"),
 		Title:                 pointy.String("My Domain Example"),
 		Description:           pointy.String("Description of My Domain Example"),
@@ -1080,7 +1080,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 	currentTime := time.Now()
 	mismatchOrgID := "22222"
 	orgID := "11111"
-	uuidString := "3bccb88e-dd25-11ed-99e0-482ae3863d30"
+	domainId := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
 	subscriptionManagerID := pointy.String("fe106208-dd32-11ed-aa87-482ae3863d30")
 	data := model.Domain{
 		Model: gorm.Model{
@@ -1090,7 +1090,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 			DeletedAt: gorm.DeletedAt{},
 		},
 		OrgId:                 orgID,
-		DomainUuid:            uuid.MustParse(uuidString),
+		DomainUuid:            domainId,
 		DomainName:            pointy.String("mydomain.example"),
 		Title:                 pointy.String("My Domain Example"),
 		Description:           pointy.String("Description of My Domain Example"),
@@ -1144,21 +1144,21 @@ func (s *Suite) TestRhelIdmClearToken() {
 		},
 	}
 
-	err = s.repository.RhelIdmClearToken(nil, "", "")
+	err = s.repository.RhelIdmClearToken(nil, "", uuid.Nil)
 	assert.EqualError(t, err, "'db' is nil")
 
-	err = s.repository.RhelIdmClearToken(s.DB, "", "")
+	err = s.repository.RhelIdmClearToken(s.DB, "", uuid.Nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
-	err = s.repository.RhelIdmClearToken(s.DB, orgID, "")
-	assert.EqualError(t, err, "'uuid' is empty")
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuid.Nil)
+	assert.EqualError(t, err, "'uuid' is invalid")
 
 	// Error "'OrgID' mismatch"
 	s.mock.MatchExpectationsInOrder(true)
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 		WithArgs(
 			orgID,
-			uuidString,
+			domainId,
 		).
 		WillReturnRows(
 			sqlmock.NewRows([]string{
@@ -1223,7 +1223,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 			"ca_server", "hcc_enrollment_server", "hcc_update_server",
 			"pk_init_server",
 		}))
-	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, domainId)
 	require.EqualError(t, err, "'OrgId' mistmatch")
 
 	// Type is invalid
@@ -1231,7 +1231,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 		WithArgs(
 			orgID,
-			uuidString,
+			domainId,
 		).
 		WillReturnRows(
 			sqlmock.NewRows([]string{
@@ -1253,7 +1253,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 					uint(999),
 					*data.AutoEnrollmentEnabled,
 				))
-	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, domainId)
 	require.EqualError(t, err, "'Type' is invalid")
 
 	// Success scenario
@@ -1261,7 +1261,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 		WithArgs(
 			orgID,
-			uuidString,
+			domainId,
 		).
 		WillReturnRows(
 			sqlmock.NewRows([]string{
@@ -1356,7 +1356,7 @@ func (s *Suite) TestRhelIdmClearToken() {
 		WillReturnResult(
 			sqlmock.NewResult(1, 1),
 		)
-	err = s.repository.RhelIdmClearToken(s.DB, orgID, uuidString)
+	err = s.repository.RhelIdmClearToken(s.DB, orgID, domainId)
 	require.NoError(t, err)
 }
 
@@ -1365,7 +1365,7 @@ func (s *Suite) TestList() {
 	r := &domainRepository{}
 	currentTime := time.Now()
 	orgID := "11111"
-	uuidString := "3bccb88e-dd25-11ed-99e0-482ae3863d30"
+	domainId := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
 	subscriptionManagerID := "fe106208-dd32-11ed-aa87-482ae3863d30"
 	data := model.Domain{
 		Model: gorm.Model{
@@ -1375,7 +1375,7 @@ func (s *Suite) TestList() {
 			DeletedAt: gorm.DeletedAt{},
 		},
 		OrgId:                 orgID,
-		DomainUuid:            uuid.MustParse(uuidString),
+		DomainUuid:            domainId,
 		DomainName:            pointy.String("mydomain.example"),
 		Title:                 pointy.String("My Domain Example"),
 		Description:           pointy.String("Description of My Domain Example"),
@@ -1756,14 +1756,14 @@ func (s *Suite) TestFindByID() {
 	s.mock.MatchExpectationsInOrder(true)
 
 	// Check one wrong argument
-	domain, err = r.FindByID(nil, "", "")
+	domain, err = r.FindByID(nil, "", uuid.Nil)
 	assert.EqualError(t, err, "'db' is nil")
 	assert.Nil(t, domain)
 
 	// Check path when an error hapens into the sql statement
 	expectedErr = fmt.Errorf(`error at SELECT * FROM "domains"`)
 	s.helperTestFindByID(1, data, s.mock, expectedErr)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid.String())
+	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
 	assert.Nil(t, domain)
@@ -1771,7 +1771,7 @@ func (s *Suite) TestFindByID() {
 	// Check path when a domain type is NULL
 	expectedErr = fmt.Errorf("'Type' is nil")
 	s.helperTestFindByID(1, dataTypeNil, s.mock, nil)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid.String())
+	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
 	assert.Nil(t, domain)
@@ -1779,7 +1779,7 @@ func (s *Suite) TestFindByID() {
 	// Check for 'ipas' record not found
 	expectedErr = gorm.ErrRecordNotFound
 	s.helperTestFindByID(2, data, s.mock, expectedErr)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid.String())
+	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
 	assert.Nil(t, domain)
@@ -1787,7 +1787,7 @@ func (s *Suite) TestFindByID() {
 	// Successful scenario
 	expectedErr = nil
 	s.helperTestFindByID(5, data, s.mock, expectedErr)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid.String())
+	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.NoError(t, err)
 	require.NotNil(t, domain)
@@ -1824,16 +1824,16 @@ func (s *Suite) TestCheckCommonAndUUID() {
 	t := s.T()
 	r := &domainRepository{}
 
-	err := r.checkCommonAndUUID(nil, "", "")
+	err := r.checkCommonAndUUID(nil, "", uuid.Nil)
 	assert.EqualError(t, err, "'db' is nil")
 
-	err = r.checkCommonAndUUID(s.DB, "", "")
+	err = r.checkCommonAndUUID(s.DB, "", uuid.Nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
-	err = r.checkCommonAndUUID(s.DB, "12345", "")
-	assert.EqualError(t, err, "'uuid' is empty")
+	err = r.checkCommonAndUUID(s.DB, "12345", uuid.Nil)
+	assert.EqualError(t, err, "'uuid' is invalid")
 
-	err = r.checkCommonAndUUID(s.DB, "12345", "42f7adee-e932-11ed-8d73-482ae3863d30")
+	err = r.checkCommonAndUUID(s.DB, "12345", uuid.MustParse("42f7adee-e932-11ed-8d73-482ae3863d30"))
 	assert.NoError(t, err)
 }
 

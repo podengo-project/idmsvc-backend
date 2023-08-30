@@ -45,11 +45,11 @@ func (_m *ServerInterface) CreateDomainToken(ctx echo.Context, params public.Cre
 }
 
 // DeleteDomain provides a mock function with given fields: ctx, _a1, params
-func (_m *ServerInterface) DeleteDomain(ctx echo.Context, _a1 string, params public.DeleteDomainParams) error {
+func (_m *ServerInterface) DeleteDomain(ctx echo.Context, _a1 uuid.UUID, params public.DeleteDomainParams) error {
 	ret := _m.Called(ctx, _a1, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, string, public.DeleteDomainParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, uuid.UUID, public.DeleteDomainParams) error); ok {
 		r0 = rf(ctx, _a1, params)
 	} else {
 		r0 = ret.Error(0)
@@ -87,11 +87,11 @@ func (_m *ServerInterface) ListDomains(ctx echo.Context, params public.ListDomai
 }
 
 // ReadDomain provides a mock function with given fields: ctx, _a1, params
-func (_m *ServerInterface) ReadDomain(ctx echo.Context, _a1 string, params public.ReadDomainParams) error {
+func (_m *ServerInterface) ReadDomain(ctx echo.Context, _a1 uuid.UUID, params public.ReadDomainParams) error {
 	ret := _m.Called(ctx, _a1, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, string, public.ReadDomainParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, uuid.UUID, public.ReadDomainParams) error); ok {
 		r0 = rf(ctx, _a1, params)
 	} else {
 		r0 = ret.Error(0)
@@ -101,11 +101,11 @@ func (_m *ServerInterface) ReadDomain(ctx echo.Context, _a1 string, params publi
 }
 
 // RegisterDomain provides a mock function with given fields: ctx, _a1, params
-func (_m *ServerInterface) RegisterDomain(ctx echo.Context, _a1 string, params public.RegisterDomainParams) error {
+func (_m *ServerInterface) RegisterDomain(ctx echo.Context, _a1 uuid.UUID, params public.RegisterDomainParams) error {
 	ret := _m.Called(ctx, _a1, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, string, public.RegisterDomainParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, uuid.UUID, public.RegisterDomainParams) error); ok {
 		r0 = rf(ctx, _a1, params)
 	} else {
 		r0 = ret.Error(0)
@@ -115,11 +115,11 @@ func (_m *ServerInterface) RegisterDomain(ctx echo.Context, _a1 string, params p
 }
 
 // UpdateDomain provides a mock function with given fields: ctx, _a1, params
-func (_m *ServerInterface) UpdateDomain(ctx echo.Context, _a1 string, params public.UpdateDomainParams) error {
+func (_m *ServerInterface) UpdateDomain(ctx echo.Context, _a1 uuid.UUID, params public.UpdateDomainParams) error {
 	ret := _m.Called(ctx, _a1, params)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(echo.Context, string, public.UpdateDomainParams) error); ok {
+	if rf, ok := ret.Get(0).(func(echo.Context, uuid.UUID, public.UpdateDomainParams) error); ok {
 		r0 = rf(ctx, _a1, params)
 	} else {
 		r0 = ret.Error(0)

@@ -192,11 +192,11 @@ func TestRegisterIpa(t *testing.T) {
 		requestID   = "TW9uIE1hciAyMCAyMDo1Mzoz"
 		token       = "3fa8caf6-c759-11ed-99dd-482ae3863d30"
 		orgID       = "12345"
-		domainID    = "0851e1d6-003f-11ee-adf4-482ae3863d30"
 		description = "My Example Domain Description"
 	)
 	var (
 		rhsmID      = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
+		domainID    = uuid.MustParse("0851e1d6-003f-11ee-adf4-482ae3863d30")
 		testTitle   = pointy.String("My Domain Example")
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{
@@ -229,7 +229,7 @@ func TestRegisterIpa(t *testing.T) {
 	)
 	type TestCaseGiven struct {
 		XRHID  *identity.XRHID
-		UUID   string
+		UUID   uuid.UUID
 		Params *api_public.RegisterDomainParams
 		Body   *public.Domain
 	}
@@ -249,7 +249,7 @@ func TestRegisterIpa(t *testing.T) {
 			Name: "fail guards with xrhid is nil",
 			Given: TestCaseGiven{
 				XRHID:  nil,
-				UUID:   "",
+				UUID:   uuid.Nil,
 				Params: nil,
 				Body:   nil,
 			},
@@ -315,7 +315,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					DomainUuid:            uuid.MustParse(domainID),
+					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 testTitle,
 					Description:           pointy.String(description),
@@ -352,7 +352,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					DomainUuid:            uuid.MustParse(domainID),
+					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 testTitle,
 					Description:           pointy.String(description),
@@ -390,7 +390,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					DomainUuid:            uuid.MustParse(domainID),
+					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 testTitle,
 					Description:           pointy.String(description),
@@ -438,7 +438,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					DomainUuid:            uuid.MustParse(domainID),
+					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 testTitle,
 					Description:           pointy.String(description),
@@ -496,7 +496,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: clientVersionParsed,
 				Output: &model.Domain{
-					DomainUuid:            uuid.MustParse(domainID),
+					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 testTitle,
 					Description:           pointy.String(description),
@@ -596,28 +596,28 @@ func TestUpdate(t *testing.T) {
 	i := domainInteractor{}
 
 	// Get an error in guards
-	orgID, xrhidmVersion, domain, err := i.Update(nil, "", nil, nil)
+	orgID, xrhidmVersion, domain, err := i.Update(nil, uuid.Nil, nil, nil)
 	assert.EqualError(t, err, "'xrhid' is nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Error retrieving ipa-hcc version information
-	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID.String(), &testBadParams, &testBody)
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID, &testBadParams, &testBody)
 	assert.EqualError(t, err, "'X-Rh-Idm-Version' is invalid")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Error because of wrongtype
-	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID.String(), &testParams, &testWrongTypeBody)
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID, &testParams, &testWrongTypeBody)
 	assert.EqualError(t, err, "Unsupported domain_type='aninvalidtype'")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Success result
-	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID.String(), &testParams, &testBody)
+	orgID, xrhidmVersion, domain, err = i.Update(&testXRHID, testID, &testParams, &testBody)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
 	assert.Equal(t, testID, *testBody.DomainId)
@@ -698,14 +698,14 @@ func TestGuardRegister(t *testing.T) {
 func TestGuardUpdate(t *testing.T) {
 	var err error
 
-	err = domainInteractor{}.guardUpdate(nil, "", nil, nil)
+	err = domainInteractor{}.guardUpdate(nil, uuid.Nil, nil, nil)
 	assert.EqualError(t, err, "'xrhid' is nil")
 
 	xrhid := &identity.XRHID{}
-	err = domainInteractor{}.guardUpdate(xrhid, "", nil, nil)
-	assert.EqualError(t, err, "'UUID' is empty")
+	err = domainInteractor{}.guardUpdate(xrhid, uuid.Nil, nil, nil)
+	assert.EqualError(t, err, "'UUID' is invalid")
 
-	UUID := "b0264600-005c-11ee-ba48-482ae3863d30"
+	UUID := uuid.MustParse("b0264600-005c-11ee-ba48-482ae3863d30")
 	err = domainInteractor{}.guardUpdate(xrhid, UUID, nil, nil)
 	assert.EqualError(t, err, "'params' is nil")
 
@@ -724,7 +724,7 @@ func TestCommonRegisterUpdate(t *testing.T) {
 	testTitle := pointy.String("My Example Domain Title")
 	i := domainInteractor{}
 	assert.Panics(t, func() {
-		i.commonRegisterUpdate("", "", nil)
+		i.commonRegisterUpdate("", uuid.Nil, nil)
 	})
 
 	testDescription := "My Example Domain Description"
@@ -757,12 +757,12 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		},
 	}
 
-	domain, err := i.commonRegisterUpdate(testOrgID, testID.String(), &testWrongTypeBody)
+	domain, err := i.commonRegisterUpdate(testOrgID, testID, &testWrongTypeBody)
 	assert.EqualError(t, err, "Unsupported domain_type='wrongtype'")
 	assert.Nil(t, domain)
 
 	// Success case
-	domain, err = i.commonRegisterUpdate(testOrgID, testID.String(), &testBody)
+	domain, err = i.commonRegisterUpdate(testOrgID, testID, &testBody)
 	assert.NoError(t, err)
 	assert.NotNil(t, domain)
 }

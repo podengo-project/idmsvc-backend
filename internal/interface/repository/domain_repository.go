@@ -22,9 +22,9 @@ type DomainRepository interface {
 	Create(db *gorm.DB, orgID string, data *model.Domain) (err error)
 	// PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
 	// Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
-	FindByID(db *gorm.DB, orgID string, uuid string) (output *model.Domain, err error)
-	DeleteById(db *gorm.DB, orgID string, uuid string) (err error)
+	FindByID(db *gorm.DB, orgID string, UUID uuid.UUID) (output *model.Domain, err error)
+	DeleteById(db *gorm.DB, orgID string, UUID uuid.UUID) (err error)
 	Update(db *gorm.DB, orgID string, data *model.Domain) (err error)
-	RhelIdmClearToken(db *gorm.DB, orgID string, uuid string) (err error)
+	RhelIdmClearToken(db *gorm.DB, orgID string, UUID uuid.UUID) (err error)
 	CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (token *DomainRegToken, err error)
 }

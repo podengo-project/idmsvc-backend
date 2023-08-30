@@ -24,16 +24,16 @@ type ServerInterface interface {
 	CreateDomainToken(ctx echo.Context, params CreateDomainTokenParams) error
 	// Delete domain.
 	// (DELETE /domains/{uuid})
-	DeleteDomain(ctx echo.Context, uuid string, params DeleteDomainParams) error
+	DeleteDomain(ctx echo.Context, uuid DomainId, params DeleteDomainParams) error
 	// Read a domain.
 	// (GET /domains/{uuid})
-	ReadDomain(ctx echo.Context, uuid string, params ReadDomainParams) error
+	ReadDomain(ctx echo.Context, uuid DomainId, params ReadDomainParams) error
 	// Update a domain.
 	// (PUT /domains/{uuid}/register)
-	RegisterDomain(ctx echo.Context, uuid string, params RegisterDomainParams) error
+	RegisterDomain(ctx echo.Context, uuid DomainId, params RegisterDomainParams) error
 	// Update a previously registered domain.
 	// (PUT /domains/{uuid}/update)
-	UpdateDomain(ctx echo.Context, uuid string, params UpdateDomainParams) error
+	UpdateDomain(ctx echo.Context, uuid DomainId, params UpdateDomainParams) error
 	// Get host vm information.
 	// (POST /host-conf/{inventory_id}/{fqdn})
 	HostConf(ctx echo.Context, inventoryId HostId, fqdn Fqdn, params HostConfParams) error
@@ -156,7 +156,7 @@ func (w *ServerInterfaceWrapper) CreateDomainToken(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid string
+	var uuid DomainId
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -194,7 +194,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid string
+	var uuid DomainId
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -232,7 +232,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid string
+	var uuid DomainId
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
@@ -306,7 +306,7 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) UpdateDomain(ctx echo.Context) error {
 	var err error
 	// ------------- Path parameter "uuid" -------------
-	var uuid string
+	var uuid DomainId
 
 	err = runtime.BindStyledParameterWithLocation("simple", false, "uuid", runtime.ParamLocationPath, ctx.Param("uuid"), &uuid)
 	if err != nil {
