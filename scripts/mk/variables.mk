@@ -77,8 +77,7 @@ export APP_PAGINATION_MAX_LIMIT
 # Enable IS_FAKE_ENABLED for the ephemeral deployment
 APP_ACCEPT_X_RH_FAKE_IDENTITY ?= true
 export APP_ACCEPT_X_RH_FAKE_IDENTITY
-# FIXME Change to true when API validation get working in ephemeral
-APP_VALIDATE_API ?= false
+APP_VALIDATE_API ?= true
 export APP_VALIDATE_API
 
 # Set the default token expiration in seconds (2 hours)
