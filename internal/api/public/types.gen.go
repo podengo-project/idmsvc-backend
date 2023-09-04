@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	X_rh_identityScopes = "x_rh_identity.Scopes"
+	X_rh_identityScopes               = "x_rh_identity.Scopes"
+	X_rh_idm_registration_tokenScopes = "x_rh_idm_registration_token.Scopes"
 )
 
 // Defines values for DomainType.
@@ -32,21 +33,6 @@ type Certificate struct {
 	Subject      string    `json:"subject"`
 }
 
-// CreateDomain A domain resource
-type CreateDomain struct {
-	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
-	AutoEnrollmentEnabled bool `json:"auto_enrollment_enabled"`
-
-	// Description Human readable description for this domain.
-	Description string `json:"description"`
-
-	// DomainType Type of domain (currently only rhel-idm)
-	DomainType DomainType `json:"domain_type"`
-
-	// Title the title for the entry
-	Title string `json:"title"`
-}
-
 // Domain A domain resource
 type Domain struct {
 	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
@@ -66,9 +52,6 @@ type Domain struct {
 
 	// RhelIdm Options for ipa domains
 	RhelIdm *DomainIpa `json:"rhel-idm,omitempty"`
-
-	// SigningKeys Serialized JWKs with revocation information
-	SigningKeys *SigningKeys `json:"signing_keys,omitempty"`
 
 	// Title Title to describe the domain.
 	Title *string `json:"title,omitempty"`
@@ -136,8 +119,17 @@ type DomainRegTokenRequest struct {
 	DomainType DomainType `json:"domain_type"`
 }
 
+// DomainRegisterResponse A domain resource
+type DomainRegisterResponse = Domain
+
+// DomainResponse A domain resource
+type DomainResponse = Domain
+
 // DomainType Type of domain (currently only rhel-idm)
 type DomainType string
+
+// DomainUpdateResponse A domain resource
+type DomainUpdateResponse = Domain
 
 // ErrorInfo defines model for ErrorInfo.
 type ErrorInfo struct {
@@ -299,8 +291,11 @@ type PaginationMeta struct {
 // RealmName A Kerberos realm name (usually all upper-case domain name)
 type RealmName = string
 
-// SigningKeys Serialized JWKs with revocation information
-type SigningKeys struct {
+// RegisterDomainRequest A domain resource
+type RegisterDomainRequest = Domain
+
+// SigningKeysResponse Serialized JWKs with revocation information
+type SigningKeysResponse struct {
 	// Keys An array of serialized JSON Web Keys (JWK strings)
 	Keys []string `json:"keys"`
 
@@ -310,6 +305,30 @@ type SigningKeys struct {
 
 // SubscriptionManagerId A Red Hat Subcription Manager ID of a RHEL host.
 type SubscriptionManagerId = openapi_types.UUID
+
+// UpdateDomainAgentRequest A domain resource
+type UpdateDomainAgentRequest struct {
+	// DomainName A name of a domain (all lower-case)
+	DomainName DomainName `json:"domain_name"`
+
+	// DomainType Type of domain (currently only rhel-idm)
+	DomainType DomainType `json:"domain_type"`
+
+	// RhelIdm Options for ipa domains
+	RhelIdm DomainIpa `json:"rhel-idm"`
+}
+
+// UpdateDomainUserRequest A domain resource
+type UpdateDomainUserRequest struct {
+	// AutoEnrollmentEnabled Enable or disable host vm auto-enrollment for this domain
+	AutoEnrollmentEnabled *bool `json:"auto_enrollment_enabled,omitempty"`
+
+	// Description Human readable description abou the domain.
+	Description *string `json:"description,omitempty"`
+
+	// Title Title to describe the domain.
+	Title *string `json:"title,omitempty"`
+}
 
 // DomainIdParam A domain id
 type DomainIdParam = DomainId
@@ -322,9 +341,6 @@ type XRhIdmVersionHeader = string
 
 // XRhInsightsRequestIdHeader defines model for XRhInsightsRequestIdHeader.
 type XRhInsightsRequestIdHeader = string
-
-// CreateDomainResponse A domain resource
-type CreateDomainResponse = Domain
 
 // DomainRegTokenResponse A domain registration response
 type DomainRegTokenResponse = DomainRegToken
@@ -339,13 +355,19 @@ type HostConfResponse = HostConfResponseSchema
 type ListDomainsResponse = ListDomainsResponseSchema
 
 // ReadDomainResponse A domain resource
-type ReadDomainResponse = Domain
+type ReadDomainResponse = DomainResponse
 
-// RegisterDomainResponse A domain resource
-type RegisterDomainResponse = Domain
+// ReadKeysResponse Serialized JWKs with revocation information
+type ReadKeysResponse = SigningKeysResponse
 
-// UpdateDomainResponse A domain resource
-type UpdateDomainResponse = Domain
+// RegisterDomainResponse TODO
+type RegisterDomainResponse = DomainRegisterResponse
+
+// UpdateDomainAgentResponse TODO
+type UpdateDomainAgentResponse = DomainUpdateResponse
+
+// UpdateDomainUserResponse A domain resource
+type UpdateDomainUserResponse = DomainResponse
 
 // ListDomainsParams defines parameters for ListDomains.
 type ListDomainsParams struct {
@@ -359,10 +381,16 @@ type ListDomainsParams struct {
 	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
-// CreateDomainParams defines parameters for CreateDomain.
-type CreateDomainParams struct {
+// RegisterDomainParams defines parameters for RegisterDomain.
+type RegisterDomainParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
+
+	// XRhIdmRegistrationToken One-time password to authenticate domain registration with ipa-hcc command.
+	XRhIdmRegistrationToken XRhIdmRegistrationTokenHeader `json:"X-Rh-Idm-Registration-Token"`
+
+	// XRhIdmVersion ipa-hcc agent version
+	XRhIdmVersion XRhIdmVersionHeader `json:"X-Rh-Idm-Version"`
 }
 
 // CreateDomainTokenParams defines parameters for CreateDomainToken.
@@ -383,20 +411,14 @@ type ReadDomainParams struct {
 	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
-// RegisterDomainParams defines parameters for RegisterDomain.
-type RegisterDomainParams struct {
+// UpdateDomainUserParams defines parameters for UpdateDomainUser.
+type UpdateDomainUserParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
-
-	// XRhIdmRegistrationToken One-time password to authenticate domain registration with ipa-hcc command.
-	XRhIdmRegistrationToken XRhIdmRegistrationTokenHeader `json:"X-Rh-Idm-Registration-Token"`
-
-	// XRhIdmVersion ipa-hcc agent version
-	XRhIdmVersion XRhIdmVersionHeader `json:"X-Rh-Idm-Version"`
 }
 
-// UpdateDomainParams defines parameters for UpdateDomain.
-type UpdateDomainParams struct {
+// UpdateDomainAgentParams defines parameters for UpdateDomainAgent.
+type UpdateDomainAgentParams struct {
 	// XRhInsightsRequestId Request id for distributed tracing.
 	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 
@@ -410,17 +432,23 @@ type HostConfParams struct {
 	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
 }
 
-// CreateDomainJSONRequestBody defines body for CreateDomain for application/json ContentType.
-type CreateDomainJSONRequestBody = CreateDomain
+// GetSigningKeysParams defines parameters for GetSigningKeys.
+type GetSigningKeysParams struct {
+	// XRhInsightsRequestId Request id for distributed tracing.
+	XRhInsightsRequestId *XRhInsightsRequestIdHeader `json:"X-Rh-Insights-Request-Id,omitempty"`
+}
+
+// RegisterDomainJSONRequestBody defines body for RegisterDomain for application/json ContentType.
+type RegisterDomainJSONRequestBody = RegisterDomainRequest
 
 // CreateDomainTokenJSONRequestBody defines body for CreateDomainToken for application/json ContentType.
 type CreateDomainTokenJSONRequestBody = DomainRegTokenRequest
 
-// RegisterDomainJSONRequestBody defines body for RegisterDomain for application/json ContentType.
-type RegisterDomainJSONRequestBody = Domain
+// UpdateDomainUserJSONRequestBody defines body for UpdateDomainUser for application/json ContentType.
+type UpdateDomainUserJSONRequestBody = UpdateDomainUserRequest
 
-// UpdateDomainJSONRequestBody defines body for UpdateDomain for application/json ContentType.
-type UpdateDomainJSONRequestBody = Domain
+// UpdateDomainAgentJSONRequestBody defines body for UpdateDomainAgent for application/json ContentType.
+type UpdateDomainAgentJSONRequestBody = UpdateDomainAgentRequest
 
 // HostConfJSONRequestBody defines body for HostConf for application/json ContentType.
 type HostConfJSONRequestBody = HostConf

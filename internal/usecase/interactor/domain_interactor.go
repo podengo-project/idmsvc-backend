@@ -10,6 +10,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
@@ -137,13 +138,57 @@ func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDoma
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+	var (
+		domain_id uuid.UUID
+		domain    *model.Domain
+		err       error
+	)
+	if err = i.guardRegister(xrhid, params, body); err != nil {
+		return "", nil, nil, err
+	}
+	orgId := xrhid.Identity.OrgID
+
+	// Retrieve the ipa-hcc version information
+	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
+	if clientVersion == nil {
+		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+	}
+
+	// verify token
+	if domain_id, err = token.VerifyDomainRegistrationToken(
+		[]byte("TODO secret"),
+		string(body.DomainType),
+		orgId,
+		token.DomainRegistrationToken(params.XRhIdmRegistrationToken),
+	); err != nil {
+		return "", nil, nil, err
+	}
+
+	// Read the body payload
+	if domain, err = i.commonRegisterUpdate(orgId, domain_id, body); err != nil {
+		return "", nil, nil, err
+	}
+	return orgId, clientVersion, domain, nil
+}
+
+// Update translates the API input format into the business
+// data models for the PUT /domains/{uuid} endpoint.
+// params contains the header parameters.
+// body contains the input payload.
+// Return the orgId and the business model for Ipa information,
+// when success translation, else it returns empty string for orgId,
+// nil for the Ipa data, and an error filled.
+func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainAgentParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
 	)
-	if err = i.guardRegister(xrhid, params, body); err != nil {
+	if err = i.guardUpdate(xrhid, UUID, body); err != nil {
 		return "", nil, nil, err
+	}
+	if params == nil {
+		return "", nil, nil, fmt.Errorf("'params' is nil")
 	}
 	orgId := xrhid.Identity.Internal.OrgID
 
@@ -161,33 +206,30 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, params
 }
 
 // Update translates the API input format into the business
-// data models for the PUT /domains/{uuid}/update endpoint.
+// data models for the PATCH /domains/{uuid} endpoint.
 // params contains the header parameters.
 // body contains the input payload.
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Update(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) UpdateUser(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainUserParams, body *public.Domain) (string, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
 	)
-	if err = i.guardUpdate(xrhid, UUID, params, body); err != nil {
-		return "", nil, nil, err
+	if err = i.guardUpdate(xrhid, UUID, body); err != nil {
+		return "", nil, err
+	}
+	if params == nil {
+		return "", nil, fmt.Errorf("'params' is nil")
 	}
 	orgId := xrhid.Identity.Internal.OrgID
 
-	// Retrieve the ipa-hcc version information
-	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
-	if clientVersion == nil {
-		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
-	}
-
 	// Read the body payload
 	if domain, err = i.commonRegisterUpdate(orgId, UUID, body); err != nil {
-		return "", nil, nil, err
+		return "", nil, err
 	}
-	return orgId, clientVersion, domain, nil
+	return orgId, domain, nil
 }
 
 // Create domain registration token /domains/token
@@ -321,15 +363,12 @@ func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_publi
 	return nil
 }
 
-func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainParams, body *public.Domain) (err error) {
+func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID uuid.UUID, body *public.Domain) (err error) {
 	if xrhid == nil {
 		return fmt.Errorf("'xrhid' is nil")
 	}
 	if UUID == uuid.Nil {
 		return fmt.Errorf("'UUID' is invalid")
-	}
-	if params == nil {
-		return fmt.Errorf("'params' is nil")
 	}
 	if body == nil {
 		return fmt.Errorf("'body' is nil")

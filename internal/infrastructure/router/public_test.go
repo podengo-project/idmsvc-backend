@@ -102,7 +102,7 @@ func TestNewGroupPublic(t *testing.T) {
 
 		appPrefix + appName + versionFull + "/domains": {
 			"GET":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ListDomains-fm",
-			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).CreateDomain-fm",
+			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).RegisterDomain-fm",
 		},
 
 		appPrefix + appName + versionFull + "/domains/token": {
@@ -111,21 +111,17 @@ func TestNewGroupPublic(t *testing.T) {
 
 		appPrefix + appName + versionFull + "/domains/:uuid": {
 			"GET":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ReadDomain-fm",
-			"PUT":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
-			"PATCH":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).PartialUpdateDomain-fm",
+			"PUT":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomainAgent-fm",
+			"PATCH":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomainUser-fm",
 			"DELETE": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
-		},
-
-		appPrefix + appName + versionFull + "/domains/:uuid/register": {
-			"PUT": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).RegisterDomain-fm",
-		},
-
-		appPrefix + appName + versionFull + "/domains/:uuid/update": {
-			"PUT": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomain-fm",
 		},
 
 		appPrefix + appName + versionFull + "/host-conf/:inventory_id/:fqdn": {
 			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
+		},
+
+		appPrefix + appName + versionFull + "/signing_keys": {
+			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).GetSigningKeys-fm",
 		},
 
 		// This routes are added when the group is created

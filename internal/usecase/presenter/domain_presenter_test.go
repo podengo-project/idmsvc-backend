@@ -339,11 +339,19 @@ func TestUpdate(t *testing.T) {
 
 	p := &domainPresenter{cfg: &cfg}
 
-	domain, err := p.Update(nil)
+	domain, err := p.UpdateAgent(nil)
 	assert.EqualError(t, err, "'domain' is nil")
 	assert.Nil(t, domain)
 
-	domain, err = p.Update(&testModel)
+	domain, err = p.UpdateAgent(&testModel)
+	assert.NoError(t, err, "")
+	assert.Equal(t, testExpected, *domain)
+
+	domain, err = p.UpdateUser(nil)
+	assert.EqualError(t, err, "'domain' is nil")
+	assert.Nil(t, domain)
+
+	domain, err = p.UpdateUser(&testModel)
 	assert.NoError(t, err, "")
 	assert.Equal(t, testExpected, *domain)
 }

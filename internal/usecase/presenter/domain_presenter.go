@@ -79,7 +79,7 @@ func (p *domainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 // a success translation, else nil and an error with the details.
 func (p *domainPresenter) Register(
 	domain *model.Domain,
-) (output *public.Domain, err error) {
+) (output *public.RegisterDomainResponse, err error) {
 	return p.sharedDomain(domain)
 }
 
@@ -88,9 +88,20 @@ func (p *domainPresenter) Register(
 // domain Not nil reference to the domain model.
 // Return a reference to a pubic.Domain and nil error for
 // a success translation, else nil and an error with the details.
-func (p *domainPresenter) Update(
+func (p *domainPresenter) UpdateAgent(
 	domain *model.Domain,
-) (output *public.Domain, err error) {
+) (output *public.UpdateDomainAgentResponse, err error) {
+	return p.sharedDomain(domain)
+}
+
+// Update translate model.Domain instance to Domain output
+// representation for the API response.
+// domain Not nil reference to the domain model.
+// Return a reference to a pubic.Domain and nil error for
+// a success translation, else nil and an error with the details.
+func (p *domainPresenter) UpdateUser(
+	domain *model.Domain,
+) (output *public.UpdateDomainUserResponse, err error) {
 	return p.sharedDomain(domain)
 }
 

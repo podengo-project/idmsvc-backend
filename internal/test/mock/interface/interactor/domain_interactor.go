@@ -134,19 +134,58 @@ func (_m *DomainInteractor) List(xrhid *identity.XRHID, params *public.ListDomai
 	return r0, r1, r2, r3
 }
 
-// Register provides a mock function with given fields: xrhid, UUID, params, body
-func (_m *DomainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, params *public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+// Register provides a mock function with given fields: xrhid, params, body
+func (_m *DomainInteractor) Register(xrhid *identity.XRHID, params *public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+	ret := _m.Called(xrhid, params, body)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) string); ok {
+		r0 = rf(xrhid, params, body)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *header.XRHIDMVersion
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) *header.XRHIDMVersion); ok {
+		r1 = rf(xrhid, params, body)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*header.XRHIDMVersion)
+		}
+	}
+
+	var r2 *model.Domain
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) *model.Domain); ok {
+		r2 = rf(xrhid, params, body)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.Domain)
+		}
+	}
+
+	var r3 error
+	if rf, ok := ret.Get(3).(func(*identity.XRHID, *public.RegisterDomainParams, *public.Domain) error); ok {
+		r3 = rf(xrhid, params, body)
+	} else {
+		r3 = ret.Error(3)
+	}
+
+	return r0, r1, r2, r3
+}
+
+// UpdateAgent provides a mock function with given fields: xrhid, UUID, params, body
+func (_m *DomainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, params *public.UpdateDomainAgentParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	ret := _m.Called(xrhid, UUID, params, body)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*identity.XRHID, uuid.UUID, *public.RegisterDomainParams, *public.Domain) string); ok {
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainAgentParams, *public.Domain) string); ok {
 		r0 = rf(xrhid, UUID, params, body)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	var r1 *header.XRHIDMVersion
-	if rf, ok := ret.Get(1).(func(*identity.XRHID, uuid.UUID, *public.RegisterDomainParams, *public.Domain) *header.XRHIDMVersion); ok {
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainAgentParams, *public.Domain) *header.XRHIDMVersion); ok {
 		r1 = rf(xrhid, UUID, params, body)
 	} else {
 		if ret.Get(1) != nil {
@@ -155,7 +194,7 @@ func (_m *DomainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, para
 	}
 
 	var r2 *model.Domain
-	if rf, ok := ret.Get(2).(func(*identity.XRHID, uuid.UUID, *public.RegisterDomainParams, *public.Domain) *model.Domain); ok {
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainAgentParams, *public.Domain) *model.Domain); ok {
 		r2 = rf(xrhid, UUID, params, body)
 	} else {
 		if ret.Get(2) != nil {
@@ -164,7 +203,7 @@ func (_m *DomainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, para
 	}
 
 	var r3 error
-	if rf, ok := ret.Get(3).(func(*identity.XRHID, uuid.UUID, *public.RegisterDomainParams, *public.Domain) error); ok {
+	if rf, ok := ret.Get(3).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainAgentParams, *public.Domain) error); ok {
 		r3 = rf(xrhid, UUID, params, body)
 	} else {
 		r3 = ret.Error(3)
@@ -173,43 +212,34 @@ func (_m *DomainInteractor) Register(xrhid *identity.XRHID, UUID uuid.UUID, para
 	return r0, r1, r2, r3
 }
 
-// Update provides a mock function with given fields: xrhid, UUID, params, body
-func (_m *DomainInteractor) Update(xrhid *identity.XRHID, UUID uuid.UUID, params *public.UpdateDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+// UpdateUser provides a mock function with given fields: xrhid, UUID, params, body
+func (_m *DomainInteractor) UpdateUser(xrhid *identity.XRHID, UUID uuid.UUID, params *public.UpdateDomainUserParams, body *public.Domain) (string, *model.Domain, error) {
 	ret := _m.Called(xrhid, UUID, params, body)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainParams, *public.Domain) string); ok {
+	if rf, ok := ret.Get(0).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainUserParams, *public.Domain) string); ok {
 		r0 = rf(xrhid, UUID, params, body)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	var r1 *header.XRHIDMVersion
-	if rf, ok := ret.Get(1).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainParams, *public.Domain) *header.XRHIDMVersion); ok {
+	var r1 *model.Domain
+	if rf, ok := ret.Get(1).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainUserParams, *public.Domain) *model.Domain); ok {
 		r1 = rf(xrhid, UUID, params, body)
 	} else {
 		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*header.XRHIDMVersion)
+			r1 = ret.Get(1).(*model.Domain)
 		}
 	}
 
-	var r2 *model.Domain
-	if rf, ok := ret.Get(2).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainParams, *public.Domain) *model.Domain); ok {
+	var r2 error
+	if rf, ok := ret.Get(2).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainUserParams, *public.Domain) error); ok {
 		r2 = rf(xrhid, UUID, params, body)
 	} else {
-		if ret.Get(2) != nil {
-			r2 = ret.Get(2).(*model.Domain)
-		}
+		r2 = ret.Error(2)
 	}
 
-	var r3 error
-	if rf, ok := ret.Get(3).(func(*identity.XRHID, uuid.UUID, *public.UpdateDomainParams, *public.Domain) error); ok {
-		r3 = rf(xrhid, UUID, params, body)
-	} else {
-		r3 = ret.Error(3)
-	}
-
-	return r0, r1, r2, r3
+	return r0, r1, r2
 }
 
 type mockConstructorTestingTNewDomainInteractor interface {

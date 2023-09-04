@@ -10,10 +10,7 @@ import requests
 import requests.auth
 
 
-CREATE_JSON = {
-    "title": "Human readable title",
-    "description": "My human friendly description",
-    "auto_enrollment_enabled": True,
+REGISTER_JSON = {
     "domain_type": "rhel-idm",
 }
 
@@ -82,7 +79,7 @@ def main() -> None:
         username = "compose"
         password = "compose"
         idmsvc_backend = args.backend
-        url = f"http://{idmsvc_backend}/api/idmsvc/v1/domains"
+        token_url = f"http://{idmsvc_backend}/api/idmsvc/v1/domains/token"
         auth = None
         headers["X-Rh-Identity"] = base64.urlsafe_b64encode(
             json.dumps(XRHID).encode("utf-8")
@@ -101,7 +98,7 @@ def main() -> None:
             "-o",
             "jsonpath={.items[0].spec.host}",
         )
-        url = f"https://{idmsvc_backend}/api/idmsvc/v1/domains"
+        token_url = f"https://{idmsvc_backend}/api/idmsvc/v1/domains/token"
         auth = requests.auth.HTTPBasicAuth(username, password)
 
     if args.secrets_file:
@@ -109,15 +106,15 @@ def main() -> None:
         with open(args.secrets_file, "w") as f:
             f.write(IDM_CI_SECRETS.format(**locals()))
 
-    resp = requests.post(url, auth=auth, headers=headers, json=CREATE_JSON, timeout=10)
+    resp = requests.post(
+        token_url, auth=auth, headers=headers, json=REGISTER_JSON, timeout=10
+    )
 
     resp.raise_for_status()
-    domain_id = resp.json()["domain_id"]
-    hdr = resp.headers["x-rh-idm-rhelidm-register-token"]
-    token = json.loads(base64.b64decode(hdr))
-    domain_secret = token["secret"]
+    j = resp.json()
+    token = j["domain_token"]
 
-    print(f"ipa-hcc register --unattended {domain_id} {domain_secret}")
+    print(f"ipa-hcc register --unattended {token}")
 
 
 if __name__ == "__main__":

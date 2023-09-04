@@ -11,7 +11,8 @@ type DomainPresenter interface {
 	Get(domain *model.Domain) (*public.Domain, error)
 	// PartialUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
 	// FullUpdate(domain *model.Todo) (*public.UpdateDomainResponse, error)
-	Register(domain *model.Domain) (*public.Domain, error)
-	Update(domain *model.Domain) (*public.Domain, error)
+	Register(domain *model.Domain) (*public.RegisterDomainResponse, error)
+	UpdateAgent(domain *model.Domain) (*public.UpdateDomainAgentResponse, error)
+	UpdateUser(domain *model.Domain) (*public.UpdateDomainUserResponse, error)
 	CreateDomainToken(token *repository.DomainRegToken) (*public.DomainRegToken, error)
 }

@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -128,76 +127,6 @@ func (a *application) ReadDomain(
 	return ctx.JSON(http.StatusOK, *output)
 }
 
-// // Modify an existing Domain
-// // (PATCH /domains/{id})
-// func (a *application) PartialUpdateTodo(ctx echo.Context, id public.Id, params public.PartialUpdateTodoParams) error {
-// 	var (
-// 		err    error
-// 		data   *model.Domain
-// 		output public.Todo
-// 		input  public.Todo
-// 		tx     *gorm.DB
-// 	)
-
-// 	if err = ctx.Bind(&input); err != nil {
-// 		return err
-// 	}
-// 	data = &model.Todo{}
-// 	if err = a.todo.interactor.PartialUpdate(id, &params, &input, data); err != nil {
-// 		tx.Rollback()
-// 		return err
-// 	}
-// 	tx = a.db.Begin()
-// 	if *data, err = a.todo.repository.PartialUpdate(tx, data); err != nil {
-// 		tx.Rollback()
-// 		return err
-// 	}
-// 	tx.Commit()
-// 	if err = a.todo.presenter.PartialUpdate(data, &output); err != nil {
-// 		return err
-// 	}
-// 	return ctx.JSON(http.StatusOK, output)
-// }
-
-// // Replace an existing Todo
-// // (PUT /todo/{id})
-// func (a *application) UpdateTodo(ctx echo.Context, id public.Id, params public.UpdateTodoParams) error {
-// 	var (
-// 		err    error
-// 		data   *model.Todo
-// 		output public.Todo
-// 		input  public.Todo
-// 		tx     *gorm.DB
-// 	)
-
-// 	if err = ctx.Bind(&input); err != nil {
-// 		return err
-// 	}
-// 	data = &model.Todo{}
-// 	if err = a.todo.interactor.FullUpdate(id, &params, &input, data); err != nil {
-// 		return err
-// 	}
-// 	tx = a.db.Begin()
-// 	if *data, err = a.todo.repository.Update(tx, data); err != nil {
-// 		tx.Rollback()
-// 		return err
-// 	}
-// 	tx.Commit()
-// 	if err = a.todo.presenter.FullUpdate(data, &output); err != nil {
-// 		return err
-// 	}
-// 	return ctx.JSON(http.StatusOK, output)
-// }
-
-// Create a Todo resource
-// (POST /todo)
-func (a *application) CreateDomain(
-	ctx echo.Context,
-	params public.CreateDomainParams,
-) error {
-	return fmt.Errorf("To be removed")
-}
-
 // Delete a Domain resource
 // (DELETE /domains/{uuid})
 func (a *application) DeleteDomain(
@@ -240,7 +169,7 @@ func (a *application) DeleteDomain(
 	return ctx.NoContent(http.StatusNoContent)
 }
 
-// RegisterIpaDomain (PUT /domains/{uuid}/register) initialize the
+// RegisterIpa (PUT /domains) initialize the
 // IPA domain information into the database. This requires
 // a valid X-Rh-IDM-Token. The token is removed when the
 // operation is success. Only update information that
@@ -252,18 +181,15 @@ func (a *application) DeleteDomain(
 // and x-rh-idm-token header contents.
 func (a *application) RegisterDomain(
 	ctx echo.Context,
-	UUID uuid.UUID,
 	params public.RegisterDomainParams,
 ) error {
 	var (
-		err     error
-		input   public.Domain
-		data    *model.Domain
-		oldData *model.Domain
-		// host          client.InventoryHost
+		err           error
+		input         public.Domain
+		data          *model.Domain
 		orgId         string
 		tx            *gorm.DB
-		output        *public.Domain
+		output        *public.RegisterDomainResponse
 		clientVersion *header.XRHIDMVersion
 		xrhid         *identity.XRHID
 	)
@@ -274,9 +200,9 @@ func (a *application) RegisterDomain(
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
+
 	if orgId, clientVersion, data, err = a.domain.interactor.Register(
 		xrhid,
-		UUID,
 		&params,
 		&input,
 	); err != nil {
@@ -297,15 +223,6 @@ func (a *application) RegisterDomain(
 	}
 	defer tx.Rollback()
 
-	// Load Domain data
-	if oldData, err = a.findIpaById(tx, orgId, UUID); err != nil {
-		// FIXME It is not found it should return a 404 Status
-		return err
-	}
-
-	data.DomainUuid = UUID
-	data.ID = oldData.ID
-
 	if err = a.domain.repository.Update(tx, orgId, data); err != nil {
 		return err
 	}
@@ -321,7 +238,7 @@ func (a *application) RegisterDomain(
 	return ctx.JSON(http.StatusOK, *output)
 }
 
-// UpdateDomain (PUT /domains/{uuid}/update) update the
+// UpdateDomain (PUT /domains/{uuid}) update the
 // IPA domain information into the database. Only update
 // information that belong to the current organization stored
 // into the X-Rh-Identity header, and the host associated to the
@@ -330,8 +247,8 @@ func (a *application) RegisterDomain(
 // ctx the echo context for the request.
 // UUID the domain uuid that identify
 // params contains the x-rh-identity, x-rh-insights-request-id
-// and x-rh-idm-token header contents.
-func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params public.UpdateDomainParams) error {
+// and x-rh-idm-version header contents.
+func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, params public.UpdateDomainAgentParams) error {
 	var (
 		err         error
 		input       public.Domain
@@ -340,7 +257,7 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params publ
 		// host          client.InventoryHost
 		orgID         string
 		tx            *gorm.DB
-		output        *public.Domain
+		output        *public.UpdateDomainAgentResponse
 		clientVersion *header.XRHIDMVersion
 		xrhid         *identity.XRHID
 	)
@@ -351,9 +268,9 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params publ
 	if err = ctx.Bind(&input); err != nil {
 		return err
 	}
-	if orgID, clientVersion, data, err = a.domain.interactor.Update(
+	if orgID, clientVersion, data, err = a.domain.interactor.UpdateAgent(
 		xrhid,
-		UUID,
+		domain_id,
 		&params,
 		&input,
 	); err != nil {
@@ -373,7 +290,7 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params publ
 	defer tx.Rollback()
 
 	// Load Domain data
-	if currentData, err = a.findIpaById(tx, orgID, UUID); err != nil {
+	if currentData, err = a.findIpaById(tx, orgID, domain_id); err != nil {
 		// FIXME It is not found it should return a 404 Status
 		return err
 	}
@@ -397,7 +314,72 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params publ
 		return tx.Error
 	}
 
-	if output, err = a.domain.presenter.Update(currentData); err != nil {
+	if output, err = a.domain.presenter.UpdateAgent(currentData); err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, *output)
+}
+
+// UpdateDomain (PATCH /domains/{uuid}) update the
+// IPA domain information into the database. Only update
+// information that belong to the current organization stored
+// into the X-Rh-Identity header, and the host associated to the
+// CN is checked against the host inventory, and the list
+// of servers into the IPA domain.
+// ctx the echo context for the request.
+// UUID the domain uuid that identify
+// params contains the x-rh-identity and x-rh-insights-request-id
+// header contents.
+func (a *application) UpdateDomainUser(ctx echo.Context, domain_id uuid.UUID, params public.UpdateDomainUserParams) error {
+	var (
+		err         error
+		input       public.Domain
+		data        *model.Domain
+		currentData *model.Domain
+		orgID       string
+		tx          *gorm.DB
+		output      *public.UpdateDomainUserResponse
+		xrhid       *identity.XRHID
+	)
+	if xrhid, err = getXRHID(ctx); err != nil {
+		return err
+	}
+
+	if err = ctx.Bind(&input); err != nil {
+		return err
+	}
+	if orgID, data, err = a.domain.interactor.UpdateUser(
+		xrhid,
+		domain_id,
+		&params,
+		&input,
+	); err != nil {
+		return err
+	}
+	if tx = a.db.Begin(); tx.Error != nil {
+		return tx.Error
+	}
+	defer tx.Rollback()
+
+	// Load Domain data
+	if currentData, err = a.findIpaById(tx, orgID, domain_id); err != nil {
+		// FIXME It is not found it should return a 404 Status
+		return err
+	}
+
+	if err = a.fillDomain(currentData, data); err != nil {
+		return err
+	}
+
+	if err = a.domain.repository.Update(tx, orgID, currentData); err != nil {
+		return err
+	}
+	if err = tx.Commit().Error; err != nil {
+		return tx.Error
+	}
+
+	if output, err = a.domain.presenter.UpdateUser(currentData); err != nil {
 		return err
 	}
 
