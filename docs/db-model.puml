@@ -56,8 +56,6 @@ entity "**ipas**" {
   ""deleted_at"": //timestamp without time zone //
   *""realm_name"": //character varying(253) //
   *""realm_domains"": //text //
-  ""token"": //character varying(256) //
-  ""token_expiration"": //timestamp without time zone //
 }
 
 entity "**schema_migrations**" {

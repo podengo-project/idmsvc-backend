@@ -303,24 +303,10 @@ func (a *application) RegisterDomain(
 		return err
 	}
 
-	// Check token
-	if err = a.checkToken(
-		params.XRhIdmRegistrationToken,
-		oldData.IpaDomain,
-	); err != nil {
-		return err
-	}
-
-	data.IpaDomain.Token = nil
-	data.IpaDomain.TokenExpiration = nil
 	data.DomainUuid = UUID
 	data.ID = oldData.ID
 
 	if err = a.domain.repository.Update(tx, orgId, data); err != nil {
-		return err
-	}
-
-	if err = a.domain.repository.RhelIdmClearToken(tx, orgId, UUID); err != nil {
 		return err
 	}
 
@@ -392,10 +378,6 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params publ
 		return err
 	}
 
-	if currentData.IpaDomain.Token != nil || currentData.IpaDomain.TokenExpiration != nil {
-		return fmt.Errorf("Bad Request")
-	}
-
 	subscriptionManagerID := xrhid.Identity.System.CommonName
 	if err = a.isSubscriptionManagerIDAuthorizedToUpdate(
 		subscriptionManagerID,
@@ -411,11 +393,6 @@ func (a *application) UpdateDomain(ctx echo.Context, UUID uuid.UUID, params publ
 	if err = a.domain.repository.Update(tx, orgID, currentData); err != nil {
 		return err
 	}
-
-	if err = a.domain.repository.RhelIdmClearToken(tx, orgID, currentData.DomainUuid); err != nil {
-		return err
-	}
-
 	if err = tx.Commit().Error; err != nil {
 		return tx.Error
 	}

@@ -38,12 +38,7 @@ logical inherited entity `domains`. It represents the each ipa domain.
 - **realm_name**: The kerberos realm name that is managed by this
   IPA domain.
 - **realm_domains**: TODO.
-- **token**: One time token that will enable to register the
-  IPA domain information by the `ipa-hcc` agent. TODO Review
-  details.
-- **token_expiration**: After this timstamps, the token will be
-  outdated and it won't be possible to register the IPA domain
-  with the system.
+
 
 TODO Do we need a flag to indicate that the domain has been
 registered to update the data after the first update?

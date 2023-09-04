@@ -1,7 +1,6 @@
 package model
 
 import (
-	b64 "encoding/base64"
 	"testing"
 	"time"
 
@@ -19,24 +18,6 @@ func TestDefaultTokenExpiration(t *testing.T) {
 	assert.Equal(t, valueNew, DefaultTokenExpiration())
 	SetDefaultTokenExpiration(valueOld)
 	assert.Equal(t, valueOld, DefaultTokenExpiration())
-}
-
-func TestBeforeCreate(t *testing.T) {
-	var (
-		entity *Ipa
-		err    error
-	)
-	entity = nil
-	err = entity.BeforeCreate(nil)
-	assert.EqualError(t, err, "'BeforeCreate' cannot be invoked on nil")
-
-	entity = &Ipa{}
-	err = entity.BeforeCreate(nil)
-	require.NoError(t, err)
-	assert.NotNil(t, entity.Token)
-	assert.NotEqual(t, "", *entity.Token)
-	assert.NotNil(t, entity.TokenExpiration)
-	assert.NotEqual(t, time.Time{}, entity.TokenExpiration)
 }
 
 func TestAfterCreate(t *testing.T) {
@@ -85,12 +66,4 @@ func TestAfterCreate(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, uint(1), entity.CaCerts[0].IpaID)
 	assert.Equal(t, uint(1), entity.Servers[0].IpaID)
-}
-
-func TestGenerateToken(t *testing.T) {
-	assert.Equal(t, "", GenerateToken(-1))
-	assert.Equal(t, "", GenerateToken(0))
-	token := GenerateToken(12)
-	bytes, _ := b64.StdEncoding.DecodeString(token)
-	assert.Equal(t, 12, len(bytes))
 }

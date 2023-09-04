@@ -1,15 +1,10 @@
 package model
 
 import (
-	"crypto/rand"
 	"fmt"
 	"time"
 
-	b64 "encoding/base64"
-
-	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
 	"gorm.io/gorm"
 )
 
@@ -19,13 +14,11 @@ import (
 // Ipa represent the specific rhel-idm domain information
 type Ipa struct {
 	gorm.Model
-	CaCerts         []IpaCert
-	Servers         []IpaServer
-	Locations       []IpaLocation
-	RealmName       *string
-	RealmDomains    pq.StringArray `gorm:"type:text[]"`
-	Token           *string
-	TokenExpiration *time.Time `gorm:"column:token_expiration_ts"`
+	CaCerts      []IpaCert
+	Servers      []IpaServer
+	Locations    []IpaLocation
+	RealmName    *string
+	RealmDomains pq.StringArray `gorm:"type:text[]"`
 
 	Domain Domain `gorm:"foreignKey:ID;references:ID"`
 }
@@ -48,31 +41,6 @@ func SetDefaultTokenExpiration(d time.Duration) {
 // into the database.
 func DefaultTokenExpiration() time.Duration {
 	return tokenExpirationDuration
-}
-
-func GenerateToken(length int) string {
-	if length <= 0 {
-		return ""
-	}
-	b := make([]byte, length)
-	if _, err := rand.Read(b); err != nil {
-		return ""
-	}
-	sEnc := b64.StdEncoding.EncodeToString([]byte(b))
-	return sEnc
-}
-
-func (i *Ipa) BeforeCreate(tx *gorm.DB) (err error) {
-	if i == nil {
-		return fmt.Errorf("'BeforeCreate' cannot be invoked on nil")
-	}
-	tokenExpiration := &time.Time{}
-	*tokenExpiration = time.Now().
-		Add(DefaultTokenExpiration())
-	i.Token = pointy.String(uuid.NewString())
-	i.TokenExpiration = tokenExpiration
-
-	return nil
 }
 
 func (i *Ipa) AfterCreate(tx *gorm.DB) (err error) {

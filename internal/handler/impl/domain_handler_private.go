@@ -3,7 +3,6 @@ package impl
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -23,35 +22,6 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (da
 		return nil, echo.NewHTTPError(http.StatusNotFound, "No IPA data found for the domain")
 	}
 	return data, nil
-}
-
-// checkToken verifies that the provided token is valid based on the token
-// stored into the database Ipa record.
-// token is the token we received into the http request for PUT
-// /domains/{uuid}/ipa/register
-// ipa is the database ipa entity that contains the token information.
-// Return nil if the check is successful, else an error with the detailed
-// causes.
-func (a *application) checkToken(token string, ipa *model.Ipa) error {
-	if token == "" {
-		return fmt.Errorf("'token' cannot be empty")
-	}
-	if ipa == nil {
-		return fmt.Errorf("'ipa' cannot be nil")
-	}
-	if ipa.Token == nil || *ipa.Token == "" {
-		return echo.NewHTTPError(http.StatusBadRequest, "OTP token is required")
-	}
-	if ipa.TokenExpiration == nil || (*ipa.TokenExpiration == time.Time{}) {
-		return echo.NewHTTPError(http.StatusBadRequest, "OTP token expiration not found")
-	}
-	if *ipa.Token != token {
-		return echo.NewHTTPError(http.StatusBadRequest, "OTP token does not match")
-	}
-	if ipa.TokenExpiration.Before(time.Now()) {
-		return echo.NewHTTPError(http.StatusBadRequest, "OTP token expired")
-	}
-	return nil
 }
 
 // existsHostInServers verify that the given fqdn exists into the list of

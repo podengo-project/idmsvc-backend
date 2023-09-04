@@ -199,40 +199,6 @@ func (r *domainRepository) DeleteById(
 	return nil
 }
 
-func (r *domainRepository) RhelIdmClearToken(
-	db *gorm.DB,
-	orgID string,
-	UUID uuid.UUID,
-) (err error) {
-	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
-		return err
-	}
-	var dataDomain *model.Domain
-	if dataDomain, err = r.FindByID(db, orgID, UUID); err != nil {
-		return err
-	}
-	if dataDomain.OrgId != orgID {
-		return fmt.Errorf("'OrgId' mistmatch")
-	}
-	switch *dataDomain.Type {
-	case model.DomainTypeIpa:
-		if err = db.Table("ipas").
-			Where("id = ?", dataDomain.IpaDomain.Model.ID).
-			Update("token", nil).
-			Error; err != nil {
-			return err
-		}
-		if err = db.Table("ipas").
-			Where("id = ?", dataDomain.IpaDomain.Model.ID).
-			Update("token_expiration_ts", nil).
-			Error; err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (r *domainRepository) CreateDomainToken(
 	key []byte,
 	validity time.Duration,
@@ -319,9 +285,6 @@ func (r *domainRepository) createIpaDomain(
 		return fmt.Errorf("'data' of type '*model.Ipa' is nil")
 	}
 	data.Model.ID = domainID
-	tokenExpiration := &time.Time{}
-	*tokenExpiration = time.Now().Add(model.DefaultTokenExpiration()).UTC()
-	data.TokenExpiration = tokenExpiration
 	if err = db.Omit(clause.Associations).Create(data).Error; err != nil {
 		return err
 	}
@@ -361,8 +324,6 @@ func (r *domainRepository) updateIpaDomain(
 		return err
 	}
 
-	data.Token = nil
-	data.TokenExpiration = nil
 	if err = db.Omit(clause.Associations).
 		Create(data).
 		Error; err != nil {

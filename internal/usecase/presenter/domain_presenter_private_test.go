@@ -54,8 +54,6 @@ func TestGuardsRegisterIpa(t *testing.T) {
 }
 
 func TestRegisterRhelIdm(t *testing.T) {
-	tokenExpiration := &time.Time{}
-	*tokenExpiration = time.Now()
 	testSubscriptionManagerId := &uuid.UUID{}
 	*testSubscriptionManagerId = uuid.MustParse("71ad4978-c768-11ed-ad69-482ae3863d30")
 	type TestCaseExpected struct {
@@ -73,12 +71,10 @@ func TestRegisterRhelIdm(t *testing.T) {
 			Given: &model.Domain{
 				Type: pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
-					RealmName:       pointy.String(""),
-					CaCerts:         []model.IpaCert{},
-					Servers:         []model.IpaServer{},
-					RealmDomains:    pq.StringArray{},
-					Token:           pointy.String("71ad4978-c768-11ed-ad69-482ae3863d30"),
-					TokenExpiration: tokenExpiration,
+					RealmName:    pointy.String(""),
+					CaCerts:      []model.IpaCert{},
+					Servers:      []model.IpaServer{},
+					RealmDomains: pq.StringArray{},
 				},
 			},
 			Expected: TestCaseExpected{
@@ -99,10 +95,8 @@ func TestRegisterRhelIdm(t *testing.T) {
 			Given: &model.Domain{
 				Type: pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
-					RealmName:       pointy.String("MYDOMAIN.EXAMPLE"),
-					Token:           pointy.String("71ad4978-c768-11ed-ad69-482ae3863d30"),
-					TokenExpiration: tokenExpiration,
-					RealmDomains:    pq.StringArray{"mydomain.example"},
+					RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
+					RealmDomains: pq.StringArray{"mydomain.example"},
 					CaCerts: []model.IpaCert{
 						{
 							Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
@@ -321,10 +315,6 @@ func TestSharedDomain(t *testing.T) {
 	testNotAfter := testNotBefore.Add(24 * time.Hour)
 	domain.IpaDomain.RealmDomains = pq.StringArray{"mydomain.example"}
 	domain.IpaDomain.RealmName = pointy.String("MYDOMAIN.EXAMPLE")
-	testToken := uuid.New()
-	domain.IpaDomain.Token = pointy.String(testToken.String())
-	testTokenExpiration := time.Now().Add(15 * time.Minute)
-	domain.IpaDomain.TokenExpiration = &testTokenExpiration
 	domain.IpaDomain.CaCerts = []model.IpaCert{
 		{
 			Issuer:       "Ca Cert Issuer test",

@@ -24,6 +24,5 @@ type DomainRepository interface {
 	FindByID(db *gorm.DB, orgID string, UUID uuid.UUID) (output *model.Domain, err error)
 	DeleteById(db *gorm.DB, orgID string, UUID uuid.UUID) (err error)
 	Update(db *gorm.DB, orgID string, data *model.Domain) (err error)
-	RhelIdmClearToken(db *gorm.DB, orgID string, UUID uuid.UUID) (err error)
 	CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (token *DomainRegToken, err error)
 }
