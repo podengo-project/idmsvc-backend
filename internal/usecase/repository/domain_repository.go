@@ -65,47 +65,6 @@ func (r *domainRepository) List(
 	return output, count, nil
 }
 
-// Create add a new record to the domains entity.
-// db is the gorm database connector.
-// orgID is the organization to segment the data.
-// data is the business model to be created into the database.
-// Return nil for a successful operation, or an error interface
-// with details about the situation.
-func (r *domainRepository) Create(
-	db *gorm.DB,
-	orgID string,
-	data *model.Domain,
-) (err error) {
-	if err = r.checkCommonAndDataAndType(
-		db,
-		orgID,
-		data,
-	); err != nil {
-		return err
-	}
-	data.OrgId = orgID
-	if err = db.Omit(clause.Associations).
-		Create(data).Error; err != nil {
-		return err
-	}
-	switch *data.Type {
-	case model.DomainTypeIpa:
-		if data.IpaDomain == nil {
-			return nil
-		}
-		if err = r.createIpaDomain(
-			db,
-			data.ID,
-			data.IpaDomain,
-		); err != nil {
-			return err
-		}
-		return nil
-	default:
-		return fmt.Errorf("'Type' is invalid")
-	}
-}
-
 // func (r *domainRepository) PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
 // 	if db == nil {
 // 		return model.Domain{}, fmt.Errorf("db is nil")

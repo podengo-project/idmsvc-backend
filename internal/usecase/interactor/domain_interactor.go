@@ -34,43 +34,6 @@ func helperDomainTypeToUint(domainType public.DomainType) uint {
 	}
 }
 
-// Create translate api request to model.Domain internal representation.
-// params is the x-rh-identity as base64 and the x-rh-insights-request-id value for this request.
-// body is the CreateDomain schema received for the POST request.
-// Return a reference to a new model.Domain instance and nil error for
-// a success transformation, else nil and an error instance.
-func (i domainInteractor) Create(xrhid *identity.XRHID, params *api_public.CreateDomainParams, body *api_public.CreateDomain) (string, *model.Domain, error) {
-	if xrhid == nil {
-		return "", nil, fmt.Errorf("'xrhid' is nil")
-	}
-	if params == nil {
-		return "", nil, fmt.Errorf("'params' is nil")
-	}
-	if body == nil {
-		return "", nil, fmt.Errorf("'body' is nil")
-	}
-
-	domain := &model.Domain{}
-	domain.OrgId = xrhid.Identity.OrgID
-	domain.AutoEnrollmentEnabled = pointy.Bool(body.AutoEnrollmentEnabled)
-	domain.DomainName = nil
-	domain.Title = pointy.String(body.Title)
-	domain.Description = pointy.String(body.Description)
-	domain.Type = pointy.Uint(helperDomainTypeToUint(api_public.DomainType(body.DomainType)))
-	switch *domain.Type {
-	case model.DomainTypeIpa:
-		domain.IpaDomain = &model.Ipa{
-			RealmName:    pointy.String(""),
-			RealmDomains: pq.StringArray{},
-			CaCerts:      []model.IpaCert{},
-			Servers:      []model.IpaServer{},
-		}
-	default:
-		return "", nil, fmt.Errorf("'Type' is invalid")
-	}
-	return xrhid.Identity.OrgID, domain, nil
-}
-
 // func (i domainInteractor) PartialUpdate(id public.Id, params *api_public.PartialUpdateTodoParams, in *api_public.Todo, out *model.Todo) error {
 // 	if id <= 0 {
 // 		return fmt.Errorf("'id' should be a positive int64")

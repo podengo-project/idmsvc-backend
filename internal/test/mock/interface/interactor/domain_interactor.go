@@ -20,36 +20,6 @@ type DomainInteractor struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: xrhid, params, body
-func (_m *DomainInteractor) Create(xrhid *identity.XRHID, params *public.CreateDomainParams, body *public.CreateDomain) (string, *model.Domain, error) {
-	ret := _m.Called(xrhid, params, body)
-
-	var r0 string
-	if rf, ok := ret.Get(0).(func(*identity.XRHID, *public.CreateDomainParams, *public.CreateDomain) string); ok {
-		r0 = rf(xrhid, params, body)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 *model.Domain
-	if rf, ok := ret.Get(1).(func(*identity.XRHID, *public.CreateDomainParams, *public.CreateDomain) *model.Domain); ok {
-		r1 = rf(xrhid, params, body)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.Domain)
-		}
-	}
-
-	var r2 error
-	if rf, ok := ret.Get(2).(func(*identity.XRHID, *public.CreateDomainParams, *public.CreateDomain) error); ok {
-		r2 = rf(xrhid, params, body)
-	} else {
-		r2 = ret.Error(2)
-	}
-
-	return r0, r1, r2
-}
-
 // CreateDomainToken provides a mock function with given fields: xrhid, params, body
 func (_m *DomainInteractor) CreateDomainToken(xrhid *identity.XRHID, params *public.CreateDomainTokenParams, body *public.DomainRegTokenRequest) (string, public.DomainType, error) {
 	ret := _m.Called(xrhid, params, body)

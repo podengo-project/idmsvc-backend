@@ -10,7 +10,6 @@ import (
 )
 
 type DomainInteractor interface {
-	Create(xrhid *identity.XRHID, params *api_public.CreateDomainParams, body *api_public.CreateDomain) (string, *model.Domain, error)
 	Delete(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.DeleteDomainParams) (string, uuid.UUID, error)
 	List(xrhid *identity.XRHID, params *api_public.ListDomainsParams) (orgID string, offset int, limit int, err error)
 	GetByID(xrhid *identity.XRHID, params *public.ReadDomainParams) (orgID string, err error)

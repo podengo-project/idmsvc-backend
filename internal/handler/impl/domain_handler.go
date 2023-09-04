@@ -195,60 +195,7 @@ func (a *application) CreateDomain(
 	ctx echo.Context,
 	params public.CreateDomainParams,
 ) error {
-	var (
-		err      error
-		input    public.CreateDomain
-		orgId    string
-		data     *model.Domain
-		output   *public.CreateDomainResponse
-		tx       *gorm.DB
-		tokenStr string
-		xrhid    *identity.XRHID
-	)
-	if xrhid, err = getXRHID(ctx); err != nil {
-		return err
-	}
-
-	if err = ctx.Bind(&input); err != nil {
-		return err
-	}
-	if orgId, data, err = a.domain.interactor.Create(
-		xrhid,
-		&params,
-		&input,
-	); err != nil {
-		return err
-	}
-
-	if tx = a.db.Begin(); tx.Error != nil {
-		return tx.Error
-	}
-	// https://stackoverflow.com/a/46421989
-	if err = a.domain.repository.Create(tx, orgId, data); err != nil {
-		return err
-	}
-	if tx.Commit(); tx.Error != nil {
-		return tx.Error
-	}
-	if output, err = a.domain.presenter.Create(data); err != nil {
-		return err
-	}
-
-	// Add X-Rh-Idm-RhelIdm-Register-Token
-	if tokenStr, err = header.EncodeRhelIdmToken(
-		&header.RhelIdmToken{
-			Secret:     data.IpaDomain.Token,
-			Expiration: data.IpaDomain.TokenExpiration,
-		},
-	); err != nil {
-		return err
-	}
-	ctx.Response().Header().Add(
-		header.XRHIDMRHELIDMRegisterToken,
-		tokenStr,
-	)
-
-	return ctx.JSON(http.StatusCreated, *output)
+	return fmt.Errorf("To be removed")
 }
 
 // Delete a Domain resource

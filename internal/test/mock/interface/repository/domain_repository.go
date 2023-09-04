@@ -21,20 +21,6 @@ type DomainRepository struct {
 	mock.Mock
 }
 
-// Create provides a mock function with given fields: db, orgID, data
-func (_m *DomainRepository) Create(db *gorm.DB, orgID string, data *model.Domain) error {
-	ret := _m.Called(db, orgID, data)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain) error); ok {
-		r0 = rf(db, orgID, data)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // CreateDomainToken provides a mock function with given fields: key, validity, orgID, domainType
 func (_m *DomainRepository) CreateDomainToken(key []byte, validity time.Duration, orgID string, domainType public.DomainType) (*repository.DomainRegToken, error) {
 	ret := _m.Called(key, validity, orgID, domainType)
@@ -123,20 +109,6 @@ func (_m *DomainRepository) List(db *gorm.DB, orgID string, offset int, limit in
 	}
 
 	return r0, r1, r2
-}
-
-// RhelIdmClearToken provides a mock function with given fields: db, orgID, UUID
-func (_m *DomainRepository) RhelIdmClearToken(db *gorm.DB, orgID string, UUID uuid.UUID) error {
-	ret := _m.Called(db, orgID, UUID)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*gorm.DB, string, uuid.UUID) error); ok {
-		r0 = rf(db, orgID, UUID)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
 }
 
 // Update provides a mock function with given fields: db, orgID, data

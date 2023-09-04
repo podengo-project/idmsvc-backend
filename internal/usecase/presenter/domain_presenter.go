@@ -29,13 +29,6 @@ func NewDomainPresenter(cfg *config.Config) presenter.DomainPresenter {
 	return &domainPresenter{cfg}
 }
 
-// Create translate from internal domain to the API response.
-// Return a new response domain representation and nil error on success,
-// or a nil response with an error on failure.
-func (p *domainPresenter) Create(domain *model.Domain) (*public.Domain, error) {
-	return p.sharedDomain(domain)
-}
-
 // List is the output adapter to list the domains with pagination.
 // prefix is the prefix that is used to compose the pagination links.
 // offset is the starting point of the page for a given ordered list of domains.
