@@ -11,6 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -95,21 +96,13 @@ func TestRegisterRhelIdm(t *testing.T) {
 			Given: &model.Domain{
 				Type: pointy.Uint(model.DomainTypeIpa),
 				IpaDomain: &model.Ipa{
-					RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
-					RealmDomains: pq.StringArray{"mydomain.example"},
-					CaCerts: []model.IpaCert{
-						{
-							Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
-							Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-							Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-							SerialNumber: "1",
-							Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-						},
-					},
+					RealmName:    pointy.String(test.RealmName),
+					RealmDomains: test.RealmDomains,
+					CaCerts:      []model.IpaCert{test.IpaCaModelCert},
 					Servers: []model.IpaServer{
 						{
-							FQDN:                "server1.mydomain.example",
-							RHSMId:              pointy.String(testSubscriptionManagerId.String()),
+							FQDN:                test.Server1.Fqdn,
+							RHSMId:              pointy.String(test.Server1.CertCN),
 							PKInitServer:        true,
 							CaServer:            true,
 							HCCEnrollmentServer: true,
@@ -121,21 +114,13 @@ func TestRegisterRhelIdm(t *testing.T) {
 			Expected: TestCaseExpected{
 				Domain: &public.RegisterDomainResponse{
 					RhelIdm: &public.DomainIpa{
-						RealmName:    "MYDOMAIN.EXAMPLE",
-						RealmDomains: pq.StringArray{"mydomain.example"},
-						CaCerts: []public.Certificate{
-							{
-								Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
-								Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-								SerialNumber: "1",
-								Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
-							},
-						},
+						RealmName:    test.RealmName,
+						RealmDomains: test.RealmDomains,
+						CaCerts:      []public.Certificate{test.IpaCaPublicCert},
 						Servers: []public.DomainIpaServer{
 							{
-								Fqdn:                  "server1.mydomain.example",
-								SubscriptionManagerId: testSubscriptionManagerId,
+								Fqdn:                  test.Server1.Fqdn,
+								SubscriptionManagerId: &test.Server1.CertUUID,
 								PkinitServer:          true,
 								CaServer:              true,
 								HccEnrollmentServer:   true,
