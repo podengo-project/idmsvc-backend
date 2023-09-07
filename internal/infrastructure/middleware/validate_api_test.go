@@ -16,11 +16,6 @@ func TestValidateXRhIdentity(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestNewApiServiceValidator(t *testing.T) {
-	v := NewApiServiceValidator(nil)
-	assert.NotNil(t, v)
-}
-
 func TestRequestResponseValidator(t *testing.T) {
 	v := RequestResponseValidator()
 	assert.NotNil(t, v)

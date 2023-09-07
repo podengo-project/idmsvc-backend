@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"github.com/getkin/kin-openapi/routers/gorillamux"
@@ -27,26 +26,6 @@ func (x xrhiAlwaysTrue) ValidateXRhIdentity(xrhi *identity.XRHID) error {
 	// TODO Bear in mind the Identity validation is made at
 	//      UserEnforce and SystemEnforce identities
 	return nil
-}
-
-// NewApiServiceValidator create an API validator middleware.
-// Skipper represent the logic to bypass the middleware execution.
-// Return the echo middleware or panic on error.
-func NewApiServiceValidator(Skipper echo_middleware.Skipper) echo.MiddlewareFunc {
-	swagger, err := public_api.GetSwagger()
-	if err != nil {
-		panic(internal_errors.NewLocationError(err))
-	}
-	return middleware.OapiRequestValidatorWithOptions(swagger, &middleware.Options{
-		Options: openapi3filter.Options{
-			ExcludeResponseBody:   false,
-			ExcludeRequestBody:    false,
-			IncludeResponseStatus: true,
-			MultiError:            false,
-			AuthenticationFunc:    openapi3filter.NoopAuthenticationFunc,
-		},
-		Skipper: Skipper,
-	})
 }
 
 // InitOpenAPIFormats configure the admited formats in the openapi
