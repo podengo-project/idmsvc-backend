@@ -9,7 +9,10 @@ import (
 )
 
 func getXRHID(ctx echo.Context) (*identity.XRHID, error) {
-	domainCtx := ctx.(middleware.DomainContextInterface)
+	domainCtx, ok := ctx.(middleware.DomainContextInterface)
+	if !ok {
+		return nil, echo.NewHTTPError(http.StatusInternalServerError, "'ctx' is not a DomainContextInterface")
+	}
 	xrhid := domainCtx.XRHID()
 	if xrhid == nil {
 		return nil, echo.NewHTTPError(http.StatusBadRequest, "'xrhid' is nil")
