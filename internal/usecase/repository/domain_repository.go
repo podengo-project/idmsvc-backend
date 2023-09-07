@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
@@ -77,7 +80,12 @@ func (r *domainRepository) Register(
 
 	if err = db.Omit(clause.Associations).
 		Create(data).Error; err != nil {
-		return err
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			msg := fmt.Sprintf("domain id '%s' is already registered.", data.DomainUuid.String())
+			return echo.NewHTTPError(http.StatusConflict, msg)
+		} else {
+			return err
+		}
 	}
 
 	// Specific

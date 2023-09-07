@@ -64,12 +64,6 @@ func DomainTypeUint(data string) uint {
 // See: https://gorm.io/docs/hooks.html
 
 func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
-	for {
-		d.DomainUuid = uuid.New()
-		if d.DomainUuid != NilUUID {
-			break
-		}
-	}
 	var currentTime = time.Now()
 	d.CreatedAt = currentTime
 	d.UpdatedAt = currentTime

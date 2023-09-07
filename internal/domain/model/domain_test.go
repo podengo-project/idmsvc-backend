@@ -26,7 +26,7 @@ func TestDomainBeforeCreate(t *testing.T) {
 	item = &Domain{}
 	item.BeforeCreate(nil)
 
-	assert.NotEmpty(t, item.DomainUuid)
+	assert.Empty(t, item.DomainUuid)
 	assert.NotEmpty(t, item.CreatedAt)
 	assert.NotEmpty(t, item.UpdatedAt)
 }

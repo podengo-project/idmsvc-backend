@@ -42,6 +42,7 @@ func NewDB(cfg *config.Config) (db *gorm.DB) {
 			Logger:                 logger.NewGormLog(cfg),
 			SkipDefaultTransaction: true,
 			// CreateBatchSize:        50,
+			TranslateError: true,
 		}); err != nil {
 		log.Error().Msgf("Error creating database connector: %s", err.Error())
 		return nil

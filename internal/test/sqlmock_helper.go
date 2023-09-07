@@ -16,6 +16,7 @@ func NewSqlMock(session *gorm.Session) (sqlmock.Sqlmock, *gorm.DB, error) {
 		Conn: sqlDB,
 	}), &gorm.Config{
 		SkipDefaultTransaction: true,
+		TranslateError:         true,
 	})
 	if err != nil {
 		return nil, nil, err
