@@ -1,14 +1,17 @@
 package middleware
 
 import (
+	"bytes"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
+	"net/http"
 	"regexp"
 
 	"github.com/deepmap/oapi-codegen/pkg/middleware"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/getkin/kin-openapi/routers/gorillamux"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	public_api "github.com/podengo-project/idmsvc-backend/internal/api/public"
@@ -120,4 +123,173 @@ func checkFormatSubject(value string) error {
 func checkFormatRealmDomains(value string) error {
 	// TODO Translate value in a slice, and all the items should validate for a domain
 	return nil
+}
+
+// In order to validate a response, we need to have access to the bytes of
+// the response. The following code allows us to get access to it.
+type ResponseRecorder struct {
+	buffer   *bytes.Buffer
+	status   int
+	original http.ResponseWriter
+}
+
+// Implements WriteHeader of http.ResponseWriter
+func (r *ResponseRecorder) WriteHeader(statusCode int) {
+	r.status = statusCode
+}
+
+// Implements Header of http.ResponseWriter
+func (r *ResponseRecorder) Header() http.Header {
+	return r.original.Header()
+}
+
+// Implements Write of http.ResponseWriter
+func (r *ResponseRecorder) Write(p []byte) (n int, err error) {
+	n, err = r.buffer.Write(p)
+	if err != nil {
+		return n, err
+	}
+	return len(p), nil
+}
+
+type (
+	// RequestResponseValidatorConfig defines the config for RequestResponseValidator middleware.
+	RequestResponseValidatorConfig struct {
+		// Skipper defines a function to skip middleware.
+		Skipper          echo_middleware.Skipper
+		ValidateRequest  bool
+		ValidateResponse bool
+	}
+)
+
+// DefaultRequestResponseValidatorConfig is the default RequestResponseValidator
+// middleware config.
+var DefaultRequestResponseValidatorConfig = RequestResponseValidatorConfig{
+	Skipper:          echo_middleware.DefaultSkipper,
+	ValidateRequest:  true,
+	ValidateResponse: false,
+}
+
+// RequestResponseValidator returns a middleware which validates the HTTP response
+func RequestResponseValidator() echo.MiddlewareFunc {
+	return RequestResponseValidatorWithConfig(&DefaultRequestResponseValidatorConfig)
+}
+
+func RequestResponseValidatorWithConfig(config *RequestResponseValidatorConfig) echo.MiddlewareFunc {
+	// Defaults
+	if config.Skipper == nil {
+		config.Skipper = DefaultRequestResponseValidatorConfig.Skipper
+	}
+
+	// Setup routing
+	swagger, err := public_api.GetSwagger()
+	if err != nil {
+		panic(internal_errors.NewLocationError(err))
+	}
+
+	// TODO Can we use our own router?  Something to investigate later.
+	router, err := gorillamux.NewRouter(swagger)
+	if err != nil {
+		panic(err)
+	}
+
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if config.Skipper(c) {
+				return next(c)
+			}
+
+			// Nothing to validate, just leave.
+			if !config.ValidateRequest && !config.ValidateResponse {
+				return next(c)
+			}
+
+			req := c.Request()
+			route, pathParams, err := router.FindRoute(req)
+			if err != nil {
+				// No route found in the OpenAPI for this request.
+				// Returning 404 (or other error status) here is
+				// possible but WRONG because:
+				//
+				// - There are some special case routes not represented
+				//   in the OpenAPI spec, e.g. /api/v1/openapi.json.
+				//   If we response 404 (or 5xx), we would need to define
+				//   a skipper to skip these special cases.
+				//
+				// - Is it not the concern of this middleware to route
+				//   the request (or response 404 if no route found).
+				//   That behaviour already exists in the Echo framework.
+				//   This middleware need only concern itself about whether
+				//   to validate the request.
+				//
+				// So, if we don't find a round in the OpenAPI spec, just
+				// call the next middleware/handler.
+				//
+				return next(c)
+			}
+
+			options := openapi3filter.Options{
+				ExcludeResponseBody:   false,
+				ExcludeRequestBody:    false,
+				IncludeResponseStatus: true,
+				MultiError:            false,
+				AuthenticationFunc:    openapi3filter.NoopAuthenticationFunc,
+			}
+
+			requestValidationInput := &openapi3filter.RequestValidationInput{
+				Request:    req,
+				PathParams: pathParams,
+				Route:      route,
+				Options:    &options,
+			}
+
+			ctx := c.Request().Context()
+			if config.ValidateRequest {
+				err = openapi3filter.ValidateRequest(
+					ctx,
+					requestValidationInput,
+				)
+				if err != nil {
+					c.Response().Header().Set(echo.HeaderContentType, "text/plain")
+					c.String(http.StatusBadRequest, err.Error())
+				}
+			}
+
+			if config.ValidateResponse {
+				// Intercept and validate the response
+				rw := c.Response().Writer
+				resRec := &ResponseRecorder{buffer: &bytes.Buffer{}, original: rw}
+				c.Response().Writer = resRec
+
+				defer func() {
+					responseValidationInput := &openapi3filter.ResponseValidationInput{
+						RequestValidationInput: requestValidationInput,
+						Status:                 resRec.status,
+						Header:                 resRec.Header(),
+					}
+					responseValidationInput.SetBodyBytes(resRec.buffer.Bytes())
+
+					if err = openapi3filter.ValidateResponse(
+						ctx,
+						responseValidationInput,
+					); err != nil {
+						// write error response
+						c.Response().Header().Set(echo.HeaderContentType, "text/plain")
+						c.String(http.StatusInternalServerError, err.Error())
+					} else {
+						// Write original response
+						rw.WriteHeader(resRec.status)
+						resRec.buffer.WriteTo(rw)
+					}
+				}()
+
+				defer func() {
+					// reset the response, using the original ResponseWriter
+					c.SetResponse(echo.NewResponse(rw, c.Echo()))
+				}()
+			}
+
+			return next(c)
+		}
+	}
 }

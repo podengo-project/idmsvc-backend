@@ -21,6 +21,11 @@ func TestNewApiServiceValidator(t *testing.T) {
 	assert.NotNil(t, v)
 }
 
+func TestRequestResponseValidator(t *testing.T) {
+	v := RequestResponseValidator()
+	assert.NotNil(t, v)
+}
+
 func TestCheckFormatIssuer(t *testing.T) {
 	var err error
 	// Empty string
