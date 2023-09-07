@@ -125,30 +125,10 @@ func TestNewGroupPublic(t *testing.T) {
 
 		// This routes are added when the group is created
 		appPrefix + appName + versionFull + "/*": {
-			"GET":      "github.com/labstack/echo/v4.glob..func1",
-			"POST":     "github.com/labstack/echo/v4.glob..func1",
-			"PUT":      "github.com/labstack/echo/v4.glob..func1",
-			"PATCH":    "github.com/labstack/echo/v4.glob..func1",
-			"DELETE":   "github.com/labstack/echo/v4.glob..func1",
-			"HEAD":     "github.com/labstack/echo/v4.glob..func1",
-			"OPTIONS":  "github.com/labstack/echo/v4.glob..func1",
-			"REPORT":   "github.com/labstack/echo/v4.glob..func1",
-			"PROPFIND": "github.com/labstack/echo/v4.glob..func1",
-			"TRACE":    "github.com/labstack/echo/v4.glob..func1",
-			"CONNECT":  "github.com/labstack/echo/v4.glob..func1",
+			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
 		},
 		appPrefix + appName + versionFull: {
-			"GET":      "github.com/labstack/echo/v4.glob..func1",
-			"POST":     "github.com/labstack/echo/v4.glob..func1",
-			"PUT":      "github.com/labstack/echo/v4.glob..func1",
-			"PATCH":    "github.com/labstack/echo/v4.glob..func1",
-			"DELETE":   "github.com/labstack/echo/v4.glob..func1",
-			"HEAD":     "github.com/labstack/echo/v4.glob..func1",
-			"OPTIONS":  "github.com/labstack/echo/v4.glob..func1",
-			"REPORT":   "github.com/labstack/echo/v4.glob..func1",
-			"PROPFIND": "github.com/labstack/echo/v4.glob..func1",
-			"TRACE":    "github.com/labstack/echo/v4.glob..func1",
-			"CONNECT":  "github.com/labstack/echo/v4.glob..func1",
+			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
 		},
 	}
 
@@ -182,9 +162,15 @@ func TestNewGroupPublic(t *testing.T) {
 		t.Logf("Method=%s Path=%s Name=%s", route.Method, route.Path, route.Name)
 
 		methods, okPath := testCases[route.Path]
+		if !okPath {
+			t.Logf("Path=%s not found", route.Path)
+		}
 		assert.Truef(t, okPath, "path=%s not found into the expected ones", route.Path)
 
 		name, okMethod := methods[route.Method]
+		if !okMethod {
+			t.Logf("Method=%s not found for path=%s", route.Method, route.Path)
+		}
 		assert.Truef(t, okMethod, "method=%s not found into the expected ones for the path=%s", route.Method, route.Path)
 		assert.Equalf(t, name, route.Name, "handler for path=%s method=%s does not match", route.Path, route.Method)
 	}
