@@ -100,7 +100,14 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	var validateAPI echo.MiddlewareFunc = middleware.DefaultNooperation
 	if c.EnableAPIValidator {
 		middleware.InitOpenAPIFormats()
-		validateAPI = middleware.NewApiServiceValidator(newSkipperOpenapi(c))
+		validateAPI = middleware.RequestResponseValidatorWithConfig(
+			// FIXME Get the values from the application config
+			&middleware.RequestResponseValidatorConfig{
+				Skipper:          nil,
+				ValidateRequest:  true,
+				ValidateResponse: false,
+			},
+		)
 	}
 
 	// Wire the middlewares
