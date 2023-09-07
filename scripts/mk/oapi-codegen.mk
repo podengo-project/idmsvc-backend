@@ -1,6 +1,6 @@
 # https://github.com/deepmap/oapi-codegen
 OAPI_CODEGEN ?= $(BIN)/oapi-codegen
-OAPI_CODEGEN_VERSION ?= v1.12.4
+OAPI_CODEGEN_VERSION ?= v1.14.0
 
 $(OAPI_CODEGEN): $(BIN)
 	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/deepmap/oapi-codegen/cmd/oapi-codegen@$(OAPI_CODEGEN_VERSION)"

@@ -1,5 +1,5 @@
 ---
-image: golang:1.18
+image: golang:1.19
 
 stages:
   - check
@@ -15,7 +15,8 @@ check missed commits:
   before_script:
     - apt-get update
     - apt-get install -y python3-venv python3-pip
-    - pip install --user yamllint
+    - python3 -m venv .venv
+    - .venv/bin/pip install yamllint
   script:
     - make install-oapi-codegen
     - make install-mockery
@@ -42,7 +43,7 @@ check missed commits:
     - make go-fmt && git diff --exit-code .
 
     - echo "Checking yaml files"
-    - python3 -m yamllint .
+    - .venv/bin/python3 -m yamllint .
 
 run tests:
   stage: test
