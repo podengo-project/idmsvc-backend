@@ -65,6 +65,40 @@ func (r *domainRepository) List(
 	return output, count, nil
 }
 
+// Register a new domain
+func (r *domainRepository) Register(
+	db *gorm.DB,
+	orgID string,
+	data *model.Domain,
+) (err error) {
+	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+		return err
+	}
+
+	if err = db.Omit(clause.Associations).
+		Create(data).Error; err != nil {
+		return err
+	}
+
+	// Specific
+	switch *data.Type {
+	case model.DomainTypeIpa:
+		if data.IpaDomain == nil {
+			return fmt.Errorf("'IpaDomain' is nil")
+		}
+		if err = r.createIpaDomain(
+			db,
+			data.ID,
+			data.IpaDomain,
+		); err != nil {
+			return err
+		}
+		return nil
+	default:
+		return fmt.Errorf("'Type' is invalid")
+	}
+}
+
 // func (r *domainRepository) PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
 // 	if db == nil {
 // 		return model.Domain{}, fmt.Errorf("db is nil")
@@ -301,7 +335,7 @@ func (r *domainRepository) createIpaDomain(
 		}
 	}
 	for idx := range data.Locations {
-		data.Servers[idx].IpaID = data.ID
+		data.Locations[idx].IpaID = data.ID
 		if err = db.Create(&data.Locations[idx]).Error; err != nil {
 			return err
 		}

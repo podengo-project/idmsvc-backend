@@ -111,6 +111,20 @@ func (_m *DomainRepository) List(db *gorm.DB, orgID string, offset int, limit in
 	return r0, r1, r2
 }
 
+// Register provides a mock function with given fields: db, orgID, data
+func (_m *DomainRepository) Register(db *gorm.DB, orgID string, data *model.Domain) error {
+	ret := _m.Called(db, orgID, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain) error); ok {
+		r0 = rf(db, orgID, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: db, orgID, data
 func (_m *DomainRepository) Update(db *gorm.DB, orgID string, data *model.Domain) error {
 	ret := _m.Called(db, orgID, data)

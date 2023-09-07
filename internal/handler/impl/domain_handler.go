@@ -202,6 +202,7 @@ func (a *application) RegisterDomain(
 	}
 
 	if orgId, clientVersion, data, err = a.domain.interactor.Register(
+		a.secrets.domainRegKey,
 		xrhid,
 		&params,
 		&input,
@@ -223,7 +224,7 @@ func (a *application) RegisterDomain(
 	}
 	defer tx.Rollback()
 
-	if err = a.domain.repository.Update(tx, orgId, data); err != nil {
+	if err = a.domain.repository.Register(tx, orgId, data); err != nil {
 		return err
 	}
 

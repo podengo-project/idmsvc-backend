@@ -84,6 +84,6 @@ export APP_VALIDATE_API
 APP_TOKEN_EXPIRATION_SECONDS ?= 7200
 export APP_TOKEN_EXPIRATION_SECONDS
 
-# Use random MAC key for domain registration token
-APP_DOMAIN_REG_KEY ?= random
+# MAC key for domain registration token (random value)
+APP_DOMAIN_REG_KEY ?= CXJH0VsLUTkFR8RRIOhKmw
 export APP_DOMAIN_REG_KEY

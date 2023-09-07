@@ -41,19 +41,21 @@ Content-Type: {{contentType}}
 
 {"domain_type": "rhel-idm"}
 
-### Create with no certs nor servers nor realm_domains
+### Register domain
 
-# @name createDomain
+# @name registerDomain
+# @prompt token Domain registration token
 
 # Request for localhost
-#   ./test/scripts/local-domains-create.sh
+#   ./test/scripts/local-domains-register.sh
 #
 # Request for ephemeral:
-#   ./test/scripts/ephe-domains-create.sh
+#   ./test/scripts/ephe-domains-register.sh
 
 POST {{schema}}://{{host}}{{basepath}}/domains
-X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-Insights-Request-Id: post_domains
+X-Rh-Idm-Registration-Token: {{token}}
 Content-Type: {{contentType}}
 
 <@ ../../test/data/http/create-rhel-idm-domain.json
@@ -90,32 +92,6 @@ X-Rh-Identity: {{x-rh-identity-user}}
 X-Rh-Insights-Request-Id: get_domains_uuid
 Content-Type: {{contentType}}
 
-### Register IPA domain information
-
-# @name registerIpaDomain
-# @prompt token Your token to register a rhel-idm domain
-
-# Local workstation
-#   UUID=""
-#   TOKEN=""
-#   ./test/scripts/local-domains-register.sh "$UUID" "$TOKEN"
-#
-# Request for ephemeral
-#   UUID=""
-#   TOKEN=""
-#   ./test/scripts/ephe-domains-register.sh "$UUID" "$TOKEN"
-
-PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}/register
-X-Rh-Identity: {{x-rh-identity-system}}
-# X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
-# X-Rh-Fake-Identity: {{x-rh-identity-system}}
-X-Rh-Idm-Registration-Token: {{token}}
-X-Rh-Insights-Request-Id: put_domains_register
-X-Rh-Idm-Version: {{x-rh-idm-version}}
-Content-Type: {{contentType}}
-
-<@ ../../test/data/http/register-rhel-idm-domain.json
-
 ### Update rhel-idm domain information
 
 # @name updateIpaDomain
@@ -128,7 +104,7 @@ Content-Type: {{contentType}}
 #   UUID=""
 #   ./test/scripts/ephe-domains-update.sh "$UUID"
 
-PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}/update
+PUT http://{{host}}{{basepath}}/domains/{{createDomain.response.body.domain_id}}
 # X-Rh-Identity: {{x-rh-identity-system}}
 X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
 X-Rh-Fake-Identity: {{x-rh-identity-system}}

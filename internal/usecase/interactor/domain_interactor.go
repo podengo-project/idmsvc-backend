@@ -2,8 +2,10 @@ package interactor
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
@@ -138,7 +140,7 @@ func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDoma
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain_id uuid.UUID
 		domain    *model.Domain
@@ -157,18 +159,27 @@ func (i domainInteractor) Register(xrhid *identity.XRHID, params *api_public.Reg
 
 	// verify token
 	if domain_id, err = token.VerifyDomainRegistrationToken(
-		[]byte("TODO secret"),
+		domainRegKey,
 		string(body.DomainType),
 		orgId,
 		token.DomainRegistrationToken(params.XRhIdmRegistrationToken),
 	); err != nil {
-		return "", nil, nil, err
+		msg := fmt.Sprintf("Domain registration token is invalid: %s", err)
+		return "", nil, nil, echo.NewHTTPError(http.StatusUnauthorized, msg)
 	}
 
 	// Read the body payload
 	if domain, err = i.commonRegisterUpdate(orgId, domain_id, body); err != nil {
 		return "", nil, nil, err
 	}
+
+	// Agent request body has no/nil title, description, and auto enrollment flag
+	// default title is domain name
+	domain.Title = pointy.String(body.DomainName)
+	domain.Description = pointy.String("")
+	// new domains are enabled by default
+	domain.AutoEnrollmentEnabled = pointy.Bool(true)
+
 	return orgId, clientVersion, domain, nil
 }
 

@@ -2,10 +2,12 @@ package interactor
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
@@ -41,12 +43,12 @@ func TestHelperDomainTypeToUint(t *testing.T) {
 
 func TestRegisterIpa(t *testing.T) {
 	const (
-		cn          = "21258fc8-c755-11ed-afc4-482ae3863d30"
-		orgID       = "12345"
-		description = "My Example Domain Description"
+		cn    = "21258fc8-c755-11ed-afc4-482ae3863d30"
+		orgID = "12345"
 	)
+	secret := []byte("token secret")
 	tok, _, err := token.NewDomainRegistrationToken(
-		[]byte("TODO secret"),
+		secret,
 		string(api_public.RhelIdm),
 		orgID,
 		time.Hour,
@@ -56,7 +58,6 @@ func TestRegisterIpa(t *testing.T) {
 		rhsmID      = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
 		domainID    = token.TokenDomainId(tok)
 		requestID   = pointy.String("TW9uIE1hciAyMCAyMDo1Mzoz")
-		testTitle   = pointy.String("My Domain Example")
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{
 				OrgID: orgID,
@@ -83,10 +84,15 @@ func TestRegisterIpa(t *testing.T) {
 			XRhIdmRegistrationToken: string(tok),
 			XRhIdmVersion:           clientVersion,
 		}
-		NotBefore = time.Now().UTC()
-		NotAfter  = NotBefore.Add(24 * time.Hour)
+		NotBefore          = time.Now().UTC()
+		NotAfter           = NotBefore.Add(24 * time.Hour)
+		ESignatureMismatch = echo.NewHTTPError(
+			http.StatusUnauthorized,
+			"Domain registration token is invalid: Signature mismatch",
+		)
 	)
 	type TestCaseGiven struct {
+		Secret []byte
 		XRHID  *identity.XRHID
 		UUID   uuid.UUID
 		Params *api_public.RegisterDomainParams
@@ -107,6 +113,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "fail guards with xrhid is nil",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  nil,
 				UUID:   uuid.Nil,
 				Params: nil,
@@ -122,6 +129,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "No X-Rh-IDM-Version",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: paramsNoClientVersion,
@@ -137,6 +145,7 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "Type is invalid",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: params,
@@ -151,21 +160,42 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				// Error:         fmt.Errorf("Unsupported domain_type='somethingwrong'"),
-				Error: fmt.Errorf("Signature mismatch"),
+				Error:         ESignatureMismatch,
+				// "Unsupported domain_type='somethingwrong'" is a signature mismatch
+			},
+		},
+		{
+			Name: "Secret is invalid",
+			Given: TestCaseGiven{
+				Secret: []byte("invalid"),
+				XRHID:  &xrhidSystem,
+				UUID:   domainID,
+				Params: params,
+				Body: &api_public.Domain{
+					DomainName: "mydomain.example",
+					DomainType: api_public.DomainType(api_public.RhelIdm),
+					RhelIdm: &api_public.DomainIpa{
+						RealmName: "",
+					},
+				},
+			},
+			Expected: TestCaseExpected{
+				OrgId:         "",
+				ClientVersion: nil,
+				Output:        nil,
+				Error:         ESignatureMismatch,
 			},
 		},
 		{
 			Name: "Empty slices",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       testTitle,
-					Description: pointy.String(description),
-					DomainName:  "mydomain.example",
-					DomainType:  api_public.DomainType(api_public.RhelIdm),
+					DomainName: "mydomain.example",
+					DomainType: api_public.DomainType(api_public.RhelIdm),
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "",
 					},
@@ -178,9 +208,9 @@ func TestRegisterIpa(t *testing.T) {
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 testTitle,
-					Description:           pointy.String(description),
-					AutoEnrollmentEnabled: nil,
+					Title:                 pointy.String("mydomain.example"),
+					Description:           pointy.String(""),
+					AutoEnrollmentEnabled: pointy.Bool(true),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String(""),
@@ -196,14 +226,13 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "Empty slices and RealmName filled",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       testTitle,
-					Description: pointy.String(description),
-					DomainName:  "mydomain.example",
-					DomainType:  api_public.RhelIdm,
+					DomainName: "mydomain.example",
+					DomainType: api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 					},
@@ -216,9 +245,9 @@ func TestRegisterIpa(t *testing.T) {
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 testTitle,
-					Description:           pointy.String(description),
-					AutoEnrollmentEnabled: nil,
+					Title:                 pointy.String("mydomain.example"),
+					Description:           pointy.String(""),
+					AutoEnrollmentEnabled: pointy.Bool(true),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
@@ -234,14 +263,13 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "RealmDomains with some content",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       testTitle,
-					Description: pointy.String(description),
-					DomainName:  "mydomain.example",
-					DomainType:  api_public.RhelIdm,
+					DomainName: "mydomain.example",
+					DomainType: api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName:    "MYDOMAIN.EXAMPLE",
 						RealmDomains: []string{"server.domain.example"},
@@ -255,9 +283,9 @@ func TestRegisterIpa(t *testing.T) {
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 testTitle,
-					Description:           pointy.String(description),
-					AutoEnrollmentEnabled: nil,
+					Title:                 pointy.String("mydomain.example"),
+					Description:           pointy.String(""),
+					AutoEnrollmentEnabled: pointy.Bool(true),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
@@ -273,14 +301,13 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "CaCerts with some content",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       testTitle,
-					Description: pointy.String(description),
-					DomainName:  "mydomain.example",
-					DomainType:  api_public.RhelIdm,
+					DomainName: "mydomain.example",
+					DomainType: api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 						CaCerts: []api_public.Certificate{
@@ -304,9 +331,9 @@ func TestRegisterIpa(t *testing.T) {
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 testTitle,
-					Description:           pointy.String(description),
-					AutoEnrollmentEnabled: nil,
+					Title:                 pointy.String("mydomain.example"),
+					Description:           pointy.String(""),
+					AutoEnrollmentEnabled: pointy.Bool(true),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
@@ -332,14 +359,13 @@ func TestRegisterIpa(t *testing.T) {
 		{
 			Name: "Servers as some content",
 			Given: TestCaseGiven{
+				Secret: secret,
 				XRHID:  &xrhidSystem,
 				UUID:   domainID,
 				Params: params,
 				Body: &api_public.Domain{
-					Title:       testTitle,
-					Description: pointy.String(description),
-					DomainName:  "mydomain.example",
-					DomainType:  api_public.RhelIdm,
+					DomainName: "mydomain.example",
+					DomainType: api_public.RhelIdm,
 					RhelIdm: &api_public.DomainIpa{
 						RealmName: "MYDOMAIN.EXAMPLE",
 						Servers: []api_public.DomainIpaServer{
@@ -363,9 +389,9 @@ func TestRegisterIpa(t *testing.T) {
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
 					DomainName:            pointy.String("mydomain.example"),
-					Title:                 testTitle,
-					Description:           pointy.String(description),
-					AutoEnrollmentEnabled: nil,
+					Title:                 pointy.String("mydomain.example"),
+					Description:           pointy.String(""),
+					AutoEnrollmentEnabled: pointy.Bool(true),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
@@ -392,7 +418,12 @@ func TestRegisterIpa(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		i := NewDomainInteractor()
-		orgID, clientVersion, output, err := i.Register(testCase.Given.XRHID, testCase.Given.Params, testCase.Given.Body)
+		orgID, clientVersion, output, err := i.Register(
+			testCase.Given.Secret,
+			testCase.Given.XRHID,
+			testCase.Given.Params,
+			testCase.Given.Body,
+		)
 		if testCase.Expected.Error != nil {
 			assert.EqualError(t, err, testCase.Expected.Error.Error())
 			assert.Equal(t, testCase.Expected.OrgId, orgID)

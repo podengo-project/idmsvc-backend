@@ -16,16 +16,21 @@ import (
 // to validate every request
 var skipperValidate echo_middleware.Skipper = skipperUserPredicate
 
-var userEnforceRoutes = []string{
-	"/api/idmsvc/v1/domains",
-	"/api/idmsvc/v1/domains/token",
-	"/api/idmsvc/v1/domains/:uuid",
+type enforceRoute struct {
+	Method string
+	Path   string
 }
 
-var systemEnforceRoutes = []string{
-	"/api/idmsvc/v1/domains/:uuid/register",
-	"/api/idmsvc/v1/domains/:uuid/update",
-	"/api/idmsvc/v1/host-conf/:inventory_id/:fqdn",
+var userEnforceRoutes = []enforceRoute{
+	{"POST", "/api/idmsvc/v1/domains/token"},
+	{"GET", "/api/idmsvc/v1/domains/:uuid"},
+	{"PATCH", "/api/idmsvc/v1/domains/:uuid"},
+}
+
+var systemEnforceRoutes = []enforceRoute{
+	{"POST", "/api/idmsvc/v1/domains"},
+	{"PUT", "/api/idmsvc/v1/domains/:uuid"},
+	{"POST", "/api/idmsvc/v1/host-conf/:inventory_id/:fqdn"},
 }
 
 func getOpenapiPaths(c RouterConfig) func() []string {
@@ -120,15 +125,18 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 // ctx is the request context.
 // Return true if enforce identity is skipped, else false.
 func skipperUserPredicate(ctx echo.Context) bool {
-
-	route := ctx.Path()
+	var r enforceRoute
+	path := ctx.Path()
+	method := ctx.Request().Method
 	// it is not expected a big number of routes, but if that were
 	// the case into the future, it is more efficient to check
 	// directly against a hashmap instead of traversing the slice
 	for i := range userEnforceRoutes {
-		if route == userEnforceRoutes[i] {
+		r = userEnforceRoutes[i]
+		if method == r.Method && path == r.Path {
 			return false
 		}
+
 	}
 	return true
 }
@@ -138,12 +146,15 @@ func skipperUserPredicate(ctx echo.Context) bool {
 // Return true if enforce identity is skipped, else false.
 func skipperSystemPredicate(ctx echo.Context) bool {
 	// Read the route path __pattern__ that matched this request
-	route := ctx.Path()
+	var r enforceRoute
+	path := ctx.Path()
+	method := ctx.Request().Method
 	// it is not expected a big number of routes, but if that were
 	// the case into the future, it is more efficient to check
 	// directly against a hashmap instead of traversing the slice
 	for i := range systemEnforceRoutes {
-		if route == systemEnforceRoutes[i] {
+		r = systemEnforceRoutes[i]
+		if method == r.Method && path == r.Path {
 			return false
 		}
 	}
