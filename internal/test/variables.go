@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
+	"gorm.io/gorm"
 )
 
 const (
@@ -140,6 +142,86 @@ func GetSystemXRHID(orgId string, commonName string, acountNumber string) identi
 		},
 	}
 
+}
+
+func BuildDomainModel(orgID string) *model.Domain {
+	currentTime := time.Now()
+	domainID := DomainUUID
+
+	return &model.Domain{
+		Model: gorm.Model{
+			ID:        1,
+			CreatedAt: currentTime,
+			UpdatedAt: currentTime,
+			DeletedAt: gorm.DeletedAt{},
+		},
+		OrgId:                 orgID,
+		DomainUuid:            domainID,
+		DomainName:            pointy.String(DomainName),
+		Title:                 pointy.String("My Domain Example"),
+		Description:           pointy.String("Description of My Domain Example"),
+		AutoEnrollmentEnabled: pointy.Bool(true),
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+		IpaDomain: &model.Ipa{
+			Model: gorm.Model{
+				ID:        1,
+				CreatedAt: currentTime,
+				UpdatedAt: currentTime,
+				DeletedAt: gorm.DeletedAt{},
+			},
+			RealmName: pointy.String(RealmName),
+			CaCerts: []model.IpaCert{
+				{
+					Model: gorm.Model{
+						ID:        2,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:        1,
+					Issuer:       IpaCaPublicCert.Issuer,
+					Nickname:     IpaCaPublicCert.Nickname,
+					NotAfter:     currentTime.Add(24 * time.Hour),
+					NotBefore:    currentTime,
+					SerialNumber: IpaCaPublicCert.SerialNumber,
+					Subject:      IpaCaPublicCert.Subject,
+					Pem:          IpaCaPublicCert.Pem,
+				},
+			},
+			Servers: []model.IpaServer{
+				{
+					Model: gorm.Model{
+						ID:        3,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:               1,
+					FQDN:                Server1.Fqdn,
+					RHSMId:              pointy.String(Server1.CertCN),
+					Location:            pointy.String(Location1.Name),
+					CaServer:            true,
+					HCCEnrollmentServer: true,
+					HCCUpdateServer:     true,
+					PKInitServer:        true,
+				},
+			},
+			Locations: []model.IpaLocation{
+				{
+					Model: gorm.Model{
+						ID:        4,
+						CreatedAt: currentTime,
+						UpdatedAt: currentTime,
+						DeletedAt: gorm.DeletedAt{},
+					},
+					IpaID:       1,
+					Name:        Location1.Name,
+					Description: pointy.String(*Location1.Description),
+				},
+			},
+			RealmDomains: pq.StringArray{DomainName},
+		},
+	}
 }
 
 var (

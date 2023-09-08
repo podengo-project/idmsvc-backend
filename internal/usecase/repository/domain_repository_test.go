@@ -238,128 +238,31 @@ func (s *Suite) TestCreateIpaDomain() {
 	assert.NoError(t, err)
 }
 
-// FIXME The next unit tests are failing
-
 func (s *Suite) TestUpdateErrors() {
 	t := s.Suite.T()
-	orgID := "11111"
-	testUUID := uuid.New()
-	currentTime := time.Now()
+	orgID := test.OrgId
+	testUUID := test.DomainUUID
 	var (
-		data model.Domain = model.Domain{
-			Model: gorm.Model{
-				ID:        1,
-				CreatedAt: currentTime,
-				UpdatedAt: currentTime,
-			},
-			OrgId:                 orgID,
-			DomainUuid:            testUUID,
-			DomainName:            pointy.String("domain.example"),
-			Title:                 pointy.String("My domain test title"),
-			Description:           pointy.String("My domain test description"),
-			Type:                  pointy.Uint(model.DomainTypeIpa),
-			AutoEnrollmentEnabled: pointy.Bool(true),
-			IpaDomain: &model.Ipa{
-				Model: gorm.Model{
-					ID:        1,
-					CreatedAt: currentTime,
-					UpdatedAt: currentTime,
-				},
-				CaCerts: []model.IpaCert{},
-				Servers: []model.IpaServer{},
-			},
-		}
-		err error
+		data *model.Domain = test.BuildDomainModel(test.OrgId)
+		err  error
 	)
 
-	err = s.repository.Update(nil, "", nil)
+	err = s.repository.UpdateAgent(nil, "", nil)
 	assert.EqualError(t, err, "'db' is nil")
 
-	err = s.repository.Update(s.DB, "", nil)
+	err = s.repository.UpdateAgent(s.DB, "", nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
-	err = s.repository.Update(s.DB, orgID, nil)
+	err = s.repository.UpdateAgent(s.DB, orgID, nil)
 	assert.EqualError(t, err, "'data' is nil")
 
 	s.mock.MatchExpectationsInOrder(true)
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
-		WithArgs(
-			orgID,
-			testUUID,
-		).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deleted_at",
-			"org_id", "domain_uuid", "domain_name",
-			"title", "description", "type", "auto_enrollment_enabled",
-		}).AddRow(
-			data.Model.ID,
-			data.Model.CreatedAt,
-			data.Model.UpdatedAt,
-			nil,
-
-			data.OrgId,
-			testUUID,
-			*data.DomainName,
-			*data.Title,
-			*data.Description,
-			*data.Type,
-			*data.AutoEnrollmentEnabled,
-		))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at"`)).
-		WithArgs(
-			data.Model.ID,
-		).
-		WillReturnRows(
-			sqlmock.NewRows([]string{
-				"id", "created_at", "updated_at", "deleted_at",
-				"realm_name", "realm_names",
-			}).
-				RowError(0, gorm.ErrRecordNotFound))
-	err = s.repository.Update(s.DB, orgID, &data)
-	assert.EqualError(t, err, "record not found")
+	s.helperTestFindByID(2, data, s.mock, fmt.Errorf("record not found"))
+	err = s.repository.UpdateAgent(s.DB, orgID, data)
+	require.EqualError(t, err, "record not found")
 
 	s.mock.MatchExpectationsInOrder(true)
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
-		WithArgs(
-			orgID,
-			testUUID,
-		).
-		WillReturnRows(sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deleted_at",
-			"org_id", "domain_uuid", "domain_name",
-			"title", "description", "type", "auto_enrollment_enabled",
-		}).AddRow(
-			data.Model.ID,
-			data.Model.CreatedAt,
-			data.Model.UpdatedAt,
-			nil,
-
-			data.OrgId,
-			testUUID,
-			*data.DomainName,
-			*data.Title,
-			*data.Description,
-			*data.Type,
-			*data.AutoEnrollmentEnabled,
-		))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at"`)).
-		WithArgs(
-			data.Model.ID,
-		).
-		WillReturnRows(
-			sqlmock.NewRows([]string{
-				"id", "created_at", "updated_at", "deleted_at",
-				"realm_name", "realm_names",
-			}).
-				AddRow(
-					data.Model.ID,
-					data.Model.CreatedAt,
-					data.Model.UpdatedAt,
-					nil,
-
-					data.IpaDomain.RealmName,
-					data.IpaDomain.RealmDomains,
-				))
+	s.helperTestFindByID(5, data, s.mock, nil)
 	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
 		WithArgs(
 			sqlmock.AnyArg(),
@@ -385,21 +288,8 @@ func (s *Suite) TestUpdateErrors() {
 		).WillReturnResult(
 		driver.RowsAffected(1),
 	)
-	s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
-		WithArgs(
-			sqlmock.AnyArg(),
-			sqlmock.AnyArg(),
-			nil,
-
-			data.IpaDomain.RealmName,
-			data.IpaDomain.RealmDomains,
-
-			data.IpaDomain.ID,
-		).
-		WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow("1"),
-		)
-	err = s.repository.Update(s.DB, orgID, &data)
+	s.helperTestCreateIpaDomain(4, data.IpaDomain, s.mock, nil)
+	err = s.repository.UpdateAgent(s.DB, orgID, data)
 	require.NoError(t, err)
 }
 
@@ -518,6 +408,49 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 				expectQuery.WillReturnRows(
 					sqlmock.NewRows([]string{"id"}).
 						AddRow(data.IpaDomain.Locations[0].ID))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	if stage == 0 {
+		return
+	}
+	if stage < 0 {
+		panic("'stage' cannot be lower than 0")
+	}
+	if stage > 2 {
+		panic("'stage' cannot be greater than 3")
+	}
+
+	s.mock.MatchExpectationsInOrder(true)
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			if i == stage && expectedErr != nil {
+				s.helperTestFindByID(1, data, mock, expectedErr)
+			} else {
+				s.helperTestFindByID(5, data, mock, nil)
+			}
+		case 2: // Update
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
+				WithArgs(
+					data.AutoEnrollmentEnabled,
+					data.Description,
+					data.Title,
+
+					data.OrgId,
+					data.DomainUuid,
+					data.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(
+					driver.RowsAffected(1))
 			}
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
@@ -871,7 +804,7 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+			expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
 				WithArgs(
 					data.OrgId,
 					data.DomainUuid,
@@ -906,7 +839,7 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 					))
 			}
 		case 2:
-			expectedQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
+			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
 				WithArgs(1)
 			if i == stage && expectedErr != nil {
 				expectedQuery.WillReturnError(expectedErr)
@@ -926,7 +859,7 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 				))
 			}
 		case 3:
-			expectedQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."ipa_id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
+			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."ipa_id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
 				WithArgs(1)
 			if i == stage && expectedErr != nil {
 				expectedQuery.WillReturnError(expectedErr)
@@ -956,7 +889,7 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 						))
 			}
 		case 4:
-			expectedQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_locations" WHERE "ipa_locations"."ipa_id" = $1 AND "ipa_locations"."deleted_at" IS NULL`)).
+			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_locations" WHERE "ipa_locations"."ipa_id" = $1 AND "ipa_locations"."deleted_at" IS NULL`)).
 				WithArgs(1)
 			if i == stage && expectedErr != nil {
 				expectedQuery.WillReturnError(expectedErr)
@@ -964,6 +897,7 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 				expectedQuery.WillReturnRows(sqlmock.NewRows([]string{
 					"id", "created_at", "updated_at", "deletet_at",
 
+					"ipa_id",
 					"name", "description",
 				}).
 					AddRow(
@@ -972,12 +906,13 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 						data.IpaDomain.Locations[0].Model.UpdatedAt,
 						data.IpaDomain.Locations[0].Model.DeletedAt,
 
+						data.IpaDomain.Locations[0].IpaID,
 						data.IpaDomain.Locations[0].Name,
 						data.IpaDomain.Locations[0].Description,
 					))
 			}
 		case 5:
-			expectedQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."ipa_id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
+			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."ipa_id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
 				WithArgs(1)
 			if i == stage && expectedErr != nil {
 				expectedQuery.WillReturnError(expectedErr)
@@ -1155,6 +1090,85 @@ func (s *Suite) TestFindByID() {
 	assert.Equal(t, data.Type, domain.Type)
 }
 
+func (s *Suite) TestUpdateUser() {
+	var (
+		err error
+	)
+	t := s.Suite.T()
+	data := test.BuildDomainModel(test.OrgId)
+
+	type TestCaseGiven struct {
+		Stage  int
+		DB     *gorm.DB
+		Domain *model.Domain
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected error
+	}
+
+	testCases := []TestCase{
+		{
+			Name: "Wrong arguments: db is nil",
+			Given: TestCaseGiven{
+				Stage:  0,
+				DB:     nil,
+				Domain: nil,
+			},
+			Expected: fmt.Errorf("'db' is nil"),
+		},
+		{
+			Name: "database error at FindByID",
+			Given: TestCaseGiven{
+				Stage:  1,
+				DB:     s.DB,
+				Domain: data,
+			},
+			Expected: fmt.Errorf("database error at FindByID"),
+		},
+		{
+			Name: "database error at UPDATE INTO 'domains'",
+			Given: TestCaseGiven{
+				Stage:  2,
+				DB:     s.DB,
+				Domain: data,
+			},
+			Expected: fmt.Errorf("database error at UPDATE INTO 'domains'"),
+		},
+		{
+			Name: "successful scenario",
+			Given: TestCaseGiven{
+				Stage:  2,
+				DB:     s.DB,
+				Domain: data,
+			},
+			Expected: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+
+		// Prepare the db mock
+		s.helperTestUpdateUser(testCase.Given.Stage, data, s.mock, testCase.Expected)
+
+		// Run for error or success
+		if testCase.Given.Domain != nil {
+			err = s.repository.UpdateUser(testCase.Given.DB, test.OrgId, testCase.Given.Domain)
+		} else {
+			err = s.repository.UpdateUser(testCase.Given.DB, "", nil)
+		}
+
+		// Check expectations for error and success scenario
+		if testCase.Expected != nil {
+			assert.Error(t, err, testCase.Expected.Error())
+		} else {
+			assert.NoError(t, err)
+		}
+	}
+}
+
 // ---------------- Test for private methods ---------------------
 
 func (s *Suite) TestCheckCommon() {
@@ -1209,16 +1223,15 @@ func (s *Suite) TestCheckCommonAndDataAndType() {
 	t := s.T()
 	r := &domainRepository{}
 
-	err := r.checkCommonAndData(nil, "", nil)
+	err := r.checkCommonAndDataAndType(nil, "", nil)
 	assert.EqualError(t, err, "'db' is nil")
 
-	err = r.checkCommonAndData(s.DB, "", nil)
-	assert.EqualError(t, err, "'orgID' is empty")
+	err = r.checkCommonAndDataAndType(s.DB, "12345", &model.Domain{})
+	assert.EqualError(t, err, "'Type' is nil")
 
-	err = r.checkCommonAndData(s.DB, "12345", nil)
-	assert.EqualError(t, err, "'data' is nil")
-
-	err = r.checkCommonAndData(s.DB, "12345", &model.Domain{})
+	err = r.checkCommonAndDataAndType(s.DB, "12345", &model.Domain{
+		Type: pointy.Uint(model.DomainTypeIpa),
+	})
 	assert.NoError(t, err)
 }
 
@@ -1240,6 +1253,56 @@ func (s *Suite) TestCreateDomainToken() {
 		token.TokenDomainId(token.DomainRegistrationToken(drt.DomainToken)),
 	)
 	assert.Greater(t, drt.ExpirationNS, uint64(time.Now().Nanosecond()))
+}
+
+func (s *Suite) TestPrepareUpdateUser() {
+	var (
+		value *string
+		flag  *bool
+		ok    bool
+		v     interface{}
+	)
+	t := s.T()
+	r := &domainRepository{}
+	assert.Panics(t, func() {
+		r.prepareUpdateUser(nil)
+	})
+
+	// title
+	fields := r.prepareUpdateUser(&model.Domain{
+		Title: pointy.String("My Domain Title"),
+	})
+	assert.Equal(t, 1, len(fields))
+	v, ok = fields["title"]
+	require.True(t, ok)
+	require.NotNil(t, v)
+	value, ok = v.(*string)
+	require.True(t, ok)
+	assert.Equal(t, "My Domain Title", *value)
+
+	// description
+	fields = r.prepareUpdateUser(&model.Domain{
+		Description: pointy.String("My Domain Description"),
+	})
+	assert.Equal(t, 1, len(fields))
+	v, ok = fields["description"]
+	require.True(t, ok)
+	require.NotNil(t, v)
+	value, ok = v.(*string)
+	require.True(t, ok)
+	assert.Equal(t, "My Domain Description", *value)
+
+	// auto_enrollment_enabled
+	fields = r.prepareUpdateUser(&model.Domain{
+		AutoEnrollmentEnabled: pointy.Bool(true),
+	})
+	assert.Equal(t, 1, len(fields))
+	v, ok = fields["auto_enrollment_enabled"]
+	require.True(t, ok)
+	require.NotNil(t, v)
+	flag, ok = v.(*bool)
+	require.True(t, ok)
+	assert.Equal(t, true, *flag)
 }
 
 func TestSuite(t *testing.T) {

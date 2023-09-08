@@ -148,6 +148,20 @@ func (_m *DomainRepository) UpdateAgent(db *gorm.DB, orgID string, data *model.D
 	return r0
 }
 
+// UpdateUser provides a mock function with given fields: db, orgID, data
+func (_m *DomainRepository) UpdateUser(db *gorm.DB, orgID string, data *model.Domain) error {
+	ret := _m.Called(db, orgID, data)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain) error); ok {
+		r0 = rf(db, orgID, data)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // NewDomainRepository creates a new instance of DomainRepository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewDomainRepository(t interface {

@@ -16,6 +16,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
+	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -498,6 +499,13 @@ func TestUpdateAgent(t *testing.T) {
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
+	// Get an error with nil param
+	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, nil, &testBody)
+	assert.EqualError(t, err, "'params' is nil")
+	assert.Equal(t, "", orgID)
+	assert.Nil(t, xrhidmVersion)
+	assert.Nil(t, domain)
+
 	// Error retrieving ipa-hcc version information
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, &testBadParams, &testBody)
 	assert.EqualError(t, err, "'X-Rh-Idm-Version' is invalid")
@@ -661,6 +669,45 @@ func TestCommonRegisterUpdate(t *testing.T) {
 	domain, err = i.commonRegisterUpdate(testOrgID, testID, &testBody)
 	assert.NoError(t, err)
 	assert.NotNil(t, domain)
+}
+
+func TestCommonRegisterUpdateUser(t *testing.T) {
+	testOrgID := test.OrgId
+	testUUID := test.DomainUUID
+	testTitle := "My Example Domain Title"
+	testDescription := "My Example Domain Description"
+	testAutoEnrollment := pointy.Bool(true)
+	i := domainInteractor{}
+	assert.Panics(t, func() {
+		i.commonRegisterUpdateUser("", uuid.Nil, nil)
+	})
+
+	testBody := public.Domain{
+		AutoEnrollmentEnabled: testAutoEnrollment,
+		Title:                 pointy.String(testTitle),
+		Description:           pointy.String(testDescription),
+		DomainName:            "mydomain.example",
+		DomainId:              &testUUID,
+		DomainType:            api_public.RhelIdm,
+		RhelIdm: &api_public.DomainIpa{
+			RealmName:    "mydomain.example",
+			RealmDomains: []string{"mydomain.example"},
+			CaCerts:      []api_public.Certificate{},
+			Servers:      []api_public.DomainIpaServer{},
+		},
+	}
+
+	domain := i.commonRegisterUpdateUser(testOrgID, testUUID, &testBody)
+	assert.NotNil(t, domain)
+	assert.Nil(t, domain.DomainName)
+	assert.Nil(t, domain.IpaDomain)
+	assert.Nil(t, domain.Type)
+	assert.Equal(t, testOrgID, domain.OrgId)
+	assert.Equal(t, testUUID, domain.DomainUuid)
+	require.NotNil(t, domain.Title)
+	require.NotNil(t, domain.Description)
+	assert.Equal(t, testTitle, *domain.Title)
+	assert.Equal(t, testDescription, *domain.Description)
 }
 
 func TestGetByID(t *testing.T) {
@@ -888,4 +935,42 @@ func TestCreateDomainToken(t *testing.T) {
 			assert.NoError(t, err)
 		}
 	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	const (
+		testOrgID = "12345"
+	)
+	var (
+		xrhidUser = test.UserXRHID
+		testID    = test.DomainUUID
+		testBody  = &api_public.Domain{
+			DomainId:              &testID,
+			DomainName:            test.DomainName,
+			Title:                 pointy.String("My Example Domain"),
+			Description:           pointy.String("My Long Example Domain Description"),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			DomainType:            "",
+			RhelIdm:               nil,
+		}
+		testParams = &api_public.UpdateDomainUserParams{
+			XRhInsightsRequestId: pointy.String("TestUpdateUser"),
+		}
+	)
+
+	// 'xrhid' is nil
+	i := NewDomainInteractor()
+	orgID, domain, err := i.UpdateUser(nil, testID, testParams, testBody)
+	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.Equal(t, "", orgID)
+	assert.Nil(t, domain)
+
+	// 'params' is nil
+	orgID, domain, err = i.UpdateUser(&xrhidUser, testID, nil, testBody)
+	assert.EqualError(t, err, "'params' is nil")
+	assert.Equal(t, "", orgID)
+	assert.Nil(t, domain)
+
+	//
+	orgID, domain, err = i.UpdateUser(&xrhidUser, testID, testParams, testBody)
 }

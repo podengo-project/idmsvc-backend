@@ -1,6 +1,0 @@
-{
-  "title": "Human readable title",
-  "description": "My human friendly description",
-  "auto_enrollment_enabled": true,
-  "domain_type": "rhel-idm"
-}
