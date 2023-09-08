@@ -45,7 +45,10 @@ $(BIN)/%: cmd/%/main.go $(BIN)
 .PHONY: clean
 clean: ## Clean binaries and testbin generated
 	@[ ! -e "$(BIN)" ] || for item in cmd/*; do rm -vf "$(BIN)/$${item##cmd/}"; done
-#	@[ ! -e testbin ] || rm -rf testbin
+
+.PHONY: cleanall
+cleanall: ## Clean and remove all binaries
+	rm -rf $(BIN)
 
 .PHONY: run
 run: build ## Run the api & kafka consumer locally
@@ -58,6 +61,13 @@ tidy:
 .PHONY: get-deps
 get-deps: ## Download golang dependencies
 	go get -d ./...
+
+.PHONY: update-deps
+update-deps: ## Update all golang dependencies
+	go get -u -t ./...
+	@# kin-openapi 0.119.0 requires Golang 1.20
+	go get github.com/getkin/kin-openapi@v0.118.0
+	$(MAKE) tidy
 
 .PHONY: vet
 vet:  ## Run go vet ignoring /vendor directory
