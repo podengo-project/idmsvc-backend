@@ -308,7 +308,7 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 		return err
 	}
 
-	if err = a.domain.repository.Update(tx, orgID, currentData); err != nil {
+	if err = a.domain.repository.UpdateAgent(tx, orgID, currentData); err != nil {
 		return err
 	}
 	if err = tx.Commit().Error; err != nil {
@@ -322,7 +322,7 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 	return ctx.JSON(http.StatusOK, *output)
 }
 
-// UpdateDomain (PATCH /domains/{uuid}) update the
+// UpdateDomainUser (PATCH /domains/{uuid}) update the
 // IPA domain information into the database. Only update
 // information that belong to the current organization stored
 // into the X-Rh-Identity header, and the host associated to the
@@ -369,11 +369,11 @@ func (a *application) UpdateDomainUser(ctx echo.Context, domain_id uuid.UUID, pa
 		return err
 	}
 
-	if err = a.fillDomain(currentData, data); err != nil {
+	if err = a.fillDomainUser(currentData, data); err != nil {
 		return err
 	}
 
-	if err = a.domain.repository.Update(tx, orgID, currentData); err != nil {
+	if err = a.domain.repository.UpdateUser(tx, orgID, data); err != nil {
 		return err
 	}
 	if err = tx.Commit().Error; err != nil {

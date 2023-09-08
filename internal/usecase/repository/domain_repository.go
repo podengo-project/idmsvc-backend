@@ -122,9 +122,9 @@ func (r *domainRepository) Register(
 // 	return *data, nil
 // }
 
-// Update save the Domain record into the database. It only update
+// UpdateAgent save the Domain record into the database. It only update
 // data for the current organization.
-func (r *domainRepository) Update(
+func (r *domainRepository) UpdateAgent(
 	db *gorm.DB,
 	orgID string,
 	data *model.Domain,
@@ -187,6 +187,60 @@ func (r *domainRepository) Update(
 	}
 }
 
+// prepareUpdateUser fill the hashmap with the not nil
+// fields that we need to update into the database. It
+// only consider the fields that a user can update.
+// data is the partial fields to be updated.
+// Return a hashmap with the values of the fields.
+func (r *domainRepository) prepareUpdateUser(data *model.Domain) map[string]interface{} {
+	res := make(map[string]interface{}, 3)
+	if data.Title != nil {
+		res["title"] = data.Title
+	}
+	if data.Description != nil {
+		res["description"] = data.Description
+	}
+	if data.AutoEnrollmentEnabled != nil {
+		res["auto_enrollment_enabled"] = data.AutoEnrollmentEnabled
+	}
+	return res
+}
+
+// UpdateUser save the Domain record, but only the provided
+// information for the user update.
+// data for the current organization.
+func (r *domainRepository) UpdateUser(
+	db *gorm.DB,
+	orgID string,
+	data *model.Domain,
+) (err error) {
+	var currentDomain *model.Domain
+	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+		return err
+	}
+
+	// Check the entity exists
+	if currentDomain, err = r.FindByID(
+		db,
+		orgID,
+		data.DomainUuid,
+	); err != nil {
+		return err
+	}
+
+	fields := r.prepareUpdateUser(data)
+
+	if err = db.Omit(clause.Associations).
+		Model(data).
+		Where("org_id = ? AND domain_uuid = ?", orgID, currentDomain.DomainUuid).
+		Updates(fields).
+		Error; err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // FindByID retrieve the model.Domain specified by its uuid that
 // belongs to the specified organization.
 // db is the gorm database connector.
@@ -205,8 +259,9 @@ func (r *domainRepository) FindByID(
 	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
 		return nil, err
 	}
+	output = &model.Domain{}
 	if err = db.Model(&model.Domain{}).
-		First(&output, "org_id = ? AND domain_uuid = ?", orgID, UUID).
+		First(output, "org_id = ? AND domain_uuid = ?", orgID, UUID).
 		Error; err != nil {
 		return nil, err
 	}

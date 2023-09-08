@@ -24,7 +24,9 @@ type enforceRoute struct {
 var userEnforceRoutes = []enforceRoute{
 	{"POST", "/api/idmsvc/v1/domains/token"},
 	{"GET", "/api/idmsvc/v1/domains/:uuid"},
+	{"GET", "/api/idmsvc/v1/domains"},
 	{"PATCH", "/api/idmsvc/v1/domains/:uuid"},
+	{"DELETE", "/api/idmsvc/v1/domains/:uuid"},
 }
 
 var systemEnforceRoutes = []enforceRoute{

@@ -9,5 +9,4 @@ type IpaLocation struct {
 	IpaID       uint
 	Name        string
 	Description *string
-	Ipa         Ipa `gorm:"foreignKey:ID;references:IpaID"`
 }

@@ -14,6 +14,4 @@ type IpaServer struct {
 	HCCEnrollmentServer bool
 	HCCUpdateServer     bool
 	PKInitServer        bool
-
-	Ipa Ipa `gorm:"foreignKey:ID;references:IpaID"`
 }

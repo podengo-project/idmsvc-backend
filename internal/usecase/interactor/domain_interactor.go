@@ -142,14 +142,14 @@ func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDoma
 // nil for the Ipa data, and an error filled.
 func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
-		domain_id uuid.UUID
-		domain    *model.Domain
-		err       error
+		domainID uuid.UUID
+		domain   *model.Domain
+		err      error
 	)
 	if err = i.guardRegister(xrhid, params, body); err != nil {
 		return "", nil, nil, err
 	}
-	orgId := xrhid.Identity.OrgID
+	orgID := xrhid.Identity.OrgID
 
 	// Retrieve the ipa-hcc version information
 	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
@@ -158,10 +158,10 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	}
 
 	// verify token
-	if domain_id, err = token.VerifyDomainRegistrationToken(
+	if domainID, err = token.VerifyDomainRegistrationToken(
 		domainRegKey,
 		string(body.DomainType),
-		orgId,
+		orgID,
 		token.DomainRegistrationToken(params.XRhIdmRegistrationToken),
 	); err != nil {
 		msg := fmt.Sprintf("Domain registration token is invalid: %s", err)
@@ -169,7 +169,7 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	}
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgId, domain_id, body); err != nil {
+	if domain, err = i.commonRegisterUpdate(orgID, domainID, body); err != nil {
 		return "", nil, nil, err
 	}
 
@@ -180,7 +180,7 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	// new domains are enabled by default
 	domain.AutoEnrollmentEnabled = pointy.Bool(true)
 
-	return orgId, clientVersion, domain, nil
+	return orgID, clientVersion, domain, nil
 }
 
 // Update translates the API input format into the business
@@ -201,7 +201,7 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 	if params == nil {
 		return "", nil, nil, fmt.Errorf("'params' is nil")
 	}
-	orgId := xrhid.Identity.Internal.OrgID
+	orgID := xrhid.Identity.Internal.OrgID
 
 	// Retrieve the ipa-hcc version information
 	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
@@ -210,10 +210,10 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 	}
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgId, UUID, body); err != nil {
+	if domain, err = i.commonRegisterUpdate(orgID, UUID, body); err != nil {
 		return "", nil, nil, err
 	}
-	return orgId, clientVersion, domain, nil
+	return orgID, clientVersion, domain, nil
 }
 
 // Update translates the API input format into the business
@@ -234,13 +234,11 @@ func (i domainInteractor) UpdateUser(xrhid *identity.XRHID, UUID uuid.UUID, para
 	if params == nil {
 		return "", nil, fmt.Errorf("'params' is nil")
 	}
-	orgId := xrhid.Identity.Internal.OrgID
+	orgID := xrhid.Identity.Internal.OrgID
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgId, UUID, body); err != nil {
-		return "", nil, err
-	}
-	return orgId, domain, nil
+	domain = i.commonRegisterUpdateUser(orgID, UUID, body)
+	return orgID, domain, nil
 }
 
 // Create domain registration token /domains/token
@@ -255,7 +253,7 @@ func (i domainInteractor) CreateDomainToken(
 		return "", "", fmt.Errorf("'xrhid' is nil")
 	}
 	if xrhid.Identity.Type != "User" {
-		return "", "", fmt.Errorf("Invalid identity type '%s'.", xrhid.Identity.Type)
+		return "", "", fmt.Errorf("invalid identity type '%s'", xrhid.Identity.Type)
 	}
 	if params == nil {
 		return "", "", fmt.Errorf("'params' is nil")
@@ -408,4 +406,15 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, UUID uuid.UUID, bod
 		return nil, err
 	}
 	return domain, nil
+}
+
+func (i domainInteractor) commonRegisterUpdateUser(orgID string, UUID uuid.UUID, body *public.Domain) (domain *model.Domain) {
+	// Only copy the necessary information for the associated handler
+	domain = &model.Domain{}
+	domain.OrgId = orgID
+	domain.DomainUuid = UUID
+	domain.Title = body.Title
+	domain.Description = body.Description
+	domain.AutoEnrollmentEnabled = body.AutoEnrollmentEnabled
+	return domain
 }

@@ -16,6 +16,4 @@ type IpaCert struct {
 	Pem          string
 	SerialNumber string
 	Subject      string
-
-	Ipa Ipa `gorm:"foreignKey:ID;references:IpaID"`
 }

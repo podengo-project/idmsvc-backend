@@ -67,7 +67,7 @@ func (a *application) isSubscriptionManagerIDAuthorizedToUpdate(
 	return fmt.Errorf("'subscriptionManagerID' not found into the authorized list of rhel-idm servers")
 }
 
-// fillIpaDomain is a helper function to copy Ipa domain
+// fillDomain is a helper function to copy Ipa domain
 // data between structures, to be used at register IPA domain endpoint.
 // target is the destination Ipa structure, it cannot be nil.
 // source is the source Ipa structure, it cannot be nil.
@@ -112,6 +112,33 @@ func (a *application) fillDomain(
 	default:
 		return fmt.Errorf("'model.DomainTypeIpa' ")
 	}
+}
+
+// fillDomainUser is a helper function to copy domain
+// data between structures when patching the domain information.
+// target is the destination Ipa structure, it cannot be nil.
+// source is the source Ipa structure, it cannot be nil.
+// Return nil if it is copied succesfully, else an error.
+func (a *application) fillDomainUser(
+	target *model.Domain,
+	source *model.Domain,
+) error {
+	if source == nil {
+		return fmt.Errorf("'target' cannot be nil")
+	}
+	if target == nil {
+		return fmt.Errorf("'source' cannot be nil")
+	}
+	if source.AutoEnrollmentEnabled != nil {
+		target.AutoEnrollmentEnabled = pointy.Bool(*source.AutoEnrollmentEnabled)
+	}
+	if source.Title != nil {
+		target.Title = pointy.String(*source.Title)
+	}
+	if source.Description != nil {
+		target.Description = pointy.String(*source.Description)
+	}
+	return nil
 }
 
 func (a *application) fillDomainIpa(target *model.Ipa, source *model.Ipa) error {

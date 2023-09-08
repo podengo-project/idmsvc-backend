@@ -40,7 +40,7 @@ type Domain struct {
 	Description           *string
 	Type                  *uint
 	AutoEnrollmentEnabled *bool
-	IpaDomain             *Ipa `gorm:"foreignKey:id"`
+	IpaDomain             *Ipa `gorm:"foreignKey:ID"`
 }
 
 func DomainTypeString(data uint) string {
@@ -86,7 +86,7 @@ func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-// Helper method to fill and preload a domain object based
+// FillAndPreload is a helper method to fill and preload a domain object based
 // TODO: use "AfterFind" hook instead?
 func (d *Domain) FillAndPreload(db *gorm.DB) (err error) {
 	if d.Type == nil {
@@ -95,7 +95,7 @@ func (d *Domain) FillAndPreload(db *gorm.DB) (err error) {
 	switch *d.Type {
 	case DomainTypeIpa:
 		d.IpaDomain = &Ipa{}
-		if err := db.
+		if err := db.Debug().
 			Model(&Ipa{}).
 			Preload("CaCerts").
 			Preload("Servers").
@@ -103,6 +103,9 @@ func (d *Domain) FillAndPreload(db *gorm.DB) (err error) {
 			First(d.IpaDomain, "id = ?", d.ID).
 			Error; err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
+				// FIXME Something different to do here?
+				return err
+			} else {
 				return err
 			}
 		}
