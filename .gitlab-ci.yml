@@ -18,12 +18,8 @@ check missed commits:
     - python3 -m venv .venv
     - .venv/bin/pip install yamllint
   script:
-    - make install-oapi-codegen
-    - make install-mockery
-    # - make install-golangci-lint
-    # - make install-gojsonschema
-    # - make install-goda
-    - make install-yq
+    # Check install go tools
+    - make install-go-tools
 
     # - echo "Checking missed 'make tidy'"
     # - make tidy && git diff --exit-code go.mod go.sum

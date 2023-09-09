@@ -10,8 +10,10 @@ else
 MOD_VENDOR ?= -mod vendor
 endif
 
+# FIXME Deprecated - this will be removed in the future
 .PHONY: install-tools
 install-tools: ## Install tools used to build, test and lint
+	echo "WARNING:Deprecated rule; use 'install-go-tools' instead"
 	$(MAKE) install-oapi-codegen
 	$(MAKE) install-mockery
 	$(MAKE) install-golangci-lint
@@ -21,6 +23,15 @@ install-tools: ## Install tools used to build, test and lint
 	$(MAKE) install-planter
 	$(MAKE) install-xrhidgen
 	$(MAKE) install-python-tools
+
+.PHONY: install-go-tools
+install-go-tools: ## Install go tools required by the repository
+	cd tools && \
+		for tool in $(shell grep _ tools/tools.go | cut -d_ -f2); do \
+			env GOBIN="$(shell git rev-parse --show-toplevel)/bin" \
+			go install $$tool; \
+		done
+
 
 .PHONY: build-all
 build-all: ## Generate code and build binaries
