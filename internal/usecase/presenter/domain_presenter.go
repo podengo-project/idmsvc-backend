@@ -42,6 +42,9 @@ func (p *domainPresenter) List(prefix string, count int64, offset int, limit int
 	if limit < 0 {
 		return nil, fmt.Errorf("'limit' is lower than 0")
 	}
+	if offset >= int(count) && count != 0 {
+		return nil, fmt.Errorf("'offset' is higher or equal to 'count'")
+	}
 	if limit == 0 {
 		limit = p.cfg.Application.PaginationDefaultLimit
 	}

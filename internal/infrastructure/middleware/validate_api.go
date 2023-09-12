@@ -52,6 +52,7 @@ func InitOpenAPIFormats() {
 		return checkFormatRealmDomains(value)
 	})
 	openapi3.DefineStringFormat("ipa-server-location", `^[a-zA-Z0-9\s]+$`)
+	openapi3.DefineStringFormat("pagination-ref", `^(\/\w+){4}\?(offset|limit)=(0|[1-9]\d*)\&(offset|limit)=(0|[1-9]\d*)$`)
 }
 
 func helperCheckRegEx(regex string, fieldName string, fieldValue string) error {

@@ -228,18 +228,22 @@ func (p *domainPresenter) listFillLinks(output *public.ListDomainsResponse, pref
 	firstOffset := 0
 	prevOffset := currentOffset - limit
 	nextOffset := currentOffset + limit
-	lastOffset := ((int(count)+limit-1)/limit)*limit - limit
-	if firstOffset > prevOffset {
+	lastOffset := (int(count-1) / limit) * limit
+	if currentOffset == firstOffset {
 		prevOffset = firstOffset
 	}
-	if nextOffset > lastOffset {
+	if currentOffset == lastOffset {
 		nextOffset = lastOffset
 	}
 
 	// Build the link
 	output.Links.First = pointy.String(p.buildPaginationLink(prefix, firstOffset, limit))
-	output.Links.Previous = pointy.String(p.buildPaginationLink(prefix, prevOffset, limit))
-	output.Links.Next = pointy.String(p.buildPaginationLink(prefix, nextOffset, limit))
+	if firstOffset != currentOffset {
+		output.Links.Previous = pointy.String(p.buildPaginationLink(prefix, prevOffset, limit))
+	}
+	if lastOffset != currentOffset {
+		output.Links.Next = pointy.String(p.buildPaginationLink(prefix, nextOffset, limit))
+	}
 	output.Links.Last = pointy.String(p.buildPaginationLink(prefix, lastOffset, limit))
 }
 
