@@ -10,28 +10,11 @@ else
 MOD_VENDOR ?= -mod vendor
 endif
 
-# FIXME Deprecated - this will be removed in the future
-.PHONY: install-tools
-install-tools: ## Install tools used to build, test and lint
-	echo "WARNING:Deprecated rule; use 'install-go-tools' instead"
-	$(MAKE) install-oapi-codegen
-	$(MAKE) install-mockery
-	$(MAKE) install-golangci-lint
-	$(MAKE) install-gojsonschema
-	$(MAKE) install-goda
-	$(MAKE) install-yq
-	$(MAKE) install-planter
-	$(MAKE) install-xrhidgen
-	$(MAKE) install-python-tools
-
 .PHONY: install-go-tools
-install-go-tools: ## Install go tools required by the repository
-	cd tools && \
-		for tool in $(shell grep _ tools/tools.go | cut -d_ -f2); do \
-			env GOBIN="$(shell git rev-parse --show-toplevel)/bin" \
-			go install $$tool; \
-		done
+install-go-tools: $(TOOLS) ## Install Go tools
 
+.PHONY: install-tools
+install-tools: install-go-tools install-python-tools ## Install tools used to build, test and lint
 
 .PHONY: build-all
 build-all: ## Generate code and build binaries
@@ -45,7 +28,7 @@ build-all: ## Generate code and build binaries
 .PHONY: build
 build: $(patsubst cmd/%,$(BIN)/%,$(wildcard cmd/*)) ## Build binaries
 
-$(BIN):
+$(BIN) $(TOOLS_BIN):
 	mkdir -p $@
 
 # export CGO_ENABLED
@@ -53,13 +36,20 @@ $(BIN):
 $(BIN)/%: cmd/%/main.go $(BIN)
 	go build $(MOD_VENDOR) -o "$@" "$<"
 
+# oapi-codegen is installed from global go.mod to keep it in sync with backend code
+$(OAPI_CODEGEN): go.mod go.sum $(BIN)
+	go build -modfile "$<" -o "$@" "github.com/deepmap/oapi-codegen/cmd/oapi-codegen"
+
+$(TOOLS_BIN)/%: $(TOOLS_DEPS)
+	go build -modfile "$<" -o "$@" $(shell grep $(notdir $@) tools/tools.go | awk '{print $$2}')
+
 .PHONY: clean
 clean: ## Clean binaries and testbin generated
 	@[ ! -e "$(BIN)" ] || for item in cmd/*; do rm -vf "$(BIN)/$${item##cmd/}"; done
 
 .PHONY: cleanall
 cleanall: ## Clean and remove all binaries
-	rm -rf $(BIN)
+	rm -rf $(BIN) $(TOOLS_BIN)
 
 .PHONY: run
 run: build ## Run the api & kafka consumer locally

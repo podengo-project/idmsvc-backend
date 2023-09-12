@@ -23,6 +23,31 @@ LOAD_DB_CFG_WITH_YQ := y
 endif
 endif
 
+# Tools and their dependencies
+# Build dependencies
+TOOLS_BIN := tools/bin
+
+GODA := $(TOOLS_BIN)/goda
+GOJSONSCHEMA := $(TOOLS_BIN)/gojsonschema
+GOLANGCI_LINT := $(TOOLS_BIN)/golangci-lint
+MOCKERY := $(TOOLS_BIN)/mockery
+OAPI_CODEGEN := $(TOOLS_BIN)/oapi-codegen
+PLANTER := $(TOOLS_BIN)/planter
+XRHIDGEN := $(TOOLS_BIN)/xrhidgen
+YQ := $(TOOLS_BIN)/yq
+
+TOOLS := \
+	$(GODA) \
+	$(GOJSONSCHEMA) \
+	$(GOLANGCI_LINT) \
+	$(MOCKERY) \
+	$(OAPI_CODEGEN) \
+	$(PLANTER) \
+	$(XRHIDGEN) \
+	$(YQ)
+
+TOOLS_DEPS := tools/go.mod tools/go.sum tools/tools.go $(TOOLS_BIN)
+
 #
 # Kafka configuration variables
 #

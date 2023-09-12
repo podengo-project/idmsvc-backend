@@ -3,7 +3,8 @@
 secrets
 /idm-ci-secrets
 .venv
-bin
+/bin
+/tools/bin
 tmp.*/**
 **/__debug_bin
 

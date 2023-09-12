@@ -23,7 +23,7 @@ HEADER_X_RH_IDM_RHELIDM_REGISTER_TOKEN = "X-Rh-Idm-RhelIdm-Register-Token"
 DEFAULT_ORG_ID = "12345"
 
 class xrhidgen:
-    """Wrapper to call ./bin/xrhidgen binary and get a x-rh-identity header"""
+    """Wrapper to call ./tools/bin/xrhidgen binary and get a x-rh-identity header"""
     def __init__(self,
                  *extra_args,
                  org_id=DEFAULT_ORG_ID,
@@ -41,7 +41,7 @@ class xrhidgen:
     def __call__(self, *args):
         if self.xrhidgen_type is None:
             sys.exit("'xrhidgen_type' is not set for 'xrhidgen'")
-        options = ["./bin/xrhidgen"]
+        options = ["./tools/bin/xrhidgen"]
         if self.org_id is not None:
             options.extend(['-org-id', self.org_id])
         if self.account_number is not None:
@@ -53,7 +53,7 @@ class xrhidgen:
         if self.xrhidgen_type is None or self.xrhidgen_type == '':
             sys.exit("'xrhidgen_type' is None")
         options.append(self.xrhidgen_type)
-        # ./bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system
+        # ./tools/bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system
         options.extend(self.extra_args)
         options.extend(args)
         output = subprocess.check_output(options)

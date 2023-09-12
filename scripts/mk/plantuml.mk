@@ -29,12 +29,6 @@ endif
 generate-db-model: $(PLANTER)
 	$(PLANTER) postgres://$(DATABASE_USER):$(DATABASE_PASSWORD)@$(DATABASE_HOST)/$(DATABASE_NAME)?sslmode=disable -o $@
 
-.PHONY: install-planter
-install-planter: $(PLANTER)
-
-$(PLANTER): $(BIN)
-	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/achiku/planter@latest"
-
 # General rule to generate a diagram in SVG format for
 # each .puml file found at docs/ directory
 docs/%.svg: docs/%.puml
