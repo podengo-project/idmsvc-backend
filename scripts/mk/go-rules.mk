@@ -57,7 +57,7 @@ cleanall: ## Clean and remove all binaries
 	rm -rf $(BIN) $(TOOLS_BIN)
 
 .PHONY: run
-run: build ## Run the api & kafka consumer locally
+run: $(BIN)/service .compose-wait-db ## Run the api & kafka consumer locally
 	"$(BIN)/service"
 
 .PHONY: tidy
