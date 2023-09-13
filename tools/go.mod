@@ -3,7 +3,7 @@ module github.com/podengo-project/idm-domains-backend/tools
 go 1.19
 
 require (
-	github.com/achiku/planter v0.0.0-20181005122628-2f3a67db9cb0
+	github.com/achiku/planter v0.0.0-20230118102009-4847a8211e35
 	github.com/atombender/go-jsonschema v0.12.1
 	github.com/loov/goda v0.5.7
 	github.com/mikefarah/yq/v4 v4.34.2
@@ -13,8 +13,9 @@ require (
 
 require (
 	github.com/a8m/envsubst v1.4.2 // indirect
-	github.com/alecthomas/kingpin v1.3.7 // indirect
+	github.com/alecthomas/kingpin v2.2.6+incompatible // indirect
 	github.com/alecthomas/participle/v2 v2.0.0 // indirect
+	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/chigopher/pathlib v0.15.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
