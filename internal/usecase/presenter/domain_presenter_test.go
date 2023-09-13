@@ -384,7 +384,14 @@ func TestList(t *testing.T) {
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'limit' is lower than 0")
 
+	// Offset is higher or equal to count
+	limit = 10
+	output, err = p.List(prefix, count, offset, limit, nil)
+	assert.Nil(t, output)
+	assert.EqualError(t, err, "'offset' is higher or equal to 'count'")
+
 	// set default limit
+	offset = 0
 	limit = 0
 	output, err = p.List(prefix, count, offset, limit, nil)
 	assert.NotNil(t, output)
@@ -395,12 +402,10 @@ func TestList(t *testing.T) {
 
 	require.NotNil(t, output.Links.First)
 	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.First)
-	require.NotNil(t, output.Links.Previous)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Previous)
-	require.NotNil(t, output.Links.Next)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Previous)
+	assert.Nil(t, output.Links.Previous)
+	assert.Nil(t, output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Previous)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Last)
 
 	// set max limit  paginationMaxLimit
 	limit = p.cfg.Application.PaginationMaxLimit + 1
@@ -413,16 +418,14 @@ func TestList(t *testing.T) {
 
 	require.NotNil(t, output.Links.First)
 	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.First)
-	require.NotNil(t, output.Links.Previous)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Previous)
-	require.NotNil(t, output.Links.Next)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Previous)
+	assert.Nil(t, output.Links.Previous)
+	assert.Nil(t, output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Previous)
+	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Last)
 
 	// domain slice is nil return empty list
 	count = int64(0)
-	offset = 2
+	offset = 0
 	limit = 2
 	expected := public.ListDomainsResponseSchema{
 		Meta: public.PaginationMeta{
@@ -431,10 +434,8 @@ func TestList(t *testing.T) {
 			Limit:  limit,
 		},
 		Links: public.PaginationLinks{
-			First:    pointy.String(p.buildPaginationLink(prefix, 0, limit)),
-			Previous: pointy.String(p.buildPaginationLink(prefix, 0, limit)),
-			Next:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
-			Last:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			First: pointy.String(p.buildPaginationLink(prefix, offset, limit)),
+			Last:  pointy.String(p.buildPaginationLink(prefix, offset, limit)),
 		},
 		Data: []public.ListDomainsData{},
 	}
@@ -473,10 +474,8 @@ func TestList(t *testing.T) {
 			Limit:  limit,
 		},
 		Links: public.PaginationLinks{
-			First:    pointy.String(p.buildPaginationLink(prefix, 0, limit)),
-			Previous: pointy.String(p.buildPaginationLink(prefix, 0, limit)),
-			Next:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
-			Last:     pointy.String(p.buildPaginationLink(prefix, 0, limit)),
+			First: pointy.String(p.buildPaginationLink(prefix, offset, limit)),
+			Last:  pointy.String(p.buildPaginationLink(prefix, offset, limit)),
 		},
 		Data: []public.ListDomainsData{
 			{
