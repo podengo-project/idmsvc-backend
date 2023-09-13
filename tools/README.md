@@ -23,7 +23,7 @@ Upsides:
 
 Downsides:
 
-- Not detected yet.
+- Some tools do not support this approach, e.g. `golangci-lint`.
 
 ## Installing Go tools
 
@@ -33,7 +33,8 @@ tools manually with `make install-go-tools` or `make install-tools`.
 
 ## Adding a new tool
 
-- Add the dependency to `tools/go.mod` file.
+- Add the dependency to `tools/tools.go` file.
+- From the `tools/` director, run `go get "the-tool-url"`.
 - From the `tools/` directory, run `go mod tidy`.
 - Add a variable to `scripts/mk/variables.mk` and update the `TOOLS` variable.
   The binary name must match a substring of the Go import name.
@@ -43,6 +44,14 @@ tools manually with `make install-go-tools` or `make install-tools`.
 
 For a final check, remove all build artifacts with `make cleanall`, then run:
 `make install-go-tools build`
+
+## Special circumstances
+
+- `oapi-codegen` is installed with `go.mod` from project root directory to
+  ensure that the tool and the backend code always uses the same version of
+  `oapi-codegen`.
+- `golangci-lint` [does not support](https://golangci-lint.run/usage/install/#install-from-source)
+   the tools approach. Instead it is installed via `go install`.
 
 ## References
 

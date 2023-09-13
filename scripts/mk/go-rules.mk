@@ -40,6 +40,11 @@ $(BIN)/%: cmd/%/main.go $(BIN)
 $(OAPI_CODEGEN): go.mod go.sum $(BIN)
 	go build -modfile "$<" -o "$@" "github.com/deepmap/oapi-codegen/cmd/oapi-codegen"
 
+# golangci-lint is very picky when it comes to dependencies, install it directly
+# 1.53 is the latest version that supports Go 1.19
+$(GOLANGCI_LINT): $(BIN)
+	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53"
+
 $(TOOLS_BIN)/%: $(TOOLS_DEPS)
 	go build -modfile "$<" -o "$@" $(shell grep $(notdir $@) tools/tools.go | awk '{print $$2}')
 

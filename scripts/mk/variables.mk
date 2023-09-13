@@ -39,7 +39,7 @@ TOOLS := \
 	$(XRHIDGEN) \
 	$(YQ)
 
-TOOLS_DEPS := tools/go.mod tools/go.sum tools/tools.go $(TOOLS_BIN)
+TOOLS_DEPS := tools/go.mod tools/go.sum tools/tools.go | $(TOOLS_BIN)
 
 #
 # Kafka configuration variables
