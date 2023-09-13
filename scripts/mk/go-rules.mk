@@ -13,6 +13,10 @@ endif
 .PHONY: install-go-tools
 install-go-tools: $(TOOLS) ## Install Go tools
 
+# used by ipa-hcc backend test
+.PHONY: install-xrhidgen
+install-xrhidgen: $(XRHIDGEN) ## Install xrhidgen tool
+
 .PHONY: install-tools
 install-tools: install-go-tools install-python-tools ## Install tools used to build, test and lint
 
