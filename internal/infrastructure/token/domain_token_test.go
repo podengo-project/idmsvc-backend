@@ -82,4 +82,10 @@ func TestVerifyDomainRegistrationToken(t *testing.T) {
 	domainId, err = VerifyDomainRegistrationToken(key, domainType, otherOrgId, token)
 	assert.Error(t, err)
 	assert.Equal(t, domainId, uuid.Nil)
+
+	// generate another token with zero ttl, and check that validation fails.
+	token, expireNS, err = NewDomainRegistrationToken(key, domainType, orgId, 0)
+	assert.NoError(t, err)
+	domainId, err = VerifyDomainRegistrationToken(key, domainType, orgId, token)
+	assert.Error(t, err)
 }
