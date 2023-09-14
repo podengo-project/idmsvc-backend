@@ -3,9 +3,9 @@ import argparse
 import base64
 import random
 import string
-from random import randbytes
 import subprocess
 import sys
+import uuid
 import requests
 import json
 
@@ -16,9 +16,7 @@ HEADER_CONTENT_TYPE = "Content-Type"
 HEADER_X_RH_IDENTITY = "X-Rh-Identity"
 HEADER_X_RH_INSIGHTS_REQUEST_ID = "X-Rh-Insights-Request-Id"
 HEADER_X_RH_IDM_VERSION = "X-Rh-Idm-Version"
-# FIXME Diferent headers in request/response
 HEADER_X_RH_IDM_REGISTRATION_TOKEN = "X-Rh-Idm-Registration-Token"
-HEADER_X_RH_IDM_RHELIDM_REGISTER_TOKEN = "X-Rh-Idm-RhelIdm-Register-Token"
 
 DEFAULT_ORG_ID = "12345"
 
@@ -62,18 +60,27 @@ class xrhidgen:
     def __str__(self):
         return json.dumps(self.__call__())
 
-
-def get_register_data(domain_id, domain_name, subscription_manager_id):
-    """Return an example payload to register a domain"""
+def get_update_user_data(title, description, auto_enrollment=False):
+    """Return an example payload to update user information"""
     title = f"Domain {domain_name}".replace(".", " ")
     description = f"Description Domain {domain_name}".replace(".", " ")
+    auto_enrollment_enabled = bool(random.getrandbits(1))
     data = {
-        "domain_id": domain_id,
         "title": title,
         "description": description,
         "domain_type": "rhel-idm",
+        "auto_enrollment_enabled": auto_enrollment_enabled,
+    }
+    return data
+
+def get_register_data(token, org_id, domain_name, subscription_manager_id):
+    """Return an example payload to register a domain"""
+    title = f"Domain {domain_name}".replace(".", " ")
+    description = f"Description Domain {domain_name}".replace(".", " ")
+    auto_enrollment_enabled = bool(random.getrandbits(1))
+    data = {
+        "domain_type": "rhel-idm",
         "domain_name": domain_name,
-        "auto_enrollment_enabled": True,
         "rhel-idm": {
             "realm_name": domain_name.upper(),
             "servers": [
@@ -122,20 +129,25 @@ def get_register_data(domain_id, domain_name, subscription_manager_id):
     }
     return data
 
-
-def get_create_stub_data(domain_name, domain_type):
-    """Return an example payload to create a domain stub"""
+def create_token_data(domain_type: string):
     data = {
-        "title": "Domain " + domain_name,
-        "description": "Description Domain " + domain_name,
         "domain_type": domain_type,
-        "auto_enrollment_enabled": True,
     }
     return data
 
-def get_token(tokenb64):
-    data = json.loads(base64.b64decode(tokenb64))
-    return data["secret"]
+def create_token(org_id: string, domain_type: string):
+    """Return a token to be used for creating a domain"""
+    response = requests.post(
+        base_url + "/domains/token",
+        headers=({
+            HEADER_X_RH_INSIGHTS_REQUEST_ID: generate_request_id(),
+            HEADER_X_RH_IDENTITY: b64_identity_user,
+            HEADER_CONTENT_TYPE: CONTENT_TYPE,
+        }),
+        data=json.dumps(create_token_data(domain_type=domain_type)))
+    response.raise_for_status()
+    response = json.loads(response.text)
+    return response
 
 def generate_request_id():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=32))
@@ -160,7 +172,7 @@ if __name__ == "__main__":
         "-user-id", "test",
         "-username", "test",
         org_id=org_id, xrhidgen_type='user')
-    xrhidgen_system = xrhidgen("-cn", "6f324116-b3d2-11ed-8a37-482Completed", "--cert-type", "system", org_id=org_id, xrhidgen_type='system')
+    xrhidgen_system = xrhidgen("-cn", "6f324116-b3d2-11ed-8a37-482", "--cert-type", "system", org_id=org_id, xrhidgen_type='system')
     b64_identity_user = base64.b64encode(
         json.dumps(xrhidgen_user(),
                 sort_keys=True).
@@ -174,41 +186,41 @@ if __name__ == "__main__":
         "department1.myorg.test",
         "department2.myorg.test",
         "department3.myorg.test",
+        "department4.myorg.test",
+        "department5.myorg.test",
+        "department6.myorg.test",
+        "department7.myorg.test",
+        "department8.myorg.test",
+        "department9.myorg.test",
+        "department10.myorg.test",
+        "department11.myorg.test",
+        "department12.myorg.test",
+        "department13.myorg.test",
+        "department14.myorg.test",
+        "department15.myorg.test",
+        "department16.myorg.test",
+        "department17.myorg.test",
     )
 
     for domain_name in domain_list:
-        data = get_create_stub_data(domain_name, "rhel-idm")
-        response = requests.post(
-            base_url + "/domains",
-            headers=({
-                HEADER_X_RH_INSIGHTS_REQUEST_ID: generate_request_id(),
-                HEADER_X_RH_IDENTITY: b64_identity_user,
-                HEADER_CONTENT_TYPE: CONTENT_TYPE,
-            }),
-            data=json.dumps(data))
-        if response.status_code >= 400:
-            sys.exit("stub:%d:%s" % (response.status_code, response.content))
-        token = get_token(response.headers["X-Rh-Idm-Rhelidm-Register-Token"])
+        token = create_token(org_id, "rhel-idm")
+        subscription_manager_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, domain_name))
+        data = get_register_data(token["domain_token"], org_id, domain_name, subscription_manager_id)
         ipa_hcc_version = json.dumps({
             "ipa-hcc":"0.7",
             "ipa":"4.10.0-8.el9_1",
             "os-release-id":"rhel",
             "os-release-version-id":"9.1"
         })
-        response = json.loads(response.content)
-
-        # Register the domain information
-        subscription_manager_id = "b0d5b30c-3765-11ee-804e-482ae3863d30"
-        data = get_register_data(response["domain_id"], domain_name, subscription_manager_id)
-        response = requests.put(
-            "%s/domains/%s/register" % (base_url, response["domain_id"]),
+        response = requests.post(
+            base_url + "/domains",
             headers=({
                 HEADER_X_RH_INSIGHTS_REQUEST_ID: generate_request_id(),
                 HEADER_X_RH_IDENTITY: b64_identity_system,
-                HEADER_X_RH_IDM_VERSION: ipa_hcc_version,
-                HEADER_X_RH_IDM_REGISTRATION_TOKEN: token,
                 HEADER_CONTENT_TYPE: CONTENT_TYPE,
+                HEADER_X_RH_IDM_REGISTRATION_TOKEN: token["domain_token"],
+                HEADER_X_RH_IDM_VERSION: ipa_hcc_version,
             }),
             data=json.dumps(data))
-        if response.status_code >= 400:
-            sys.exit("register:%d:%s" % (response.status_code, response.content))
+        response.raise_for_status()
+        response = json.loads(response.content)
