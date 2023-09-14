@@ -64,7 +64,7 @@ func VerifyDomainRegistrationToken(
 	if expireNS, err = parseDomainRegistrationToken(key, domainType, orgID, token); err != nil {
 		return uuid.Nil, err
 	}
-	var now uint64 = uint64(time.Now().Nanosecond())
+	var now uint64 = uint64(time.Now().UnixNano())
 	if now > expireNS {
 		return uuid.Nil, fmt.Errorf("Token has expired: %d > %d", now, expireNS)
 	}
