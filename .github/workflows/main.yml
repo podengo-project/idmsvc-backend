@@ -57,7 +57,10 @@ jobs:
           go run github.com/boumenot/gocover-cobertura < coverage.out > coverage.xml
           go tool cover -func ./coverage.out
 
-      # TODO upload coverage report as artifact
+      - name: Upload coverage report
+        uses: "actions/upload-artifact@v3"
+        with:
+          path: coverage.xml
 
       - name: Build executables
         run: make build
