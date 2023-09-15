@@ -9,3 +9,5 @@ rules:
   line-length: disable
   #  max: 120
   comments-indentation: disable
+  truthy:
+    check-keys: false
