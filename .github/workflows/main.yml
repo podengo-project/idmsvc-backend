@@ -1,0 +1,63 @@
+---
+name: Validate
+
+on:
+  - push
+  - pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: "ubuntu-latest"
+    container: golang:1.19
+    steps:
+      - uses: "actions/checkout@v4"
+        with:
+          submodules: recursive
+
+      - name: "Set git safe directory"
+        run: git config --system --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Install package dependencies
+        run: |
+          apt-get update
+          apt-get install -y python3-venv python3-pip
+          python3 -m venv .venv
+          .venv/bin/pip install yamllint
+
+      - name: Install golang tools
+        run: make install-go-tools
+
+      - name: Install service dependencies
+        run: go get ./...
+
+      - name: Checking missed 'make generate-api'
+        run: make generate-api && git diff --exit-code internal/api/public/
+
+      - name: Checking missed 'make generate-mock'
+        run: make generate-mock && git diff --exit-code internal/test/mock/
+
+      - name: Checking missed 'go fmt'
+        run: make go-fmt && git diff --exit-code .
+
+      - name: Checking yaml files
+        run: .venv/bin/python3 -m yamllint .
+
+      - name: Run go vet
+        run: go vet $(go list ./... | grep -v /vendor/)
+
+      - name: Run tests
+        run: make test
+
+      - name: Process coverage report
+        run: |
+          go get github.com/boumenot/gocover-cobertura
+          go run github.com/boumenot/gocover-cobertura < coverage.out > coverage.xml
+          go tool cover -func ./coverage.out
+
+      # TODO upload coverage report as artifact
+
+      - name: Build executables
+        run: make build
