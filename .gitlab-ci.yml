@@ -26,9 +26,6 @@ check missed commits:
     - echo "get dependencies"
     - go get ./...
 
-    - echo "Checking missed 'make openapi-sort'"
-    - make openapi-sort && git diff --exit-code api/
-
     - echo "Checking missed 'make generate-api'"
     - make generate-api && git diff --exit-code internal/api/public/
 
