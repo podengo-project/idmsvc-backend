@@ -6,11 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
@@ -71,12 +69,6 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 			}
 		}
 	}
-
-	model.SetDefaultTokenExpiration(
-		time.Duration(
-			cfg.Application.ExpirationTimeSeconds,
-		) * time.Second,
-	)
 
 	return result
 }

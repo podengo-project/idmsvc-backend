@@ -10,16 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-func TestDefaultTokenExpiration(t *testing.T) {
-	valueOld := DefaultTokenExpiration()
-	valueNew := valueOld + time.Hour*24
-	assert.Equal(t, valueOld, DefaultTokenExpiration())
-	SetDefaultTokenExpiration(valueNew)
-	assert.Equal(t, valueNew, DefaultTokenExpiration())
-	SetDefaultTokenExpiration(valueOld)
-	assert.Equal(t, valueOld, DefaultTokenExpiration())
-}
-
 func TestAfterCreate(t *testing.T) {
 	var (
 		entity *Ipa
