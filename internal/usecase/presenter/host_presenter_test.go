@@ -11,6 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
@@ -190,7 +191,7 @@ func TestHostConf(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		obj := &hostPresenter{cfg: &cfg}
+		obj := &hostPresenter{cfg: test.GetTestConfig()}
 		output, err := obj.HostConf(testCase.Given.Input)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)

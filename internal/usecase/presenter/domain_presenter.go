@@ -34,7 +34,7 @@ func NewDomainPresenter(cfg *config.Config) presenter.DomainPresenter {
 // offset is the starting point of the page for a given ordered list of domains.
 // count is the number of items on the current page.
 // data is the slice with the model.Domain
-func (p *domainPresenter) List(prefix string, count int64, offset int, limit int, data []model.Domain) (*public.ListDomainsResponse, error) {
+func (p *domainPresenter) List(count int64, offset int, limit int, data []model.Domain) (*public.ListDomainsResponse, error) {
 	// https://consoledot.pages.redhat.com/docs/dev/developer-references/rest/pagination.html
 	if offset < 0 {
 		return nil, fmt.Errorf("'offset' is lower than 0")
@@ -53,7 +53,7 @@ func (p *domainPresenter) List(prefix string, count int64, offset int, limit int
 	}
 	output := &public.ListDomainsResponse{}
 	p.listFillMeta(output, count, offset, limit)
-	p.listFillLinks(output, prefix, count, offset, limit)
+	p.listFillLinks(output, count, offset, limit)
 
 	sizeData := limit
 	if len(data) < limit {

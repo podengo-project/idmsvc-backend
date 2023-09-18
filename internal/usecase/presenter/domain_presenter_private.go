@@ -197,7 +197,7 @@ func (p *domainPresenter) sharedDomainFillRhelIdm(
 	return nil
 }
 
-func (p *domainPresenter) buildPaginationLink(prefix string, offset int, limit int) string {
+func (p *domainPresenter) buildPaginationLink(offset int, limit int) string {
 	if limit == 0 {
 		limit = p.cfg.Application.PaginationDefaultLimit
 	}
@@ -212,10 +212,10 @@ func (p *domainPresenter) buildPaginationLink(prefix string, offset int, limit i
 	q.Add("limit", strconv.FormatInt(int64(limit), 10))
 	q.Add("offset", strconv.FormatInt(int64(offset), 10))
 
-	return fmt.Sprintf("%s/domains?%s", prefix, q.Encode())
+	return fmt.Sprintf("%s/domains?%s", p.cfg.Application.PathPrefix, q.Encode())
 }
 
-func (p *domainPresenter) listFillLinks(output *public.ListDomainsResponse, prefix string, count int64, offset int, limit int) {
+func (p *domainPresenter) listFillLinks(output *public.ListDomainsResponse, count int64, offset int, limit int) {
 	if output == nil {
 		panic("'output' is nil")
 	}
@@ -237,14 +237,14 @@ func (p *domainPresenter) listFillLinks(output *public.ListDomainsResponse, pref
 	}
 
 	// Build the link
-	output.Links.First = pointy.String(p.buildPaginationLink(prefix, firstOffset, limit))
+	output.Links.First = pointy.String(p.buildPaginationLink(firstOffset, limit))
 	if firstOffset != currentOffset {
-		output.Links.Previous = pointy.String(p.buildPaginationLink(prefix, prevOffset, limit))
+		output.Links.Previous = pointy.String(p.buildPaginationLink(prevOffset, limit))
 	}
 	if lastOffset != currentOffset {
-		output.Links.Next = pointy.String(p.buildPaginationLink(prefix, nextOffset, limit))
+		output.Links.Next = pointy.String(p.buildPaginationLink(nextOffset, limit))
 	}
-	output.Links.Last = pointy.String(p.buildPaginationLink(prefix, lastOffset, limit))
+	output.Links.Last = pointy.String(p.buildPaginationLink(lastOffset, limit))
 }
 
 func (p *domainPresenter) listFillMeta(output *public.ListDomainsResponse, count int64, offset int, limit int) {

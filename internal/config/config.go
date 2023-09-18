@@ -19,6 +19,8 @@ import (
 const (
 	// DefaultAppName is used to compose the route paths
 	DefaultAppName = "idmsvc"
+	// API URL path prefix
+	DefaultPathPrefix = "/api/idmsvc/v1"
 	// DefaultExpirationTime is used for the default token expiration period
 	// expressed in seconds. The default value is set to 7200 (2 hours)
 	DefaultExpirationTimeSeconds = 7200
@@ -148,6 +150,8 @@ type InventoryClient struct {
 
 // Application hold specific application settings
 type Application struct {
+	// API URL's path prefix, e.g. /api/idmsvc/v1
+	PathPrefix string `mapstructure:"url_path_prefix"`
 	// This is the default expiration time for the token
 	// generated when a RHEL IDM domain is created
 	ExpirationTimeSeconds int `mapstructure:"expiration_time_seconds"`
@@ -202,6 +206,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)
 	v.SetDefault("app.validate_api", DefaultValidateAPI)
+	v.SetDefault("app.url_path_prefix", DefaultPathPrefix)
 	// Domain registration token key is a standard base64 encoded string,
 	// which is used as HMAC key. The string "random" creates an random,
 	// ephemeral key for testing.

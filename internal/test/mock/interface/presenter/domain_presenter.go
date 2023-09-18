@@ -68,25 +68,25 @@ func (_m *DomainPresenter) Get(domain *model.Domain) (*public.Domain, error) {
 	return r0, r1
 }
 
-// List provides a mock function with given fields: prefix, count, offset, limit, data
-func (_m *DomainPresenter) List(prefix string, count int64, offset int, limit int, data []model.Domain) (*public.ListDomainsResponseSchema, error) {
-	ret := _m.Called(prefix, count, offset, limit, data)
+// List provides a mock function with given fields: count, offset, limit, data
+func (_m *DomainPresenter) List(count int64, offset int, limit int, data []model.Domain) (*public.ListDomainsResponseSchema, error) {
+	ret := _m.Called(count, offset, limit, data)
 
 	var r0 *public.ListDomainsResponseSchema
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, int64, int, int, []model.Domain) (*public.ListDomainsResponseSchema, error)); ok {
-		return rf(prefix, count, offset, limit, data)
+	if rf, ok := ret.Get(0).(func(int64, int, int, []model.Domain) (*public.ListDomainsResponseSchema, error)); ok {
+		return rf(count, offset, limit, data)
 	}
-	if rf, ok := ret.Get(0).(func(string, int64, int, int, []model.Domain) *public.ListDomainsResponseSchema); ok {
-		r0 = rf(prefix, count, offset, limit, data)
+	if rf, ok := ret.Get(0).(func(int64, int, int, []model.Domain) *public.ListDomainsResponseSchema); ok {
+		r0 = rf(count, offset, limit, data)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*public.ListDomainsResponseSchema)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, int64, int, int, []model.Domain) error); ok {
-		r1 = rf(prefix, count, offset, limit, data)
+	if rf, ok := ret.Get(1).(func(int64, int, int, []model.Domain) error); ok {
+		r1 = rf(count, offset, limit, data)
 	} else {
 		r1 = ret.Error(1)
 	}

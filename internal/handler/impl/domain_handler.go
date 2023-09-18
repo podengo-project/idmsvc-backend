@@ -66,7 +66,6 @@ func (a *application) ListDomains(
 	}
 	// TODO Read prefix from configuration
 	if output, err = a.domain.presenter.List(
-		"/api/idmsvc/v1",
 		count,
 		offset,
 		limit,

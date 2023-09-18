@@ -9,7 +9,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
-	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
@@ -18,20 +17,13 @@ import (
 	"gorm.io/gorm"
 )
 
-var cfg = config.Config{
-	Application: config.Application{
-		PaginationDefaultLimit: 10,
-		PaginationMaxLimit:     100,
-	},
-}
-
 func TestNewTodoPresenter(t *testing.T) {
 	assert.Panics(t, func() {
 		NewDomainPresenter(nil)
 	})
 
 	assert.NotPanics(t, func() {
-		NewDomainPresenter(&cfg)
+		NewDomainPresenter(test.GetTestConfig())
 	})
 }
 
@@ -99,7 +91,7 @@ func TestGet(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		obj := &domainPresenter{cfg: &cfg}
+		obj := &domainPresenter{cfg: test.GetTestConfig()}
 		output, err := obj.Get(testCase.Given.Input)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
@@ -134,7 +126,7 @@ func TestGet(t *testing.T) {
 
 func TestFillRhelmIdmCertsPanics(t *testing.T) {
 	var err error
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	assert.NotPanics(t, func() {
 		p.fillRhelIdmCerts(nil, nil)
@@ -231,7 +223,7 @@ func TestFillRhelmIdmCerts(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		// Instantiate directly to access the private methods
-		p := &domainPresenter{cfg: &cfg}
+		p := &domainPresenter{cfg: test.GetTestConfig()}
 		if testCase.Expected.Err != nil {
 			// assert.EqualError(t, err, testCase.Expected.Err.Error())
 			assert.Panics(t, func() {
@@ -289,7 +281,7 @@ func TestRegister(t *testing.T) {
 		},
 	}
 
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	domain, err := p.Register(nil)
 	assert.EqualError(t, err, "'domain' is nil")
@@ -337,7 +329,7 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	domain, err := p.UpdateAgent(nil)
 	assert.EqualError(t, err, "'domain' is nil")
@@ -361,39 +353,32 @@ func TestList(t *testing.T) {
 	testOrgID := "12345"
 	testUUID1 := uuid.MustParse("5427c3d6-eaa1-11ed-99da-482ae3863d30")
 	testUUID2 := uuid.MustParse("5ae8e844-eaa1-11ed-8f71-482ae3863d30")
-	prefix := "/api/idmsvc/v1"
-	cfg := config.Config{
-		Application: config.Application{
-			PaginationDefaultLimit: 10,
-			PaginationMaxLimit:     100,
-		},
-	}
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	// offset lower than 0
 	count := int64(5)
 	offset := -1
 	limit := -1
-	output, err := p.List(prefix, count, offset, limit, nil)
+	output, err := p.List(count, offset, limit, nil)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'offset' is lower than 0")
 
 	// limit lower than 0
 	offset = 5
-	output, err = p.List(prefix, count, offset, limit, nil)
+	output, err = p.List(count, offset, limit, nil)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'limit' is lower than 0")
 
 	// Offset is higher or equal to count
 	limit = 10
-	output, err = p.List(prefix, count, offset, limit, nil)
+	output, err = p.List(count, offset, limit, nil)
 	assert.Nil(t, output)
 	assert.EqualError(t, err, "'offset' is higher or equal to 'count'")
 
 	// set default limit
 	offset = 0
 	limit = 0
-	output, err = p.List(prefix, count, offset, limit, nil)
+	output, err = p.List(count, offset, limit, nil)
 	assert.NotNil(t, output)
 
 	assert.Equal(t, count, output.Meta.Count)
@@ -401,15 +386,15 @@ func TestList(t *testing.T) {
 	assert.Equal(t, offset, output.Meta.Offset)
 
 	require.NotNil(t, output.Links.First)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.First)
+	assert.Equal(t, p.buildPaginationLink(0, p.cfg.Application.PaginationDefaultLimit), *output.Links.First)
 	assert.Nil(t, output.Links.Previous)
 	assert.Nil(t, output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Last)
+	assert.Equal(t, p.buildPaginationLink(0, p.cfg.Application.PaginationDefaultLimit), *output.Links.Last)
 
 	// set max limit  paginationMaxLimit
 	limit = p.cfg.Application.PaginationMaxLimit + 1
-	output, err = p.List(prefix, count, offset, limit, nil)
+	output, err = p.List(count, offset, limit, nil)
 	assert.NotNil(t, output)
 
 	assert.Equal(t, count, output.Meta.Count)
@@ -417,11 +402,11 @@ func TestList(t *testing.T) {
 	assert.Equal(t, offset, output.Meta.Offset)
 
 	require.NotNil(t, output.Links.First)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.First)
+	assert.Equal(t, p.buildPaginationLink(0, p.cfg.Application.PaginationMaxLimit), *output.Links.First)
 	assert.Nil(t, output.Links.Previous)
 	assert.Nil(t, output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, p.buildPaginationLink(prefix, 0, p.cfg.Application.PaginationMaxLimit), *output.Links.Last)
+	assert.Equal(t, p.buildPaginationLink(0, p.cfg.Application.PaginationMaxLimit), *output.Links.Last)
 
 	// domain slice is nil return empty list
 	count = int64(0)
@@ -434,12 +419,12 @@ func TestList(t *testing.T) {
 			Limit:  limit,
 		},
 		Links: public.PaginationLinks{
-			First: pointy.String(p.buildPaginationLink(prefix, offset, limit)),
-			Last:  pointy.String(p.buildPaginationLink(prefix, offset, limit)),
+			First: pointy.String(p.buildPaginationLink(offset, limit)),
+			Last:  pointy.String(p.buildPaginationLink(offset, limit)),
 		},
 		Data: []public.ListDomainsData{},
 	}
-	output, err = p.List(prefix, count, offset, limit, nil)
+	output, err = p.List(count, offset, limit, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, *output)
 
@@ -474,8 +459,8 @@ func TestList(t *testing.T) {
 			Limit:  limit,
 		},
 		Links: public.PaginationLinks{
-			First: pointy.String(p.buildPaginationLink(prefix, offset, limit)),
-			Last:  pointy.String(p.buildPaginationLink(prefix, offset, limit)),
+			First: pointy.String(p.buildPaginationLink(offset, limit)),
+			Last:  pointy.String(p.buildPaginationLink(offset, limit)),
 		},
 		Data: []public.ListDomainsData{
 			{
@@ -496,7 +481,7 @@ func TestList(t *testing.T) {
 			},
 		},
 	}
-	output, err = p.List(prefix, count, offset, limit, data)
+	output, err = p.List(count, offset, limit, data)
 	assert.NoError(t, err)
 	assert.Equal(t, &expected, output)
 }

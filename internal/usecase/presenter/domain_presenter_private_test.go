@@ -9,7 +9,6 @@ import (
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
-	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
@@ -20,7 +19,7 @@ func TestGuardsRegisterIpa(t *testing.T) {
 	var (
 		err error
 	)
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 	assert.Panics(t, func() {
 		err = p.sharedDomainFillRhelIdm(nil, nil)
 	})
@@ -135,7 +134,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		p := &domainPresenter{cfg: &cfg}
+		p := &domainPresenter{cfg: test.GetTestConfig()}
 		ipa, err := p.Register(testCase.Given)
 		if testCase.Expected.Err != nil {
 			assert.EqualError(t, err, testCase.Expected.Err.Error())
@@ -161,7 +160,7 @@ func TestRegisterRhelIdm(t *testing.T) {
 }
 
 func TestSharedDomainFill(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 	assert.Panics(t, func() {
 		p.sharedDomainFill(nil, nil)
 	})
@@ -190,7 +189,7 @@ func TestSharedDomainFill(t *testing.T) {
 }
 
 func TestFillRhelIdmCerts(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	assert.NotPanics(t, func() {
 		p.fillRhelIdmCerts(nil, nil)
@@ -213,7 +212,7 @@ func TestFillRhelIdmCerts(t *testing.T) {
 }
 
 func TestGuardSharedDomain(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	err := p.guardSharedDomain(nil)
 	assert.EqualError(t, err, "'domain' is nil")
@@ -236,7 +235,7 @@ func TestSharedDomain(t *testing.T) {
 		err    error
 		output *public.RegisterDomainResponse
 	)
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	// Fail some guard check
 	output, err = p.sharedDomain(nil)
@@ -444,7 +443,7 @@ func equalPresenterDomain(t *testing.T, expected *public.Domain, actual *public.
 }
 
 func TestFillRhelIdmLocationsError(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	assert.Panics(t, func() {
 		p.fillRhelIdmLocations(nil, nil)
@@ -517,7 +516,7 @@ func TestFillRhelIdmLocations(t *testing.T) {
 		t.Log(testCase.Name)
 		// I instantiate directly because the public methods
 		// are not part of the interface
-		p := &domainPresenter{cfg: &cfg}
+		p := &domainPresenter{cfg: test.GetTestConfig()}
 		if testCase.Expected.Err != nil {
 			assert.Panics(t, func() {
 				p.fillRhelIdmLocations(testCase.Given.To, testCase.Given.From)
@@ -538,7 +537,7 @@ func TestFillRhelIdmLocations(t *testing.T) {
 }
 
 func TestFillRhelIdmServersError(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	assert.NotPanics(t, func() {
 		p.fillRhelIdmServers(nil, nil)
@@ -618,7 +617,7 @@ func TestFillRhelIdmServers(t *testing.T) {
 		t.Log(testCase.Name)
 		// I instantiate directly because the public methods
 		// are not part of the interface
-		p := &domainPresenter{cfg: &cfg}
+		p := &domainPresenter{cfg: test.GetTestConfig()}
 		if testCase.Expected.Err != nil {
 			// assert.EqualError(t, err, testCase.Expected.Err.Error())
 			assert.Panics(t, func() {
@@ -641,99 +640,94 @@ func TestFillRhelIdmServers(t *testing.T) {
 }
 
 func TestBuildPaginationLink(t *testing.T) {
-	const prefix = "/api/idmsvc/v1"
-	cfg := config.Config{
-		Application: config.Application{
-			PaginationDefaultLimit: 10,
-			PaginationMaxLimit:     100,
-		},
-	}
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
+	prefix := p.cfg.Application.PathPrefix
 
 	offset := 0
 	limit := 10
-	output := p.buildPaginationLink(prefix, offset, limit)
+	output := p.buildPaginationLink(offset, limit)
 	assert.Equal(t, prefix+"/domains?limit=10&offset=0", output)
 
 	offset = -1
 	limit = 10
-	output = p.buildPaginationLink(prefix, offset, limit)
+	output = p.buildPaginationLink(offset, limit)
 	assert.Equal(t, prefix+"/domains?limit=10&offset=0", output)
 
 	offset = 0
 	limit = 0
-	output = p.buildPaginationLink(prefix, offset, limit)
+	output = p.buildPaginationLink(offset, limit)
 	assert.Equal(t, prefix+"/domains?limit=10&offset=0", output)
 
 	offset = 0
 	limit = p.cfg.Application.PaginationMaxLimit + 1
-	output = p.buildPaginationLink(prefix, offset, limit)
+	output = p.buildPaginationLink(offset, limit)
 	assert.Equal(t, fmt.Sprintf(prefix+"/domains?limit=%d&offset=0", p.cfg.Application.PaginationMaxLimit), output)
 }
 
 func TestListFillLinks(t *testing.T) {
 
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
+	prefix := p.cfg.Application.PathPrefix
 
 	// output nil
 	assert.Panics(t, func() {
-		p.listFillLinks(nil, "/prefix", 10, 0, 1)
+		p.listFillLinks(nil, 10, 0, 1)
 	}, "'output' is nil")
 
 	// links with limit 0
 	output := public.ListDomainsResponse{}
 	assert.Panics(t, func() {
-		p.listFillLinks(&output, "/prefix", 10, 0, 0)
+		p.listFillLinks(&output, 10, 0, 0)
 	}, "'limit' is zero")
 
 	// links at page 1
-	p.listFillLinks(&output, "/prefix", 10, 0, 1)
+	p.listFillLinks(&output, 10, 0, 1)
 	require.NotNil(t, output.Links.First)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=0", *output.Links.First)
 	assert.Nil(t, output.Links.Previous)
 	require.NotNil(t, output.Links.Next)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=1", *output.Links.Next)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=1", *output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=9", *output.Links.Last)
 
 	// links at page 2
 	output = public.ListDomainsResponse{}
-	p.listFillLinks(&output, "/prefix", 10, 1, 1)
+	p.listFillLinks(&output, 10, 1, 1)
 	require.NotNil(t, output.Links.First)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=0", *output.Links.First)
 	require.NotNil(t, output.Links.Previous)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.Previous)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=0", *output.Links.Previous)
 	require.NotNil(t, output.Links.Next)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=2", *output.Links.Next)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=2", *output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=9", *output.Links.Last)
 
 	// links at before last page
 	output = public.ListDomainsResponse{}
-	p.listFillLinks(&output, "/prefix", 10, 8, 1)
+	p.listFillLinks(&output, 10, 8, 1)
 	require.NotNil(t, output.Links.First)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=0", *output.Links.First)
 	require.NotNil(t, output.Links.Previous)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=7", *output.Links.Previous)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=7", *output.Links.Previous)
 	require.NotNil(t, output.Links.Next)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Next)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=9", *output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=9", *output.Links.Last)
 
 	// links at last page
 	output = public.ListDomainsResponse{}
-	p.listFillLinks(&output, "/prefix", 10, 9, 1)
+	p.listFillLinks(&output, 10, 9, 1)
 	require.NotNil(t, output.Links.First)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=0", *output.Links.First)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=0", *output.Links.First)
 	require.NotNil(t, output.Links.Previous)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=8", *output.Links.Previous)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=8", *output.Links.Previous)
 	assert.Nil(t, output.Links.Next)
 	require.NotNil(t, output.Links.Last)
-	assert.Equal(t, "/prefix/domains?limit=1&offset=9", *output.Links.Last)
+	assert.Equal(t, prefix+"/domains?limit=1&offset=9", *output.Links.Last)
 }
 
 func TestListFillMeta(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	assert.Panics(t, func() {
 		p.listFillMeta(nil, 10, 0, 1)
@@ -747,7 +741,7 @@ func TestListFillMeta(t *testing.T) {
 }
 
 func TestListFillItem(t *testing.T) {
-	p := &domainPresenter{cfg: &cfg}
+	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	assert.Panics(t, func() {
 		p.listFillItem(nil, nil)
