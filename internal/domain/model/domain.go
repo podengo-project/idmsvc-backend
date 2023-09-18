@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"gorm.io/gorm"
 )
 
@@ -73,7 +74,7 @@ func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
 
 func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 	if d.Type == nil {
-		return fmt.Errorf("'Type' is nil")
+		return internal_errors.NilArgError("Type")
 	}
 	switch *d.Type {
 	case DomainTypeIpa:
@@ -90,7 +91,7 @@ func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 // TODO: use "AfterFind" hook instead?
 func (d *Domain) FillAndPreload(db *gorm.DB) (err error) {
 	if d.Type == nil {
-		return fmt.Errorf("'Type' is nil")
+		return internal_errors.NilArgError("Type")
 	}
 	switch *d.Type {
 	case DomainTypeIpa:

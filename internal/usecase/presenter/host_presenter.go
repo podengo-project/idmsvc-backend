@@ -7,6 +7,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
 )
 
@@ -57,10 +58,10 @@ func (p *hostPresenter) HostConf(domain *model.Domain) (*public.HostConfResponse
 	var err error
 
 	if domain == nil {
-		return nil, fmt.Errorf("'domain' is nil")
+		return nil, internal_errors.NilArgError("domain")
 	}
 	if domain.Type == nil {
-		return nil, fmt.Errorf("'domain.Type' is nil")
+		return nil, internal_errors.NilArgError("domain.Type")
 	}
 	domainType := public.DomainType(model.DomainTypeString(*domain.Type))
 

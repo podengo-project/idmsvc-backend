@@ -14,6 +14,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
@@ -124,7 +125,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'xrhid' is nil"),
+				Error:         internal_errors.NilArgError("xrhid"),
 			},
 		},
 		{
@@ -494,14 +495,14 @@ func TestUpdateAgent(t *testing.T) {
 
 	// Get an error in guards
 	orgID, xrhidmVersion, domain, err := i.UpdateAgent(nil, uuid.Nil, nil, nil)
-	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Get an error with nil param
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, nil, &testBody)
-	assert.EqualError(t, err, "'params' is nil")
+	assert.EqualError(t, err, "code=500, message='params' cannot be nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
@@ -542,7 +543,7 @@ func TestList(t *testing.T) {
 
 	// xrhid is nil
 	orgID, offset, limit, err := i.List(nil, nil)
-	assertListEqualError(t, err, "'xrhid' is nil", orgID, offset, limit)
+	assertListEqualError(t, err, "code=500, message='xrhid' cannot be nil", orgID, offset, limit)
 
 	// params is nil
 	xrhid := identity.XRHID{
@@ -551,7 +552,7 @@ func TestList(t *testing.T) {
 		},
 	}
 	orgID, offset, limit, err = i.List(&xrhid, nil)
-	assertListEqualError(t, err, "'params' is nil", orgID, offset, limit)
+	assertListEqualError(t, err, "code=500, message='params' cannot be nil", orgID, offset, limit)
 
 	// params.Offset is nil
 	params := api_public.ListDomainsParams{}
@@ -586,15 +587,15 @@ func TestGuardRegister(t *testing.T) {
 	i := domainInteractor{}
 
 	err = i.guardRegister(nil, nil, nil)
-	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 
 	xrhid := &identity.XRHID{}
 	err = i.guardRegister(xrhid, nil, nil)
-	assert.EqualError(t, err, "'params' is nil")
+	assert.EqualError(t, err, "code=500, message='params' cannot be nil")
 
 	params := &api_public.RegisterDomainParams{}
 	err = i.guardRegister(xrhid, params, nil)
-	assert.EqualError(t, err, "'body' is nil")
+	assert.EqualError(t, err, "code=500, message='body' cannot be nil")
 
 	body := &public.Domain{}
 	err = i.guardRegister(xrhid, params, body)
@@ -607,7 +608,7 @@ func TestGuardUpdate(t *testing.T) {
 	i := domainInteractor{}
 
 	err = i.guardUpdate(nil, uuid.Nil, nil)
-	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 
 	xrhid := &identity.XRHID{}
 	err = i.guardUpdate(xrhid, uuid.Nil, nil)
@@ -615,7 +616,7 @@ func TestGuardUpdate(t *testing.T) {
 
 	UUID := uuid.MustParse("b0264600-005c-11ee-ba48-482ae3863d30")
 	err = i.guardUpdate(xrhid, UUID, nil)
-	assert.EqualError(t, err, "'body' is nil")
+	assert.EqualError(t, err, "code=500, message='body' cannot be nil")
 
 	body := &public.Domain{}
 	err = i.guardUpdate(xrhid, UUID, body)
@@ -714,7 +715,7 @@ func TestGetByID(t *testing.T) {
 	i := NewDomainInteractor()
 
 	orgID, err := i.GetByID(nil, nil)
-	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 	assert.Equal(t, "", orgID)
 
 	testOrgID := "12345"
@@ -727,7 +728,7 @@ func TestGetByID(t *testing.T) {
 		},
 	}
 	orgID, err = i.GetByID(&xrhid, nil)
-	assert.EqualError(t, err, "'params' is nil")
+	assert.EqualError(t, err, "code=500, message='params' cannot be nil")
 	assert.Equal(t, "", orgID)
 
 	testRequestID := "getByID"
@@ -861,7 +862,7 @@ func TestCreateDomainToken(t *testing.T) {
 				Body:   &api_public.DomainRegTokenRequest{},
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'xrhid' is nil"),
+				Err: internal_errors.NilArgError("xrhid"),
 			},
 		},
 		{
@@ -872,7 +873,7 @@ func TestCreateDomainToken(t *testing.T) {
 				Body:   &api_public.DomainRegTokenRequest{},
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'params' is nil"),
+				Err: internal_errors.NilArgError("params"),
 			},
 		},
 		{
@@ -883,7 +884,7 @@ func TestCreateDomainToken(t *testing.T) {
 				Body:   nil,
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'body' is nil"),
+				Err: internal_errors.NilArgError("body"),
 			},
 		},
 		{
@@ -961,13 +962,13 @@ func TestUpdateUser(t *testing.T) {
 	// 'xrhid' is nil
 	i := NewDomainInteractor()
 	orgID, domain, err := i.UpdateUser(nil, testID, testParams, testBody)
-	assert.EqualError(t, err, "'xrhid' is nil")
+	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, domain)
 
 	// 'params' is nil
 	orgID, domain, err = i.UpdateUser(&xrhidUser, testID, nil, testBody)
-	assert.EqualError(t, err, "'params' is nil")
+	assert.EqualError(t, err, "code=500, message='params' cannot be nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, domain)
 

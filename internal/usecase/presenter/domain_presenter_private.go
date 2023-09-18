@@ -9,6 +9,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 )
 
 func (p *domainPresenter) fillRhelIdmLocations(
@@ -100,10 +101,10 @@ func (p *domainPresenter) guardSharedDomain(
 	domain *model.Domain,
 ) error {
 	if domain == nil {
-		return fmt.Errorf("'domain' is nil")
+		return internal_errors.NilArgError("domain")
 	}
 	if domain.Type == nil {
-		return fmt.Errorf("'domain.Type' is nil")
+		return internal_errors.NilArgError("domain.Type")
 	}
 	if *domain.Type == model.DomainTypeUndefined {
 		return fmt.Errorf("'domain.Type' is invalid")
@@ -172,7 +173,7 @@ func (p *domainPresenter) sharedDomainFillRhelIdm(
 		)
 	}
 	if domain.IpaDomain == nil {
-		return fmt.Errorf("'domain.IpaDomain' is nil")
+		return internal_errors.NilArgError("domain.IpaDomain")
 	}
 	if output == nil {
 		panic("'output' is nil")

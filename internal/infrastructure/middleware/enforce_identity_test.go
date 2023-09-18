@@ -11,6 +11,7 @@ import (
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -21,7 +22,7 @@ const testPath = "/test"
 func helperCreatePredicate(username string) IdentityPredicate {
 	return func(data *identity.XRHID) error {
 		if data == nil {
-			return fmt.Errorf("'data' is nil")
+			return internal_errors.NilArgError("data")
 		}
 		if data.Identity.User.Username == username {
 			return fmt.Errorf("username='%s' is not accepted", username)

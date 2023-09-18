@@ -1,7 +1,6 @@
 package presenter
 
 import (
-	"fmt"
 	"testing"
 	"time"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +50,7 @@ func TestGet(t *testing.T) {
 				Input: nil,
 			},
 			Expected: TestCaseExpected{
-				Err:    fmt.Errorf("'domain' is nil"),
+				Err:    internal_errors.NilArgError("domain"),
 				Output: nil,
 			},
 		},
@@ -284,7 +284,7 @@ func TestRegister(t *testing.T) {
 	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	domain, err := p.Register(nil)
-	assert.EqualError(t, err, "'domain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain' cannot be nil")
 	assert.Nil(t, domain)
 
 	domain, err = p.Register(&testModel)
@@ -332,7 +332,7 @@ func TestUpdate(t *testing.T) {
 	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	domain, err := p.UpdateAgent(nil)
-	assert.EqualError(t, err, "'domain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain' cannot be nil")
 	assert.Nil(t, domain)
 
 	domain, err = p.UpdateAgent(&testModel)
@@ -340,7 +340,7 @@ func TestUpdate(t *testing.T) {
 	assert.Equal(t, testExpected, *domain)
 
 	domain, err = p.UpdateUser(nil)
-	assert.EqualError(t, err, "'domain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain' cannot be nil")
 	assert.Nil(t, domain)
 
 	domain, err = p.UpdateUser(&testModel)

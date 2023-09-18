@@ -11,6 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -86,7 +87,7 @@ func TestHostConf(t *testing.T) {
 				Input: nil,
 			},
 			Expected: TestCaseExpected{
-				Err:    fmt.Errorf("'domain' is nil"),
+				Err:    internal_errors.NilArgError("domain"),
 				Output: nil,
 			},
 		},

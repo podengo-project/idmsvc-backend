@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"gorm.io/gorm"
 )
 
@@ -55,7 +56,7 @@ func (a *application) isSubscriptionManagerIDAuthorizedToUpdate(
 		return fmt.Errorf("'subscriptionManagerID' is empty")
 	}
 	if servers == nil {
-		return fmt.Errorf("'servers' is nil")
+		return internal_errors.NilArgError("servers")
 	}
 	for i := range servers {
 		if servers[i].HCCUpdateServer &&
@@ -83,7 +84,7 @@ func (a *application) fillDomain(
 		return fmt.Errorf("'source' cannot be nil")
 	}
 	if source.Type == nil {
-		return fmt.Errorf("'Type' is nil")
+		return internal_errors.NilArgError("Type")
 	}
 	if source.AutoEnrollmentEnabled != nil {
 		target.AutoEnrollmentEnabled = pointy.Bool(*source.AutoEnrollmentEnabled)
@@ -105,7 +106,7 @@ func (a *application) fillDomain(
 	switch *target.Type {
 	case model.DomainTypeIpa:
 		if source.IpaDomain == nil {
-			return fmt.Errorf("'source.IpaDomain' is nil")
+			return internal_errors.NilArgError("source.IpaDomain")
 		}
 		target.IpaDomain = &model.Ipa{}
 		return a.fillDomainIpa(target.IpaDomain, source.IpaDomain)

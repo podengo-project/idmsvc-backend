@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
@@ -81,7 +82,7 @@ func TestHostConf(t *testing.T) {
 				Body:        &api_public.HostConf{},
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'xrhid' is nil"),
+				Err: internal_errors.NilArgError("xrhid"),
 				Out: nil,
 			},
 		},
@@ -123,7 +124,7 @@ func TestHostConf(t *testing.T) {
 				Body:        &api_public.HostConf{},
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'params' is nil"),
+				Err: internal_errors.NilArgError("params"),
 				Out: nil,
 			},
 		},
@@ -137,7 +138,7 @@ func TestHostConf(t *testing.T) {
 				Body:        nil,
 			},
 			Expected: TestCaseExpected{
-				Err: fmt.Errorf("'body' is nil"),
+				Err: internal_errors.NilArgError("body"),
 				Out: nil,
 			},
 		},

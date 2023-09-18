@@ -12,6 +12,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
@@ -82,7 +83,7 @@ func helperDomainTypeToUint(domainType public.DomainType) uint {
 // TODO Document method
 func (i domainInteractor) Delete(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.DeleteDomainParams) (string, uuid.UUID, error) {
 	if xrhid == nil {
-		return "", uuid.Nil, fmt.Errorf("'xrhid' is nil")
+		return "", uuid.Nil, internal_errors.NilArgError("xrhid")
 	}
 	if params == nil {
 		return "", uuid.Nil, fmt.Errorf("'params' cannot be nil")
@@ -98,10 +99,10 @@ func (i domainInteractor) Delete(xrhid *identity.XRHID, UUID uuid.UUID, params *
 // zero values and an error interface filled on error.
 func (i domainInteractor) List(xrhid *identity.XRHID, params *api_public.ListDomainsParams) (orgID string, offset int, limit int, err error) {
 	if xrhid == nil {
-		return "", -1, -1, fmt.Errorf("'xrhid' is nil")
+		return "", -1, -1, internal_errors.NilArgError("xrhid")
 	}
 	if params == nil {
-		return "", -1, -1, fmt.Errorf("'params' is nil")
+		return "", -1, -1, internal_errors.NilArgError("params")
 	}
 	if params.Offset == nil {
 		offset = 0
@@ -124,10 +125,10 @@ func (i domainInteractor) List(xrhid *identity.XRHID, params *api_public.ListDom
 // an empty organizaion id and a filled error with the situation details.
 func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDomainParams) (orgID string, err error) {
 	if xrhid == nil {
-		return "", fmt.Errorf("'xrhid' is nil")
+		return "", internal_errors.NilArgError("xrhid")
 	}
 	if params == nil {
-		return "", fmt.Errorf("'params' is nil")
+		return "", internal_errors.NilArgError("params")
 	}
 
 	return xrhid.Identity.OrgID, nil
@@ -199,7 +200,7 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 		return "", nil, nil, err
 	}
 	if params == nil {
-		return "", nil, nil, fmt.Errorf("'params' is nil")
+		return "", nil, nil, internal_errors.NilArgError("params")
 	}
 	orgID := xrhid.Identity.Internal.OrgID
 
@@ -232,7 +233,7 @@ func (i domainInteractor) UpdateUser(xrhid *identity.XRHID, UUID uuid.UUID, para
 		return "", nil, err
 	}
 	if params == nil {
-		return "", nil, fmt.Errorf("'params' is nil")
+		return "", nil, internal_errors.NilArgError("params")
 	}
 	orgID := xrhid.Identity.Internal.OrgID
 
@@ -250,16 +251,16 @@ func (i domainInteractor) CreateDomainToken(
 	body *public.DomainRegTokenRequest,
 ) (orgID string, domainType public.DomainType, err error) {
 	if xrhid == nil {
-		return "", "", fmt.Errorf("'xrhid' is nil")
+		return "", "", internal_errors.NilArgError("xrhid")
 	}
 	if xrhid.Identity.Type != "User" {
 		return "", "", fmt.Errorf("invalid identity type '%s'", xrhid.Identity.Type)
 	}
 	if params == nil {
-		return "", "", fmt.Errorf("'params' is nil")
+		return "", "", internal_errors.NilArgError("params")
 	}
 	if body == nil {
-		return "", "", fmt.Errorf("'body' is nil")
+		return "", "", internal_errors.NilArgError("body")
 	}
 
 	orgID = xrhid.Identity.OrgID
@@ -360,13 +361,13 @@ func (i domainInteractor) registerOrUpdateRhelIdmLocations(body *public.Domain, 
 
 func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (err error) {
 	if xrhid == nil {
-		return fmt.Errorf("'xrhid' is nil")
+		return internal_errors.NilArgError("xrhid")
 	}
 	if params == nil {
-		return fmt.Errorf("'params' is nil")
+		return internal_errors.NilArgError("params")
 	}
 	if body == nil {
-		return fmt.Errorf("'body' is nil")
+		return internal_errors.NilArgError("body")
 	}
 
 	return nil
@@ -374,13 +375,13 @@ func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_publi
 
 func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID uuid.UUID, body *public.Domain) (err error) {
 	if xrhid == nil {
-		return fmt.Errorf("'xrhid' is nil")
+		return internal_errors.NilArgError("xrhid")
 	}
 	if UUID == uuid.Nil {
 		return fmt.Errorf("'UUID' is invalid")
 	}
 	if body == nil {
-		return fmt.Errorf("'body' is nil")
+		return internal_errors.NilArgError("body")
 	}
 
 	return nil

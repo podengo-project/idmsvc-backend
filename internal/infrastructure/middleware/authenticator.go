@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
 
@@ -20,13 +21,13 @@ func NewAuthenticator(v XRhIValidator) openapi3filter.AuthenticationFunc {
 
 func checkGuardsAuthenticate(v XRhIValidator, ctx context.Context, input *openapi3filter.AuthenticationInput) error {
 	if v == nil {
-		return fmt.Errorf("'v' is nil")
+		return internal_errors.NilArgError("v")
 	}
 	if ctx == nil {
-		return fmt.Errorf("'ctx' is nil")
+		return internal_errors.NilArgError("ctx")
 	}
 	if input == nil {
-		return fmt.Errorf("'input' is nil")
+		return internal_errors.NilArgError("input")
 	}
 	return nil
 }

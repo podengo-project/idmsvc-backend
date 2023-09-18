@@ -15,6 +15,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
@@ -205,7 +206,7 @@ func (s *Suite) TestCreateIpaDomain() {
 
 	// Check nil
 	err = s.repository.createIpaDomain(s.DB, 1, nil)
-	assert.EqualError(t, err, "'data' of type '*model.Ipa' is nil")
+	assert.EqualError(t, err, "code=500, message='data' of type '*model.Ipa' cannot be nil")
 
 	// Error on INSERT INTO "ipas"
 	expectedError = fmt.Errorf(`error at INSERT INTO "ipas"`)
@@ -248,13 +249,13 @@ func (s *Suite) TestUpdateErrors() {
 	)
 
 	err = s.repository.UpdateAgent(nil, "", nil)
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 
 	err = s.repository.UpdateAgent(s.DB, "", nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
 	err = s.repository.UpdateAgent(s.DB, orgID, nil)
-	assert.EqualError(t, err, "'data' is nil")
+	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
 	s.mock.MatchExpectationsInOrder(true)
 	s.helperTestFindByID(2, data, s.mock, fmt.Errorf("record not found"))
@@ -561,7 +562,7 @@ func (s *Suite) TestUpdateIpaDomain() {
 				DB:     nil,
 				Domain: nil,
 			},
-			Expected: fmt.Errorf("'db' is nil"),
+			Expected: internal_errors.NilArgError("db"),
 		},
 		{
 			Name: "Wrong arguments: data is nil",
@@ -570,7 +571,7 @@ func (s *Suite) TestUpdateIpaDomain() {
 				DB:     s.DB,
 				Domain: nil,
 			},
-			Expected: fmt.Errorf("'data' of type '*model.Ipa' is nil"),
+			Expected: internal_errors.NilArgError("data' of type '*model.Ipa"),
 		},
 		{
 			Name: "database error at DELETE FROM 'ipas'",
@@ -721,7 +722,7 @@ func (s *Suite) TestList() {
 
 	// db is nil
 	output, count, err := r.List(nil, "", -1, -1)
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 	assert.Equal(t, int64(0), count)
 	assert.Nil(t, output)
 
@@ -1043,7 +1044,7 @@ func (s *Suite) TestFindByID() {
 
 	// Check one wrong argument
 	domain, err = r.FindByID(nil, "", uuid.Nil)
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 	assert.Nil(t, domain)
 
 	// Check path when an error hapens into the sql statement
@@ -1055,7 +1056,7 @@ func (s *Suite) TestFindByID() {
 	assert.Nil(t, domain)
 
 	// Check path when a domain type is NULL
-	expectedErr = fmt.Errorf("'Type' is nil")
+	expectedErr = internal_errors.NilArgError("Type")
 	s.helperTestFindByID(1, dataTypeNil, s.mock, nil)
 	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
@@ -1116,7 +1117,7 @@ func (s *Suite) TestUpdateUser() {
 				DB:     nil,
 				Domain: nil,
 			},
-			Expected: fmt.Errorf("'db' is nil"),
+			Expected: internal_errors.NilArgError("db"),
 		},
 		{
 			Name: "database error at FindByID",
@@ -1176,7 +1177,7 @@ func (s *Suite) TestCheckCommon() {
 	r := &domainRepository{}
 
 	err := r.checkCommon(nil, "")
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 
 	err = r.checkCommon(s.DB, "")
 	assert.EqualError(t, err, "'orgID' is empty")
@@ -1190,7 +1191,7 @@ func (s *Suite) TestCheckCommonAndUUID() {
 	r := &domainRepository{}
 
 	err := r.checkCommonAndUUID(nil, "", uuid.Nil)
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 
 	err = r.checkCommonAndUUID(s.DB, "", uuid.Nil)
 	assert.EqualError(t, err, "'orgID' is empty")
@@ -1207,13 +1208,13 @@ func (s *Suite) TestCheckCommonAndData() {
 	r := &domainRepository{}
 
 	err := r.checkCommonAndData(nil, "", nil)
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 
 	err = r.checkCommonAndData(s.DB, "", nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
 	err = r.checkCommonAndData(s.DB, "12345", nil)
-	assert.EqualError(t, err, "'data' is nil")
+	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
 	err = r.checkCommonAndData(s.DB, "12345", &model.Domain{})
 	assert.NoError(t, err)
@@ -1224,10 +1225,10 @@ func (s *Suite) TestCheckCommonAndDataAndType() {
 	r := &domainRepository{}
 
 	err := r.checkCommonAndDataAndType(nil, "", nil)
-	assert.EqualError(t, err, "'db' is nil")
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 
 	err = r.checkCommonAndDataAndType(s.DB, "12345", &model.Domain{})
-	assert.EqualError(t, err, "'Type' is nil")
+	assert.EqualError(t, err, "code=500, message='Type' cannot be nil")
 
 	err = r.checkCommonAndDataAndType(s.DB, "12345", &model.Domain{
 		Type: pointy.Uint(model.DomainTypeIpa),

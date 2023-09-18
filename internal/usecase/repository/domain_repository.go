@@ -11,6 +11,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
@@ -43,7 +44,7 @@ func (r *domainRepository) List(
 	limit int,
 ) (output []model.Domain, count int64, err error) {
 	if db == nil {
-		return nil, 0, fmt.Errorf("'db' is nil")
+		return nil, 0, internal_errors.NilArgError("db")
 	}
 	if orgID == "" {
 		return nil, 0, fmt.Errorf("'orgID' is empty")
@@ -92,7 +93,7 @@ func (r *domainRepository) Register(
 	switch *data.Type {
 	case model.DomainTypeIpa:
 		if data.IpaDomain == nil {
-			return fmt.Errorf("'IpaDomain' is nil")
+			return internal_errors.NilArgError("IpaDomain")
 		}
 		if err = r.createIpaDomain(
 			db,
@@ -178,7 +179,7 @@ func (r *domainRepository) UpdateAgent(
 	switch *data.Type {
 	case model.DomainTypeIpa:
 		if data.IpaDomain == nil {
-			return fmt.Errorf("'IpaDomain' is nil")
+			return internal_errors.NilArgError("IpaDomain")
 		}
 		data.IpaDomain.ID = data.ID
 		return r.updateIpaDomain(db, data.IpaDomain)
@@ -323,7 +324,7 @@ func (r *domainRepository) checkCommon(
 	orgID string,
 ) error {
 	if db == nil {
-		return fmt.Errorf("'db' is nil")
+		return internal_errors.NilArgError("db")
 	}
 	if orgID == "" {
 		return fmt.Errorf("'orgID' is empty")
@@ -354,7 +355,7 @@ func (r *domainRepository) checkCommonAndData(
 		return err
 	}
 	if data == nil {
-		return fmt.Errorf("'data' is nil")
+		return internal_errors.NilArgError("data")
 	}
 	return nil
 }
@@ -368,7 +369,7 @@ func (r *domainRepository) checkCommonAndDataAndType(
 		return err
 	}
 	if data.Type == nil {
-		return fmt.Errorf("'Type' is nil")
+		return internal_errors.NilArgError("Type")
 	}
 	return nil
 }
@@ -379,7 +380,7 @@ func (r *domainRepository) createIpaDomain(
 	data *model.Ipa,
 ) (err error) {
 	if data == nil {
-		return fmt.Errorf("'data' of type '*model.Ipa' is nil")
+		return internal_errors.NilArgError("data' of type '*model.Ipa")
 	}
 	data.Model.ID = domainID
 	if err = db.Omit(clause.Associations).Create(data).Error; err != nil {
@@ -411,10 +412,10 @@ func (r *domainRepository) updateIpaDomain(
 	data *model.Ipa,
 ) (err error) {
 	if db == nil {
-		return fmt.Errorf("'db' is nil")
+		return internal_errors.NilArgError("db")
 	}
 	if data == nil {
-		return fmt.Errorf("'data' of type '*model.Ipa' is nil")
+		return internal_errors.NilArgError("data' of type '*model.Ipa")
 	}
 	if err = db.Unscoped().
 		Delete(data).Error; err != nil {

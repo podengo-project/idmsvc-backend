@@ -31,7 +31,7 @@ func TestGuardsRegisterIpa(t *testing.T) {
 
 	*domain.Type = model.DomainTypeIpa
 	err = p.sharedDomainFillRhelIdm(domain, nil)
-	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain.IpaDomain' cannot be nil")
 
 	domain.IpaDomain = &model.Ipa{}
 	assert.Panics(t, func() {
@@ -215,11 +215,11 @@ func TestGuardSharedDomain(t *testing.T) {
 	p := &domainPresenter{cfg: test.GetTestConfig()}
 
 	err := p.guardSharedDomain(nil)
-	assert.EqualError(t, err, "'domain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain' cannot be nil")
 
 	domain := model.Domain{}
 	err = p.guardSharedDomain(&domain)
-	assert.EqualError(t, err, "'domain.Type' is nil")
+	assert.EqualError(t, err, "code=500, message='domain.Type' cannot be nil")
 
 	domain.Type = pointy.Uint(model.DomainTypeUndefined)
 	err = p.guardSharedDomain(&domain)
@@ -240,19 +240,19 @@ func TestSharedDomain(t *testing.T) {
 	// Fail some guard check
 	output, err = p.sharedDomain(nil)
 	assert.Nil(t, output)
-	assert.EqualError(t, err, "'domain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain' cannot be nil")
 
 	// Fail Type not filled
 	domain := &model.Domain{}
 	output, err = p.sharedDomain(domain)
 	assert.Nil(t, output)
-	assert.EqualError(t, err, "'domain.Type' is nil")
+	assert.EqualError(t, err, "code=500, message='domain.Type' cannot be nil")
 
 	// Fail nil IpaDomain
 	domain.Type = pointy.Uint(model.DomainTypeIpa)
 	output, err = p.sharedDomain(domain)
 	assert.Nil(t, output)
-	assert.EqualError(t, err, "'domain.IpaDomain' is nil")
+	assert.EqualError(t, err, "code=500, message='domain.IpaDomain' cannot be nil")
 
 	// Not valid Type
 	*domain.Type = 999
@@ -750,7 +750,7 @@ func TestListFillItem(t *testing.T) {
 	output := public.ListDomainsData{}
 	assert.Panics(t, func() {
 		p.listFillItem(&output, nil)
-	}, "'domain' is nil")
+	}, "code=500, message='domain' cannot be nil")
 
 	// path with all the data
 	domain := model.Domain{

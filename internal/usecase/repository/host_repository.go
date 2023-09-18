@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
@@ -20,10 +21,10 @@ func NewHostRepository() repository.HostRepository {
 // domains are matching.
 func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOptions) (output *model.Domain, err error) {
 	if db == nil {
-		return nil, fmt.Errorf("'db' is nil")
+		return nil, internal_errors.NilArgError("db")
 	}
 	if options == nil {
-		return nil, fmt.Errorf("'options' is nil")
+		return nil, internal_errors.NilArgError("options")
 	}
 
 	// look through domains and find domains with non-NULL token
