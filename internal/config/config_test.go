@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	validator "github.com/go-playground/validator/v10"
 	"github.com/openlyinc/pointy"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/spf13/viper"
@@ -22,7 +23,7 @@ func TestSetDefaults(t *testing.T) {
 	assert.Equal(t, DefaultWebPort, v.Get("web.port"))
 	assert.Equal(t, "info", v.Get("logging.level"))
 	assert.Equal(t, "http://localhost:8010/api/inventory/v1", v.Get("clients.host_inventory_base_url"))
-	assert.Equal(t, DefaultExpirationTimeSeconds, v.Get("app.expiration_time_seconds"))
+	assert.Equal(t, DefaultTokenExpirationTimeSeconds, v.Get("app.token_expiration_seconds"))
 	assert.Equal(t, PaginationDefaultLimit, v.Get("app.pagination_default_limit"))
 	assert.Equal(t, PaginationMaxLimit, v.Get("app.pagination_max_limit"))
 }
@@ -144,4 +145,21 @@ func TestLoad(t *testing.T) {
 	assert.NotPanics(t, func() {
 		Load(&cfg)
 	})
+}
+
+func TestValidateConfig(t *testing.T) {
+	cfg := Config{
+		Application: Application{
+			PathPrefix:                 DefaultPathPrefix,
+			DomainRegTokenKey:          "random",
+			TokenExpirationTimeSeconds: 0,
+		},
+	}
+	err := Validate(&cfg)
+	assert.Error(t, err)
+	ve, ok := err.(validator.ValidationErrors)
+	assert.True(t, ok)
+	assert.Equal(t, len(ve), 1)
+	assert.Equal(t, ve[0].Namespace(), "Config.Application.TokenExpirationTimeSeconds")
+	assert.Equal(t, ve[0].Tag(), "gte")
 }

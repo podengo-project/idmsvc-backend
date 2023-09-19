@@ -413,7 +413,7 @@ func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDo
 		return err
 	}
 
-	validity := time.Duration(a.config.Application.ExpirationTimeSeconds) * time.Second
+	validity := time.Duration(a.config.Application.TokenExpirationTimeSeconds) * time.Second
 	if token, err = a.domain.repository.CreateDomainToken(
 		a.secrets.domainRegKey,
 		validity,

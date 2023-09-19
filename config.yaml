@@ -79,4 +79,4 @@ app:
   validate_api: true
   # HMAC key for domain registration token (raw standard base64).
   # "random" generates an ephemeral, random key
-  domain_reg_key: random
+  domain_reg_key: "CXJH0VsLUTkFR8RRIOhKmw"

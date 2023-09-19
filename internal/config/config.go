@@ -7,9 +7,11 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
+	validator "github.com/go-playground/validator/v10"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -23,7 +25,7 @@ const (
 	DefaultPathPrefix = "/api/idmsvc/v1"
 	// DefaultExpirationTime is used for the default token expiration period
 	// expressed in seconds. The default value is set to 7200 (2 hours)
-	DefaultExpirationTimeSeconds = 7200
+	DefaultTokenExpirationTimeSeconds = 7200
 	// DefaultWebPort is the default port where the public API is listening
 	DefaultWebPort = 8000
 
@@ -151,10 +153,10 @@ type InventoryClient struct {
 // Application hold specific application settings
 type Application struct {
 	// API URL's path prefix, e.g. /api/idmsvc/v1
-	PathPrefix string `mapstructure:"url_path_prefix"`
+	PathPrefix string `mapstructure:"url_path_prefix" validate:"required"`
 	// This is the default expiration time for the token
 	// generated when a RHEL IDM domain is created
-	ExpirationTimeSeconds int `mapstructure:"expiration_time_seconds"`
+	TokenExpirationTimeSeconds int `mapstructure:"token_expiration_seconds" validate:"gte=600,lte=86400"`
 	// Indicate the default pagination limit when it is 0 or not filled
 	PaginationDefaultLimit int `mapstructure:"pagination_default_limit"`
 	// Indicate the max pagination limit when it is grather
@@ -166,7 +168,7 @@ type Application struct {
 	// requests and responses is disabled; by default it is enabled.
 	ValidateAPI bool `mapstructure:"validate_api"`
 	// Secret HMAC key for domain registration token
-	DomainRegTokenKey string `mapstructure:"domain_reg_key"`
+	DomainRegTokenKey string `mapstructure:"domain_reg_key" validate:"required"`
 }
 
 var config *Config = nil
@@ -201,7 +203,7 @@ func setDefaults(v *viper.Viper) {
 
 	// Set default value for application expiration time for
 	// the token created by the RHEL IDM domains
-	v.SetDefault("app.expiration_time_seconds", DefaultExpirationTimeSeconds)
+	v.SetDefault("app.token_expiration_seconds", DefaultTokenExpirationTimeSeconds)
 	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)
@@ -269,12 +271,15 @@ func Load(cfg *Config) *Config {
 	v.AddConfigPath(env.GetString("CONFIG_PATH", "./configs"))
 	v.SetConfigName("config.yaml")
 	v.SetConfigType("yaml")
+	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	// HMS-2606: Do not set v.AutomaticEnv(). Viper looks up values with
+	// precedence "env", "config", "default". Automatic env seems to make
+	// Viper ignore config and default when at least one env var is set for
+	// a sub-struct.
 	setDefaults(v)
 	if clowder.IsClowderEnabled() {
 		setClowderConfiguration(v, clowder.LoadedConfig)
 	}
-	v.AutomaticEnv()
-	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	if err = v.ReadInConfig(); err != nil {
 		log.Warn().Msgf("Not using config.yaml: %s", err.Error())
 	}
@@ -285,13 +290,36 @@ func Load(cfg *Config) *Config {
 	return cfg
 }
 
+func reportError(err error) {
+	// TODO use logging framework
+	fmt.Fprint(os.Stderr, "Config validation error:\n")
+	for _, err := range err.(validator.ValidationErrors) {
+		fmt.Fprintf(
+			os.Stderr,
+			"    '%s': rule: %v %v, got: %v (type: %v)\n",
+			err.Namespace(),
+			err.Tag(), err.Value(), err.Param(), err.Kind(),
+		)
+	}
+	panic("Validation failed")
+}
+
+func Validate(cfg *Config) (err error) {
+	validate := validator.New(validator.WithRequiredStructEnabled())
+	return validate.Struct(cfg)
+}
+
 // Get is a singleton to get the global loaded configuration.
 func Get() *Config {
 	if config != nil {
 		return config
 	}
 	config = &Config{}
-	return Load(config)
+	config = Load(config)
+	if err := Validate(config); err != nil {
+		reportError(err)
+	}
+	return config
 }
 
 func hasKafkaBrokerConfig(cfg *clowder.AppConfig) bool {
