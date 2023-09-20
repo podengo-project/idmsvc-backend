@@ -6,3 +6,7 @@
 .PHONY: printvars
 printvars: ## Print variable name and values
 	@true $(foreach V, $(sort $(.VARIABLES)),$(if $(filter-out environment% default automatic,$(origin $V)),$(info $V=$(value $V))))
+
+.PHONY: printenvcfg
+printenvcfg: ## Print the environment the resulting exported environment
+	@env | grep -e ^DATABASE_ -e ^KAFKA_ -e ^APP_ -e ^WEB_ -e ^LOGGING_ -e ^CONFIG_PATH= | sort
