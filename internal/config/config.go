@@ -7,6 +7,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -213,6 +214,7 @@ func setDefaults(v *viper.Viper) {
 	// which is used as HMAC key. The string "random" creates an random,
 	// ephemeral key for testing.
 	v.SetDefault("app.domain_reg_key", "")
+	v.SetDefault("app.debug", false)
 }
 
 func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
@@ -258,7 +260,7 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 	v.Set("metrics.port", clowderConfig.MetricsPort)
 }
 
-func Load(cfg *Config) *Config {
+func Load(cfg *Config) *viper.Viper {
 	var (
 		err error
 	)
@@ -272,14 +274,13 @@ func Load(cfg *Config) *Config {
 	v.SetConfigName("config.yaml")
 	v.SetConfigType("yaml")
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	// HMS-2606: Do not set v.AutomaticEnv(). Viper looks up values with
-	// precedence "env", "config", "default". Automatic env seems to make
-	// Viper ignore config and default when at least one env var is set for
-	// a sub-struct.
+	v.AutomaticEnv()
+
 	setDefaults(v)
 	if clowder.IsClowderEnabled() {
 		setClowderConfiguration(v, clowder.LoadedConfig)
 	}
+
 	if err = v.ReadInConfig(); err != nil {
 		log.Warn().Msgf("Not using config.yaml: %s", err.Error())
 	}
@@ -287,7 +288,7 @@ func Load(cfg *Config) *Config {
 		log.Warn().Msgf("Mapping to configuration: %s", err.Error())
 	}
 
-	return cfg
+	return v
 }
 
 func reportError(err error) {
@@ -296,12 +297,11 @@ func reportError(err error) {
 	for _, err := range err.(validator.ValidationErrors) {
 		fmt.Fprintf(
 			os.Stderr,
-			"    '%s': rule: %v %v, got: %v (type: %v)\n",
+			"    %s: rule: %v %v, got: '%v' (type: %v)\n",
 			err.Namespace(),
 			err.Tag(), err.Value(), err.Param(), err.Kind(),
 		)
 	}
-	panic("Validation failed")
 }
 
 func Validate(cfg *Config) (err error) {
@@ -315,9 +315,21 @@ func Get() *Config {
 		return config
 	}
 	config = &Config{}
-	config = Load(config)
+	v := Load(config)
+
+	// Dump configuration as JSON
+	if config.Logging.Level == "debug" {
+		c := v.AllSettings()
+		b, err := json.MarshalIndent(c, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(b))
+	}
+
 	if err := Validate(config); err != nil {
 		reportError(err)
+		panic("Invalid configuration")
 	}
 	return config
 }
