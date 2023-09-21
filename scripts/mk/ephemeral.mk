@@ -3,8 +3,8 @@
 # ephemeral-setup: $(BONFIRE) ## Configure bonfire to run locally
 # 	$(BONFIRE) config write-default > $(PROJECT_DIR)/config/bonfire-config.yaml
 
-ifeq (,$(APP))
-$(error APP is empty; did you miss to set APP=my-app at your scripts/mk/variables.mk)
+ifeq (,$(APP_NAME))
+$(error APP_NAME is empty; did you miss to set APP_NAME=my-app at your scripts/mk/variables.mk)
 endif
 
 APP_COMPONENT ?= backend
@@ -115,7 +115,7 @@ ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)"
+		"$(APP_NAME)"
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-undeploy
@@ -127,7 +127,7 @@ ephemeral-undeploy: $(BONFIRE) $(JSON2YAML) ## Undeploy application from the cur
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)" 2>/dev/null | $(JSON2YAML) | oc delete -f -
+		"$(APP_NAME)" 2>/dev/null | $(JSON2YAML) | oc delete -f -
 	! oc get secrets/content-sources-certs &>/dev/null || oc delete secrets/content-sources-certs
 
 .PHONY: ephemeral-process
@@ -139,11 +139,11 @@ ephemeral-process: $(BONFIRE) $(JSON2YAML) ## Process application from the curre
 		--set-parameter "$(APP_COMPONENT)/IMAGE=$(CONTAINER_IMAGE_BASE)" \
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
-		"$(APP)" 2>/dev/null | $(JSON2YAML)
+		"$(APP_NAME)" 2>/dev/null | $(JSON2YAML)
 
 .PHONY: ephemeral-db-cli
 ephemeral-db-cli: ## Open a database client
-	POD="$(shell oc get pods -l service=db,app=$(APP)-$(APP_COMPONENT) -o jsonpath='{.items[0].metadata.name}')" \
+	POD="$(shell oc get pods -l service=db,app=$(APP_NAME)-$(APP_COMPONENT) -o jsonpath='{.items[0].metadata.name}')" \
 	&& oc exec -it pod/"$${POD}" -- bash -c 'exec psql -U $$POSTGRESQL_USER -d $$POSTGRESQL_DATABASE'
 
 # TODO Add command to specify to bonfire the clowdenv template to be used
@@ -188,9 +188,9 @@ ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scrip
 ephemeral-test-backend: $(BONFIRE) ## Run IQE tests in the ephemeral environment (require to run ephemeral-deploy before)
 	$(BONFIRE) deploy-iqe-cji \
 	  --env clowder_smoke \
-	  --cji-name "$(APP)-$(APP_COMPONENT)" \
+	  --cji-name "$(APP_NAME)-$(APP_COMPONENT)" \
 	  --namespace "$(NAMESPACE)" \
-	  "$(APP)"
+	  "$(APP_NAME)"
 
 # https://kubernetes.io/docs/tasks/administer-cluster/dns-debugging-resolution/
 .PHONY: ephemeral-run-dnsutil

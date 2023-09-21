@@ -1,8 +1,8 @@
 ##
 # Set default variable values for the project
 ##
-APP ?= idmsvc
-export APP
+APP_NAME ?= idmsvc
+export APP_NAME
 
 BIN ?= bin
 PATH := $(CURDIR)/$(BIN):$(PATH)
