@@ -31,9 +31,14 @@ make registry-login \
     CONTAINER_REGISTRY_TOKEN="${RH_REGISTRY_TOKEN}" \
     CONTAINER_REGISTRY="registry.redhat.io"
 
-# Build and push
-make container-build container-push \
+# Build container
+make container-build \
     CONTAINER_BUILD_OPTS=--no-cache \
+    CONTAINER_IMAGE_BASE="${IMAGE}" \
+    CONTAINER_IMAGE_TAG="${IMAGE_TAG}"
+
+# Push container to registry
+make container-push \
     CONTAINER_IMAGE_BASE="${IMAGE}" \
     CONTAINER_IMAGE_TAG="${IMAGE_TAG}"
 

@@ -58,7 +58,16 @@ ifneq (,$(APP_TOKEN_EXPIRATION_SECONDS))
 EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_TOKEN_EXPIRATION_SECONDS=$(APP_TOKEN_EXPIRATION_SECONDS)"
 endif
 
-EPHEMERAL_BONFIRE_PATH ?= configs/bonfire.yaml
+EPHEMERAL_BONFIRE_PATH ?= $(PROJECT_DIR)/configs/bonfire.yaml
+EPHEMERAL_SECRETS_DIR ?= $(PROJECT_DIR)/secrets/ephemeral
+
+EPHEMERAL_DEPS = $(BONFIRE) $(EPHEMERAL_BONFIRE_PATH) $(EPHEMERAL_SECRETS_DIR) secrets/private.mk
+
+$(EPHEMERAL_BONFIRE_PATH):
+	cp configs/bonfire.example.yaml $@
+
+$(EPHEMERAL_SECRETS_DIR):
+	mkdir -p $@
 
 # TODO Uncomment when the frontend is created
 # EPHEMERAL_OPTS += --frontend true
@@ -95,7 +104,7 @@ $(GO_OUTPUT/get-token.py):
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-deploy
-ephemeral-deploy: $(BONFIRE) ## Deploy application using 'config/bonfire.yaml'. Set EPHEMERAL_NO_BUILD=1 to skip image build and push.
+ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.yaml'. Set EPHEMERAL_NO_BUILD=y to skip image build and push.
 	[ "$(EPHEMERAL_NO_BUILD)" == "y" ] || $(MAKE) ephemeral-build-deploy
 	$(BONFIRE) deploy \
 	    --source appsre \
@@ -169,7 +178,9 @@ ephemeral-namespace-describe: $(BONFIRE) ## Display information about the curren
 # Tested by 'make ephemeral-build-deploy CONTAINER_IMAGE_BASE=quay.io/avisied0/hmsidm-backend'
 .PHONY: ephemeral-build-deploy
 ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scripts; It requires to pass CONTAINER_IMAGE_BASE
-	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" ./.rhcicd/build_deploy.sh 2>&1 | tee build_deploy.log
+	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" \
+		set -o pipefail; \
+		./.rhcicd/build_deploy.sh 2>&1 | tee build_deploy.log
 
 
 # FIXME This rule will require some updates but it will be something similar
