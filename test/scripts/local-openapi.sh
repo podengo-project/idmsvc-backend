@@ -1,9 +1,12 @@
 #!/bin/bash
+set -eo pipefail
 
-# export X_RH_IDENTITY="$( ./tools/bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
+
+unset X_RH_IDENTITY
 unset X_RH_FAKE_IDENTITY
 unset CREDS
 unset X_RH_IDM_VERSION
 BASE_URL="http://localhost:8000/api/idmsvc/v1"
-./scripts/curl.sh -i "${BASE_URL}/openapi.json"
-
+"${REPOBASEDIR}/scripts/curl.sh" -i "${BASE_URL}/openapi.json"

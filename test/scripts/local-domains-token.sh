@@ -1,7 +1,10 @@
 #!/bin/bash
+set -eo pipefail
 
-export X_RH_IDENTITY="$( ./tools/bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
+
+export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_user)}"
 unset X_RH_FAKE_IDENTITY
 unset CREDS
-BASE_URL="http://localhost:8000/api/idmsvc/v1"
-./scripts/curl.sh -i -X POST -d '{"domain_type": "rhel-idm"}' "${BASE_URL}/domains/token"
+"${REPOBASEDIR}/scripts/curl.sh" -i -X POST -d '{"domain_type": "rhel-idm"}' "${BASE_URL}/domains/token"

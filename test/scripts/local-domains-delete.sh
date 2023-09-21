@@ -1,19 +1,14 @@
 #!/bin/bash
+set -eo pipefail
 
-function error {
-    local err=$?
-    printf "%s\n" "$1" >&2
-    exit $err
-}
-
-# make db-cli <<< "select domain_uuid from domains order by id desc limit 1;\\q"
+# shellcheck disable=SC1091
+source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
 
 UUID="$1"
 [ "${UUID}" != "" ] || error "UUID is empty"
 
-export X_RH_IDENTITY="$( ./tools/bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_user)}"
 unset CREDS
 export X_RH_IDM_REGISTRATION_TOKEN="$TOKEN"
-export X_RH_IDM_VERSION="$( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"
-BASE_URL="http://localhost:8000/api/idmsvc/v1"
-./scripts/curl.sh -i -X DELETE "${BASE_URL}/domains/${UUID}"
+unset X_RH_IDM_VERSION
+"${REPOBASEDIR}/scripts/curl.sh" -i -X DELETE "${BASE_URL}/domains/${UUID}"
