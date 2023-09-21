@@ -11,7 +11,7 @@ function error {
 UUID="$1"
 [ "${UUID}" != "" ] || error "UUID is empty"
 
-export X_RH_IDENTITY="$( ./tools/bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+export X_RH_IDENTITY="$( ./tools/bin/xrhidgen -org-id ${ORG_ID:-12345} user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
 unset CREDS
 export X_RH_IDM_REGISTRATION_TOKEN="$TOKEN"
 export X_RH_IDM_VERSION="$( base64 -w0 <<< '{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}' )"

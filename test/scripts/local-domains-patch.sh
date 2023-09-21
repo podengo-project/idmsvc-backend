@@ -12,7 +12,7 @@ function error {
 UUID="$1"
 [ "${UUID}" != "" ] || error "UUID is empty"
 
-export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id 12345 user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
+export X_RH_IDENTITY="$( ./bin/xrhidgen -org-id ${ORG_ID:-12345} user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0 )"
 unset CREDS
 unset X_RH_IDM_REGISTRATION_TOKEN
 BASE_URL="http://localhost:8000/api/idmsvc/v1"
