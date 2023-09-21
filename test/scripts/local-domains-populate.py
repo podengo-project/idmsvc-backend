@@ -8,6 +8,7 @@ import sys
 import uuid
 import requests
 import json
+import os
 
 
 CONTENT_TYPE = "application/json"
@@ -18,7 +19,7 @@ HEADER_X_RH_INSIGHTS_REQUEST_ID = "X-Rh-Insights-Request-Id"
 HEADER_X_RH_IDM_VERSION = "X-Rh-Idm-Version"
 HEADER_X_RH_IDM_REGISTRATION_TOKEN = "X-Rh-Idm-Registration-Token"
 
-DEFAULT_ORG_ID = "12345"
+DEFAULT_ORG_ID = os.environ.get("ORG_ID", "12345")
 
 class xrhidgen:
     """Wrapper to call ./tools/bin/xrhidgen binary and get a x-rh-identity header"""
@@ -51,7 +52,6 @@ class xrhidgen:
         if self.xrhidgen_type is None or self.xrhidgen_type == '':
             sys.exit("'xrhidgen_type' is None")
         options.append(self.xrhidgen_type)
-        # ./tools/bin/xrhidgen -org-id 12345 system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system
         options.extend(self.extra_args)
         options.extend(args)
         output = subprocess.check_output(options)
