@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-# shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
 
 UUID="$1"
@@ -11,4 +10,5 @@ export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_user)}"
 unset CREDS
 export X_RH_IDM_REGISTRATION_TOKEN="$TOKEN"
 unset X_RH_IDM_VERSION
-"${REPOBASEDIR}/scripts/curl.sh" -i -X DELETE "${BASE_URL}/domains/${UUID}"
+
+exec "${REPOBASEDIR}/scripts/curl.sh" -i -X DELETE "${BASE_URL}/domains/${UUID}"

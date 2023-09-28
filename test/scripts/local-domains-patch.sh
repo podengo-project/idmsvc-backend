@@ -1,7 +1,6 @@
 #!/bin/bash
 set -eo pipefail
 
-# shellcheck disable=SC1091
 source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
 
 UUID="$1"
@@ -10,4 +9,5 @@ UUID="$1"
 export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_user)}"
 unset CREDS
 unset X_RH_IDM_REGISTRATION_TOKEN
-"${REPOBASEDIR}/scripts/curl.sh" -i -X PATCH -d @<(sed -e "s/{{createDomain.response.body.domain_id}}/${UUID}/g" < "${REPOBASEDIR}/test/data/http/patch-rhel-idm-domain.json") "${BASE_URL}/domains/${UUID}"
+
+exec "${REPOBASEDIR}/scripts/curl.sh" -i -X PATCH -d @<(sed -e "s/{{createDomain.response.body.domain_id}}/${UUID}/g" < "${REPOBASEDIR}/test/data/http/patch-rhel-idm-domain.json") "${BASE_URL}/domains/${UUID}"
