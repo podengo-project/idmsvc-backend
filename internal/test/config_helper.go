@@ -7,7 +7,7 @@ func GetTestConfig() (cfg *config.Config) {
 	cfg = &config.Config{}
 	config.Load(cfg)
 	// override some default settings
-	cfg.Application.DomainRegTokenKey = "random"
+	cfg.Application.MainSecret = "random"
 	cfg.Application.PaginationDefaultLimit = 10
 	cfg.Application.PaginationMaxLimit = 100
 	return cfg

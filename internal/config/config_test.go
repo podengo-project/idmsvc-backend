@@ -151,7 +151,7 @@ func TestValidateConfig(t *testing.T) {
 	cfg := Config{
 		Application: Application{
 			PathPrefix:                 DefaultPathPrefix,
-			DomainRegTokenKey:          "random",
+			MainSecret:                 "random",
 			TokenExpirationTimeSeconds: 0,
 		},
 	}

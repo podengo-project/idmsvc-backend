@@ -2,8 +2,11 @@ package impl
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"hash"
+	"io"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
@@ -15,7 +18,13 @@ import (
 	usecase_interactor "github.com/podengo-project/idmsvc-backend/internal/usecase/interactor"
 	usecase_presenter "github.com/podengo-project/idmsvc-backend/internal/usecase/presenter"
 	usecase_repository "github.com/podengo-project/idmsvc-backend/internal/usecase/repository"
+	"golang.org/x/crypto/hkdf"
 	"gorm.io/gorm"
+)
+
+const (
+	Salt             = "idmsvc-backend"
+	DomainRegKeyInfo = "domain registration key"
 )
 
 type domainComponent struct {
@@ -47,8 +56,7 @@ type application struct {
 
 func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client.HostInventory) handler.Application {
 	var (
-		err          error
-		domainRegKey []byte
+		err error
 	)
 	if config == nil {
 		panic("config is nil")
@@ -66,21 +74,15 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 		usecase_repository.NewHostRepository(),
 		usecase_presenter.NewHostPresenter(config),
 	}
-	// TODO move unmarshal and verification to Viper?
-	if domainRegKey, err = getSecretBytes(
-		"app.domain_reg_key", config.Application.DomainRegTokenKey, 8,
-	); err != nil {
+
+	sec, err := getAppSecret(config)
+	if err != nil {
 		panic(err)
 	}
-
-	sec := appSecrets{
-		domainRegKey: domainRegKey,
-	}
-
 	// Instantiate application
 	return &application{
 		config:    config,
-		secrets:   sec,
+		secrets:   *sec,
 		db:        db,
 		metrics:   m,
 		domain:    dc,
@@ -89,21 +91,45 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 	}
 }
 
-// Convert and check secret (raw standard base64 string)
-func getSecretBytes(name string, value string, minLength int) (data []byte, err error) {
-	// ephemeral random key for testing and development
-	if value == "random" {
-		data = make([]byte, minLength)
-		if _, err = rand.Read(data); err != nil {
+// Parse main secret and get sub secrets
+func getAppSecret(config *config.Config) (sec *appSecrets, err error) {
+	const mainSecretLength = 16
+	// get / create main secret
+	var secret []byte
+	if config.Application.MainSecret == "random" {
+		secret = make([]byte, mainSecretLength)
+		if _, err = rand.Read(secret); err != nil {
 			return nil, err
 		}
-		return data, nil
+	} else {
+		if secret, err = base64.RawURLEncoding.DecodeString(config.Application.MainSecret); err != nil {
+			return nil, fmt.Errorf("Failed to main secret: %v", err)
+		}
+		if len(secret) < mainSecretLength {
+			return nil, fmt.Errorf("Master secret is too short, expected at least %d bytes.", mainSecretLength)
+		}
 	}
-	if data, err = base64.RawStdEncoding.DecodeString(value); err != nil {
-		return nil, fmt.Errorf("Failed to decode std base64 secret '%s': %v", name, err)
+
+	// extract PRK from main secret
+	var hash = sha256.New
+	prk := hkdf.Extract(hash, secret, []byte(Salt))
+
+	sec = &appSecrets{}
+	sec.domainRegKey, err = hkdfExpand(hash, prk, []byte(DomainRegKeyInfo), 32)
+	if err != nil {
+		return nil, err
 	}
-	if len(data) < minLength {
-		return nil, fmt.Errorf("Secrets '%s' is too short, expected %d bytes.", name, minLength)
+
+	return sec, nil
+
+}
+
+// expand pseudo random key with HKDF
+func hkdfExpand(hash func() hash.Hash, prk []byte, info []byte, length int) (secret []byte, err error) {
+	reader := hkdf.Expand(hash, prk, info)
+	secret = make([]byte, length)
+	if _, err := io.ReadFull(reader, secret); err != nil {
+		return nil, err
 	}
-	return data, nil
+	return secret, err
 }

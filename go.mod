@@ -22,6 +22,7 @@ require (
 	github.com/rs/zerolog v1.30.0
 	github.com/spf13/viper v1.16.0
 	github.com/stretchr/testify v1.8.4
+	golang.org/x/crypto v0.13.0
 	gorm.io/driver/postgres v1.5.2
 	gorm.io/gorm v1.25.4
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
@@ -78,7 +79,6 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/mod v0.12.0 // indirect
 	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect

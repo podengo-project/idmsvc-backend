@@ -109,6 +109,7 @@ export APP_VALIDATE_API
 APP_TOKEN_EXPIRATION_SECONDS ?= 7200
 export APP_TOKEN_EXPIRATION_SECONDS
 
-# MAC key for domain registration token (random value)
-APP_DOMAIN_REG_KEY ?= CXJH0VsLUTkFR8RRIOhKmw
-export APP_DOMAIN_REG_KEY
+# main secret for various MAC and encryptions like
+# domain registration token and encrypted private JWKs
+APP_SECRET ?= sFamo2ER65JN7wxZ48UZb5GbtDc053ahIPJ0Qx47bzA
+export APP_SECRET
