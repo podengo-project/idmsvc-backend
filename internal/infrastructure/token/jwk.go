@@ -13,14 +13,6 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 )
 
-type KeyState int
-
-const (
-	ValidKey KeyState = iota
-	ExpiredKey
-	InvalidKey
-)
-
 const KeyCurve = jwa.P256
 
 // Generate a private key with additional properties
