@@ -54,7 +54,7 @@ func (p *hostPresenter) fillRhelIdm(domain *model.Domain, response *public.HostC
 	return nil
 }
 
-func (p *hostPresenter) HostConf(domain *model.Domain) (*public.HostConfResponse, error) {
+func (p *hostPresenter) HostConf(domain *model.Domain, token public.HostToken) (*public.HostConfResponse, error) {
 	var err error
 
 	if domain == nil {
@@ -70,6 +70,7 @@ func (p *hostPresenter) HostConf(domain *model.Domain) (*public.HostConfResponse
 		DomainId:              domain.DomainUuid,
 		DomainName:            *domain.DomainName,
 		DomainType:            domainType,
+		Token:                 &token,
 	}
 
 	switch *domain.Type {

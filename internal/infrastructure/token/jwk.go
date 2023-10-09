@@ -7,6 +7,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
+	"math/big"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -15,14 +16,20 @@ import (
 
 const KeyCurve = jwa.P256
 
+// TODO: hard-coded ECDSA seed for testing
+const seed = "dummtestkey1234"
+
 // Generate a private key with additional properties
 // alg: based on key type (ES256 for P256)
 // exp: expiration time (Unix timestamp)
 // kid: base64 SHA-256 thumbprint
 // use: "sig"
-func GeneratePrivateJWK(expiration time.Time) (jwk.Key, error) {
-	var crv elliptic.Curve
-	var alg jwa.SignatureAlgorithm
+func GeneratePrivateJWK(expiration time.Time) (key jwk.Key, err error) {
+	var (
+		crv elliptic.Curve
+		alg jwa.SignatureAlgorithm
+		raw *ecdsa.PrivateKey
+	)
 
 	switch KeyCurve {
 	case jwa.P256:
@@ -32,12 +39,23 @@ func GeneratePrivateJWK(expiration time.Time) (jwk.Key, error) {
 		return nil, fmt.Errorf("Unsupported JWK curve %s", KeyCurve)
 	}
 
-	raw, err := ecdsa.GenerateKey(crv, rand.Reader)
-	if err != nil {
-		return nil, err
+	if len(seed) != 0 {
+		raw = &ecdsa.PrivateKey{}
+		raw.D = &big.Int{}
+		_, ok := raw.D.SetString(seed, 36)
+		if !ok {
+			panic("seed")
+		}
+		raw.PublicKey.Curve = crv
+		raw.PublicKey.X, raw.PublicKey.Y = crv.ScalarBaseMult(raw.D.Bytes())
+	} else {
+		raw, err = ecdsa.GenerateKey(crv, rand.Reader)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	key, err := jwk.FromRaw(raw)
+	key, err = jwk.FromRaw(raw)
 	if err != nil {
 		return nil, err
 	}

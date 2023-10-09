@@ -14,25 +14,25 @@ type HostPresenter struct {
 	mock.Mock
 }
 
-// HostConf provides a mock function with given fields: domain
-func (_m *HostPresenter) HostConf(domain *model.Domain) (*public.HostConfResponseSchema, error) {
-	ret := _m.Called(domain)
+// HostConf provides a mock function with given fields: domain, token
+func (_m *HostPresenter) HostConf(domain *model.Domain, token string) (*public.HostConfResponseSchema, error) {
+	ret := _m.Called(domain, token)
 
 	var r0 *public.HostConfResponseSchema
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Domain) (*public.HostConfResponseSchema, error)); ok {
-		return rf(domain)
+	if rf, ok := ret.Get(0).(func(*model.Domain, string) (*public.HostConfResponseSchema, error)); ok {
+		return rf(domain, token)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Domain) *public.HostConfResponseSchema); ok {
-		r0 = rf(domain)
+	if rf, ok := ret.Get(0).(func(*model.Domain, string) *public.HostConfResponseSchema); ok {
+		r0 = rf(domain, token)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*public.HostConfResponseSchema)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Domain) error); ok {
-		r1 = rf(domain)
+	if rf, ok := ret.Get(1).(func(*model.Domain, string) error); ok {
+		r1 = rf(domain, token)
 	} else {
 		r1 = ret.Error(1)
 	}

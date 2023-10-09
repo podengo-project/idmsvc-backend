@@ -8,7 +8,7 @@ FQDN="$2"
 [ "${INVENTORY_ID}" != "" ] || error "INVENTORY_ID is empty"
 [ "${FQDN}" != "" ] || error "FQDN is empty"
 
-export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_user)}"
+export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_system)}"
 export X_RH_IDM_VERSION
 unset X_RH_FAKE_IDENTITY
 unset CREDS

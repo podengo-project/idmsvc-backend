@@ -23,6 +23,7 @@ func (a *application) HostConf(
 		domain  *model.Domain
 		output  *public.HostConfResponse
 		options *interactor.HostConfOptions
+		hctoken public.HostToken
 		tx      *gorm.DB
 		xrhid   *identity.XRHID
 	)
@@ -48,13 +49,20 @@ func (a *application) HostConf(
 	); err != nil {
 		return err
 	}
+	if hctoken, err = a.host.repository.SignHostConfToken(
+		a.secrets.signingKeys,
+		options,
+		domain,
+	); err != nil {
+		return err
+	}
 
 	if tx.Commit(); tx.Error != nil {
 		return tx.Error
 	}
 
 	if output, err = a.host.presenter.HostConf(
-		domain,
+		domain, hctoken,
 	); err != nil {
 		return err
 	}

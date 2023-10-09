@@ -69,6 +69,7 @@ func TestHostConf(t *testing.T) {
 
 	type TestCaseGiven struct {
 		Input  *model.Domain
+		Token  string
 		Output *public.HostConfResponse
 	}
 	type TestCaseExpected struct {
@@ -171,6 +172,7 @@ func TestHostConf(t *testing.T) {
 						RealmDomains: pq.StringArray{testDomain},
 					},
 				},
+				Token: "token",
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
@@ -186,6 +188,7 @@ func TestHostConf(t *testing.T) {
 						},
 						RealmName: testRealm,
 					},
+					Token: pointy.String("token"),
 				},
 			},
 		},
@@ -193,7 +196,7 @@ func TestHostConf(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		obj := &hostPresenter{cfg: test.GetTestConfig()}
-		output, err := obj.HostConf(testCase.Given.Input)
+		output, err := obj.HostConf(testCase.Given.Input, testCase.Given.Token)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
 			assert.Equal(t, testCase.Expected.Err.Error(), err.Error())
@@ -221,6 +224,9 @@ func TestHostConf(t *testing.T) {
 			assert.Equal(t,
 				testCase.Expected.Output.RhelIdm.EnrollmentServers,
 				output.RhelIdm.EnrollmentServers)
+			assert.Equal(t,
+				testCase.Expected.Output.Token,
+				output.Token)
 		}
 	}
 }

@@ -27,6 +27,7 @@ const (
 )
 
 var (
+	DomainType   = public.RhelIdm
 	DomainUUID   = uuid.MustParse(DomainId)
 	RealmDomains = []string{DomainName, "otherdomain.test"}
 	Location1    = public.Location{
@@ -225,6 +226,7 @@ func BuildDomainModel(orgID string) *model.Domain {
 }
 
 var (
-	SystemXRHID = GetSystemXRHID(OrgId, Server1.CertCN, SystemAccountNr)
-	UserXRHID   = GetUserXRHID(OrgId, UserName, UserId, UserAccountNr, false)
+	SystemXRHID  = GetSystemXRHID(OrgId, Server1.CertCN, SystemAccountNr)
+	Client1XRHID = GetSystemXRHID(OrgId, Client1.CertCN, SystemAccountNr)
+	UserXRHID    = GetUserXRHID(OrgId, UserName, UserId, UserAccountNr, false)
 )
