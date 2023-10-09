@@ -3,9 +3,11 @@
 package repository
 
 import (
+	jwk "github.com/lestrrat-go/jwx/v2/jwk"
 	interactor "github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
-	mock "github.com/stretchr/testify/mock"
 	gorm "gorm.io/gorm"
+
+	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/podengo-project/idmsvc-backend/internal/domain/model"
 )
@@ -34,6 +36,30 @@ func (_m *HostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfO
 
 	if rf, ok := ret.Get(1).(func(*gorm.DB, *interactor.HostConfOptions) error); ok {
 		r1 = rf(db, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SignHostConfToken provides a mock function with given fields: privs, options, domain
+func (_m *HostRepository) SignHostConfToken(privs []jwk.Key, options *interactor.HostConfOptions, domain *model.Domain) (string, error) {
+	ret := _m.Called(privs, options, domain)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]jwk.Key, *interactor.HostConfOptions, *model.Domain) (string, error)); ok {
+		return rf(privs, options, domain)
+	}
+	if rf, ok := ret.Get(0).(func([]jwk.Key, *interactor.HostConfOptions, *model.Domain) string); ok {
+		r0 = rf(privs, options, domain)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func([]jwk.Key, *interactor.HostConfOptions, *model.Domain) error); ok {
+		r1 = rf(privs, options, domain)
 	} else {
 		r1 = ret.Error(1)
 	}

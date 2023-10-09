@@ -8,9 +8,9 @@ import (
 )
 
 func (a *application) GetSigningKeys(ctx echo.Context, params public.GetSigningKeysParams) error {
-	// TODO: Not Implemented
+	// TODO: hacky implementation
 	output := public.SigningKeysResponse{
-		Keys: []string{},
+		Keys: a.secrets.publicKeys,
 	}
 	return ctx.JSON(http.StatusOK, output)
 }

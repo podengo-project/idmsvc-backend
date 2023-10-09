@@ -6,5 +6,5 @@ import (
 )
 
 type HostPresenter interface {
-	HostConf(domain *model.Domain) (*public.HostConfResponse, error)
+	HostConf(domain *model.Domain, token public.HostToken) (*public.HostConfResponse, error)
 }

@@ -4,12 +4,16 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"hash"
 	"io"
+	"time"
 
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
@@ -42,6 +46,9 @@ type hostComponent struct {
 // Application secrets
 type appSecrets struct {
 	domainRegKey []byte
+	// TODO: store JWKs in database
+	signingKeys []jwk.Key
+	publicKeys  []string
 }
 
 type application struct {
@@ -119,6 +126,26 @@ func getAppSecret(config *config.Config) (sec *appSecrets, err error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO: temporary hack
+	var (
+		priv jwk.Key
+		pub  jwk.Key
+		pubs []byte
+	)
+	expiration := time.Now().Add(90 * 24 * time.Hour)
+	if priv, err = token.GeneratePrivateJWK(expiration); err != nil {
+		return nil, err
+	}
+	sec.signingKeys = []jwk.Key{priv}
+
+	if pub, err = priv.PublicKey(); err != nil {
+		return nil, err
+	}
+	if pubs, err = json.Marshal(pub); err != nil {
+		return nil, err
+	}
+	sec.publicKeys = []string{string(pubs)}
 
 	return sec, nil
 

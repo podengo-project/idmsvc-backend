@@ -9,6 +9,7 @@ import (
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
+	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,38 +24,6 @@ func TestNewHostInteractor(t *testing.T) {
 }
 
 func TestHostConf(t *testing.T) {
-	const (
-		testCN         = "21258fc8-c755-11ed-afc4-482ae3863d30"
-		testOrgID      = "12345"
-		testFqdn       = "server.ipa.test"
-		testDomainId   = "0851e1d6-003f-11ee-adf4-482ae3863d30"
-		testDomainName = "ipa.test"
-	)
-	testInventoryId := uuid.MustParse("70d51c08-8831-4989-bca6-04d2c11a58e2")
-	testDomainUUID := uuid.MustParse(testDomainId)
-	testDomainType := api_public.DomainType(api_public.RhelIdm)
-
-	xrhidSystem := identity.XRHID{
-		Identity: identity.Identity{
-			OrgID: testOrgID,
-			Type:  "System",
-			System: identity.System{
-				CommonName: testCN,
-				CertType:   "system",
-			},
-		},
-	}
-	xrhidUser := identity.XRHID{
-		Identity: identity.Identity{
-			OrgID: testOrgID,
-			Type:  "User",
-			User:  identity.User{},
-			Internal: identity.Internal{
-				OrgID: testOrgID,
-			},
-		},
-	}
-
 	type TestCaseGiven struct {
 		XRHID       *identity.XRHID
 		InventoryId uuid.UUID
@@ -76,7 +45,7 @@ func TestHostConf(t *testing.T) {
 			Name: "nil 'xrhid'",
 			Given: TestCaseGiven{
 				XRHID:       nil,
-				InventoryId: testInventoryId,
+				InventoryId: test.Client1.InventoryUUID,
 				Fqdn:        "",
 				Params:      nil,
 				Body:        &api_public.HostConf{},
@@ -89,8 +58,8 @@ func TestHostConf(t *testing.T) {
 		{
 			Name: "'xrhid' wrong type",
 			Given: TestCaseGiven{
-				XRHID:       &xrhidUser,
-				InventoryId: testInventoryId,
+				XRHID:       &test.UserXRHID,
+				InventoryId: test.Client1.InventoryUUID,
 				Fqdn:        "",
 				Params:      nil,
 				Body:        &api_public.HostConf{},
@@ -103,8 +72,8 @@ func TestHostConf(t *testing.T) {
 		{
 			Name: "empty fqdn",
 			Given: TestCaseGiven{
-				XRHID:       &xrhidSystem,
-				InventoryId: testInventoryId,
+				XRHID:       &test.Client1XRHID,
+				InventoryId: test.Client1.InventoryUUID,
 				Fqdn:        "",
 				Params:      nil,
 				Body:        &api_public.HostConf{},
@@ -117,9 +86,9 @@ func TestHostConf(t *testing.T) {
 		{
 			Name: "'params' is nil",
 			Given: TestCaseGiven{
-				XRHID:       &xrhidSystem,
-				InventoryId: testInventoryId,
-				Fqdn:        testFqdn,
+				XRHID:       &test.Client1XRHID,
+				InventoryId: test.Client1.InventoryUUID,
+				Fqdn:        test.Client1.Fqdn,
 				Params:      nil,
 				Body:        &api_public.HostConf{},
 			},
@@ -131,9 +100,9 @@ func TestHostConf(t *testing.T) {
 		{
 			Name: "nil for the 'body'",
 			Given: TestCaseGiven{
-				XRHID:       &xrhidSystem,
-				InventoryId: testInventoryId,
-				Fqdn:        testFqdn,
+				XRHID:       &test.Client1XRHID,
+				InventoryId: test.Client1.InventoryUUID,
+				Fqdn:        test.Client1.Fqdn,
 				Params:      &api_public.HostConfParams{},
 				Body:        nil,
 			},
@@ -145,19 +114,19 @@ func TestHostConf(t *testing.T) {
 		{
 			Name: "valid call without params",
 			Given: TestCaseGiven{
-				XRHID:       &xrhidSystem,
-				InventoryId: testInventoryId,
-				Fqdn:        testFqdn,
+				XRHID:       &test.Client1XRHID,
+				InventoryId: test.Client1.InventoryUUID,
+				Fqdn:        test.Client1.Fqdn,
 				Params:      &api_public.HostConfParams{},
 				Body:        &api_public.HostConf{},
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
 				Out: &interactor.HostConfOptions{
-					OrgId:       testOrgID,
-					CommonName:  testCN,
-					InventoryId: testInventoryId,
-					Fqdn:        testFqdn,
+					OrgId:       test.OrgId,
+					CommonName:  test.Client1.CertUUID,
+					InventoryId: test.Client1.InventoryUUID,
+					Fqdn:        test.Client1.Fqdn,
 					DomainId:    nil,
 					DomainName:  nil,
 					DomainType:  nil,
@@ -167,26 +136,26 @@ func TestHostConf(t *testing.T) {
 		{
 			Name: "valid call with params",
 			Given: TestCaseGiven{
-				XRHID:       &xrhidSystem,
-				InventoryId: testInventoryId,
-				Fqdn:        testFqdn,
+				XRHID:       &test.Client1XRHID,
+				InventoryId: test.Client1.InventoryUUID,
+				Fqdn:        test.Client1.Fqdn,
 				Params:      &api_public.HostConfParams{},
 				Body: &api_public.HostConf{
-					DomainId:   &testDomainUUID,
-					DomainName: pointy.String(testDomainName),
-					DomainType: &testDomainType,
+					DomainId:   &test.DomainUUID,
+					DomainName: pointy.String(test.DomainName),
+					DomainType: &test.DomainType,
 				},
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
 				Out: &interactor.HostConfOptions{
-					OrgId:       testOrgID,
-					CommonName:  testCN,
-					InventoryId: testInventoryId,
-					Fqdn:        testFqdn,
-					DomainId:    &testDomainUUID,
-					DomainName:  pointy.String(testDomainName),
-					DomainType:  &testDomainType,
+					OrgId:       test.OrgId,
+					CommonName:  test.Client1.CertUUID,
+					InventoryId: test.Client1.InventoryUUID,
+					Fqdn:        test.Client1.Fqdn,
+					DomainId:    &test.DomainUUID,
+					DomainName:  pointy.String(test.DomainName),
+					DomainType:  &test.DomainType,
 				},
 			},
 		},
