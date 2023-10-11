@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
@@ -23,6 +24,8 @@ func NewHostRepository() repository.HostRepository {
 // MatchDomain() uses information from `options` to find a matching domain.
 // It returns an error when either no matching domain is found or multiple
 // domains are matching.
+//
+// Exclude domains with auto_enrollment_enabled = FALSE.
 func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOptions) (output *model.Domain, err error) {
 	if db == nil {
 		return nil, internal_errors.NilArgError("db")
@@ -31,8 +34,6 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 		return nil, internal_errors.NilArgError("options")
 	}
 
-	// look through domains and find domains with non-NULL token
-	// TODO: match FQDN with domain realms
 	var domains []model.Domain
 	tx := db.Model(&model.Domain{}).
 		Joins("left join ipas on domains.id = ipas.id").
@@ -46,14 +47,32 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 	if options.DomainType != nil {
 		tx = tx.Where("domains.type = ?", model.DomainTypeUint(string(*options.DomainType)))
 	}
-	if err = tx.Limit(2).Find(&domains).Error; err != nil {
-		// returns gorm.ErrRecordNotFound when no domain is configured
+	if err = tx.Find(&domains).Error; err != nil {
+		// empty result set is not an error here, but is handled below
 		return nil, err
 	}
 
+	matchedDomains := make([]model.Domain, 0, len(domains))
+	for _, domain := range domains {
+		if !pointy.BoolValue(domain.AutoEnrollmentEnabled, false) {
+			continue
+		}
+		// TODO: match FQDN with domain realms
+		matchedDomains = append(matchedDomains, domain)
+	}
+
 	// only one domain is currently supported. Fail if query found multiple doamins.
-	if len(domains) != 1 {
-		return nil, fmt.Errorf("matched %d domains found, only one expected", len(domains))
+	if len(matchedDomains) < 1 {
+		return nil, internal_errors.NewHTTPErrorF(
+			http.StatusNotFound,
+			"no matching domains",
+		)
+	} else if len(matchedDomains) > 1 {
+		return nil, internal_errors.NewHTTPErrorF(
+			http.StatusConflict,
+			"matched %d domains, only one expected",
+			len(matchedDomains),
+		)
 	}
 
 	// verify and fill domain object
