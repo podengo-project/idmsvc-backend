@@ -2,8 +2,10 @@ package repository
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
@@ -47,13 +49,17 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 		tx = tx.Where("domains.type = ?", model.DomainTypeUint(string(*options.DomainType)))
 	}
 	if err = tx.Limit(2).Find(&domains).Error; err != nil {
-		// returns gorm.ErrRecordNotFound when no domain is configured
+		// empty result set is not an error here, but is handled below
 		return nil, err
 	}
 
 	// only one domain is currently supported. Fail if query found multiple doamins.
-	if len(domains) != 1 {
-		return nil, fmt.Errorf("matched %d domains found, only one expected", len(domains))
+	if len(domains) < 1 {
+		msg := fmt.Sprintf("no matching domains")
+		return nil, echo.NewHTTPError(http.StatusNotFound, msg)
+	} else if len(domains) > 1 {
+		msg := fmt.Sprintf("matched %d domains, only one expected", len(domains))
+		return nil, echo.NewHTTPError(http.StatusConflict, msg)
 	}
 
 	// verify and fill domain object
