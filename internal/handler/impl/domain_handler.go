@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"gorm.io/gorm"
@@ -160,7 +162,15 @@ func (a *application) DeleteDomain(
 		orgId,
 		domain_uuid,
 	); err != nil {
-		return err
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return internal_errors.NewHTTPErrorF(
+				http.StatusNotFound,
+				"cannot delete unknown domain '%s'.",
+				UUID.String(),
+			)
+		} else {
+			return err
+		}
 	}
 	if tx.Commit(); tx.Error != nil {
 		return err
