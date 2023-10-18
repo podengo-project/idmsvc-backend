@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
@@ -46,8 +48,8 @@ func InitOpenAPIFormats() {
 	openapi3.DefineStringFormatCallback("cert-subject", func(value string) error {
 		return checkFormatSubject(value)
 	})
-	openapi3.DefineStringFormat("domain-description", `^[\n\x20-\x7E]*$`)
-	openapi3.DefineStringFormat("domain-title", `^[a-zA-Z0-9\s]+$`)
+	openapi3.DefineStringFormatCallback("domain-description", checkUtf8MultiLine)
+	openapi3.DefineStringFormatCallback("domain-title", checkUtf8SingleLine)
 	openapi3.DefineStringFormatCallback("ipa-realm-domains", func(value string) error {
 		return checkFormatRealmDomains(value)
 	})
@@ -63,6 +65,34 @@ func helperCheckRegEx(regex string, fieldName string, fieldValue string) error {
 	}
 	if !match {
 		return fmt.Errorf("'%s'='%s' format not matching", fieldName, fieldValue)
+	}
+	return nil
+}
+
+// Check that input is a valid UTF-8 string with no control characters
+// (not even CR/LF).
+func checkUtf8SingleLine(s string) error {
+	if !utf8.ValidString(s) {
+		return fmt.Errorf("not a valid utf-8 string")
+	}
+	for _ /* index */, r /* rune */ := range s {
+		if unicode.IsControl(r) {
+			return fmt.Errorf("invalid code point: %U", r)
+		}
+	}
+	return nil
+}
+
+// Check that input is a valid UTF-8 string with no control characters,
+// except spacing chars including CR/LF are allowed.
+func checkUtf8MultiLine(s string) error {
+	if !utf8.ValidString(s) {
+		return fmt.Errorf("not a valid utf-8 string")
+	}
+	for _ /* index */, r /* rune */ := range s {
+		if unicode.IsControl(r) && !unicode.IsSpace(r) {
+			return fmt.Errorf("invalid code point: %U", r)
+		}
 	}
 	return nil
 }
