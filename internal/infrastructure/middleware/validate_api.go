@@ -262,6 +262,7 @@ func RequestResponseValidatorWithConfig(config *RequestResponseValidatorConfig) 
 				if err != nil {
 					c.Response().Header().Set(echo.HeaderContentType, "text/plain")
 					c.String(http.StatusBadRequest, err.Error())
+					return nil // stop processing
 				}
 			}
 
