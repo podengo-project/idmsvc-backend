@@ -50,6 +50,8 @@ func (p *hostPresenter) fillRhelIdm(domain *model.Domain, response *public.HostC
 		Cabundle:          sb.String(),
 		EnrollmentServers: servers,
 		RealmName:         *domain.IpaDomain.RealmName,
+		// TODO: hard-coded value for testing and demonstration
+		IpaClientInstallArgs: &[]string{"--automount-location=default"},
 	}
 	return nil
 }
