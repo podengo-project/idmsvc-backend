@@ -62,10 +62,13 @@ type DomainId = openapi_types.UUID
 
 // DomainIpa Options for ipa domains
 type DomainIpa struct {
+	// AutomountLocations List of automount locations for AutoFS
+	AutomountLocations *[]string `json:"automount_locations,omitempty"`
+
 	// CaCerts A base64 representation of all the list of chain of certificates, including the server ca.
 	CaCerts []Certificate `json:"ca_certs"`
 
-	// Locations List of allowed locations
+	// Locations List of DNS locations
 	Locations []Location `json:"locations"`
 
 	// RealmDomains List of realm associated to the IPA domain.
@@ -177,6 +180,9 @@ type HostConfIpa struct {
 
 	// EnrollmentServers List of auto-enrollment enabled servers for this domain.
 	EnrollmentServers []HostConfIpaServer `json:"enrollment_servers"`
+
+	// IpaClientInstallArgs List of additional arguments for ipa-client-install
+	IpaClientInstallArgs *[]string `json:"ipa_client_install_args,omitempty"`
 
 	// RealmName A Kerberos realm name (usually all upper-case domain name)
 	RealmName RealmName `json:"realm_name"`
