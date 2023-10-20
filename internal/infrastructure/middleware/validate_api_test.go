@@ -91,6 +91,32 @@ MII..
 	assert.EqualError(t, err, "Failed to decode CA certificate")
 }
 
+func TestCheckUtf8SingleLine(t *testing.T) {
+	var err error
+
+	err = checkUtf8SingleLine("This is an invalid utf-8 string\xF1")
+	assert.EqualError(t, err, "not a valid utf-8 string")
+
+	err = checkUtf8SingleLine("This is an invalid title\n")
+	assert.EqualError(t, err, "invalid code point: U+000A")
+
+	err = checkUtf8SingleLine("This a valid title")
+	assert.NoError(t, err)
+}
+
+func TestCheckUtf8MultiLine(t *testing.T) {
+	var err error
+
+	err = checkUtf8MultiLine("\n\r\t\v\fThis is an invalid utf-8 string\xF1")
+	assert.EqualError(t, err, "not a valid utf-8 string")
+
+	err = checkUtf8MultiLine("\n\r\t\v\fThis is an invalid title\x02")
+	assert.EqualError(t, err, "invalid code point: U+0002")
+
+	err = checkUtf8MultiLine("\n\r\t\v\fThis a valid title")
+	assert.NoError(t, err)
+}
+
 func TestInitOpenAPIFormats(t *testing.T) {
 	InitOpenAPIFormats()
 }
