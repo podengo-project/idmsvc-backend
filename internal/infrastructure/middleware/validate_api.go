@@ -260,9 +260,7 @@ func RequestResponseValidatorWithConfig(config *RequestResponseValidatorConfig) 
 					requestValidationInput,
 				)
 				if err != nil {
-					c.Response().Header().Set(echo.HeaderContentType, "text/plain")
-					c.String(http.StatusBadRequest, err.Error())
-					return nil // stop processing
+					return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 				}
 			}
 
@@ -273,6 +271,12 @@ func RequestResponseValidatorWithConfig(config *RequestResponseValidatorConfig) 
 				c.Response().Writer = resRec
 
 				defer func() {
+					// reset the response, using the original ResponseWriter
+					c.SetResponse(echo.NewResponse(rw, c.Echo()))
+				}()
+
+				err = next(c)
+				if err == nil {
 					responseValidationInput := &openapi3filter.ResponseValidationInput{
 						RequestValidationInput: requestValidationInput,
 						Status:                 resRec.status,
@@ -285,19 +289,15 @@ func RequestResponseValidatorWithConfig(config *RequestResponseValidatorConfig) 
 						responseValidationInput,
 					); err != nil {
 						// write error response
-						c.Response().Header().Set(echo.HeaderContentType, "text/plain")
-						c.String(http.StatusInternalServerError, err.Error())
-					} else {
-						// Write original response
-						rw.WriteHeader(resRec.status)
-						resRec.buffer.WriteTo(rw)
+						return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 					}
-				}()
 
-				defer func() {
-					// reset the response, using the original ResponseWriter
-					c.SetResponse(echo.NewResponse(rw, c.Echo()))
-				}()
+					// Write original response
+					rw.WriteHeader(resRec.status)
+					resRec.buffer.WriteTo(rw)
+				}
+
+				return err
 			}
 
 			return next(c)
