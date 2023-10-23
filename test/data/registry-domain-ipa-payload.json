@@ -1,0 +1,32 @@
+{
+  "realm_name": "mydomain.example",
+  "servers": [
+    {
+      "fqdn": "ipaserver.mydomain.example",
+      "subscription_manager_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+      "ca_server": true,
+      "hcc_enrollment_server": true,
+      "pkinit_server": true
+    }
+  ],
+  "ca_certs": [
+    {
+      "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+      "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+      "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+      "serial_number": "1",
+      "not_before": "2023-01-31T13:23:36",
+      "not_after": "2023-01-31T13:23:36",
+      "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
+    }
+  ],
+  "locations": [
+    {
+      "name": "boston",
+      "description": "Boston data center"
+    }
+  ],
+  "realm_domains": [
+    "mydomain.example"
+  ]
+}

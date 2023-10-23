@@ -1,0 +1,19 @@
+.DS_Store
+.cicd_bootstrap.sh
+secrets
+/idm-ci-secrets
+.venv
+/bin
+/tools/bin
+tmp.*/**
+**/__debug_bin
+
+*.log
+
+configs/**
+!configs/config.example.yaml
+!configs/bonfire.example.yaml
+
+# File generated when running unit tests
+coverage.out
+

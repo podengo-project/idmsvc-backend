@@ -1,0 +1,8 @@
+{
+    "git.mergeEditor": false,
+    "go.testEnvVars": {
+        "CONFIG_PATH": "${workspaceFolder}/configs"
+    },
+    "go.autocompleteUnimportedPackages": true,
+    "go.formatTool": "gofumpt"
+}

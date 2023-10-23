@@ -1,0 +1,119 @@
+# https://docs.docker.com/compose/compose-file/compose-file-v2/
+# https://docs.docker.com/compose/compose-file/compose-file-v3/
+---
+# TODO To be defined as the infrastructure is added
+version: "3.0"
+services:
+  mock:
+    # https://github.com/mock-server/mockserver
+    # https://www.mock-server.com/
+    image: docker.io/mockserver/mockserver:5.14.0
+    command: -logLevel DEBUG -serverPort 8010
+    environment:
+      MOCKSERVER_LOG_LEVEL: DEBUG
+      MOCKSERVER_MAX_EXPECTATIONS: 100
+      MOCKSERVER_MAX_HEADER_SIZE: 16384
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/expectationInitialiser.json
+    ports:
+      - 8010:8010
+    # volumes:
+    #   - ../test/mock/inventory/config:/config:ro,z
+
+  database:
+    image: docker.io/postgres:13
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME:-idmsvc-db}
+      - POSTGRES_USER=${DATABASE_USER:-idmsvc-user}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+    ports:
+      - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # TODO Uncomment or clean-up when using or not kafka
+  # zookeeper:
+  #   image: localhost/kafka:latest
+  #   build:
+  #     dockerfile: ./build/kafka/Dockerfile
+  #     context: ..
+  #     tags:
+  #       - localhost/kafka:latest
+  #   command: /opt/kafka/scripts/zookeeper-entrypoint.sh
+  #   ports:
+  #     - "8778:8778"
+  #     - "2181:2181"
+  #   environment:
+  #     ZOOKEEPER_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
+  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT:-2181}
+  #   volumes:
+  #     - zookeeper:/tmp/zookeeper
+  #     - ${KAFKA_CONFIG_DIR}:/tmp/config:z
+  #   healthcheck:
+  #     test: /opt/kafka/scripts/zookeeper-healthcheck.sh
+  #     interval: 5s
+  #     retries: 10
+  #     timeout: 3s
+  #     start_period: 3s
+
+  # kafka:
+  #   image: localhost/kafka:latest
+  #   build:
+  #     dockerfile: ./build/kafka/Dockerfile
+  #     context: ..
+  #     tags:
+  #       - localhost/kafka:latest
+  #   command: /opt/kafka/scripts/kafka-entrypoint.sh
+  #   ports:
+  #     - "9092:9092"
+  #   restart: "on-failure:5"
+  #   depends_on:
+  #     - zookeeper
+  #   volumes:
+  #     - ${KAFKA_CONFIG_DIR}:/tmp/config:z
+  #   environment:
+  #     KAFKA_BROKER_ID: 1
+  #     KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+  #     KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://localhost:9092"
+  #     ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_CLIENT_PORT:-2181}
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+  #     KAFKA_OPTS: '-javaagent:/usr/jolokia/agents/jolokia-jvm.jar=host=0.0.0.0'
+  #     KAFKA_TOPICS: "${KAFKA_TOPICS}"
+
+  # backend-service:
+  #   image: ${CONTAINER_IMAGE_BASE:-idmsvc-backend}:${CONTAINER_IMAGE_TAG:-latest}
+  #   build:
+  #     dockerfile: build/package/Dockerfile
+  #     context: ..
+  #     tags:
+  #       - ${CONTAINER_IMAGE_BASE:-idmsvc-backend}:${CONTAINER_IMAGE_TAG:-latest}
+  #   environment:
+  #     - WEB_PORT=8000
+  #     - DATABASE_HOST=database
+  #     - DATABASE_NAME=${DATABASE_NAME:-idmsvc-db}
+  #     - DATABASE_USER=${DATABASE_USER:-idmsvc-user}
+  #     - DATABASE_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+  #   depends_on:
+  #     database:
+  #       condition: service_healthy
+  #   links:
+  #     - database
+  #   ports:
+  #     - 8000:8000/tcp
+  #   restart: "on-failure:5"
+  #   healthcheck:
+  #       test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
+  #       interval: 5s
+  #       retries: 10
+  #       timeout: 3s
+  #       start_period: 5s
+
+volumes:
+  database:
+  zookeeper:

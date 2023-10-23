@@ -1,0 +1,7 @@
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+### readiness
+GET http://localhost:8000/private/readyz
+
+### liveness
+GET http://localhost:8000/private/livez

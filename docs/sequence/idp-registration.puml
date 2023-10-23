@@ -1,0 +1,389 @@
+' https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf
+@startuml
+skinparam handwritten true
+
+actor Administrator as Administrator
+participant "Ipa Server" as ipa_server
+participant "idm-domains-backend" as hmsidm_backend
+participant "Host Inventory\nService" as hbi
+participant "RBAC\nService" as rbac
+
+
+
+group Create Domain from UI
+Administrator -> hmsidm_backend: (1) (https) POST /api/idmsvc/v1/domains
+note left hmsidm_backend
+X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
+X-Rh-Insights-Request-Id: kjasdf01
+
+{
+  "title": "Human readable title",
+  "description": "My human friendly description",
+  "auto_enrollment_enabled": true,
+  "type": "rhel-idm"
+}
+
+end note
+
+' RBAC Checks
+hmsidm_backend -> rbac: (2) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (3) (http) ACL list for the current user
+note left rbac
+The communication between services will be encrypted by TLS in a near future
+See: ADR-18 at https://issues.redhat.com/browse/ADR-18
+end note
+note right hmsidm_backend
+the rbac middleware will check the right permission for:
+    "POST /domains => hmsidm:domains:write"
+by using the rbac client component and the rbac micro-service
+response below:
+{
+  "meta": {
+    "count": 3,
+    "limit": 3,
+    "offset": 0
+  },
+  "links": {
+    "first": "/api/rbac/v1/access/?application=hmsidm&limit=3&offset=0",
+    "next": null,
+    "previous": null,
+    "last": "/api/rbac/v1/access/?application=hmsidm&limit=3&offset=0"
+  },
+  "data": [
+    {
+      "resourceDefinitions": [],
+      "permission": "hmsidm:domains:read"
+    },
+    {
+      "resourceDefinitions": [],
+      "permission": "hmsidm:domains:write"
+    },
+    {
+      "resourceDefinitions": [],
+      "permission": "hmsidm:domains_ipa:read"
+    }
+  ]
+}
+end note
+
+
+alt domain created
+Administrator <-- hmsidm_backend: (4) (https) 201 Created
+note right Administrator
+{
+  "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+  "type": "rhel-idm",
+  "rhel-idm": {
+    "token": {
+      "secret": "271e6f20-de76-11ed-9f7b-482ae3863d30",
+      "expiration": "2023-01-31T13:23:36Z"
+    }
+  }
+}
+
+end note
+note right Administrator
+Execute the command below into your ipa server:
+$ ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 271e6f20-de76-11ed-9f7b-482ae3863d30
+end note
+else user not authorized
+Administrator <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
+end alt
+end group
+
+
+
+group Populate domains data from IPA Server
+Administrator -> ipa_server: (5) (cmd) ipa-hcc register 1aa15eae-a88b-11ed-a2cb-482ae3863d30 271e6f20-de76-11ed-9f7b-482ae3863d30
+ipa_server -> hmsidm_backend: (6) (https) PUT /api/idmsvc/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/register
+note left hmsidm_backend
+Here it is used an X-Rh-Identity header resulting
+from the certificate issued for the host by RHSM.
+end note
+note left hmsidm_backend
+X-Rh-Identity: ewogICJlbnRpdGxlbWVudHMiOiB7CiAgICAiYW5zaWJsZSI6IHsKICAgICAgImlzX2VudGl0bGVk
+IjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAiY29zdF9tYW5hZ2Vt
+ZW50IjogewogICAgICAiaXNfZW50aXRsZWQiOiB0cnVlLAogICAgICAiaXNfdHJpYWwiOiBmYWxz
+ZQogICAgfSwKICAgICJpbnNpZ2h0cyI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAg
+ICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAiaW50ZXJuYWwiOiB7CiAgICAgICJpc19l
+bnRpdGxlZCI6IGZhbHNlLAogICAgICAiaXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJtaWdy
+YXRpb25zIjogewogICAgICAiaXNfZW50aXRsZWQiOiB0cnVlLAogICAgICAiaXNfdHJpYWwiOiBm
+YWxzZQogICAgfSwKICAgICJvcGVuc2hpZnQiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUs
+CiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInJoZWwiOiB7CiAgICAgICJpc19l
+bnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInJob2Ft
+IjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UK
+ICAgIH0sCiAgICAicmhvZHMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IGZhbHNlLAogICAgICAi
+aXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJyaG9zYWsiOiB7CiAgICAgICJpc19lbnRpdGxl
+ZCI6IGZhbHNlLAogICAgICAiaXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJzZXR0aW5ncyI6
+IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAg
+IH0sCiAgICAic21hcnRfbWFuYWdlbWVudCI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwK
+ICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAic3Vic2NyaXB0aW9ucyI6IHsKICAg
+ICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAg
+ICAidXNlcl9wcmVmZXJlbmNlcyI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAg
+ImlzX3RyaWFsIjogZmFsc2UKICAgIH0KICB9LAogICJpZGVudGl0eSI6IHsKICAgICJhY2NvdW50
+X251bWJlciI6ICIxMjMiLAogICAgImF1dGhfdHlwZSI6ICJjZXJ0LWF1dGgiLAogICAgImludGVy
+bmFsIjogewogICAgICAiYXV0aF90aW1lIjogOTAwLAogICAgICAiY3Jvc3NfYWNjZXNzIjogZmFs
+c2UsCiAgICAgICJvcmdfaWQiOiAiMzIxIgogICAgfSwKICAgICJvcmdfaWQiOiAiMzIxIiwKICAg
+ICJzeXN0ZW0iOiB7CiAgICAgICJjZXJ0X3R5cGUiOiAic3lzdGVtIiwKICAgICAgImNuIjogImM4
+N2RjYjRjLThhZjEtNDBkZC04NzhlLTYwYzc0NGVkZGRkMCIKICAgIH0sCiAgICAidHlwZSI6ICJT
+eXN0ZW0iCiAgfQp9Cg==
+X-Rh-Insights-Request-Id: kjasdf02
+X-Rh-Idm-Registration-Token: 271e6f20-de76-11ed-9f7b-482ae3863d30
+X-Rh-Idm-Version: eyJpcGEtaGNjIjogIjAuNyIsICJpcGEiOiAiNC4xMC4wLTguZWw5XzEiLCAib3MtcmVsZWFzZS1pZCI
+6ICJyaGVsIiwgIm9zLXJlbGVhc2UtdmVyc2lvbi1pZCI6ICI5LjEifQo=
+
+{
+  "domain_name": "mydomain.example",
+  "title": "Human readable title",
+  "description": "My human friendly description",
+  "auto_enrollment_enabled": true,
+  "type": "rhel-idm",
+  "rhel-idm": {
+    "realm_name": "MYDOMAIN.EXAMPLE",
+    "servers": [
+      {
+        "fqdn": "server1.mydomain.example",
+        "subscription_manager_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+        "ca_server": true,
+        "hcc_enrollment_server": true,
+        "hcc_update_server": true,
+        "pkinit_server": true
+      }
+    ],
+    "ca_certs": [
+      {
+        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "serial_number": "1",
+        "not_before": "2023-01-31T13:23:36",
+        "not_after": "2023-01-31T13:23:36",
+        "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
+      }
+    ],
+    "realm_domains": [
+      "mydomain.example"
+    ]
+  }
+}
+end note
+note left hmsidm_backend
+Build and check the resource definition below,
+so the permission is allowed only when the list
+of resource definition is evaluated to true.
+{
+  "meta": {
+    "count": 1,
+    "limit": 1,
+    "offset": 0
+  },
+  "links": {
+    "first": "/api/rbac/v1/access/?application=hmsidm&limit=1&offset=0",
+    "next": null,
+    "previous": null,
+    "last": "/api/rbac/v1/access/?application=hmsidm&limit=1&offset=0"
+  },
+  "data": [
+    {
+      "resourceDefinitions": [
+        {
+          "key": "x_rh_identity.identity.system.cn",
+          "operation": "equal",
+          "value": "6d9575f2-de94-11ed-af6e-482ae3863d30"
+        }
+      ],
+      "permission": "hmsidm:domains_ipa_register:write"
+    },
+  ]
+}
+end note
+
+
+alt IPA data updated
+ipa_server <-- hmsidm_backend: (7) (https) 200 Ok
+note right ipa_server
+{
+  "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+  "domain_name": "mydomain.example",
+  "title": "Human readable title",
+  "description": "My human friendly description",
+  "auto_enrollment_enabled": true,
+  "type": "rhel-idm",
+  "rhel-idm": {
+    "realm_name": "MYDOMAIN.EXAMPLE",
+    "servers": [
+        {
+            "fqdn": "server1.mydomain.example",
+            "subscription_manager_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+            "ca_server": true,
+            "hcc_enrollment_server": true,
+            "pkinit_server": true
+        }
+    ],
+    "ca_certs": [
+        {
+            "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+            "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+            "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+            "serial_number": "1",
+            "not_before": "2023-01-31T13:23:36",
+            "not_after": "2023-01-31T13:23:36",
+            "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n"
+        }
+    ],
+    "realm_domains": [
+        "mydomain.example"
+    ]
+  }
+}
+end note
+note right ipa_server
+At this point, the rhel-idm section for the domain is filled up
+end note
+
+else RBAC validation: no 'hmsidm:domains_ipa:write' permission found
+ipa_server <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
+
+else Fail one time token validation
+note right ipa_server
+Token validation fails if:
+- Token is nil into the IPA section.
+- Expiration token timestamp is nil into the API section.
+- Token provided does not match.
+- Token is outdated (expiration date).
+end note
+ipa_server <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
+end alt
+end group
+
+
+' Update domain information from Rhel-Idm Server
+' group Automatic Update domains data from IPA Server
+' Administrator -> ipa_server: (8) (cmd) ipa-hcc update 1aa15eae-a88b-11ed-a2cb-482ae3863d30
+' ipa_server -> hmsidm_backend: (9) (https) PUT /api/idmsvc/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30/update
+' note left hmsidm_backend
+' - Build ResourceDefinition for the permission.
+' - Evaluate if the required permission is allowed.
+' - Update the changes into the database.
+' end note
+'
+' Check host in host inventory
+' hmsidm_backend -> hbi: (10) (http) GET /api/inventory/v1/hosts?filter\[system_profile\]\[owner_id\]={x-rh-identity.system["cn"]}
+' note left hbi
+' X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
+' X-Rh-Insights-Request-Id: kjasdf01
+' end note
+' hmsidm_backend <-- hbi: (11) (http) List of hosts
+' note right hmsidm_backend
+' {
+'   "total": 1,
+'   "count": 1,
+'   "page": 1,
+'   "per_page": 50,
+'   "results": [
+'     {
+'       "insights_id": "6fe8800e-f466-48ee-af72-e01b9e0b074d",
+'       "subscription_manager_id": "4fa04772-6ee1-4898-85dc-abcddb29de35",
+'       "satellite_id": null,
+'       "bios_uuid": "c100e4e5-ae6f-4c20-a9c6-ef636c4b287d",
+'       "ip_addresses": [
+'         "10.0.197.223"
+'       ],
+'       "fqdn": "server1.mydomain.example",
+'       "mac_addresses": [
+'         "fa:16:3e:fe:b6:e2",
+'         "00:00:00:00:00:00"
+'       ],
+'       "provider_id": null,
+'       "provider_type": null,
+'       "id": "48ce8457-2f82-4af2-9bf1-74359ed2ffd8",
+'       "account": "11474377",
+'       "org_id": "16768564",
+'       "display_name": "server1.mydomain.example",
+'       "ansible_host": null,
+'       "facts": [],
+'       "reporter": "cloud-connector",
+'       "per_reporter_staleness": {
+'         "cloud-connector": {
+'           "check_in_succeeded": true,
+'           "stale_timestamp": "2023-03-17T11:00:39+00:00",
+'           "last_check_in": "2023-03-16T09:00:40.280344+00:00"
+'         },
+'         "puptoo": {
+'           "check_in_succeeded": true,
+'           "stale_timestamp": "2023-03-17T14:00:38.919595+00:00",
+'           "last_check_in": "2023-03-16T09:00:39.173849+00:00"
+'         }
+'       },
+'       "stale_timestamp": "2023-03-17T11:00:39+00:00",
+'       "stale_warning_timestamp": "2023-03-24T11:00:39+00:00",
+'       "culled_timestamp": "2023-03-31T11:00:39+00:00",
+'       "created": "2023-03-16T09:00:39.190043+00:00",
+'       "updated": "2023-03-16T09:00:40.280626+00:00"
+'     }
+'   ]
+' }
+' end note
+' end group
+
+
+' Retrieve domain information from UI
+group Get Domain information (UI)
+Administrator -> hmsidm_backend: (8) (https) GET /api/idmsvc/v1/domains/1aa15eae-a88b-11ed-a2cb-482ae3863d30
+note left hmsidm_backend
+X-Rh-Identity: eyJhY2NvdW50X251bWJlciI6IjExMTExIiwib3JnX2lkIjoiMTExMTEiLCJ1c2VyIjp7InVzZXJuYW1lIjoidGVzdHVzZXIifX0K
+X-Rh-Insights-Request-Id: kjasdf03
+end note
+
+hmsidm_backend -> rbac: (9) (http) GET /api/rbac/v1/access/?application=hmsidm&offset=0&limit=100
+hmsidm_backend <-- rbac: (10) (http) ACL list for the current user
+note right hmsidm_backend
+Check for 'hmsidm:domains:read' permission is granted
+end note
+
+alt 200 Ok
+Administrator <-- hmsidm_backend: (11) 200 Ok
+note right Administrator
+{
+  "domain_uuid": "1aa15eae-a88b-11ed-a2cb-482ae3863d30",
+  "domain_name": "mydomain.example",
+  "title": "Human readable title",
+  "description": "My human friendly description",
+  "auto_enrollment_enabled": true,
+  "type": "rhel-idm",
+  "rhel-idm": {
+    "realm_name": "MYDOMAIN.EXAMPLE",
+    "servers": [
+      {
+        "fqdn": "server1.mydomain.example",
+        "subscription_manager_id": "547ce70c-9eb5-4783-a619-086aa26f88e5",
+        "ca_server": true,
+        "hcc_enrollment_server": true,
+        "hcc_update_server": true,
+        "pkinit_server": true
+	}
+    ],
+    "ca_certs": [
+      {
+        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "subject": "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
+        "serial_number": "1",
+        "not_before": "2023-01-31T13:23:36",
+        "not_after": "2023-01-31T13:23:36"
+        "pem": "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+      }
+    ],
+    "realm_domains": [
+      "mydomain.example"
+    ]
+  }
+}
+end note
+else alt RBAC validation: no 'hmsidm:domains:read' permission
+Administrator <-- hmsidm_backend: (https) 403 Forbidden (401 Unauthorized)
+else alt Domain not found for the organization
+Administrator <-- hmsidm_backend: (https) 404 Not Found
+end alt
+end group
+@enduml

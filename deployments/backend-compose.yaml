@@ -1,0 +1,54 @@
+---
+version: "3.0"
+services:
+  database:
+    # Image Builder's mirror
+    image: quay.io/osbuild/postgres:13-alpine
+    environment:
+      - POSTGRES_DB=${DATABASE_NAME:-idmsvc-db}
+      - POSTGRES_USER=${DATABASE_USER:-idmsvc-user}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+    ports:
+      - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  backend-service:
+    image: ${CONTAINER_IMAGE_BASE:-idmsvc-backend}:${CONTAINER_IMAGE_TAG:-latest}
+    build:
+      dockerfile: build/package/Dockerfile
+      context: ..
+      tags:
+        - ${CONTAINER_IMAGE_BASE:-idmsvc-backend}:${CONTAINER_IMAGE_TAG:-latest}
+    environment:
+      - WEB_PORT=8000
+      - DATABASE_HOST=database
+      - DATABASE_NAME=${DATABASE_NAME:-idmsvc-db}
+      - DATABASE_USER=${DATABASE_USER:-idmsvc-user}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+      - APP_SECRET=${APP_SECRET:-random}
+      - APP_VALIDATE_API=${APP_VALIDATE_API:-false}
+      - APP_TOKEN_EXPIRATION_SECONDS=${APP_TOKEN_EXPIRATION_SECONDS:-3600}
+    depends_on:
+      database:
+        condition: service_healthy
+    links:
+      - database
+    ports:
+      - 8000:8000/tcp
+    restart: "on-failure:5"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/private/readyz"]
+      interval: 5s
+      retries: 10
+      timeout: 3s
+      start_period: 5s
+
+volumes:
+  database:

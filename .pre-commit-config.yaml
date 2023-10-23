@@ -1,0 +1,20 @@
+# https://pre-commit.com
+# https://pre-commit.com/hooks.html
+# https://github.com/dnephin/pre-commit-golang
+---
+repos:
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.29.0
+    hooks:
+      - id: yamllint
+        args: [--strict, -c=.yamllint.yaml]
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: golangci-lint
+  # TODO This linter is not set up correctly
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.21.0
+    hooks:
+      - id: check-metaschema
+        files: ^api/event/.*\.yaml$

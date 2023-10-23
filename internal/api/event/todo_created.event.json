@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "$id": "https://github.com/podengo-project/idmsvc-backend/internal/api/todo_created.event.yaml",
+    "title": "Event Todo created",
+    "description": "Message schema for todo creation event",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "id": {
+            "description": "The id of the Todo resource.\n",
+            "type": "number",
+            "format": "int",
+            "minValue": 0,
+            "maxValue": 2147483647
+        },
+        "title": {
+            "description": "The Todo title",
+            "type": "string",
+            "maxLength": 256
+        },
+        "description": {
+            "description": "The Todo description",
+            "type": "string",
+            "maxLength": 4096
+        }
+    },
+    "required": [
+        "id",
+        "title",
+        "description"
+    ]
+}

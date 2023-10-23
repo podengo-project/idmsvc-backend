@@ -1,0 +1,5 @@
+{
+    "title": "My Patched Example domain",
+    "description": "My patched description for mydomain.example domain",
+    "auto_enrollment_enabled": true
+}

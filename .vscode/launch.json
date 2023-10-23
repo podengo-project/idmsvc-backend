@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "service",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/service",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "env": {
+                "CONFIG_PATH": "${workspaceFolder}/configs",
+                // TODO Uncomment this line to debug when clowder.IsClowderEnabled
+                // "ACG_CONFIG": "${workspaceFolder}/configs/cdappconfig.json"
+            }
+        },
+        {
+            "name": "db-tool-migrate-up",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/db-tool",
+            "cwd": "${workspaceFolder}",
+            "args": ["migrate", "up", "0"],
+            "env": {
+                "CONFIG_PATH": "${workspaceFolder}/configs",
+            }
+        },
+        {
+            "name": "db-tool-migrate-down",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/db-tool",
+            "cwd": "${workspaceFolder}",
+            "args": ["migrate", "down", "0"],
+            "env": {
+                "CONFIG_PATH": "${workspaceFolder}/configs",
+            }
+        },
+    ]
+}

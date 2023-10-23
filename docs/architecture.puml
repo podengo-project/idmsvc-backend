@@ -1,0 +1,38 @@
+' https://pdf.plantuml.net/PlantUML_Language_Reference_Guide_en.pdf
+@startuml architecture
+
+skinparam handwritten true
+
+() "Public API" as http_requests
+
+cloud "Client AWS" {
+    () "Freeipa" as domain
+    () "Host VM" as host
+    host --> domain
+    host --> http_requests
+    domain --> http_requests
+}
+
+cloud "Console.Dot Platform" {
+    [HBI] as service_hbi
+    cloud "idmsvc" {
+        ' () "Kafka Consumers" as kafka_consumer
+        ' () "Kafka Producers" as kafka_producer
+        ' () "Http Clients" as http_clients
+
+        database "Postgresql" {
+            () "Data" as database
+        }
+
+        [Service] as service_idmsvc
+
+        http_requests - service_idmsvc: /api/idmsvc/v*
+        service_idmsvc --> service_hbi: /api/inventory/v1/*
+        ' service - http_clients: third party services
+        ' service - kafka_producer: produce event topics
+        ' kafka_consumer - service: kafka handler
+        service_idmsvc - database
+    }
+}
+
+@enduml

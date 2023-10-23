@@ -1,0 +1,63 @@
+---
+image: golang:1.19
+
+stages:
+  - check
+  - test
+  - build
+
+check missed commits:
+  stage: check
+  tags:
+    - shared
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  before_script:
+    - apt-get update
+    - apt-get install -y python3-venv python3-pip
+    - python3 -m venv .venv
+    - .venv/bin/pip install yamllint
+  script:
+    # Check install go tools
+    - make install-go-tools
+
+    - echo "Checking missed 'make tidy'"
+    - make tidy && git diff --exit-code go.mod go.sum
+
+    - echo "Checking missed 'make generate-api'"
+    - make generate-api && git diff --exit-code internal/api/public/
+
+    - echo "Checking missed 'make generate-mock'"
+    - make generate-mock && git diff --exit-code internal/test/mock/
+
+    - echo "Checking missed 'go fmt'"
+    - make go-fmt && git diff --exit-code .
+
+    - echo "Checking yaml files"
+    - .venv/bin/python3 -m yamllint .
+
+run tests:
+  stage: test
+  tags:
+    - shared
+  needs: []
+  script:
+    - go vet $(go list ./... | grep -v /vendor/)
+    - make test
+    - go get github.com/boumenot/gocover-cobertura
+    - go run github.com/boumenot/gocover-cobertura < coverage.out > coverage.xml
+    - go tool cover -func ./coverage.out
+  coverage: '/total:\s+\(statements\)(?:\s+)?(\d+(?:\.\d+)?%)/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+
+compile project:
+  stage: build
+  tags:
+    - shared
+  needs: ["run tests"]
+  script:
+    - make build

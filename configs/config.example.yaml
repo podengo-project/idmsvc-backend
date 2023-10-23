@@ -1,0 +1,82 @@
+---
+logging:
+  level: info   # The normal level in production
+  # level: trace  # Will display the sql statements, usefult for development
+  # level: debug
+  # Set to false to get a json output for the log
+  console: true
+
+web:
+  port: 8000
+
+database:
+  host: localhost
+  port: 5432
+  user: idmsvc-user
+  password: idmsvc-secret
+  name: idmsvc-db
+
+kafka:
+  auto:
+    offset:
+      reset: latest
+    commit:
+      interval:
+        ms: 5000
+  bootstrap:
+    servers: localhost:9092
+  group:
+    id: idmsvc
+  message:
+    send:
+      max:
+        retries: 15
+  request:
+    timeout:
+      ms: 30000
+    required:
+      acks: -1
+  retry:
+    backoff:
+      ms: 100
+  timeout: 10000
+  topics:
+    - platform.idmsvc.introspect
+  # sasl:
+  #   username: someusername
+  #   passowrd: somepassword
+  #   mechanism: somemechanism
+  #   protocol: someprotocol
+
+# cloudwatch:
+#   region:
+#   group:
+#   stream:
+#   key:
+#   secret:
+#   session:
+# options:
+#   paged_rpm_inserts_limit: 100
+metrics:
+  path: "/metrics"
+  port: 9000
+
+clients:
+  inventory:
+    base_url: http://localhost:8010/api/inventory/v1
+
+app:
+  # Token expiration time in seconds
+  # default: 2 hours
+  token_expiration_seconds: 7200
+  # The pagination default limit for the first list request
+  pagination_default_limit: 10
+  # The pagination max limit to avoid bigger values and long requests
+  pagination_max_limit: 100
+  # Allow to inject a system identity for development propose
+  accept_x_rh_fake_identity: true
+  # Validate API requests and response against the openapi specification
+  validate_api: true
+  # main secret for various MAC and encryptions like domain registration
+  # token and encrypted private JWKs. "random" generates an ephemeral secret.
+  secret: random

@@ -1,0 +1,72 @@
+@startuml
+hide circle
+skinparam linetype ortho
+
+entity "**domains**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp without time zone //
+  ""updated_at"": //timestamp without time zone //
+  ""deleted_at"": //timestamp without time zone //
+  *""org_id"": //character varying(255) //
+  *""domain_uuid"": //uuid //
+  ""domain_name"": //character varying(253) //
+  *""title"": //character varying(255) //
+  *""description"": //text //
+  *""type"": //integer //
+  *""auto_enrollment_enabled"": //boolean //
+}
+
+entity "**ipa_certs**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp without time zone //
+  ""updated_at"": //timestamp without time zone //
+  ""deleted_at"": //timestamp without time zone //
+  ""ipa_id"": //integer [FK]//
+  *""issuer"": //text //
+  *""nickname"": //character varying(255) //
+  *""not_after"": //timestamp without time zone //
+  *""not_before"": //timestamp without time zone //
+  *""serial_number"": //character varying(64) //
+  *""subject"": //text //
+  *""pem"": //text //
+}
+
+entity "**ipa_servers**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp without time zone //
+  ""updated_at"": //timestamp without time zone //
+  ""deleted_at"": //timestamp without time zone //
+  ""ipa_id"": //integer [FK]//
+  *""fqdn"": //character varying(253) //
+  *""rhsm_id"": //character varying(64) //
+  *""ca_server"": //boolean //
+  *""hcc_enrollment_server"": //boolean //
+  *""hcc_update_server"": //boolean //
+  *""pk_init_server"": //boolean //
+}
+
+entity "**ipas**" {
+  + ""id"": //serial [PK][FK]//
+  --
+  ""created_at"": //timestamp without time zone //
+  ""updated_at"": //timestamp without time zone //
+  ""deleted_at"": //timestamp without time zone //
+  *""realm_name"": //character varying(253) //
+  *""realm_domains"": //text //
+}
+
+entity "**schema_migrations**" {
+  + ""version"": //bigint [PK]//
+  --
+  *""dirty"": //boolean //
+}
+
+"**ipa_certs**"   }--  "**ipas**"
+
+"**ipa_servers**"   }--  "**ipas**"
+
+"**ipas**"  ||-||  "**domains**"
+@enduml

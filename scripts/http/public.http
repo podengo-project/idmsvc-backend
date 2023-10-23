@@ -1,0 +1,157 @@
+# https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+@schema = http
+@hostname = localhost
+@port = 8000
+@host = {{hostname}}:{{port}}
+@contentType = application/json
+@x-rh-identity-user = eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjExMTExIiwiZW1wbG95ZWVfYWNjb3VudF9udW1iZXIiOiIyMjIyMiIsIm9yZ19pZCI6IjEyMzQ1IiwiaW50ZXJuYWwiOnsib3JnX2lkIjoiMTIzNDUifSwidXNlciI6eyJ1c2VybmFtZSI6Impkb2UiLCJlbWFpbCI6Impkb2VAZXhhbXBsZS5jb20iLCJmaXJzdF9uYW1lIjoiSm9obiIsImxhc3RfbmFtZSI6IkRvZSIsImlzX2FjdGl2ZSI6dHJ1ZSwiaXNfb3JnX2FkbWluIjp0cnVlLCJpc19pbnRlcm5hbCI6dHJ1ZSwibG9jYWxlIjoiZW4iLCJ1c2VyX2lkIjoiMTk4NzM0OCJ9LCJzeXN0ZW0iOnt9LCJhc3NvY2lhdGUiOnsiUm9sZSI6bnVsbCwiZW1haWwiOiIiLCJnaXZlbk5hbWUiOiIiLCJyaGF0VVVJRCI6IiIsInN1cm5hbWUiOiIifSwieDUwOSI6eyJzdWJqZWN0X2RuIjoiIiwiaXNzdWVyX2RuIjoiIn0sInR5cGUiOiJVc2VyIiwiYXV0aF90eXBlIjoiIn19Cg==
+@x-rh-identity-system = ewogICJpZGVudGl0eSI6IHsKICAgICJhY2NvdW50X251bWJlciI6ICIxMTExMSIsCiAgICAiYXV0aF90eXBlIjogImNlcnQtYXV0aCIsCiAgICAiaW50ZXJuYWwiOiB7CiAgICAgICJhdXRoX3RpbWUiOiA5MDAsCiAgICAgICJjcm9zc19hY2Nlc3MiOiBmYWxzZSwKICAgICAgIm9yZ19pZCI6ICIxMjM0NSIKICAgIH0sCiAgICAib3JnX2lkIjogIjEyMzQ1IiwKICAgICJzeXN0ZW0iOiB7CiAgICAgICJjZXJ0X3R5cGUiOiAic3lzdGVtIiwKICAgICAgImNuIjogIjZmMzI0MTE2LWIzZDItMTFlZC04YTM3LTQ4MmFlMzg2M2QzMCIKICAgIH0sCiAgICAidHlwZSI6ICJTeXN0ZW0iCiAgfSwKICAiZW50aXRsZW1lbnRzIjogewogICAgImFuc2libGUiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgImNvc3RfbWFuYWdlbWVudCI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAiaW5zaWdodHMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgImludGVybmFsIjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAibWlncmF0aW9ucyI6IHsKICAgICAgImlzX2VudGl0bGVkIjogdHJ1ZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAib3BlbnNoaWZ0IjogewogICAgICAiaXNfZW50aXRsZWQiOiB0cnVlLAogICAgICAiaXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJyaGVsIjogewogICAgICAiaXNfZW50aXRsZWQiOiB0cnVlLAogICAgICAiaXNfdHJpYWwiOiBmYWxzZQogICAgfSwKICAgICJyaG9hbSI6IHsKICAgICAgImlzX2VudGl0bGVkIjogZmFsc2UsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInJob2RzIjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAicmhvc2FrIjogewogICAgICAiaXNfZW50aXRsZWQiOiBmYWxzZSwKICAgICAgImlzX3RyaWFsIjogZmFsc2UKICAgIH0sCiAgICAic2V0dGluZ3MiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInNtYXJ0X21hbmFnZW1lbnQiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInN1YnNjcmlwdGlvbnMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9LAogICAgInVzZXJfcHJlZmVyZW5jZXMiOiB7CiAgICAgICJpc19lbnRpdGxlZCI6IHRydWUsCiAgICAgICJpc190cmlhbCI6IGZhbHNlCiAgICB9CiAgfQp9Cg==
+@basepath = /api/idmsvc/v1
+@fqdn = ipaserver.mydomain.example
+@subscription_manager_id = 6f324116-b3d2-11ed-8a37-482ae3863d30
+@domain_id = b93b186b-8fd8-4978-a241-2ab0c3734136
+@x-rh-idm-version = {"ipa-hcc":"0.7","ipa":"4.10.0-8.el9_1","os-release-id":"rhel","os-release-version-id":"9.1"}
+@org_id = 12345
+
+### Get api specification
+
+# @name GetOpenapiSpecification
+
+# Request for localhost
+#   ./test/scripts/local-get-openapi.sh
+#
+# Request for ephemeral:
+#   ./test/scripts/ephe-get-openapi.sh
+GET {{schema}}://{{host}}{{basepath}}/openapi.json
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: get_openapi
+Content-Type: {{contentType}}
+
+### Create token
+
+# @name createToken
+
+# Request for localhost
+#   ./test/scripts/local-domain-token.sh
+#
+# Request for ephemeral
+#   ./test/scripts/ephe-domain-token.sh
+POST {{schema}}://{{host}}{{basepath}}/domains/token
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: create_token
+Content-Type: {{contentType}}
+
+{"domain_type": "rhel-idm"}
+
+### Register domain
+
+# @name registerDomain
+
+# Request for localhost
+#   TOKEN=""
+#   ./test/scripts/local-domains-register.sh $TOKEN
+#
+# Request for ephemeral:
+#   TOKEN=""
+#   ./test/scripts/ephe-domains-register.sh $TOKEN
+
+POST {{schema}}://{{host}}{{basepath}}/domains
+X-Rh-Identity: {{x-rh-identity-system}}
+X-Rh-Insights-Request-Id: post_domains
+X-Rh-Idm-Registration-Token: {{createToken.response.body.domain_token}}
+X-Rh-Idm-Version: {{x-rh-idm-version}}
+Content-Type: {{contentType}}
+
+<@ ../../test/data/http/register-rhel-idm-domain.json
+
+### Get All Domains
+
+# @name listDomains
+
+# Request for localhost
+#   ./test/scripts/local-domains-list.sh
+#
+# Request for ephemeral
+#   ./test/scripts/ephe-domains-list.sh
+
+GET http://{{host}}{{basepath}}/domains?offset=0&limit=10
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: get_domains
+Content-Type: {{contentType}}
+
+### Get last created Todo
+
+# @name getDomain
+
+# Request for localhost
+#   UUID=""
+#   ./test/scripts/local-domains-read.sh $UUID
+#
+# Request for ephemeral
+#   UUID=""
+#   ./test/scripts/ephe-domains-read.sh $UUID
+
+GET  http://{{host}}{{basepath}}/domains/{{createToken.response.body.domain_id}}
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: get_domains_uuid
+Content-Type: {{contentType}}
+
+### Update rhel-idm domain information
+
+# @name updateSystemIpaDomain
+
+# Request for localhost
+#   UUID=""
+#   ./test/scripts/local-domains-update.sh "$UUID"
+#
+# Request for ephemeral
+#   UUID=""
+#   ./test/scripts/ephe-domains-update.sh "$UUID"
+
+PUT http://{{host}}{{basepath}}/domains/{{createToken.response.body.domain_id}}
+X-Rh-Identity: eyJpZGVudGl0eSI6eyJhY2NvdW50X251bWJlciI6IjQ5MTIwIiwiYXV0aF90eXBlIjoiYmFzaWMtYXV0aCIsImVtcGxveWVlX2FjY291bnRfbnVtYmVyIjoiMTg2NzIiLCJpbnRlcm5hbCI6eyJvcmdfaWQiOiIxMjM0NSJ9LCJvcmdfaWQiOiIxMjM0NSIsInR5cGUiOiJVc2VyIiwidXNlciI6eyJlbWFpbCI6ImNhZXJuYXJ2b25zaGlyZUBoYW5uYS5uZXQiLCJmaXJzdF9uYW1lIjoiTGFtb250IiwiaXNfYWN0aXZlIjp0cnVlLCJpc19pbnRlcm5hbCI6ZmFsc2UsImlzX29yZ19hZG1pbiI6dHJ1ZSwibGFzdF9uYW1lIjoiSG93ZSIsImxvY2FsZSI6ImF5IiwidXNlcl9pZCI6InRlc3QiLCJ1c2VybmFtZSI6InRlc3QifX19Cg==
+X-Rh-Fake-Identity: {{x-rh-identity-system}}
+X-Rh-Insights-Request-Id: put_domains_register
+X-Rh-Idm-Version: {{x-rh-idm-version}}
+Content-Type: {{contentType}}
+
+<@ ../../test/data/http/update-rhel-idm-domain.json
+
+### Partial Update Todo
+
+# @name updateUserIpaDomain
+
+# Request for localhost
+#   UUID=""
+#   ./test/scripts/local-domains-patch.sh "$UUID"
+#
+# Request for ephemeral
+#   UUID=""
+#   ./test/scripts/ephe-domains-patch.sh "$UUID"
+
+PATCH http://{{host}}{{basepath}}/domains/{{createToken.response.body.domain_id}}
+X-Rh-Identity: {{x-rh-identity-user}}
+Content-Type: {{contentType}}
+
+<@ ../../test/data/http/patch-rhel-idm-domain.json
+
+### Delete Domain
+
+# Request for localhost
+#   UUID=""
+#   ./test/scripts/local-domains-delete.sh "$UUID"
+#
+# Request for ephemeral
+#   UUID=""
+#   ./test/scripts/ephe-domains-delete.sh "$UUID"
+
+DELETE http://{{host}}{{basepath}}/domains/{{createToken.response.body.domain_id}}
+X-Rh-Identity: {{x-rh-identity-user}}
+X-Rh-Insights-Request-Id: delete_domains
+Content-Type: {{contentType}}
+
+### HostConf
+# POST http://{{host}}{{basepath}}/host-conf/{{fqdn}}
+# X-Rh-Identity: {{x-rh-identity-system}}
+# X-Rh-Insights-Request-Id: post_host_conf
+# Content-Type: {{contentType}}
