@@ -24,7 +24,7 @@ export QUAY_LOGIN := $(firstword $(subst +, ,$(QUAY_USER)))
 # QUAY_REPOSITORY is used to compose the base image name when deploying into ephemeral
 # TODO Set your QUAY_REPOSITORY ; you have to create it and grant
 #      write permissions to the above robot account
-export QUAY_REPOSITORY :=
+export QUAY_REPOSITORY := 7d
 
 # TODO Update CONTAINER_IMAGE_BASE accoddingly to point out to your repository
 # This should point out to your repository
