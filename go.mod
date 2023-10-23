@@ -31,7 +31,7 @@ require (
 	github.com/vektra/mockery/v2 v2.33.2
 	golang.org/x/crypto v0.14.0
 	gorm.io/driver/postgres v1.5.2
-	gorm.io/gorm v1.25.4
+	gorm.io/gorm v1.25.5
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 )
 
