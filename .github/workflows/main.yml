@@ -31,7 +31,7 @@ jobs:
         run: make install-go-tools
 
       - name: Install service dependencies
-        run: go get ./...
+        run: go get ./... && git diff --exit-code .
 
       - name: Checking missed 'make generate-api'
         run: make generate-api && git diff --exit-code internal/api/public/

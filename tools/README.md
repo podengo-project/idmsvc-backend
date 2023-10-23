@@ -9,7 +9,7 @@ the repository.
 Upsides:
 
 - Simplify how the dependencies are installed as we only declare them in the
-  `tools/tools.go` and `tools/go.mod` files.
+  `tools/tools.go` and top-level `go.mod` files.
 - Save time, as now the dependencies use the same cache and not a clean
   environment, taking advantage of already downloaded packages and built parts.
 - Simplify how to add new go tools to the repository, removing code duplication
@@ -34,8 +34,8 @@ tools manually with `make install-go-tools` or `make install-tools`.
 ## Adding a new tool
 
 - Add the dependency to `tools/tools.go` file.
-- From the `tools/` director, run `go get "the-tool-url"`.
-- From the `tools/` directory, run `go mod tidy`.
+- From the root director, run `go get "the-tool-url"`.
+- From the root directory, run `go mod tidy`.
 - Add a variable to `scripts/mk/variables.mk` and update the `TOOLS` variable.
   The binary name must match a substring of the Go import name.
 - From the base repository directory now check that your tool install correctly
