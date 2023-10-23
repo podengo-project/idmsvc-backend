@@ -1,5 +1,8 @@
 module github.com/podengo-project/idmsvc-backend
 
+// When updating go version, update the below too:
+//   .github/workflows/main.yml
+//   build/package/Dockerfile
 go 1.19
 
 require (
