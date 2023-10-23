@@ -40,10 +40,6 @@ $(BIN) $(TOOLS_BIN):
 $(BIN)/%: cmd/%/main.go $(BIN)
 	go build $(MOD_VENDOR) -o "$@" "$<"
 
-# oapi-codegen is installed from global go.mod to keep it in sync with backend code
-$(OAPI_CODEGEN): go.mod go.sum $(BIN)
-	go build -modfile "$<" -o "$@" "github.com/deepmap/oapi-codegen/cmd/oapi-codegen"
-
 # golangci-lint is very picky when it comes to dependencies, install it directly
 # 1.53 is the latest version that supports Go 1.19
 $(GOLANGCI_LINT): $(BIN)
