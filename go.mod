@@ -17,7 +17,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/labstack/echo/v4 v4.11.2
 	github.com/labstack/gommon v0.4.0
-	github.com/lestrrat-go/jwx/v2 v2.0.13
+	github.com/lestrrat-go/jwx/v2 v2.0.15
 	github.com/lib/pq v1.10.9
 	github.com/loov/goda v0.5.7
 	github.com/mikefarah/yq/v4 v4.34.2
