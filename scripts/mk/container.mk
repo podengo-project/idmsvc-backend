@@ -47,7 +47,7 @@ registry-login:
 	$(CONTAINER_ENGINE) login -u "$(CONTAINER_REGISTRY_USER)" -p "$(CONTAINER_REGISTRY_TOKEN)" $(CONTAINER_REGISTRY)
 
 .PHONY: container-build
-container-build: QUAY_EXPIRATION ?= 1d
+container-build: QUAY_EXPIRATION ?= never
 container-build:  ## Build image CONTAINER_IMAGE from CONTAINERFILE using the CONTAINER_CONTEXT_DIR
 	$(USE_GO_CACHE) && mkdir -p $(shell go env GOCACHE) $(shell go env GOMODCACHE) || true
 	$(CONTAINER_ENGINE) build \
