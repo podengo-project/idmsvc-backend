@@ -66,7 +66,7 @@ tidy:
 
 .PHONY: get-deps
 get-deps: ## Download golang dependencies
-	go get -d ./...
+	go mod download
 
 .PHONY: update-deps
 update-deps: ## Update all golang dependencies
