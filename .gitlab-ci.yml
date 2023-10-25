@@ -21,10 +21,8 @@ check missed commits:
     # Check install go tools
     - make install-go-tools
 
-    # - echo "Checking missed 'make tidy'"
-    # - make tidy && git diff --exit-code go.mod go.sum
-    - echo "get dependencies"
-    - go get ./...
+    - echo "Checking missed 'make tidy'"
+    - make tidy && git diff --exit-code go.mod go.sum
 
     - echo "Checking missed 'make generate-api'"
     - make generate-api && git diff --exit-code internal/api/public/
