@@ -20,7 +20,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.0.15
 	github.com/lib/pq v1.10.9
 	github.com/loov/goda v0.5.7
-	github.com/mikefarah/yq/v4 v4.34.2
+	github.com/mikefarah/yq/v4 v4.35.2
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/openlyinc/pointy v1.2.1
 	github.com/prometheus/client_golang v1.16.0

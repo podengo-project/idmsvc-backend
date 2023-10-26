@@ -852,8 +852,8 @@ github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182aff
 github.com/matttproud/golang_protobuf_extensions v1.0.4 h1:mmDVorXM7PCGKw94cs5zkfA9PSy5pEvNWRP0ET0TIVo=
 github.com/matttproud/golang_protobuf_extensions v1.0.4/go.mod h1:BSXmuO+STAnVfrANrmjBb36TMTDstsz7MSK+HVaYKv4=
 github.com/miekg/pkcs11 v1.0.3/go.mod h1:XsNlhZGX73bx86s2hdc/FuaLm2CPZJemRLMA+WTFxgs=
-github.com/mikefarah/yq/v4 v4.34.2 h1:FmhqW52kPBQGOQHQhq+FHEU/GgLDmJMAkj4mtelhs4s=
-github.com/mikefarah/yq/v4 v4.34.2/go.mod h1:EsGfyWg6sNpnva274ASzb54TJrCBAOKsBgJaifOmcqw=
+github.com/mikefarah/yq/v4 v4.35.2 h1:WAvRpJNytw13x1arsRprZcdOb3WxDIJ539NG4oshzFc=
+github.com/mikefarah/yq/v4 v4.35.2/go.mod h1:7nyFSLbxP+nXJNoPXUbYTlJDDn/d9K/SMtKbOqQLbwM=
 github.com/mistifyio/go-zfs v2.1.2-0.20190413222219-f784269be439+incompatible/go.mod h1:8AuVvqP/mXw1px98n46wfvcGfQ4ci2FwoAjKYxuo3Z4=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
