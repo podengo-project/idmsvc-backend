@@ -25,7 +25,7 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (da
 	return data, nil
 }
 
-func (a *application) isSubscriptionManagerIDAuthorizedToUpdate(
+func ensureSubscriptionManagerIDAuthorizedToUpdate(
 	subscriptionManagerID string,
 	servers []model.IpaServer,
 ) error {
