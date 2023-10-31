@@ -306,7 +306,7 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 	}
 
 	subscriptionManagerID := xrhid.Identity.System.CommonName
-	if err = a.isSubscriptionManagerIDAuthorizedToUpdate(
+	if err = ensureSubscriptionManagerIDAuthorizedToUpdate(
 		subscriptionManagerID,
 		currentData.IpaDomain.Servers,
 	); err != nil {
