@@ -25,29 +25,6 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (da
 	return data, nil
 }
 
-// existsHostInServers verify that the given fqdn exists into the list of
-// IpaServer.
-// fqdn is the fqdn of the host to check.
-// servers is the slice of IpaServer that is defined for the IPA domain.
-// Return nil if the fqdn succesfully match with some item into the list of
-// servers, else return an error.
-func (a *application) existsHostInServers(
-	fqdn string,
-	servers []model.IpaServer,
-) error {
-	if servers == nil {
-		return fmt.Errorf("'servers' cannot be nil")
-	}
-
-	for i := range servers {
-		if servers[i].FQDN == fqdn {
-			return nil
-		}
-	}
-
-	return fmt.Errorf("'fqdn' not found into the list of IPA servers")
-}
-
 func (a *application) isSubscriptionManagerIDAuthorizedToUpdate(
 	subscriptionManagerID string,
 	servers []model.IpaServer,
