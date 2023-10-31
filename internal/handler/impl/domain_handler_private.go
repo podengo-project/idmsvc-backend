@@ -42,7 +42,10 @@ func ensureSubscriptionManagerIDAuthorizedToUpdate(
 			return nil
 		}
 	}
-	return fmt.Errorf("'subscriptionManagerID' not found into the authorized list of rhel-idm servers")
+	return internal_errors.NewHTTPErrorF(
+		http.StatusForbidden,
+		"'subscriptionManagerID' not found into the authorized list of rhel-idm servers",
+	)
 }
 
 // fillDomain is a helper function to copy Ipa domain
