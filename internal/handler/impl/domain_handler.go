@@ -301,7 +301,12 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 
 	// Load Domain data
 	if currentData, err = a.findIpaById(tx, orgID, domain_id); err != nil {
-		// FIXME It is not found it should return a 404 Status
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return internal_errors.NewHTTPErrorF(
+				http.StatusNotFound,
+				err.Error(),
+			)
+		}
 		return err
 	}
 
