@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
@@ -142,30 +141,6 @@ func (r *domainRepository) UpdateAgent(
 		data.DomainUuid,
 	); err != nil {
 		return err
-	}
-
-	if data.DomainName != nil {
-		currentDomain.DomainName = data.DomainName
-	} else {
-		currentDomain.DomainName = pointy.String("")
-	}
-
-	if data.Title != nil {
-		currentDomain.Title = data.Title
-	} else {
-		currentDomain.Title = pointy.String("")
-	}
-
-	if data.Description != nil {
-		currentDomain.Description = data.Description
-	} else {
-		currentDomain.Description = pointy.String("")
-	}
-
-	if data.AutoEnrollmentEnabled != nil {
-		currentDomain.AutoEnrollmentEnabled = data.AutoEnrollmentEnabled
-	} else {
-		currentDomain.AutoEnrollmentEnabled = pointy.Bool(false)
 	}
 
 	if err = db.Omit(clause.Associations).

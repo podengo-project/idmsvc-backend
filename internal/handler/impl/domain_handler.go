@@ -318,6 +318,15 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 		return err
 	}
 
+	if data.DomainName != nil &&
+		currentData.DomainName != nil &&
+		*data.DomainName != *currentData.DomainName {
+		return internal_errors.NewHTTPErrorF(
+			http.StatusBadRequest,
+			"'domain_name' may not be changed",
+		)
+	}
+
 	if err = a.fillDomain(currentData, data); err != nil {
 		return err
 	}
