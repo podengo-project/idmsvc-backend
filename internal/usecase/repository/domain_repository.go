@@ -122,29 +122,23 @@ func (r *domainRepository) Register(
 // 	return *data, nil
 // }
 
-// UpdateAgent save the Domain record into the database. It only update
-// data for the current organization.
+// UpdateAgent save the Domain record into the database.  The org_id
+// and domain_uuid from the data object are used to select the target
+// record.
+//
+// It is assumed that the record is complete and changes have already been
+// "merged" and are ready to save to the database.
 func (r *domainRepository) UpdateAgent(
 	db *gorm.DB,
 	orgID string,
 	data *model.Domain,
 ) (err error) {
-	var currentDomain *model.Domain
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
 		return err
 	}
 
-	// Check the entity exists
-	if currentDomain, err = r.FindByID(
-		db,
-		orgID,
-		data.DomainUuid,
-	); err != nil {
-		return err
-	}
-
-	if err = db.Omit(clause.Associations).
-		Where("org_id = ? AND domain_uuid = ?", orgID, currentDomain.DomainUuid).
+	if err = db.
+		Omit(clause.Associations).
 		Updates(data).
 		Error; err != nil {
 		return err
@@ -397,34 +391,10 @@ func (r *domainRepository) updateIpaDomain(
 		return err
 	}
 
-	if err = db.Omit(clause.Associations).
+	if err = db.
 		Create(data).
 		Error; err != nil {
 		return err
-	}
-
-	// CaCerts
-	for i := range data.CaCerts {
-		data.CaCerts[i].IpaID = data.ID
-		if err = db.Create(&data.CaCerts[i]).Error; err != nil {
-			return err
-		}
-	}
-
-	// Servers
-	for i := range data.Servers {
-		data.Servers[i].IpaID = data.ID
-		if err = db.Create(&data.Servers[i]).Error; err != nil {
-			return err
-		}
-	}
-
-	// Locations
-	for i := range data.Locations {
-		data.Locations[i].IpaID = data.ID
-		if err = db.Create(&data.Locations[i]).Error; err != nil {
-			return err
-		}
 	}
 
 	return nil
