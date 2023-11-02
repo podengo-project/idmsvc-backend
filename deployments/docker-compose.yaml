@@ -25,6 +25,9 @@ services:
       - POSTGRES_DB=${DATABASE_NAME:-idmsvc-db}
       - POSTGRES_USER=${DATABASE_USER:-idmsvc-user}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+      - PGDATABASE=${DATABASE_NAME:-idmsvc-db}
+      - PGUSER=${DATABASE_USER:-idmsvc-user}
+      - PGPASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
     ports:
       - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
     volumes:
