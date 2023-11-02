@@ -404,49 +404,6 @@ func (s *Suite) TestUpdateAgent() {
 	require.NoError(t, err)
 }
 
-func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	if stage == 0 {
-		return
-	}
-	if stage < 0 {
-		panic("'stage' cannot be lower than 0")
-	}
-	if stage > 2 {
-		panic("'stage' cannot be greater than 3")
-	}
-
-	s.mock.MatchExpectationsInOrder(true)
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			if i == stage && expectedErr != nil {
-				s.helperTestFindByID(1, data, mock, expectedErr)
-			} else {
-				s.helperTestFindByID(5, data, mock, nil)
-			}
-		case 2: // Update
-			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
-				WithArgs(
-					data.AutoEnrollmentEnabled,
-					data.Description,
-					data.Title,
-
-					data.OrgId,
-					data.DomainUuid,
-					data.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnResult(
-					driver.RowsAffected(1))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
 func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	if stage == 0 {
 		return
@@ -1193,6 +1150,49 @@ func (s *Suite) TestFindByID() {
 	assert.Equal(t, data.DomainName, domain.DomainName)
 	assert.Equal(t, data.DomainUuid, domain.DomainUuid)
 	assert.Equal(t, data.Type, domain.Type)
+}
+
+func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	if stage == 0 {
+		return
+	}
+	if stage < 0 {
+		panic("'stage' cannot be lower than 0")
+	}
+	if stage > 2 {
+		panic("'stage' cannot be greater than 3")
+	}
+
+	s.mock.MatchExpectationsInOrder(true)
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			if i == stage && expectedErr != nil {
+				s.helperTestFindByID(1, data, mock, expectedErr)
+			} else {
+				s.helperTestFindByID(5, data, mock, nil)
+			}
+		case 2: // Update
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
+				WithArgs(
+					data.AutoEnrollmentEnabled,
+					data.Description,
+					data.Title,
+
+					data.OrgId,
+					data.DomainUuid,
+					data.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(
+					driver.RowsAffected(1))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
 }
 
 func (s *Suite) TestUpdateUser() {
