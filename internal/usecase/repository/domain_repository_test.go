@@ -239,10 +239,152 @@ func (s *Suite) TestCreateIpaDomain() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestUpdateErrors() {
+func (s *Suite) helperTestUpdateAgent(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	if stage == 0 {
+		return
+	}
+	if stage < 0 {
+		panic("'stage' cannot be lower than 0")
+	}
+	if stage > 6 {
+		panic("'stage' cannot be greater than 6")
+	}
+
+	s.mock.MatchExpectationsInOrder(true)
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			expectExec := s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE "domains"."deleted_at" IS NULL AND "id" = $10`)).
+				WithArgs(
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+
+					data.OrgId,
+					data.DomainUuid,
+					data.DomainName,
+
+					data.Title,
+					data.Description,
+					data.Type,
+					data.AutoEnrollmentEnabled,
+
+					data.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
+			}
+		case 2:
+			expectExec := s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
+				WithArgs(
+					data.ID,
+				).WillReturnResult(
+				driver.RowsAffected(1),
+			)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
+			}
+		case 3:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
+				WithArgs(
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+
+					data.IpaDomain.RealmName,
+					data.IpaDomain.RealmDomains,
+					data.IpaDomain.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				expectQuery.WillReturnRows(
+					sqlmock.NewRows([]string{"id"}).
+						AddRow(data.ID))
+			}
+		case 4:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT ("id") DO UPDATE SET "ipa_id"="excluded"."ipa_id" RETURNING "id"`)).
+				WithArgs(
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+
+					data.IpaDomain.CaCerts[0].IpaID,
+
+					data.IpaDomain.CaCerts[0].Issuer,
+					data.IpaDomain.CaCerts[0].Nickname,
+					data.IpaDomain.CaCerts[0].NotAfter,
+					data.IpaDomain.CaCerts[0].NotBefore,
+					data.IpaDomain.CaCerts[0].Pem,
+					data.IpaDomain.CaCerts[0].SerialNumber,
+					data.IpaDomain.CaCerts[0].Subject,
+					data.IpaDomain.CaCerts[0].ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				expectQuery.WillReturnRows(
+					sqlmock.NewRows([]string{"id"}).
+						AddRow(data.IpaDomain.CaCerts[0].ID))
+			}
+		case 5:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT ("id") DO UPDATE SET "ipa_id"="excluded"."ipa_id" RETURNING "id"`)).
+				WithArgs(
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+
+					data.IpaDomain.Servers[0].IpaID,
+
+					data.IpaDomain.Servers[0].FQDN,
+					data.IpaDomain.Servers[0].RHSMId,
+					data.IpaDomain.Servers[0].Location,
+					data.IpaDomain.Servers[0].CaServer,
+					data.IpaDomain.Servers[0].HCCEnrollmentServer,
+					data.IpaDomain.Servers[0].HCCUpdateServer,
+					data.IpaDomain.Servers[0].PKInitServer,
+
+					data.IpaDomain.Servers[0].ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				expectQuery.WillReturnRows(
+					sqlmock.NewRows([]string{"id"}).
+						AddRow(data.IpaDomain.Servers[0].ID))
+			}
+		case 6:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT ("id") DO UPDATE SET "ipa_id"="excluded"."ipa_id" RETURNING "id"`)).
+				WithArgs(
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+
+					data.IpaDomain.Locations[0].IpaID,
+					data.IpaDomain.Locations[0].Name,
+					data.IpaDomain.Locations[0].Description,
+
+					data.IpaDomain.Locations[0].ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				expectQuery.WillReturnRows(
+					sqlmock.NewRows([]string{"id"}).
+						AddRow(data.IpaDomain.Locations[0].ID))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func (s *Suite) TestUpdateAgent() {
 	t := s.Suite.T()
 	orgID := test.OrgId
-	testUUID := test.DomainUUID
 	var (
 		data *model.Domain = test.BuildDomainModel(test.OrgId)
 		err  error
@@ -257,41 +399,52 @@ func (s *Suite) TestUpdateErrors() {
 	err = s.repository.UpdateAgent(s.DB, orgID, nil)
 	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
-	s.mock.MatchExpectationsInOrder(true)
-	s.helperTestFindByID(2, data, s.mock, fmt.Errorf("record not found"))
-	err = s.repository.UpdateAgent(s.DB, orgID, data)
-	require.EqualError(t, err, "record not found")
-
-	s.mock.MatchExpectationsInOrder(true)
-	s.helperTestFindByID(5, data, s.mock, nil)
-	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
-		WithArgs(
-			sqlmock.AnyArg(),
-			sqlmock.AnyArg(),
-
-			data.OrgId,
-			testUUID.String(),
-			data.DomainName,
-
-			data.Title,
-			data.Description,
-			data.Type,
-			data.AutoEnrollmentEnabled,
-
-			data.OrgId,
-			data.DomainUuid,
-			data.ID,
-		).
-		WillReturnResult(sqlmock.NewResult(1, 1))
-	s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
-		WithArgs(
-			data.ID,
-		).WillReturnResult(
-		driver.RowsAffected(1),
-	)
-	s.helperTestCreateIpaDomain(4, data.IpaDomain, s.mock, nil)
+	s.helperTestUpdateAgent(6, data, s.mock, nil)
 	err = s.repository.UpdateAgent(s.DB, orgID, data)
 	require.NoError(t, err)
+}
+
+func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	if stage == 0 {
+		return
+	}
+	if stage < 0 {
+		panic("'stage' cannot be lower than 0")
+	}
+	if stage > 2 {
+		panic("'stage' cannot be greater than 3")
+	}
+
+	s.mock.MatchExpectationsInOrder(true)
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			if i == stage && expectedErr != nil {
+				s.helperTestFindByID(1, data, mock, expectedErr)
+			} else {
+				s.helperTestFindByID(5, data, mock, nil)
+			}
+		case 2: // Update
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
+				WithArgs(
+					data.AutoEnrollmentEnabled,
+					data.Description,
+					data.Title,
+
+					data.OrgId,
+					data.DomainUuid,
+					data.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(
+					driver.RowsAffected(1))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
 }
 
 func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
@@ -339,7 +492,7 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 						AddRow(data.ID))
 			}
 		case 3:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT ("id") DO UPDATE RETURNING "id"`)).
 				WithArgs(
 					data.IpaDomain.CaCerts[0].Model.CreatedAt,
 					data.IpaDomain.CaCerts[0].Model.UpdatedAt,
@@ -354,8 +507,6 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 					data.IpaDomain.CaCerts[0].Pem,
 					data.IpaDomain.CaCerts[0].SerialNumber,
 					data.IpaDomain.CaCerts[0].Subject,
-
-					data.IpaDomain.CaCerts[0].ID,
 				)
 			if i == stage && expectedErr != nil {
 				expectQuery.WillReturnError(expectedErr)
@@ -365,7 +516,7 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 						AddRow(data.IpaDomain.CaCerts[0].ID))
 			}
 		case 4:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT ("id") DO UPDATE RETURNING "id"`)).
 				WithArgs(
 					data.IpaDomain.Servers[0].Model.CreatedAt,
 					data.IpaDomain.Servers[0].Model.UpdatedAt,
@@ -380,8 +531,6 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 					data.IpaDomain.Servers[0].HCCEnrollmentServer,
 					data.IpaDomain.Servers[0].HCCUpdateServer,
 					data.IpaDomain.Servers[0].PKInitServer,
-
-					data.IpaDomain.Servers[0].ID,
 				)
 			if i == stage && expectedErr != nil {
 				expectQuery.WillReturnError(expectedErr)
@@ -391,7 +540,7 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 						AddRow(data.IpaDomain.Servers[0].ID))
 			}
 		case 5:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`)).
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT ("id") DO UPDATE RETURNING "id"`)).
 				WithArgs(
 					data.IpaDomain.Locations[0].Model.CreatedAt,
 					data.IpaDomain.Locations[0].Model.UpdatedAt,
@@ -400,8 +549,6 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 					data.IpaDomain.Locations[0].IpaID,
 					data.IpaDomain.Locations[0].Name,
 					data.IpaDomain.Locations[0].Description,
-
-					data.IpaDomain.Locations[0].ID,
 				)
 			if i == stage && expectedErr != nil {
 				expectQuery.WillReturnError(expectedErr)
@@ -409,49 +556,6 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 				expectQuery.WillReturnRows(
 					sqlmock.NewRows([]string{"id"}).
 						AddRow(data.IpaDomain.Locations[0].ID))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
-func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	if stage == 0 {
-		return
-	}
-	if stage < 0 {
-		panic("'stage' cannot be lower than 0")
-	}
-	if stage > 2 {
-		panic("'stage' cannot be greater than 3")
-	}
-
-	s.mock.MatchExpectationsInOrder(true)
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			if i == stage && expectedErr != nil {
-				s.helperTestFindByID(1, data, mock, expectedErr)
-			} else {
-				s.helperTestFindByID(5, data, mock, nil)
-			}
-		case 2: // Update
-			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
-				WithArgs(
-					data.AutoEnrollmentEnabled,
-					data.Description,
-					data.Title,
-
-					data.OrgId,
-					data.DomainUuid,
-					data.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnResult(
-					driver.RowsAffected(1))
 			}
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
