@@ -134,13 +134,13 @@ func (_m *DomainRepository) Register(db *gorm.DB, orgID string, data *model.Doma
 	return r0
 }
 
-// UpdateAgent provides a mock function with given fields: db, orgID, data
-func (_m *DomainRepository) UpdateAgent(db *gorm.DB, orgID string, data *model.Domain) error {
-	ret := _m.Called(db, orgID, data)
+// UpdateAgent provides a mock function with given fields: db, orgID, oldData, newData
+func (_m *DomainRepository) UpdateAgent(db *gorm.DB, orgID string, oldData *model.Domain, newData *model.Domain) error {
+	ret := _m.Called(db, orgID, oldData, newData)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain) error); ok {
-		r0 = rf(db, orgID, data)
+	if rf, ok := ret.Get(0).(func(*gorm.DB, string, *model.Domain, *model.Domain) error); ok {
+		r0 = rf(db, orgID, oldData, newData)
 	} else {
 		r0 = ret.Error(0)
 	}
