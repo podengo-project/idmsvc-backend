@@ -107,21 +107,6 @@ func (r *domainRepository) Register(
 	}
 }
 
-// func (r *domainRepository) PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error) {
-// 	if db == nil {
-// 		return model.Domain{}, fmt.Errorf("db is nil")
-// 	}
-// 	if data == nil {
-// 		return model.Domain{}, fmt.Errorf("data is nil")
-// 	}
-// 	data.OrgId = orgId
-// 	cols := r.getColumnsToUpdate(data)
-// 	if err = db.Model(data).Select(cols).Updates(*data).Error; err != nil {
-// 		return model.Domain{}, err
-// 	}
-// 	return *data, nil
-// }
-
 // UpdateAgent save the Domain record into the database.  The org_id
 // and domain_uuid from the data object are used to select the target
 // record.
@@ -131,30 +116,68 @@ func (r *domainRepository) Register(
 func (r *domainRepository) UpdateAgent(
 	db *gorm.DB,
 	orgID string,
-	data *model.Domain,
+	oldData *model.Domain,
+	newData *model.Domain,
 ) (err error) {
-	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+	if err = r.checkCommonAndDataUpdateAgent(db, orgID, oldData, newData); err != nil {
+		return err
+	}
+
+	var (
+		remCerts     []uint
+		remServers   []uint
+		remLocations []uint
+	)
+
+	oldData.OrgId = orgID
+	newData.OrgId = orgID
+	if remCerts, remServers, remLocations, err = r.ipaFillUpdateAgent(oldData, newData); err != nil {
 		return err
 	}
 
 	if err = db.
-		Omit(clause.Associations).
-		Updates(data).
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "id"}},
+			UpdateAll: true,
+		}).
+		Where("org_id = ? AND id = ?", orgID, newData.ID).
+		Save(newData).
 		Error; err != nil {
 		return err
 	}
 
-	// Specific
-	switch *data.Type {
-	case model.DomainTypeIpa:
-		if data.IpaDomain == nil {
-			return internal_errors.NilArgError("IpaDomain")
+	if len(remCerts) > 0 {
+		if err := db.
+			Unscoped().
+			Model(&model.IpaCert{}).
+			Delete(&model.IpaCert{}, "ipa_certs.id in ?", remCerts).
+			Error; err != nil {
+			return err
 		}
-		data.IpaDomain.ID = data.ID
-		return r.updateIpaDomain(db, data.IpaDomain)
-	default:
-		return fmt.Errorf("'Type' is invalid")
 	}
+
+	if len(remServers) > 0 {
+		if err := db.
+			Unscoped().
+			Model(&model.IpaServer{}).
+			Delete(&model.IpaServer{}, "ipa_servers.id in ?", remServers).
+			Error; err != nil {
+			return err
+		}
+	}
+
+	if len(remLocations) > 0 {
+		if err := db.
+			Unscoped().
+			Model(&model.IpaLocation{}).
+			Delete(&model.IpaLocation{}, "ipa_locations.id in ?", remLocations).
+			Error; err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // prepareUpdateUser fill the hashmap with the not nil
@@ -329,6 +352,27 @@ func (r *domainRepository) checkCommonAndData(
 	return nil
 }
 
+func (r *domainRepository) checkCommonAndDataUpdateAgent(
+	db *gorm.DB,
+	orgID string,
+	oldData *model.Domain,
+	newData *model.Domain,
+) error {
+	if err := r.checkCommon(db, orgID); err != nil {
+		return err
+	}
+	if oldData == nil {
+		return internal_errors.NilArgError("oldData")
+	}
+	if newData == nil {
+		return internal_errors.NilArgError("newData")
+	}
+	if orgID != oldData.OrgId || orgID != newData.OrgId {
+		return internal_errors.NewHTTPErrorF(http.StatusInternalServerError, "orgID mismatch")
+	}
+	return nil
+}
+
 func (r *domainRepository) checkCommonAndDataAndType(
 	db *gorm.DB,
 	orgID string,
@@ -376,26 +420,68 @@ func (r *domainRepository) createIpaDomain(
 	return nil
 }
 
-func (r *domainRepository) updateIpaDomain(
-	db *gorm.DB,
-	data *model.Ipa,
-) (err error) {
-	if db == nil {
-		return internal_errors.NilArgError("db")
-	}
-	if data == nil {
-		return internal_errors.NilArgError("data' of type '*model.Ipa")
-	}
-	if err = db.Unscoped().
-		Delete(data).Error; err != nil {
-		return err
+func (r *domainRepository) ipaFillUpdateAgentReminders(oldData *model.Domain, newData *model.Domain) (remCerts []uint, remServers []uint, remLocations []uint) {
+	remCerts = nil
+	remServers = nil
+	remLocations = nil
+
+	// Check cert reminders
+	OldLenCerts := len(oldData.IpaDomain.CaCerts)
+	NewLenCerts := len(newData.IpaDomain.CaCerts)
+	if OldLenCerts > NewLenCerts {
+		remCerts = make([]uint, OldLenCerts-NewLenCerts)
+		for i := NewLenCerts; i < OldLenCerts; i++ {
+			remCerts[i-NewLenCerts] = oldData.IpaDomain.CaCerts[i].Model.ID
+		}
 	}
 
-	if err = db.
-		Create(data).
-		Error; err != nil {
-		return err
+	// Check servers reminders
+	OldLenServers := len(oldData.IpaDomain.Servers)
+	NewLenServers := len(newData.IpaDomain.Servers)
+	if OldLenServers > NewLenServers {
+		remServers = make([]uint, OldLenServers-NewLenServers)
+		for i := NewLenServers; i < OldLenServers; i++ {
+			remServers[i-NewLenServers] = oldData.IpaDomain.Servers[i].Model.ID
+		}
 	}
 
-	return nil
+	// Check location reminders
+	OldLenLocations := len(oldData.IpaDomain.Locations)
+	NewLenLocations := len(newData.IpaDomain.Locations)
+	if OldLenLocations > NewLenLocations {
+		remLocations = make([]uint, OldLenLocations-NewLenLocations)
+		for i := NewLenLocations; i < OldLenLocations; i++ {
+			remLocations[i-NewLenLocations] = oldData.IpaDomain.Locations[i].Model.ID
+		}
+	}
+	return
+}
+
+func (r *domainRepository) ipaFillUpdateAgent(oldData *model.Domain, newData *model.Domain) (remCerts []uint, remServers []uint, remLocations []uint, err error) {
+	remCerts, remServers, remLocations = r.ipaFillUpdateAgentReminders(oldData, newData)
+
+	newData.Model = oldData.Model
+	newData.IpaDomain.Model = oldData.IpaDomain.Model
+
+	newData.DomainName = oldData.DomainName
+	newData.Title = oldData.Title
+	newData.Description = oldData.Description
+	newData.AutoEnrollmentEnabled = oldData.AutoEnrollmentEnabled
+
+	// Certs
+	for i := range newData.IpaDomain.CaCerts {
+		newData.IpaDomain.CaCerts[i].Model = oldData.IpaDomain.CaCerts[i].Model
+	}
+
+	// Servers
+	for i := range newData.IpaDomain.Servers {
+		newData.IpaDomain.Servers[i].Model = oldData.IpaDomain.Servers[i].Model
+	}
+
+	// Locations
+	for i := range newData.IpaDomain.Locations {
+		newData.IpaDomain.Locations[i].Model = oldData.IpaDomain.Locations[i].Model
+	}
+
+	return remCerts, remServers, remLocations, nil
 }
