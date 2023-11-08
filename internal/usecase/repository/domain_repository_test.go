@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -239,36 +240,94 @@ func (s *Suite) TestCreateIpaDomain() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) helperTestUpdateAgent(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *Suite) helperTestUpdateAgentReminders(stage int, oldData *model.Domain, newData *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	if stage == 0 {
 		return
 	}
 	if stage < 0 {
 		panic("'stage' cannot be lower than 0")
 	}
-	if stage > 6 {
-		panic("'stage' cannot be greater than 6")
+	if stage > 4 {
+		panic("'stage' cannot be greater than 4")
 	}
 
-	s.mock.MatchExpectationsInOrder(true)
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			expectExec := s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE "domains"."deleted_at" IS NULL AND "id" = $10`)).
+			if i == stage && expectedErr != nil {
+				s.helperTestUpdateAgent(5, oldData, newData, mock, expectedErr)
+			} else {
+				s.helperTestUpdateAgent(5, oldData, newData, mock, nil)
+			}
+		case 2:
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipa_certs" WHERE ipa_certs.id in ($1)`)).
+				WithArgs(
+					oldData.IpaDomain.CaCerts[0].ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
+			}
+		case 3:
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipa_servers" WHERE ipa_servers.id in ($1)`)).
+				WithArgs(
+					oldData.IpaDomain.Servers[0].ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
+			}
+		case 4:
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipa_locations" WHERE ipa_locations.id in ($1)`)).
+				WithArgs(
+					oldData.IpaDomain.Locations[0].ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectExec.WillReturnError(expectedErr)
+			} else {
+				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func (s *Suite) helperTestUpdateAgent(stage int, oldData *model.Domain, newData *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	if stage == 0 {
+		return
+	}
+	if stage < 0 {
+		panic("'stage' cannot be lower than 0")
+	}
+	if stage > 5 {
+		panic("'stage' cannot be greater than 5")
+	}
+
+	mock.MatchExpectationsInOrder(true)
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"deleted_at"=$3,"org_id"=$4,"domain_uuid"=$5,"domain_name"=$6,"title"=$7,"description"=$8,"type"=$9,"auto_enrollment_enabled"=$10 WHERE (org_id = $11 AND id = $12) AND "domains"."deleted_at" IS NULL AND "id" = $13`)).
 				WithArgs(
 					sqlmock.AnyArg(),
 					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
 
-					data.OrgId,
-					data.DomainUuid,
-					data.DomainName,
+					newData.OrgId,
+					newData.DomainUuid,
+					newData.DomainName,
 
-					data.Title,
-					data.Description,
-					data.Type,
-					data.AutoEnrollmentEnabled,
+					newData.Title,
+					newData.Description,
+					newData.Type,
+					newData.AutoEnrollmentEnabled,
 
-					data.ID,
+					newData.OrgId,
+					newData.ID,
+					newData.ID,
 				)
 			if i == stage && expectedErr != nil {
 				expectExec.WillReturnError(expectedErr)
@@ -276,105 +335,107 @@ func (s *Suite) helperTestUpdateAgent(stage int, data *model.Domain, mock sqlmoc
 				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
 			}
 		case 2:
-			expectExec := s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
+			expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT ("id") DO UPDATE SET "updated_at"=$7,"deleted_at"="excluded"."deleted_at","realm_name"="excluded"."realm_name","realm_domains"="excluded"."realm_domains" RETURNING "id"`)).
 				WithArgs(
-					data.ID,
-				).WillReturnResult(
-				driver.RowsAffected(1),
-			)
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+					sqlmock.AnyArg(),
+
+					newData.IpaDomain.RealmName,
+					newData.IpaDomain.RealmDomains,
+					newData.IpaDomain.ID,
+
+					sqlmock.AnyArg(),
+				)
 			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
+				expectQuery.WillReturnError(expectedErr)
 			} else {
-				expectExec.WillReturnResult(sqlmock.NewResult(1, 1))
+				expectQuery.WillReturnRows(
+					sqlmock.NewRows([]string{"id"}).
+						AddRow(newData.ID))
 			}
 		case 3:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
-				WithArgs(
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
+			if len(newData.IpaDomain.CaCerts) > 0 {
+				expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT ("id") DO UPDATE SET "updated_at"=$13,"deleted_at"="excluded"."deleted_at","ipa_id"="excluded"."ipa_id","issuer"="excluded"."issuer","nickname"="excluded"."nickname","not_after"="excluded"."not_after","not_before"="excluded"."not_before","pem"="excluded"."pem","serial_number"="excluded"."serial_number","subject"="excluded"."subject" RETURNING "id"`)).
+					WithArgs(
+						sqlmock.AnyArg(),
+						sqlmock.AnyArg(),
+						sqlmock.AnyArg(),
 
-					data.IpaDomain.RealmName,
-					data.IpaDomain.RealmDomains,
-					data.IpaDomain.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.ID))
+						newData.IpaDomain.CaCerts[0].IpaID,
+
+						newData.IpaDomain.CaCerts[0].Issuer,
+						newData.IpaDomain.CaCerts[0].Nickname,
+						newData.IpaDomain.CaCerts[0].NotAfter,
+						newData.IpaDomain.CaCerts[0].NotBefore,
+						newData.IpaDomain.CaCerts[0].Pem,
+						newData.IpaDomain.CaCerts[0].SerialNumber,
+						newData.IpaDomain.CaCerts[0].Subject,
+						newData.IpaDomain.CaCerts[0].ID,
+
+						sqlmock.AnyArg(),
+					)
+				if i == stage && expectedErr != nil {
+					expectQuery.WillReturnError(expectedErr)
+				} else {
+					expectQuery.WillReturnRows(
+						sqlmock.NewRows([]string{"id"}).
+							AddRow(newData.IpaDomain.CaCerts[0].ID))
+				}
 			}
 		case 4:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT ("id") DO UPDATE SET "ipa_id"="excluded"."ipa_id" RETURNING "id"`)).
-				WithArgs(
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
+			if len(newData.IpaDomain.Servers) > 0 {
+				expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT ("id") DO UPDATE SET "updated_at"=$13,"deleted_at"="excluded"."deleted_at","ipa_id"="excluded"."ipa_id","fqdn"="excluded"."fqdn","rhsm_id"="excluded"."rhsm_id","location"="excluded"."location","ca_server"="excluded"."ca_server","hcc_enrollment_server"="excluded"."hcc_enrollment_server","hcc_update_server"="excluded"."hcc_update_server","pk_init_server"="excluded"."pk_init_server" RETURNING "id"`)).
+					WithArgs(
+						sqlmock.AnyArg(),
+						sqlmock.AnyArg(),
+						sqlmock.AnyArg(),
 
-					data.IpaDomain.CaCerts[0].IpaID,
+						newData.IpaDomain.Servers[0].IpaID,
 
-					data.IpaDomain.CaCerts[0].Issuer,
-					data.IpaDomain.CaCerts[0].Nickname,
-					data.IpaDomain.CaCerts[0].NotAfter,
-					data.IpaDomain.CaCerts[0].NotBefore,
-					data.IpaDomain.CaCerts[0].Pem,
-					data.IpaDomain.CaCerts[0].SerialNumber,
-					data.IpaDomain.CaCerts[0].Subject,
-					data.IpaDomain.CaCerts[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.CaCerts[0].ID))
+						newData.IpaDomain.Servers[0].FQDN,
+						newData.IpaDomain.Servers[0].RHSMId,
+						newData.IpaDomain.Servers[0].Location,
+						newData.IpaDomain.Servers[0].CaServer,
+						newData.IpaDomain.Servers[0].HCCEnrollmentServer,
+						newData.IpaDomain.Servers[0].HCCUpdateServer,
+						newData.IpaDomain.Servers[0].PKInitServer,
+
+						newData.IpaDomain.Servers[0].ID,
+
+						sqlmock.AnyArg(),
+					)
+				if i == stage && expectedErr != nil {
+					expectQuery.WillReturnError(expectedErr)
+				} else {
+					expectQuery.WillReturnRows(
+						sqlmock.NewRows([]string{"id"}).
+							AddRow(newData.IpaDomain.Servers[0].ID))
+				}
 			}
 		case 5:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) ON CONFLICT ("id") DO UPDATE SET "ipa_id"="excluded"."ipa_id" RETURNING "id"`)).
-				WithArgs(
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
+			if len(newData.IpaDomain.Locations) > 0 {
+				expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT ("id") DO UPDATE SET "updated_at"=$8,"deleted_at"="excluded"."deleted_at","ipa_id"="excluded"."ipa_id","name"="excluded"."name","description"="excluded"."description" RETURNING "id"`)).
+					WithArgs(
+						sqlmock.AnyArg(),
+						sqlmock.AnyArg(),
+						sqlmock.AnyArg(),
 
-					data.IpaDomain.Servers[0].IpaID,
+						newData.IpaDomain.Locations[0].IpaID,
+						newData.IpaDomain.Locations[0].Name,
+						newData.IpaDomain.Locations[0].Description,
 
-					data.IpaDomain.Servers[0].FQDN,
-					data.IpaDomain.Servers[0].RHSMId,
-					data.IpaDomain.Servers[0].Location,
-					data.IpaDomain.Servers[0].CaServer,
-					data.IpaDomain.Servers[0].HCCEnrollmentServer,
-					data.IpaDomain.Servers[0].HCCUpdateServer,
-					data.IpaDomain.Servers[0].PKInitServer,
+						newData.IpaDomain.Locations[0].ID,
 
-					data.IpaDomain.Servers[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.Servers[0].ID))
-			}
-		case 6:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) ON CONFLICT ("id") DO UPDATE SET "ipa_id"="excluded"."ipa_id" RETURNING "id"`)).
-				WithArgs(
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
-					sqlmock.AnyArg(),
-
-					data.IpaDomain.Locations[0].IpaID,
-					data.IpaDomain.Locations[0].Name,
-					data.IpaDomain.Locations[0].Description,
-
-					data.IpaDomain.Locations[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.Locations[0].ID))
+						sqlmock.AnyArg(),
+					)
+				if i == stage && expectedErr != nil {
+					expectQuery.WillReturnError(expectedErr)
+				} else {
+					expectQuery.WillReturnRows(
+						sqlmock.NewRows([]string{"id"}).
+							AddRow(newData.IpaDomain.Locations[0].ID))
+				}
 			}
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
@@ -386,330 +447,49 @@ func (s *Suite) TestUpdateAgent() {
 	t := s.Suite.T()
 	orgID := test.OrgId
 	var (
-		data *model.Domain = test.BuildDomainModel(test.OrgId)
-		err  error
+		oldData  *model.Domain = test.BuildDomainModel(test.OrgId)
+		newData1 *model.Domain = test.BuildDomainModel(test.OrgId)
+		newData2 *model.Domain = test.BuildDomainModel(test.OrgId)
+		err      error
 	)
+	newData1.IpaDomain.RealmName = pointy.String(strings.Join(
+		[]string{"UPDATE-", *oldData.IpaDomain.RealmName},
+		""))
+	newData2.IpaDomain.RealmName = pointy.String(strings.Join(
+		[]string{"UPDATE-", *oldData.IpaDomain.RealmName},
+		""))
+	newData2.IpaDomain.CaCerts = nil
+	newData2.IpaDomain.Servers = nil
+	newData2.IpaDomain.Locations = nil
 
-	err = s.repository.UpdateAgent(nil, "", nil)
+	err = s.repository.UpdateAgent(nil, "", nil, nil)
 	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
 
-	err = s.repository.UpdateAgent(s.DB, "", nil)
+	err = s.repository.UpdateAgent(s.DB, "", nil, nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
-	err = s.repository.UpdateAgent(s.DB, orgID, nil)
-	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
+	err = s.repository.UpdateAgent(s.DB, orgID, nil, nil)
+	assert.EqualError(t, err, "code=500, message='oldData' cannot be nil")
 
-	s.helperTestUpdateAgent(6, data, s.mock, nil)
-	err = s.repository.UpdateAgent(s.DB, orgID, data)
+	err = s.repository.UpdateAgent(s.DB, orgID, oldData, nil)
+	assert.EqualError(t, err, "code=500, message='newData' cannot be nil")
+
+	s.helperTestUpdateAgent(1, oldData, newData1, s.mock, fmt.Errorf("error at UpdateAgent"))
+	err = s.repository.UpdateAgent(s.DB, orgID, oldData, newData1)
+	require.EqualError(t, err, "error at UpdateAgent")
+	require.NoError(t, s.mock.ExpectationsWereMet())
+
+	// Success scenario with no reminders
+	s.helperTestUpdateAgent(5, oldData, newData1, s.mock, nil)
+	err = s.repository.UpdateAgent(s.DB, orgID, oldData, newData1)
 	require.NoError(t, err)
-}
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	if stage == 0 {
-		return
-	}
-	if stage < 0 {
-		panic("'stage' cannot be lower than 0")
-	}
-	if stage > 5 {
-		panic("'stage' cannot be greater than 5")
-	}
-
-	s.mock.MatchExpectationsInOrder(true)
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectExec := s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
-				WithArgs(
-					data.Model.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnResult(
-					driver.RowsAffected(1),
-				)
-			}
-		case 2:
-			expectExec := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
-				WithArgs(
-					data.Model.CreatedAt,
-					data.Model.UpdatedAt,
-					data.Model.DeletedAt,
-
-					data.IpaDomain.RealmName,
-					data.IpaDomain.RealmDomains,
-					data.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.ID))
-			}
-		case 3:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT ("id") DO UPDATE RETURNING "id"`)).
-				WithArgs(
-					data.IpaDomain.CaCerts[0].Model.CreatedAt,
-					data.IpaDomain.CaCerts[0].Model.UpdatedAt,
-					data.IpaDomain.CaCerts[0].Model.DeletedAt,
-
-					data.IpaDomain.CaCerts[0].IpaID,
-
-					data.IpaDomain.CaCerts[0].Issuer,
-					data.IpaDomain.CaCerts[0].Nickname,
-					data.IpaDomain.CaCerts[0].NotAfter,
-					data.IpaDomain.CaCerts[0].NotBefore,
-					data.IpaDomain.CaCerts[0].Pem,
-					data.IpaDomain.CaCerts[0].SerialNumber,
-					data.IpaDomain.CaCerts[0].Subject,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.CaCerts[0].ID))
-			}
-		case 4:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT ("id") DO UPDATE RETURNING "id"`)).
-				WithArgs(
-					data.IpaDomain.Servers[0].Model.CreatedAt,
-					data.IpaDomain.Servers[0].Model.UpdatedAt,
-					data.IpaDomain.Servers[0].Model.DeletedAt,
-
-					data.IpaDomain.Servers[0].IpaID,
-
-					data.IpaDomain.Servers[0].FQDN,
-					data.IpaDomain.Servers[0].RHSMId,
-					data.IpaDomain.Servers[0].Location,
-					data.IpaDomain.Servers[0].CaServer,
-					data.IpaDomain.Servers[0].HCCEnrollmentServer,
-					data.IpaDomain.Servers[0].HCCUpdateServer,
-					data.IpaDomain.Servers[0].PKInitServer,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.Servers[0].ID))
-			}
-		case 5:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6) ON CONFLICT ("id") DO UPDATE RETURNING "id"`)).
-				WithArgs(
-					data.IpaDomain.Locations[0].Model.CreatedAt,
-					data.IpaDomain.Locations[0].Model.UpdatedAt,
-					data.IpaDomain.Locations[0].Model.DeletedAt,
-
-					data.IpaDomain.Locations[0].IpaID,
-					data.IpaDomain.Locations[0].Name,
-					data.IpaDomain.Locations[0].Description,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.Locations[0].ID))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
-func (s *Suite) TestUpdateIpaDomain() {
-	var (
-		err error
-	)
-	t := s.Suite.T()
-	currentTime := time.Now()
-	orgID := "11111"
-	domainId := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
-	subscriptionManagerID := pointy.String("fe106208-dd32-11ed-aa87-482ae3863d30")
-	data := model.Domain{
-		Model: gorm.Model{
-			ID:        1,
-			CreatedAt: currentTime,
-			UpdatedAt: currentTime,
-			DeletedAt: gorm.DeletedAt{},
-		},
-		OrgId:                 orgID,
-		DomainUuid:            domainId,
-		DomainName:            pointy.String("mydomain.example"),
-		Title:                 pointy.String("My Domain Example"),
-		Description:           pointy.String("Description of My Domain Example"),
-		AutoEnrollmentEnabled: pointy.Bool(true),
-		Type:                  pointy.Uint(model.DomainTypeIpa),
-		IpaDomain: &model.Ipa{
-			Model: gorm.Model{
-				ID:        1,
-				CreatedAt: currentTime,
-				UpdatedAt: currentTime,
-				DeletedAt: gorm.DeletedAt{},
-			},
-			RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
-			CaCerts: []model.IpaCert{
-				{
-					Model: gorm.Model{
-						ID:        2,
-						CreatedAt: currentTime,
-						UpdatedAt: currentTime,
-						DeletedAt: gorm.DeletedAt{},
-					},
-					IpaID:        1,
-					Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-					Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
-					NotAfter:     currentTime.Add(24 * time.Hour),
-					NotBefore:    currentTime,
-					SerialNumber: "1",
-					Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-					Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----",
-				},
-			},
-			Servers: []model.IpaServer{
-				{
-					Model: gorm.Model{
-						ID:        3,
-						CreatedAt: currentTime,
-						UpdatedAt: currentTime,
-						DeletedAt: gorm.DeletedAt{},
-					},
-					IpaID:               1,
-					FQDN:                "server1.mydomain.example",
-					RHSMId:              subscriptionManagerID,
-					Location:            pointy.String("europe"),
-					CaServer:            true,
-					HCCEnrollmentServer: true,
-					HCCUpdateServer:     true,
-					PKInitServer:        true,
-				},
-			},
-			Locations: []model.IpaLocation{
-				{
-					Model: gorm.Model{
-						ID:        4,
-						CreatedAt: currentTime,
-						UpdatedAt: currentTime,
-						DeletedAt: gorm.DeletedAt{},
-					},
-					Name:        "boston",
-					Description: pointy.String("Boston data center"),
-					IpaID:       1,
-				},
-			},
-			RealmDomains: pq.StringArray{"mydomain.example"},
-		},
-	}
-
-	type TestCaseGiven struct {
-		Stage  int
-		DB     *gorm.DB
-		Domain *model.Domain
-	}
-	type TestCase struct {
-		Name     string
-		Given    TestCaseGiven
-		Expected error
-	}
-
-	testCases := []TestCase{
-		{
-			Name: "Wrong arguments: db is nil",
-			Given: TestCaseGiven{
-				Stage:  0,
-				DB:     nil,
-				Domain: nil,
-			},
-			Expected: internal_errors.NilArgError("db"),
-		},
-		{
-			Name: "Wrong arguments: data is nil",
-			Given: TestCaseGiven{
-				Stage:  0,
-				DB:     s.DB,
-				Domain: nil,
-			},
-			Expected: internal_errors.NilArgError("data' of type '*model.Ipa"),
-		},
-		{
-			Name: "database error at DELETE FROM 'ipas'",
-			Given: TestCaseGiven{
-				Stage:  1,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at DELETE FROM 'ipas'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipas'",
-			Given: TestCaseGiven{
-				Stage:  2,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipas'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipa_certs'",
-			Given: TestCaseGiven{
-				Stage:  3,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipa_certs'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipa_servers'",
-			Given: TestCaseGiven{
-				Stage:  4,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipa_servers'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipa_locations'",
-			Given: TestCaseGiven{
-				Stage:  5,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipa_locations'"),
-		},
-		{
-			Name: "Success scenario",
-			Given: TestCaseGiven{
-				Stage:  5,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: nil,
-		},
-	}
-
-	for _, testCase := range testCases {
-		t.Log(testCase.Name)
-
-		// Prepare the db mock
-		s.helperTestUpdateIpaDomain(testCase.Given.Stage, &data, s.mock, testCase.Expected)
-
-		// Run for error or success
-		if testCase.Given.Domain != nil {
-			err = s.repository.updateIpaDomain(testCase.Given.DB, testCase.Given.Domain.IpaDomain)
-		} else {
-			err = s.repository.updateIpaDomain(testCase.Given.DB, nil)
-		}
-
-		// Check expectations for error and success scenario
-		if testCase.Expected != nil {
-			assert.Error(t, err, testCase.Expected.Error())
-		} else {
-			assert.NoError(t, err)
-		}
-	}
+	// Success scenario with reminders
+	s.helperTestUpdateAgentReminders(4, oldData, newData2, s.mock, nil)
+	err = s.repository.UpdateAgent(s.DB, orgID, oldData, newData2)
+	require.NoError(t, err)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 }
 
 func (s *Suite) TestList() {
@@ -1409,6 +1189,332 @@ func (s *Suite) TestPrepareUpdateUser() {
 	require.True(t, ok)
 	assert.Equal(t, true, *flag)
 }
+
+func (s *Suite) TestCheckCommonAndDataUpdateAgent() {
+	t := s.T()
+
+	var (
+		err      error
+		oldData  *model.Domain = test.BuildDomainModel(test.OrgId)
+		newData1 *model.Domain = test.BuildDomainModel(test.OrgId + "9")
+		newData2 *model.Domain = test.BuildDomainModel(test.OrgId)
+	)
+
+	// db is nil
+	err = s.repository.checkCommonAndDataUpdateAgent(nil, "", nil, nil)
+	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
+
+	// orgID is empty
+	err = s.repository.checkCommonAndDataUpdateAgent(s.DB, "", nil, nil)
+	assert.EqualError(t, err, "'orgID' is empty")
+
+	// oldData is nil
+	err = s.repository.checkCommonAndDataUpdateAgent(s.DB, test.OrgId, nil, nil)
+	assert.EqualError(t, err, "code=500, message='oldData' cannot be nil")
+
+	// newData is nil
+	err = s.repository.checkCommonAndDataUpdateAgent(s.DB, test.OrgId, oldData, nil)
+	assert.EqualError(t, err, "code=500, message='newData' cannot be nil")
+
+	// orgID mismatch
+	err = s.repository.checkCommonAndDataUpdateAgent(s.DB, test.OrgId, oldData, newData1)
+	assert.EqualError(t, err, "code=500, message=orgID mismatch")
+
+	// Success scenario
+	err = s.repository.checkCommonAndDataUpdateAgent(s.DB, test.OrgId, oldData, newData2)
+	assert.NoError(t, err)
+}
+
+func (s *Suite) TestIpaFillUpdateAgentReminders() {
+	t := s.T()
+
+	var (
+		remCerts     []uint
+		remServers   []uint
+		remLocations []uint
+
+		// TODO Refactor to remove unit test boilerplate
+		//      A builder design pattern could fit well here
+		//      - BuildModel    // for gorm.Model
+		//      - BuildIpaCert
+		//      - BuildIpaServer
+		//      - BuildIpaLocations
+		//      - BuildIpaDomain
+		//      - BuildDomain
+		oldData *model.Domain = &model.Domain{
+			Model: gorm.Model{
+				ID: 1,
+			},
+			OrgId:                 test.OrgId,
+			DomainUuid:            test.DomainUUID,
+			DomainName:            pointy.String(test.DomainName),
+			Title:                 pointy.String("Test"),
+			Description:           pointy.String("Test Description"),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			Type:                  pointy.Uint(model.DomainTypeIpa),
+			IpaDomain: &model.Ipa{
+				Model: gorm.Model{
+					ID: 2,
+				},
+				RealmName:    pointy.String(test.RealmName),
+				RealmDomains: pq.StringArray{test.DomainName},
+				CaCerts: []model.IpaCert{
+					{
+						Model: gorm.Model{
+							ID: 3,
+						},
+						IpaID:        2,
+						Issuer:       "CN=Certificate Authority,O=" + test.RealmName,
+						Nickname:     "MYDOMAIN." + test.RealmName,
+						SerialNumber: "0000001",
+						Subject:      "CN=Certificate Authority,O=" + test.RealmName,
+						NotAfter:     time.Now().Add(time.Hour * 24),
+						NotBefore:    time.Now().Add(time.Hour * -24),
+						Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+					},
+					{
+						Model: gorm.Model{
+							ID: 4,
+						},
+						IpaID:        2,
+						Issuer:       "CN=Certificate Authority,O=" + test.RealmName,
+						Nickname:     "MYDOMAIN." + test.RealmName,
+						SerialNumber: "0000001",
+						Subject:      "CN=Certificate Authority,O=" + test.RealmName,
+						NotAfter:     time.Now().Add(time.Hour * 24),
+						NotBefore:    time.Now().Add(time.Hour * -24),
+						Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+					},
+				},
+				Locations: []model.IpaLocation{
+					{
+						Model: gorm.Model{
+							ID: 5,
+						},
+						IpaID: 2,
+						// TODO Ask about the below
+						// - Is this a expected value for this field?
+						// - Could we get a valid set of values from stage systems?
+						Name:        "europe",
+						Description: pointy.String("Europe Location"),
+					},
+					{
+						Model: gorm.Model{
+							ID: 6,
+						},
+						IpaID: 2,
+						// TODO Ask about the below
+						// - Is this a expected value for this field?
+						// - Could we get a valid set of values from stage systems?
+						Name:        "us-east",
+						Description: pointy.String("East Cost of USA"),
+					},
+				},
+				Servers: []model.IpaServer{
+					{
+						Model: gorm.Model{
+							ID: 7,
+						},
+						IpaID:               2,
+						FQDN:                "server1." + test.DomainName,
+						RHSMId:              pointy.String("6e2e46f0-7cc9-11ee-b4b1-482ae3863d30"),
+						Location:            pointy.String("europe"),
+						CaServer:            true,
+						HCCEnrollmentServer: true,
+						HCCUpdateServer:     true,
+						PKInitServer:        true,
+					},
+					{
+						Model: gorm.Model{
+							ID: 8,
+						},
+						IpaID:               2,
+						FQDN:                "server2." + test.DomainName,
+						RHSMId:              pointy.String("a294793c-7cc9-11ee-9bf3-482ae3863d30"),
+						Location:            pointy.String("europe"),
+						CaServer:            true,
+						HCCEnrollmentServer: true,
+						HCCUpdateServer:     true,
+						PKInitServer:        true,
+					},
+				},
+			},
+		}
+		newData1 *model.Domain = &model.Domain{
+			Model: gorm.Model{
+				ID: 1,
+			},
+			OrgId:                 test.OrgId,
+			DomainUuid:            test.DomainUUID,
+			DomainName:            pointy.String(test.DomainName),
+			Title:                 pointy.String("Test"),
+			Description:           pointy.String("Test Description"),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			Type:                  pointy.Uint(model.DomainTypeIpa),
+			IpaDomain: &model.Ipa{
+				Model: gorm.Model{
+					ID: 2,
+				},
+				RealmName:    pointy.String(test.RealmName),
+				RealmDomains: pq.StringArray{test.DomainName},
+				CaCerts: []model.IpaCert{
+					{
+						Model: gorm.Model{
+							ID: 3,
+						},
+						IpaID:        2,
+						Issuer:       "CN=Certificate Authority,O=" + test.RealmName,
+						Nickname:     "MYDOMAIN." + test.RealmName,
+						SerialNumber: "0000001",
+						Subject:      "CN=Certificate Authority,O=" + test.RealmName,
+						NotAfter:     time.Now().Add(time.Hour * 24),
+						NotBefore:    time.Now().Add(time.Hour * -24),
+						Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+					},
+					{
+						Model: gorm.Model{
+							ID: 4,
+						},
+						IpaID:        2,
+						Issuer:       "CN=Certificate Authority,O=" + test.RealmName,
+						Nickname:     "MYDOMAIN." + test.RealmName,
+						SerialNumber: "0000001",
+						Subject:      "CN=Certificate Authority,O=" + test.RealmName,
+						NotAfter:     time.Now().Add(time.Hour * 24),
+						NotBefore:    time.Now().Add(time.Hour * -24),
+						Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+					},
+				},
+				Locations: []model.IpaLocation{
+					{
+						Model: gorm.Model{
+							ID: 5,
+						},
+						IpaID: 2,
+						// TODO Ask about the below
+						// - Is this a expected value for this field?
+						// - Could we get a valid set of values from stage systems?
+						Name:        "europe",
+						Description: pointy.String("Europe Location"),
+					},
+					{
+						Model: gorm.Model{
+							ID: 6,
+						},
+						IpaID: 2,
+						// TODO Ask about the below
+						// - Is this a expected value for this field?
+						// - Could we get a valid set of values from stage systems?
+						Name:        "us-east",
+						Description: pointy.String("East Cost of USA"),
+					},
+				},
+				Servers: []model.IpaServer{
+					{
+						Model: gorm.Model{
+							ID: 7,
+						},
+						IpaID:               2,
+						FQDN:                "server1." + test.DomainName,
+						RHSMId:              pointy.String("6e2e46f0-7cc9-11ee-b4b1-482ae3863d30"),
+						Location:            pointy.String("europe"),
+						CaServer:            true,
+						HCCEnrollmentServer: true,
+						HCCUpdateServer:     true,
+						PKInitServer:        true,
+					},
+					{
+						Model: gorm.Model{
+							ID: 8,
+						},
+						IpaID:               2,
+						FQDN:                "server2." + test.DomainName,
+						RHSMId:              pointy.String("a294793c-7cc9-11ee-9bf3-482ae3863d30"),
+						Location:            pointy.String("europe"),
+						CaServer:            true,
+						HCCEnrollmentServer: true,
+						HCCUpdateServer:     true,
+						PKInitServer:        true,
+					},
+				},
+			},
+		}
+		newData2 *model.Domain = &model.Domain{
+			Model: gorm.Model{
+				ID: 1,
+			},
+			OrgId:                 test.OrgId,
+			DomainUuid:            test.DomainUUID,
+			DomainName:            pointy.String(test.DomainName),
+			Title:                 pointy.String("Test"),
+			Description:           pointy.String("Test Description"),
+			AutoEnrollmentEnabled: pointy.Bool(true),
+			Type:                  pointy.Uint(model.DomainTypeIpa),
+			IpaDomain: &model.Ipa{
+				Model: gorm.Model{
+					ID: 2,
+				},
+				RealmName:    pointy.String(test.RealmName),
+				RealmDomains: pq.StringArray{test.DomainName},
+				CaCerts: []model.IpaCert{
+					{
+						Model: gorm.Model{
+							ID: 3,
+						},
+						IpaID:        2,
+						Issuer:       "CN=Certificate Authority,O=" + test.RealmName,
+						Nickname:     "MYDOMAIN." + test.RealmName,
+						SerialNumber: "0000001",
+						Subject:      "CN=Certificate Authority,O=" + test.RealmName,
+						NotAfter:     time.Now().Add(time.Hour * 24),
+						NotBefore:    time.Now().Add(time.Hour * -24),
+						Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----\n",
+					},
+				},
+				Locations: []model.IpaLocation{
+					{
+						Model: gorm.Model{
+							ID: 5,
+						},
+						IpaID: 2,
+						// TODO Ask about the below
+						// - Is this a expected value for this field?
+						// - Could we get a valid set of values from stage systems?
+						Name:        "europe",
+						Description: pointy.String("Europe Location"),
+					},
+				},
+				Servers: []model.IpaServer{
+					{
+						Model: gorm.Model{
+							ID: 7,
+						},
+						IpaID:               2,
+						FQDN:                "server1." + test.DomainName,
+						RHSMId:              pointy.String("6e2e46f0-7cc9-11ee-b4b1-482ae3863d30"),
+						Location:            pointy.String("europe"),
+						CaServer:            true,
+						HCCEnrollmentServer: true,
+						HCCUpdateServer:     true,
+						PKInitServer:        true,
+					},
+				},
+			},
+		}
+	)
+
+	remCerts, remServers, remLocations = s.repository.ipaFillUpdateAgentReminders(oldData, newData1)
+	assert.Equal(t, 0, len(remCerts))
+	assert.Equal(t, 0, len(remServers))
+	assert.Equal(t, 0, len(remLocations))
+
+	remCerts, remServers, remLocations = s.repository.ipaFillUpdateAgentReminders(oldData, newData2)
+	assert.Equal(t, 1, len(remCerts))
+	assert.Equal(t, 1, len(remServers))
+	assert.Equal(t, 1, len(remLocations))
+}
+
+// ------ Test Suite --------
 
 func TestSuite(t *testing.T) {
 	suite.Run(t, new(Suite))
