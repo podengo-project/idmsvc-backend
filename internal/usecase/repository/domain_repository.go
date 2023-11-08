@@ -420,12 +420,12 @@ func (r *domainRepository) createIpaDomain(
 	return nil
 }
 
-func (r *domainRepository) ipaFillUpdateAgentReminders(oldData *model.Domain, newData *model.Domain) (remCerts []uint, remServers []uint, remLocations []uint) {
+func (r *domainRepository) ipaFillUpdateAgentRemainders(oldData *model.Domain, newData *model.Domain) (remCerts []uint, remServers []uint, remLocations []uint) {
 	remCerts = nil
 	remServers = nil
 	remLocations = nil
 
-	// Check cert reminders
+	// Check cert remainders
 	OldLenCerts := len(oldData.IpaDomain.CaCerts)
 	NewLenCerts := len(newData.IpaDomain.CaCerts)
 	if OldLenCerts > NewLenCerts {
@@ -435,7 +435,7 @@ func (r *domainRepository) ipaFillUpdateAgentReminders(oldData *model.Domain, ne
 		}
 	}
 
-	// Check servers reminders
+	// Check servers remainders
 	OldLenServers := len(oldData.IpaDomain.Servers)
 	NewLenServers := len(newData.IpaDomain.Servers)
 	if OldLenServers > NewLenServers {
@@ -445,7 +445,7 @@ func (r *domainRepository) ipaFillUpdateAgentReminders(oldData *model.Domain, ne
 		}
 	}
 
-	// Check location reminders
+	// Check location remainders
 	OldLenLocations := len(oldData.IpaDomain.Locations)
 	NewLenLocations := len(newData.IpaDomain.Locations)
 	if OldLenLocations > NewLenLocations {
@@ -458,7 +458,7 @@ func (r *domainRepository) ipaFillUpdateAgentReminders(oldData *model.Domain, ne
 }
 
 func (r *domainRepository) ipaFillUpdateAgent(oldData *model.Domain, newData *model.Domain) (remCerts []uint, remServers []uint, remLocations []uint, err error) {
-	remCerts, remServers, remLocations = r.ipaFillUpdateAgentReminders(oldData, newData)
+	remCerts, remServers, remLocations = r.ipaFillUpdateAgentRemainders(oldData, newData)
 
 	newData.Model = oldData.Model
 	newData.IpaDomain.Model = oldData.IpaDomain.Model

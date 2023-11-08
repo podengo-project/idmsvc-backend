@@ -240,7 +240,7 @@ func (s *Suite) TestCreateIpaDomain() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) helperTestUpdateAgentReminders(stage int, oldData *model.Domain, newData *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *Suite) helperTestUpdateAgentRemainders(stage int, oldData *model.Domain, newData *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	if stage == 0 {
 		return
 	}
@@ -479,14 +479,14 @@ func (s *Suite) TestUpdateAgent() {
 	require.EqualError(t, err, "error at UpdateAgent")
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	// Success scenario with no reminders
+	// Success scenario with no remainders
 	s.helperTestUpdateAgent(5, oldData, newData1, s.mock, nil)
 	err = s.repository.UpdateAgent(s.DB, orgID, oldData, newData1)
 	require.NoError(t, err)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	// Success scenario with reminders
-	s.helperTestUpdateAgentReminders(4, oldData, newData2, s.mock, nil)
+	// Success scenario with remainders
+	s.helperTestUpdateAgentRemainders(4, oldData, newData2, s.mock, nil)
 	err = s.repository.UpdateAgent(s.DB, orgID, oldData, newData2)
 	require.NoError(t, err)
 	require.NoError(t, s.mock.ExpectationsWereMet())
@@ -1225,7 +1225,7 @@ func (s *Suite) TestCheckCommonAndDataUpdateAgent() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestIpaFillUpdateAgentReminders() {
+func (s *Suite) TestIpaFillUpdateAgentRemainders() {
 	t := s.T()
 
 	var (
@@ -1503,12 +1503,12 @@ func (s *Suite) TestIpaFillUpdateAgentReminders() {
 		}
 	)
 
-	remCerts, remServers, remLocations = s.repository.ipaFillUpdateAgentReminders(oldData, newData1)
+	remCerts, remServers, remLocations = s.repository.ipaFillUpdateAgentRemainders(oldData, newData1)
 	assert.Equal(t, 0, len(remCerts))
 	assert.Equal(t, 0, len(remServers))
 	assert.Equal(t, 0, len(remLocations))
 
-	remCerts, remServers, remLocations = s.repository.ipaFillUpdateAgentReminders(oldData, newData2)
+	remCerts, remServers, remLocations = s.repository.ipaFillUpdateAgentRemainders(oldData, newData2)
 	assert.Equal(t, 1, len(remCerts))
 	assert.Equal(t, 1, len(remServers))
 	assert.Equal(t, 1, len(remLocations))
