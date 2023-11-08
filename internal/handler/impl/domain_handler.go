@@ -327,18 +327,14 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 		)
 	}
 
-	if err = a.fillDomain(currentData, data); err != nil {
-		return err
-	}
-
-	if err = a.domain.repository.UpdateAgent(tx, orgID, currentData); err != nil {
+	if err = a.domain.repository.UpdateAgent(tx, orgID, currentData, data); err != nil {
 		return err
 	}
 	if err = tx.Commit().Error; err != nil {
 		return tx.Error
 	}
 
-	if output, err = a.domain.presenter.UpdateAgent(currentData); err != nil {
+	if output, err = a.domain.presenter.UpdateAgent(data); err != nil {
 		return err
 	}
 

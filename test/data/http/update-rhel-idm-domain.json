@@ -2,20 +2,20 @@
   "domain_name": "mydomain.example",
   "domain_type": "rhel-idm",
   "rhel-idm": {
-    "realm_name": "MYDOMAIN.EXAMPLE",
+    "realm_name": "UPDATE-MYDOMAIN.EXAMPLE",
     "servers": [
       {
-        "fqdn": "ipaserver.mydomain.example",
+        "fqdn": "update-ipaserver.mydomain.example",
         "subscription_manager_id": "{{subscription_manager_id}}",
-        "location": "boston",
+        "location": "update-europe",
         "ca_server": true,
         "hcc_enrollment_server": true,
         "hcc_update_server": true,
         "pkinit_server": true
       },
       {
-        "fqdn": "server2.mydomain.example",
-        "subscription_manager_id": "6f324116-b3d2-11ed-8a37-482ae3863d30",
+        "fqdn": "update-server2.mydomain.example",
+        "subscription_manager_id": "46004b9e-79a7-11ee-b52d-482ae3863d30",
         "ca_server": false,
         "hcc_enrollment_server": false,
         "hcc_update_server": false,
@@ -24,9 +24,9 @@
     ],
     "ca_certs": [
       {
-        "nickname": "MYDOMAIN.EXAMPLE IPA CA",
-        "issuer": "CN=Certificate Authority, O=MYDOMAIN.EXAMPLE",
-        "subject": "CN=My Domain, O=MYDOMAIN.EXAMPLE",
+        "nickname": "UPDATE-MYDOMAIN.EXAMPLE IPA CA",
+        "issuer": "CN=Certificate Authority, O=UPDATE-MYDOMAIN.EXAMPLE",
+        "subject": "CN=My Domain, O=UPDATE-MYDOMAIN.EXAMPLE",
         "serial_number": "1",
         "not_before": "2023-01-31T13:23:36Z",
         "not_after": "2023-01-31T13:23:36Z",
@@ -35,12 +35,12 @@
     ],
     "locations": [
       {
-        "name": "europe",
-        "description": "Europe data center"
+        "name": "update-europe",
+        "description": "Updated europe data center"
       }
     ],
     "realm_domains": [
-      "mydomain.example"
+      "update-mydomain.example"
     ]
   }
 }

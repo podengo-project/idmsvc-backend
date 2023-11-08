@@ -355,4 +355,6 @@ field:
 ## References
 
 - Public APIs: https://console.redhat.com/docs/api
+- Situation with GORM and related objects when updating:
+  https://github.com/go-gorm/gorm/issues/3487
 

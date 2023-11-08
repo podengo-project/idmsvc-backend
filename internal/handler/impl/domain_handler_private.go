@@ -123,6 +123,7 @@ func (a *application) fillDomainUser(
 }
 
 func (a *application) fillDomainIpa(target *model.Ipa, source *model.Ipa) error {
+	target.Model = source.Model
 	if source.RealmName != nil {
 		target.RealmName = pointy.String(*source.RealmName)
 	}
