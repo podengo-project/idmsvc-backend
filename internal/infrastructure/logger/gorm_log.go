@@ -2,92 +2,115 @@ package logger
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"os"
+	"runtime"
 	"time"
 
-	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/rs/zerolog"
+	"golang.org/x/exp/slog"
+	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
-type gormZerolog struct {
-	logger zerolog.Logger
+// See https://gorm.io/docs/logger.html
+type gormLogger struct {
+	slogger                   *slog.Logger
+	IgnoreRecordNotFoundError bool
 }
 
-func NewGormLog(cfg *config.Config) logger.Interface {
-	var o *os.File
-	if cfg.Logging.Console {
-		o = os.Stdout
-	} else {
-		o = os.Stderr
+// _LogCommon This function creates slog messages with correct source code locations
+func (l *gormLogger) _LogCommon(
+	ctx context.Context,
+	level slog.Level,
+	msg string,
+	args ...interface{},
+) {
+	if !l.slogger.Enabled(ctx, level) {
+		return
 	}
 
-	lvl, err := zerolog.ParseLevel(cfg.Logging.Level)
-	if err != nil {
-		panic(err)
-	}
-	l := zerolog.New(o).
-		Level(lvl).
-		With().
-		Timestamp().
-		Logger()
+	var pcs [1]uintptr
+	runtime.Callers(4, pcs[:]) // skip [Callers, Infof]
 
-	return &gormZerolog{
-		logger: l,
-	}
+	r := slog.NewRecord(time.Now(), level, msg, pcs[0])
+	r.Add(args...)
+	_ = l.slogger.Handler().Handle(ctx, r)
 }
 
-func (l *gormZerolog) LogMode(level logger.LogLevel) logger.Interface {
-	switch level {
-	case logger.Silent:
-		{
-			l.logger.Level(zerolog.NoLevel)
-		}
-	case logger.Info:
-		{
-			l.logger.Level(zerolog.InfoLevel)
-		}
-	case logger.Warn:
-		{
-			l.logger.Level(zerolog.WarnLevel)
-		}
-	case logger.Error:
-		{
-			l.logger.Level(zerolog.ErrorLevel)
-		}
-	}
+// GORM uses these log messages in the form:
+// Info(ctx, "wurst `%s` from %s\n", brot, utils.FileWithLineNum())
+func (l *gormLogger) _LogMsg(
+	ctx context.Context,
+	level slog.Level,
+	msg string,
+	args ...interface{},
+) {
+	l._LogCommon(ctx, level, fmt.Sprintf(msg, args...))
+}
+
+func (l *gormLogger) _Log(
+	ctx context.Context,
+	level slog.Level,
+	msg string,
+	args ...interface{},
+) {
+	l._LogCommon(ctx, level, msg, args...)
+}
+
+func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
 	return l
 }
 
-func (l *gormZerolog) Info(ctx context.Context, msg string, args ...interface{}) {
-	if l.logger.GetLevel() <= zerolog.InfoLevel {
-		l.logger.Info().Msgf(msg, args...)
-	}
+func (l *gormLogger) Info(ctx context.Context, msg string, args ...interface{}) {
+	l._LogMsg(ctx, slog.LevelInfo, msg, args...)
 }
-func (l *gormZerolog) Warn(ctx context.Context, msg string, args ...interface{}) {
-	if l.logger.GetLevel() <= zerolog.WarnLevel {
-		l.logger.Warn().Msgf(msg, args...)
-	}
+
+func (l *gormLogger) Warn(ctx context.Context, msg string, args ...interface{}) {
+	l._LogMsg(ctx, slog.LevelWarn, msg, args...)
 }
-func (l *gormZerolog) Error(ctx context.Context, msg string, args ...interface{}) {
-	if l.logger.GetLevel() <= zerolog.ErrorLevel {
-		l.logger.Error().Msgf(msg, args...)
-	}
+
+func (l *gormLogger) Error(ctx context.Context, msg string, args ...interface{}) {
+	l._LogMsg(ctx, slog.LevelError, msg, args...)
 }
-func (l *gormZerolog) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	sqlStr, iRowsAffected := fc()
-	lvl := l.logger.GetLevel()
-	if lvl > zerolog.TraceLevel {
-		return
-	}
+
+func (l *gormLogger) Trace(
+	ctx context.Context,
+	begin time.Time,
+	fc func() (sql string, rowsAffected int64),
+	err error,
+) {
 	elapsedTime := time.Since(begin)
-	if err != nil {
-		l.logger.Err(err)
+
+	if err != nil && (!errors.Is(err, gorm.ErrRecordNotFound) ||
+		!l.IgnoreRecordNotFoundError) {
+		sql, rows := fc()
+
+		l._Log(
+			ctx,
+			LevelTrace,
+			err.Error(),
+			slog.Any("error", err),
+			slog.String("query", sql),
+			slog.Duration("elapsed", elapsedTime),
+			slog.Int64("rows", rows),
+		)
+	} else {
+		sql, rows := fc()
+
+		l._Log(
+			ctx,
+			LevelTrace,
+			"SQL query executed",
+			slog.String("query", sql),
+			slog.Duration("elapsed", elapsedTime),
+			slog.Int64("rows", rows),
+		)
 	}
-	l.logger.Trace().
-		Str("statement", sqlStr).
-		Int64("rowsAffected", iRowsAffected).
-		Str("el", fmt.Sprintf("%v ns", elapsedTime.Nanoseconds())).
-		Send()
+}
+
+func NewGormLog(ignoreRecordNotFound bool) logger.Interface {
+	return &gormLogger{
+		slogger:                   slog.Default(),
+		IgnoreRecordNotFoundError: true,
+	}
 }
