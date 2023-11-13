@@ -20,7 +20,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.0.15
 	github.com/lib/pq v1.10.9
 	github.com/loov/goda v0.5.7
-	github.com/mikefarah/yq/v4 v4.34.2
+	github.com/mikefarah/yq/v4 v4.40.1
 	github.com/oapi-codegen/runtime v1.0.0
 	github.com/openlyinc/pointy v1.2.1
 	github.com/prometheus/client_golang v1.16.0
@@ -121,6 +121,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20230711023510-fffb14384f22 // indirect
 	golang.org/x/mod v0.12.0 // indirect
