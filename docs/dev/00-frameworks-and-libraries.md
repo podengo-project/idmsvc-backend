@@ -10,10 +10,7 @@
   High performance, extensible, minimalist Go web framework
   ```
 
-- For the logging system it uses [zerolog](https://github.com/rs/zerolog)
-  library which provides a high performance
-  - echo framework integration: https://github.com/ziflex/lecho
-  - (todo) gorm library integration: https://github.com/mpalmer/gorm-zerolog
+- For the logging system it uses the [slog](https://go.dev/blog/slog) library
 
 - The database is using gorm: https://gorm.io/docs/index.html
 
