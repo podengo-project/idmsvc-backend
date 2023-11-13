@@ -7,7 +7,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 // See: https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
@@ -92,10 +92,11 @@ func Produce(producer *kafka.Producer, topic string, key string, value interface
 	if realTopic == "" {
 		return fmt.Errorf("Topic translation failed for topic: %s", topic)
 	}
-	log.Info().
-		Str("Requested topic name", topic).
-		Str("Topic name", realTopic).
-		Msg("Topic mapping")
+	slog.Info(
+		"Topic mapping",
+		slog.String("Requested topic name", topic),
+		slog.String("Topic name", realTopic),
+	)
 
 	if marshalledValue, err = json.Marshal(value); err != nil {
 		return err

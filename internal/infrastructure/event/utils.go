@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 func getHeaderString(headers []kafka.Header) string {
@@ -20,17 +20,27 @@ func logEventMessageInfo(msg *kafka.Message, text string) {
 	if msg == nil || text == "" {
 		return
 	}
-	log.Info().
-		Str("Topic", *msg.TopicPartition.Topic).
-		Str("Key", string(msg.Key)).
-		Str("Headers", getHeaderString(msg.Headers)).
-		Msg(text)
+	slog.Info(
+		text,
+		slog.Group("EventInfoMessage",
+			slog.String("Topic", *msg.TopicPartition.Topic),
+			slog.String("Key", string(msg.Key)),
+			slog.String("Headers", getHeaderString(msg.Headers)),
+		),
+	)
 }
 
 func logEventMessageError(msg *kafka.Message, err error) {
 	if msg == nil || err == nil {
 		return
 	}
-	log.Error().
-		Msgf("error processing event message: headers=%v; payload=%v: %s", msg.Headers, string(msg.Value), err.Error())
+
+	slog.Error(
+		"Error processing event message",
+		slog.Group("EventErrorMessage",
+			slog.Any("Headers", msg.Headers),
+			slog.String("Payload", string(msg.Value)),
+			slog.String("Error", err.Error()),
+		),
+	)
 }
