@@ -9,7 +9,7 @@ import (
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 	pg "gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -39,12 +39,12 @@ func NewDB(cfg *config.Config) (db *gorm.DB) {
 
 	if db, err = gorm.Open(pg.Open(dbUrl),
 		&gorm.Config{
-			Logger:                 logger.NewGormLog(cfg),
+			Logger:                 logger.NewGormLog(true),
 			SkipDefaultTransaction: true,
 			// CreateBatchSize:        50,
 			TranslateError: true,
 		}); err != nil {
-		log.Error().Msgf("Error creating database connector: %s", err.Error())
+		slog.Error("Error creating database connector", slog.Any("error", err))
 		return nil
 	}
 	return db
@@ -79,15 +79,15 @@ func Close(db *gorm.DB) {
 		err   error
 	)
 	if db == nil {
-		log.Warn().Msg("Close called with db=nil connector")
+		slog.Warn("Close called with db=nil connector")
 		return
 	}
 	if sqlDB, err = db.DB(); err != nil {
-		log.Error().Msgf("Error retrieving the sql driver: %s", err.Error())
+		slog.Error("Error retrieving the sql driver", slog.Any("error", err))
 		return
 	}
 	if err = sqlDB.Close(); err != nil {
-		log.Error().Msgf("Error closing database connector: %s", err.Error())
+		slog.Error("Error closing database connector", slog.Any("error", err))
 		return
 	}
 }

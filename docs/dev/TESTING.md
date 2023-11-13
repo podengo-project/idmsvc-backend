@@ -148,14 +148,17 @@ some unit tests providing more traces without change the code.
 ```golang
 func (s *Suite) SetupTest() {
 	var err error
+
+    logger.InitLogger(&config.Config{
+		Logging: config.Logging{
+			Console: true,
+			Level:   "trace",
+		},
+	})
+
 	s.mock, s.DB, err = test.NewSqlMock(&gorm.Session{
 		SkipHooks: true,
-		Logger: logger.NewGormLog(&config.Config{
-			Logging: config.Logging{
-				Console: true,
-				Level:   "trace",
-			},
-		}),
+		Logger: logger.NewGormLog(false),
 	})
 	if err != nil {
 		s.Suite.FailNow("Error calling gorm.Open: %s", err.Error())
