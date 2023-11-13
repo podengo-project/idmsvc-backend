@@ -11,7 +11,7 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 const dbMirationScriptPath = "./scripts/db/migrations"
@@ -88,7 +88,7 @@ func MigrateDb(config *config.Config, direction string, steps ...int) error {
 	}
 
 	if err != nil && err == migrate.ErrNoChange {
-		log.Debug().Msg("No new migrations.")
+		slog.Debug("No new migrations.")
 		return nil
 	} else if err != nil {
 		// Force back to previous migration version. If errors running version 1,
