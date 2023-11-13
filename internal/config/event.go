@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/event"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 // TopicMap is used to map between real and internal topics, this is
@@ -77,8 +77,10 @@ func NewTopicTranslationWithClowder(cfg *clowder.AppConfig) *TopicTranslation {
 	for _, topic := range cfg.Kafka.Topics {
 		tm.internalToReal[topic.RequestedName] = topic.Name
 		tm.realToInternal[topic.Name] = topic.RequestedName
-		log.Debug().Str(topic.RequestedName, topic.Name).Msg("internalToReal")
-		log.Debug().Str(topic.Name, topic.RequestedName).Msg("realToInternal")
+		slog.Debug("internalToReal",
+			slog.String(topic.RequestedName, topic.Name))
+		slog.Debug("realToInternal",
+			slog.String(topic.Name, topic.RequestedName))
 	}
 	return tm
 }
