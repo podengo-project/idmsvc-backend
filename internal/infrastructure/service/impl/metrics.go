@@ -2,10 +2,8 @@ package impl
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/labstack/echo/v4"
@@ -14,8 +12,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 type metricsService struct {
@@ -24,8 +21,7 @@ type metricsService struct {
 	waitGroup *sync.WaitGroup
 	config    *config.Config
 
-	echo   *echo.Echo
-	logger zerolog.Logger
+	echo *echo.Echo
 }
 
 func NewMetrics(ctx context.Context, wg *sync.WaitGroup, config *config.Config, app handler.Application) service.ApplicationService {
@@ -46,7 +42,6 @@ func NewMetrics(ctx context.Context, wg *sync.WaitGroup, config *config.Config, 
 	result := &metricsService{}
 	result.context, result.cancel = context.WithCancel(ctx)
 	result.waitGroup = wg
-	result.logger = zerolog.New(os.Stderr)
 	result.config = config
 
 	result.echo = router.NewRouterForMetrics(
@@ -63,11 +58,12 @@ func NewMetrics(ctx context.Context, wg *sync.WaitGroup, config *config.Config, 
 
 	if result.config.Logging.Level == "debug" {
 		routes := result.echo.Routes()
-		log.Debug().Msg("Printing metrics routes")
+		slog.Debug("Printing metrics routes")
 		for idx, route := range routes {
-			if data, err := json.Marshal(route); err == nil {
-				log.Debug().Int("idx", idx).RawJSON("route", []byte(data)).Send()
-			}
+			slog.Debug("routing",
+				slog.Int("index", idx),
+				slog.Any("route", route),
+			)
 		}
 	}
 
@@ -79,9 +75,9 @@ func (srv *metricsService) Start() error {
 	go func() {
 		defer srv.waitGroup.Done()
 		srvAddress := fmt.Sprintf(":%d", srv.config.Metrics.Port)
-		log.Debug().Msgf("metrics: srvAddress=%s", srvAddress)
+		slog.Debug("metrics", slog.String("srvAddress", srvAddress))
 		if err := srv.echo.Start(srvAddress); err != nil && err != http.ErrServerClosed {
-			log.Error().Err(err).Msg("Failed to start metricsService")
+			slog.Error("Failed to start metricsService", slog.Any("error", err))
 		}
 	}()
 
@@ -89,9 +85,12 @@ func (srv *metricsService) Start() error {
 		defer srv.waitGroup.Done()
 		defer srv.cancel()
 		<-srv.context.Done()
-		srv.logger.Info().Msg("Shutting down metricsService")
+		slog.Info("Shutting down metricsService")
 		if err := srv.echo.Shutdown(context.Background()); err != nil {
-			srv.logger.Error().Err(err).Msg("error shuttingdown metricsService")
+			slog.Error(
+				"error shuttingdown metricsService",
+				slog.Any("error", err),
+			)
 		}
 	}()
 
