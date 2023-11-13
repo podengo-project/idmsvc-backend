@@ -9,7 +9,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	schema "github.com/podengo-project/idmsvc-backend/internal/api/event"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 // https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
@@ -56,7 +56,10 @@ func NewConsumer(config *config.Kafka) (*kafka.Consumer, error) {
 	if err = consumer.SubscribeTopics(config.Topics, nil); err != nil {
 		return nil, err
 	}
-	log.Info().Msgf("Consumer subscribed to topics: %s", strings.Join(config.Topics, ","))
+	slog.Info(
+		"Consumer subscribed to topics",
+		slog.String("strings", strings.Join(config.Topics, ",")),
+	)
 
 	return consumer, nil
 }
@@ -99,7 +102,7 @@ func NewConsumerEventLoop(ctx context.Context, consumer *kafka.Consumer, handler
 	schemas = checkConsumerEventLoop(ctx, consumer, handler)
 
 	return func() {
-		log.Logger.Info().Msg("Consumer loop awaiting to consume messages")
+		slog.Info("Consumer loop awaiting to consume messages")
 		for {
 			// Message wait loop
 			for {
@@ -109,12 +112,15 @@ func NewConsumerEventLoop(ctx context.Context, consumer *kafka.Consumer, handler
 
 				val, ok := err.(kafka.Error)
 				if !ok || val.Code() != kafka.ErrTimedOut {
-					log.Logger.Error().Msgf("error awaiting to read a message: %s", err.Error())
+					slog.Error(
+						"error awaiting to read a message",
+						slog.Any("error", err),
+					)
 				}
 
 				select {
 				case <-ctx.Done():
-					log.Logger.Info().Msgf("Context done for NewConsumerEventLoop")
+					slog.Info("Context done for NewConsumerEventLoop")
 					return
 				default:
 				}
@@ -146,10 +152,11 @@ func processConsumedMessage(schemas schema.TopicSchema, msg *kafka.Message, hand
 	if internalTopic == "" {
 		return fmt.Errorf("Topic mapping not found for: %s", *msg.TopicPartition.Topic)
 	}
-	log.Info().
-		Str("Topic name", *msg.TopicPartition.Topic).
-		Str("Requested topic name", internalTopic).
-		Msg("Topic mapping")
+	slog.Info(
+		"Topic mapping",
+		slog.String("topic_name", *msg.TopicPartition.Topic),
+		slog.String("requested_topic_name", internalTopic),
+	)
 	*msg.TopicPartition.Topic = internalTopic
 	logEventMessageInfo(msg, "Consuming message")
 

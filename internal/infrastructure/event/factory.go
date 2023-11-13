@@ -5,7 +5,7 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 // Adapted from: https://github.com/RedHatInsights/playbook-dispatcher/blob/master/internal/response-consumer/main.go#L21
@@ -22,13 +22,13 @@ func Start(ctx context.Context, config *config.Kafka, handler Eventable) {
 	)
 
 	if consumer, err = NewConsumer(config); err != nil {
-		log.Panic().Msgf("error creating consumer: %s", err.Error())
+		slog.Error("error creating consumer", slog.Any("error", err.Error()))
 		return
 	}
 
 	defer func() {
 		if err := consumer.Close(); err != nil {
-			log.Error().Msgf("error closing consumer: %s", err.Error())
+			slog.Error("error closing consumer", slog.Any("error", err.Error()))
 		}
 	}()
 

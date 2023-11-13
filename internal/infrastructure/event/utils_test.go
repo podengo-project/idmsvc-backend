@@ -1,6 +1,7 @@
 package event
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"testing"
@@ -9,19 +10,33 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/event"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/message"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/exp/slog"
 )
 
 func TestLogEventMessageInfo(t *testing.T) {
-	oldLogger := log.Logger
-	defer func() { log.Logger = oldLogger }()
 	var buf bytes.Buffer
-	log.Logger = zerolog.New(&buf)
+	bufWriter := bufio.NewWriter(&buf)
+
+	opts := slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelInfo,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			// Do not print date/time or we can't verfiy
+			if a.Key == slog.TimeKey {
+				a.Value = slog.StringValue("NODATE")
+			}
+
+			return a
+		},
+	}
+
+	h := slog.NewJSONHandler(bufWriter, &opts)
+	slog.SetDefault(slog.New(h))
 
 	buf.Reset()
 	logEventMessageInfo(nil, "")
+	bufWriter.Flush()
 	assert.Equal(t, "", buf.String())
 
 	buf.Reset()
@@ -38,10 +53,12 @@ func TestLogEventMessageInfo(t *testing.T) {
 			},
 			Value: []byte(`{"uuid":"5e759032-5124-11ed-a029-482ae3863d30","url":"https://example.test"}`),
 		}, "")
+	bufWriter.Flush()
 	assert.Equal(t, "", buf.String())
 
 	buf.Reset()
 	logEventMessageInfo(nil, "Any additional message")
+	bufWriter.Flush()
 	assert.Equal(t, "", buf.String())
 
 	buf.Reset()
@@ -60,15 +77,29 @@ func TestLogEventMessageInfo(t *testing.T) {
 		},
 		"Some message",
 	)
-	assert.Equal(t, "{\"level\":\"info\",\"Topic\":\"platform.idmsvc.todo-created\",\"Key\":\"\",\"Headers\":\"{}\",\"message\":\"Some message\"}\n", buf.String())
+	bufWriter.Flush()
+	assert.Equal(t, "{\"time\":\"NODATE\",\"level\":\"INFO\",\"msg\":\"Some message\",\"EventInfoMessage\":{\"Topic\":\"platform.idmsvc.todo-created\",\"Key\":\"\",\"Headers\":\"{}\"}}\n", buf.String())
 }
 
 func TestLogEventMessageError(t *testing.T) {
-	oldLogger := log.Logger
-	defer func() { log.Logger = oldLogger }()
 	var buf bytes.Buffer
-	log.Logger = zerolog.New(&buf)
+	bufWriter := bufio.NewWriter(&buf)
 
+	opts := slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelInfo,
+		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+			// Do not print date/time or we can't verfiy
+			if a.Key == slog.TimeKey {
+				a.Value = slog.StringValue("NODATE")
+			}
+
+			return a
+		},
+	}
+
+	h := slog.NewJSONHandler(bufWriter, &opts)
+	slog.SetDefault(slog.New(h))
 	logEventMessageError(nil, nil)
 	assert.Equal(t, "", buf.String())
 
@@ -86,10 +117,12 @@ func TestLogEventMessageError(t *testing.T) {
 			},
 			Value: []byte(`{"uuid":"28304ad2-512c-11ed-bd7e-482ae3863d30","url":"https://example.test"}`),
 		}, nil)
+	bufWriter.Flush()
 	assert.Equal(t, "", buf.String())
 
 	buf.Reset()
 	logEventMessageError(nil, fmt.Errorf("Any error message"))
+	bufWriter.Flush()
 	assert.Equal(t, "", buf.String())
 
 	buf.Reset()
@@ -108,7 +141,8 @@ func TestLogEventMessageError(t *testing.T) {
 		},
 		fmt.Errorf("Any error message"),
 	)
-	assert.Equal(t, "{\"level\":\"error\",\"message\":\"error processing event message: headers=[Type=\\\"Introspect\\\"]; payload={\\\"uuid\\\":\\\"28304ad2-512c-11ed-bd7e-482ae3863d30\\\",\\\"url\\\":\\\"https://example.test\\\"}: Any error message\"}\n", buf.String())
+	bufWriter.Flush()
+	assert.Equal(t, "{\"time\":\"NODATE\",\"level\":\"ERROR\",\"msg\":\"Error processing event message\",\"EventErrorMessage\":{\"Headers\":[{\"Key\":\"Type\",\"Value\":\"SW50cm9zcGVjdA==\"}],\"Payload\":\"{\\\"uuid\\\":\\\"28304ad2-512c-11ed-bd7e-482ae3863d30\\\",\\\"url\\\":\\\"https://example.test\\\"}\",\"Error\":\"Any error message\"}}\n", buf.String())
 }
 
 func TestGetHeaderString(t *testing.T) {
