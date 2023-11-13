@@ -154,9 +154,7 @@ Tech stack:
 
 - Echo Framework: https://echo.labstack.com
 - Logs:
-  - https://github.com/rs/zerolog
-  - https://github.com/ziflex/lecho
-  - https://github.com/mpalmer/gorm-zerolog
+  - https://pkg.go.dev/golang.org/x/exp/slog
 - Database: https://gorm.io/docs/index.html
 - Kafka Client Library: https://github.com/confluentinc/confluent-kafka-go
 - Testing:
