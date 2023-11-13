@@ -2,7 +2,6 @@ package impl
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -10,12 +9,10 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 )
 
 type apiService struct {
@@ -24,8 +21,7 @@ type apiService struct {
 	waitGroup *sync.WaitGroup
 	config    *config.Config
 
-	echo   *echo.Echo
-	logger zerolog.Logger
+	echo *echo.Echo
 }
 
 func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app handler.Application, metrics *metrics.Metrics) service.ApplicationService {
@@ -39,7 +35,6 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	result := &apiService{}
 	result.context, result.cancel = context.WithCancel(ctx)
 	result.waitGroup = wg
-	result.logger = logger.NewApiLogger(cfg)
 	result.config = cfg
 	routerConfig := router.RouterConfig{
 		Version:            "1.0",
@@ -62,11 +57,12 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	}
 	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		routes := result.echo.Routes()
-		log.Debug().Msg("Printing routes")
+		slog.Debug("Printing routes")
 		for idx, route := range routes {
-			if data, err := json.Marshal(route); err == nil {
-				log.Debug().Int("idx", idx).RawJSON("route", []byte(data)).Send()
-			}
+			slog.Debug("routing",
+				slog.Int("index", idx),
+				slog.Any("route", route),
+			)
 		}
 	}
 
@@ -78,9 +74,9 @@ func (srv *apiService) Start() error {
 	go func() {
 		defer srv.waitGroup.Done()
 		srvAddress := fmt.Sprintf(":%d", srv.config.Web.Port)
-		log.Debug().Msgf("srvAddress=%s", srvAddress)
+		slog.Debug("staring echo server", slog.String("srvAddress", srvAddress))
 		if err := srv.echo.Start(srvAddress); err != nil && err != http.ErrServerClosed {
-			log.Error().Err(err).Msg("Failed to start server")
+			slog.Error("Failed to start server", slog.Any("error", err))
 		}
 	}()
 
@@ -88,9 +84,9 @@ func (srv *apiService) Start() error {
 		defer srv.waitGroup.Done()
 		defer srv.cancel()
 		<-srv.context.Done()
-		srv.logger.Info().Msg("Shutting down apiService")
+		slog.Info("Shutting down apiService")
 		if err := srv.echo.Shutdown(context.Background()); err != nil {
-			srv.logger.Error().Err(err).Msg("error shuttingdown apiService")
+			slog.Error("Failed to shut down apiService", slog.Any("error", err))
 		}
 	}()
 
