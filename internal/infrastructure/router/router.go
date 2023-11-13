@@ -7,6 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 )
 
@@ -61,15 +62,27 @@ func loggerSkipperWithPaths(paths ...string) middleware.Skipper {
 
 func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 	e.Pre(middleware.RemoveTrailingSlash())
-	e.Use(middleware.LoggerWithConfig(
-		middleware.LoggerConfig{
-			Skipper: loggerSkipperWithPaths(
-				c.MetricsPath,
-				c.PrivatePath+"/readyz",
-				c.PrivatePath+"/livez",
-			),
-		},
-	))
+
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		// Request logger values for middleware.RequestLoggerValues
+		LogError:  true,
+		LogMethod: true,
+		LogStatus: true,
+		LogURI:    true,
+
+		// Forwards error to the global error handler, so it can decide
+		// appropriate status code.
+		HandleError: true,
+
+		Skipper: loggerSkipperWithPaths(
+			c.MetricsPath,
+			c.PrivatePath+"/readyz",
+			c.PrivatePath+"/livez",
+		),
+
+		LogValuesFunc: logger.MiddlewareLogValues,
+	}))
+
 	e.Use(middleware.Recover())
 }
 
