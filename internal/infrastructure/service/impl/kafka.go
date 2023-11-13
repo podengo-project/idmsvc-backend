@@ -10,7 +10,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event"
 	event_handler "github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
-	"github.com/rs/zerolog/log"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -46,7 +46,7 @@ func (s *kafkaConsumer) Start() error {
 
 		// Start service
 		event.Start(s.context, &s.config.Kafka, eventRouter)
-		log.Info().Msgf("kafkaConsumer stopped")
+		slog.Info("kafkaConsumer stopped")
 	}()
 	return nil
 }
