@@ -14,8 +14,8 @@ import (
 
 	validator "github.com/go-playground/validator/v10"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
-	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"golang.org/x/exp/slog"
 	"k8s.io/utils/env"
 )
 
@@ -232,7 +232,7 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 	if clowderConfig.Database != nil && clowderConfig.Database.RdsCa != nil {
 		var err error
 		if rdsCertPath, err = clowderConfig.RdsCa(); err != nil {
-			log.Warn().Err(err).Msg("Cannot read RDS CA cert")
+			slog.Warn("Cannot read RDS CA cert", slog.Any("error", err))
 		}
 	}
 	if clowderConfig.Database != nil {
@@ -281,24 +281,26 @@ func Load(cfg *Config) *viper.Viper {
 	}
 
 	if err = v.ReadInConfig(); err != nil {
-		log.Warn().Msgf("Not using config.yaml: %s", err.Error())
+		slog.Warn("Not using config.yaml", slog.Any("error", err))
 	}
 	if err = v.Unmarshal(cfg); err != nil {
-		log.Warn().Msgf("Mapping to configuration: %s", err.Error())
+		slog.Warn("Mapping to configuration", slog.Any("error", err))
 	}
 
 	return v
 }
 
 func reportError(err error) {
-	// TODO use logging framework
-	fmt.Fprint(os.Stderr, "Config validation error:\n")
 	for _, err := range err.(validator.ValidationErrors) {
-		fmt.Fprintf(
-			os.Stderr,
-			"    %s: rule: %v %v, got: '%v' (type: %v)\n",
-			err.Namespace(),
-			err.Tag(), err.Value(), err.Param(), err.Kind(),
+		slog.Error(
+			"Configuration validation error",
+			slog.String("namespace", err.Namespace()),
+			slog.Group("rule",
+				slog.String("tag", err.Tag()),
+				slog.Any("value", err.Value),
+			),
+			slog.String("got", err.Param()),
+			slog.String("type", err.Kind().String()),
 		)
 	}
 }
