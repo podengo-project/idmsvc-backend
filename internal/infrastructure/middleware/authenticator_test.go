@@ -16,17 +16,17 @@ import (
 func TestCheckGuardsAuthenticate(t *testing.T) {
 	// v is nil
 	err := checkGuardsAuthenticate(nil, nil, nil)
-	assert.Errorf(t, err, "'v' is nil")
+	assert.EqualError(t, err, "code=500, message='v' cannot be nil")
 
 	// ctx is nil
 	v := mock_middleware.NewXRhIValidator(t)
 	err = checkGuardsAuthenticate(v, nil, nil)
-	assert.Errorf(t, err, "'ctx' is nil")
+	assert.EqualError(t, err, "code=500, message='ctx' cannot be nil")
 
 	// input is nil
 	ctx := context.Background()
 	err = checkGuardsAuthenticate(v, ctx, nil)
-	assert.Errorf(t, err, "'ctx' is nil")
+	assert.EqualError(t, err, "code=500, message='input' cannot be nil")
 
 	// Success case
 	input := openapi3filter.AuthenticationInput{}
@@ -51,7 +51,7 @@ func TestNewAuthenticator(t *testing.T) {
 
 	// Wrong security schema name
 	err := a(nil, nil)
-	assert.Errorf(t, err, "'ctx' is nil")
+	assert.EqualError(t, err, "code=500, message='ctx' cannot be nil")
 
 	// Wron
 	input := openapi3filter.AuthenticationInput{
@@ -59,13 +59,13 @@ func TestNewAuthenticator(t *testing.T) {
 	}
 	ctx := context.WithValue(context.Background(), "oapi-codegen/echo-context", nil)
 	err = a(ctx, &input)
-	assert.Errorf(t, err, "security scheme '%s' != 'x-rh-identity'", "no-x-rh-identity")
+	assert.EqualError(t, err, fmt.Sprintf("security scheme '%s' != 'x-rh-identity'", "no-x-rh-identity"))
 
 	// Wrong context type assertion
 	ctx = context.WithValue(context.Background(), "oapi-codegen/echo-context", nil)
 	input.SecuritySchemeName = "x-rh-identity"
 	err = a(ctx, &input)
-	assert.Errorf(t, err, "'ctx' does not match a 'DomainContextInterface'")
+	assert.EqualError(t, err, "'ctx' does not match a 'DomainContextInterface'")
 
 	// Error on ValidateXRhIdentity
 	xrhid := identity.XRHID{}
@@ -74,7 +74,7 @@ func TestNewAuthenticator(t *testing.T) {
 	v.On("ValidateXRhIdentity", &xrhid).Return(fmt.Errorf("any error"))
 	ctx = context.WithValue(context.Background(), "oapi-codegen/echo-context", mockContext)
 	err = a(ctx, &input)
-	assert.Errorf(t, err, "No valid "+headerXRhIdentity)
+	assert.EqualError(t, err, "No valid "+headerXRhIdentity)
 	mockContext.AssertExpectations(t)
 	v.AssertExpectations(t)
 

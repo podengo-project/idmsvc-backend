@@ -644,7 +644,7 @@ func (s *Suite) TestUpdateIpaDomain() {
 
 		// Check expectations for error and success scenario
 		if testCase.Expected != nil {
-			assert.Error(t, err, testCase.Expected.Error())
+			assert.EqualError(t, err, testCase.Expected.Error())
 		} else {
 			assert.NoError(t, err)
 		}
@@ -1163,7 +1163,7 @@ func (s *Suite) TestUpdateUser() {
 
 		// Check expectations for error and success scenario
 		if testCase.Expected != nil {
-			assert.Error(t, err, testCase.Expected.Error())
+			assert.EqualError(t, err, testCase.Expected.Error())
 		} else {
 			assert.NoError(t, err)
 		}
