@@ -11,7 +11,7 @@ permissions:
 jobs:
   validate:
     runs-on: "ubuntu-latest"
-    container: golang:1.19
+    container: golang:1.20
     steps:
       - uses: "actions/checkout@v4"
         with:
@@ -26,6 +26,9 @@ jobs:
           apt-get install -y python3-venv python3-pip
           python3 -m venv .venv
           .venv/bin/pip install yamllint
+
+      - name: print go version
+        run: go version
 
       - name: Install golang tools
         run: make install-go-tools

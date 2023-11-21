@@ -41,9 +41,8 @@ $(BIN)/%: cmd/%/main.go $(BIN)
 	go build $(MOD_VENDOR) -o "$@" "$<"
 
 # golangci-lint is very picky when it comes to dependencies, install it directly
-# 1.53 is the latest version that supports Go 1.19
 $(GOLANGCI_LINT): $(BIN)
-	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.53"
+	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2"
 
 $(TOOLS_BIN)/%: $(TOOLS_DEPS)
 	go build -modfile "$<" -o "$@" $(shell grep $(notdir $@) tools/tools.go | awk '{print $$2}')
@@ -72,8 +71,6 @@ get-deps: ## Download golang dependencies
 .PHONY: update-deps
 update-deps: ## Update all golang dependencies
 	go get -u -t ./...
-	@# kin-openapi 0.119.0 requires Golang 1.20
-	go get github.com/getkin/kin-openapi@v0.118.0
 	$(MAKE) tidy
 
 .PHONY: vet
