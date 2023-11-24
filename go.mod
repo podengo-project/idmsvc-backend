@@ -20,7 +20,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.0.17
 	github.com/lib/pq v1.10.9
 	github.com/loov/goda v0.5.7
-	github.com/mikefarah/yq/v4 v4.34.2
+	github.com/mikefarah/yq/v4 v4.40.3
 	github.com/oapi-codegen/runtime v1.1.0
 	github.com/openlyinc/pointy v1.2.1
 	github.com/prometheus/client_golang v1.17.0
@@ -51,8 +51,8 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.2.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
-	github.com/elliotchance/orderedmap v1.5.0 // indirect
-	github.com/fatih/color v1.15.0 // indirect
+	github.com/elliotchance/orderedmap v1.5.1 // indirect
+	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-openapi/jsonpointer v0.20.0 // indirect
@@ -117,12 +117,13 @@ require (
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
-	github.com/spf13/cobra v1.7.0 // indirect
+	github.com/spf13/cobra v1.8.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/objx v0.5.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
+	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
