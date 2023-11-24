@@ -60,8 +60,9 @@ cleanall: ## Clean and remove all binaries
 run: $(BIN)/service .compose-wait-db ## Run the api & kafka consumer locally
 	"$(BIN)/service"
 
+# See: https://go.dev/doc/modules/managing-dependencies#synchronizing
 .PHONY: tidy
-tidy:
+tidy:  ## Synchronize your code's dependencies
 	go mod tidy
 
 .PHONY: get-deps
