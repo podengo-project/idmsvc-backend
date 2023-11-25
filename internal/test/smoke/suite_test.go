@@ -416,7 +416,7 @@ func TearDownSignalHandler() {
 
 func TestSuite(t *testing.T) {
 	// TODO Add here your test suites
-	// suite.Run(t, new(SuiteTokenCreate))
+	suite.Run(t, new(SuiteTokenCreate))
 	// suite.Run(t, new(SuiteRegisterDomain))
 	// suite.Run(t, new(SuiteDomainUpdateUser))
 	// suite.Run(t, new(SuiteDomainUpdateAgent))
