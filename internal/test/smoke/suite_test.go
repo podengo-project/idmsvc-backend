@@ -402,7 +402,7 @@ func (s *SuiteBase) DoRequest(method string, url string, header http.Header, bod
 
 func TestSuite(t *testing.T) {
 	// TODO Add here your test suites
-	// suite.Run(t, new(SuiteTokenCreate))
+	suite.Run(t, new(SuiteTokenCreate))
 	// suite.Run(t, new(SuiteRegisterDomain))
 	// suite.Run(t, new(SuiteDomainUpdateUser))
 	// suite.Run(t, new(SuiteDomainUpdateAgent))
