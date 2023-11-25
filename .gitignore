@@ -12,6 +12,7 @@ tmp.*/**
 
 configs/**
 !configs/config.example.yaml
+!configs/config.ci.yaml
 !configs/bonfire.example.yaml
 
 # File generated when running unit tests
