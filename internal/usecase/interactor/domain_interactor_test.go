@@ -419,7 +419,7 @@ func TestRegisterIpa(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		i := NewDomainInteractor()
+		i := domainInteractor{}
 		orgID, clientVersion, output, err := i.Register(
 			testCase.Given.Secret,
 			testCase.Given.XRHID,
