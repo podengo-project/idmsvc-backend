@@ -179,7 +179,7 @@ func (s *SuiteBase) RegisterIpaDomain(domain *public.Domain) (*public.Domain, er
 		return nil, fmt.Errorf("failure when %s %s: %w", http.MethodPost, url, err)
 	}
 	// FIXME This should be http.StatusCreated instead of StatusOK
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusCreated {
 		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
 	}
 	var data []byte
@@ -417,7 +417,7 @@ func TearDownSignalHandler() {
 func TestSuite(t *testing.T) {
 	// TODO Add here your test suites
 	suite.Run(t, new(SuiteTokenCreate))
-	// suite.Run(t, new(SuiteRegisterDomain))
+	suite.Run(t, new(SuiteRegisterDomain))
 	// suite.Run(t, new(SuiteDomainUpdateUser))
 	// suite.Run(t, new(SuiteDomainUpdateAgent))
 	// suite.Run(t, new(SuiteDomainRead))
