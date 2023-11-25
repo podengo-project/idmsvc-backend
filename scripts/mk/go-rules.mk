@@ -40,12 +40,8 @@ $(BIN) $(TOOLS_BIN):
 $(BIN)/%: cmd/%/main.go $(BIN)
 	go build $(MOD_VENDOR) -o "$@" "$<"
 
-# golangci-lint is very picky when it comes to dependencies, install it directly
-$(GOLANGCI_LINT): $(BIN)
-	GOBIN="$(dir $(CURDIR)/$@)" go install "github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2"
-
 $(TOOLS_BIN)/%: $(TOOLS_DEPS)
-	go build -modfile "$<" -o "$@" $(shell grep $(notdir $@) tools/tools.go | awk '{print $$2}')
+	cd tools && GOBIN="$(PROJECT_DIR)/tools/bin" go install $(shell grep $(notdir $@) tools/tools.go | awk '{print $$2}')
 
 .PHONY: clean
 clean: ## Clean binaries and testbin generated
@@ -63,6 +59,7 @@ run: $(BIN)/service .compose-wait-db ## Run the api & kafka consumer locally
 .PHONY: tidy
 tidy:  ## Synchronize your code's dependencies
 	go mod tidy
+	cd tools && go mod tidy
 
 .PHONY: get-deps
 get-deps: ## Download golang dependencies
