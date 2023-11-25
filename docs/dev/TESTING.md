@@ -390,6 +390,175 @@ FIXME It was seen that could be complicated to
 
 See: `internal/test/client/server.go`
 
+## Smoke tests
+
+Every new feature we want to create a set of successful tests.
+For every new resource we will create a suite test (for instance
+for the token we have SuiteToken).
+
+We create a new file at `internal/test/smoke` such as `token_test.go`.
+
+We add a new suite test from the `SuiteBase` type:
+
+```golang
+type SuiteToken struct {
+	SuiteBase
+}
+```
+
+SuiteBase include the logic below:
+
+- Load the configuration.
+- Start/stop the services (API and metrics).
+- Generate a user and system XRHID for an arbitrary organization.
+
+If we need to check custom responses that are not deterministic
+for the given input or more complex, then add the below to use
+BodyFunc field in a more comfortable way:
+
+```golang
+// BodyFuncTokenResponse is the function that wrap
+type BodyFuncTokenResponse func(t *testing.T, expect *public.DomainRegTokenResponse) error
+
+// WrapBodyFuncTokenResponse allow to implement custom body expectations for the specific type of the response.
+// expected is the specific BodyFuncTokenResponse for DomainRegTokenResponse type
+// Returns a BodyFunc that wrap the generic expectation function.
+func WrapBodyFuncTokenResponse(expected BodyFuncTokenResponse) BodyFunc {
+	// To allow a generic interface for any body response type
+	// I have to use `body []byte`; I cannot use `any` because
+	// the response type is particular for the endpoint.
+	// That means the input to the function is not in a golang
+	// structure; to let the tests to be defined with less boilerplate,
+	// every response type would implement a wrapper function like
+	// this, which unmarshall the bytes, and call to the more specific
+	// custom body function.
+	if expected == nil {
+		return func(t *testing.T, body []byte) bool {
+			return len(body) == 0
+		}
+	}
+	return func(t *testing.T, body []byte) bool {
+		// Unserialize the response to the expected type
+		var data public.DomainRegTokenResponse
+		if err := json.Unmarshal(body, &data); err != nil {
+			require.Fail(t, fmt.Sprintf("Error unmarshalling body:\n"+
+				"error: %q",
+				err.Error(),
+			))
+			return false
+		}
+		// Run body expectetion on the unserialized data
+		if err := expected(t, &data); err != nil {
+			require.Fail(t, fmt.Sprintf("Error in body response:\n"+
+				"error: %q",
+				err.Error(),
+			))
+			return false
+		}
+		return true
+	}
+}
+```
+
+Now you can define methods that fit `BodyFuncTokenResponse` and use
+them into the BodyFunc by calling to `WrapBodyFuncTokenResponse`.
+
+Define your suite test by adding every success request at:
+
+```golang
+func (s *SuiteTokenCreate) TestToken() {
+	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
+
+	// Prepare the tests
+	testCases := []TestCase{
+		{
+			Name: "TestToken",
+			Given: TestCaseGiven{
+				Method: http.MethodPost,
+				URL:    DefaultBaseURL + "/domains/token",
+				Header: http.Header{
+					"X-Rh-Insights-Request-Id": {"test_token"},
+					"X-Rh-Identity":            {xrhidEncoded},
+				},
+				Body: public.DomainRegTokenRequest{
+					DomainType: "rhel-idm",
+				},
+			},
+			Expected: TestCaseExpect{
+				StatusCode: http.StatusInternalServerError,
+				Header: http.Header{
+					"X-Rh-Insights-Request-Id": {"test_token"},
+					"X-Rh-Identity":            nil,
+				},
+				BodyFunc: WrapBodyFuncTokenResponse(s.bodyExpectationTestToken),
+			},
+		},
+	}
+
+	// Execute the test cases
+	s.RunTestCases(testCases)
+}
+```
+
+Where `bodyExpectationTestToken` is:
+
+```golang
+func (s *SuiteTokenCreate) bodyExpectationTestToken(t *testing.T, body *public.DomainRegTokenResponse) error {
+	if body.DomainToken == "" {
+		return fmt.Errorf("'domain_token' is empty")
+	}
+
+	if body.DomainType != "rhel-idm" {
+		return fmt.Errorf("'domain_type' is not rhel-idm")
+	}
+
+	if body.DomainId == (uuid.UUID{}) {
+		return fmt.Errorf("'domain_id' is empty")
+	}
+
+	if body.Expiration <= int(time.Now().Unix()) {
+		return fmt.Errorf("'expiration' is in the past")
+	}
+
+	return nil
+}
+```
+
+The TestCase has been designed to fit integration tests too, and to
+provide flexibility, different Body fields exist:
+
+- Request:
+
+  - `Body any` as any golang struct pointer, so the request will
+    be serialized as a json making easier to define requests.
+  - `BodyBytes []byte` as an array of bytes, so we can customize
+    the request content (some use case could be provide
+    a test with a malformed json document).
+
+- Response:
+
+  - `BodyBytes []byte` as the above, to specify a perfect match
+    with the response received.
+  - `Body any` as a golang structure that will be serialized and
+    compared with the array of bytes received as response.
+  - `BodyFunc BodyFunc` as a custom function, here we will use the
+    specific `Wrap...` function to remove boilerplate unserializing
+    the content.
+
+Once we have defined the test case into the testCase slice, we run
+all the test cases by calling to s.RunTestCases(testCases) which is
+a method defined into the SuiteBase structure.
+
+Finally add your suite test at `internal/test/smoke/suite_test.go`,
+at `TestSuite` function by:
+
+```golang
+func TestSuite(t *testing.T) {
+	// TODO Add here your test suites
+	suite.Run(t, new(SuiteToken))
+}
+```
+
 ## References
 
 - https://pkg.go.dev/github.com/stretchr/testify
