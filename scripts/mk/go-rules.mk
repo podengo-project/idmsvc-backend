@@ -90,19 +90,26 @@ vendor: ## Generate vendor/ directory populated with the dependencies
 # Exclude /internal/interface directories because only contain interfaces
 TEST_GREP_FILTER := -v \
   -e /vendor/ \
-  -e /internal/test/mock \
+  -e /internal/test \
   -e /internal/interface/ \
   -e /internal/api/metrics \
   -e /internal/api/private \
   -e /internal/api/public
 
 .PHONY: test
-test: ## Run tests
-	go test -coverprofile="coverage.out" -covermode count $(MOD_VENDOR) $(shell go list ./... | grep $(TEST_GREP_FILTER) )
+test: test-unit test-smoke  ## Run unit tests, smoke tests and integration tests
+
+.PHONY: test-unit
+test-unit: ## Run unit tests
+	go test -parallel 4 -coverprofile="coverage.out" -covermode count $(MOD_VENDOR) $(shell go list ./... | grep $(TEST_GREP_FILTER) )
 
 .PHONY: test-ci
 test-ci: ## Run tests for ci
 	go test $(MOD_VENDOR) ./...
+
+.PHONY: test-smoke
+test-smoke:  ## Run smoke tests
+	CONFIG_PATH="$(PROJECT_DIR)/configs" go test -parallel 1 ./internal/test/smoke/... -test.failfast -test.v
 
 # Add dependencies from binaries to all the the sources
 # so any change is detected for the build rule
@@ -163,8 +170,8 @@ $(EVENT_SCHEMA_DIR)/%.event.json: $(EVENT_MESSAGE_DIR)/%.event.yaml
 
 # Mockery support
 MOCK_DIRS := internal/api/private \
-    internal/api/public \
-    internal/api/openapi \
+	internal/api/public \
+	internal/api/openapi \
 	internal/interface/repository \
 	internal/interface/interactor \
 	internal/interface/presenter \
