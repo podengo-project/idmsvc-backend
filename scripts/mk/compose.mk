@@ -4,8 +4,10 @@
 
 ifeq (podman,$(CONTAINER_ENGINE))
 CONTAINER_COMPOSE ?= podman-compose
+CONTAINER_DATABASE_NAME ?= $(COMPOSE_PROJECT)_database_1
 else
 CONTAINER_COMPOSE ?= docker-compose
+CONTAINER_DATABASE_NAME ?= $(COMPOSE_PROJECT)-database-1
 endif
 
 COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
@@ -53,7 +55,7 @@ compose-up: ## Start local infrastructure
 .PHONY: .compose-wait-db
 .compose-wait-db:
 	@printf "Waiting database"; \
-	while [ "$$( $(CONTAINER_ENGINE) container inspect --format '{{$(CONTAINER_HEALTH_PATH)}}' "$(COMPOSE_PROJECT)_database_1" )" != "healthy" ]; \
+	while [ "$$( $(CONTAINER_ENGINE) container inspect --format '{{$(CONTAINER_HEALTH_PATH)}}' "$(CONTAINER_DATABASE_NAME)" )" != "healthy" ]; \
 	do sleep 1; printf "."; \
 	done; \
 	printf "\n"
