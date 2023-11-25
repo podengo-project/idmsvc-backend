@@ -227,6 +227,7 @@ for the interface, it seems logic to add the implementations at:
 ## Adding a new `myres` resource to my public api
 
 - Add the data model at: `internal/domain/model/myres.go`
+- Add a builder for the API Rest involved at: `internal/test/builder`
 - Generate the migration scripts by: `make build && ./bin/db-tool new myres`
 - Fill the migration scripts at: `scripts/db/migrations/`
 
