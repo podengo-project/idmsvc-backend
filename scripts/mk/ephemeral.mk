@@ -9,8 +9,8 @@ endif
 
 APP_COMPONENT ?= backend
 
-# namespace extend duration
-DURATION ?= 1h
+# Set the default duration for the namespace reservation and extension
+EPHEMERAL_DURATION ?= 4h
 
 NAMESPACE ?= $(shell oc project -q 2>/dev/null)
 # POOL could be:
@@ -26,7 +26,6 @@ export POOL
 # CLIENTS_RBAC_BASE_URL ?= http://localhost:8801/api/rbac/v1  # For local workstation
 # CLIENTS_RBAC_BASE_URL ?= http://rbac-service:8080/api/rbac/v1
 # export CLIENTS_RBAC_BASE_URL
-
 
 ifneq (default,$(POOL))
 EPHEMERAL_OPTS += --no-single-replicas
@@ -69,8 +68,8 @@ $(EPHEMERAL_BONFIRE_PATH):
 $(EPHEMERAL_SECRETS_DIR):
 	mkdir -p $@
 
-# TODO Uncomment when the frontend is created
-# EPHEMERAL_OPTS += --frontend true
+# Enable frontend deployment
+EPHEMERAL_OPTS += --frontends true
 
 # https://consoledot.pages.redhat.com/docs/dev/creating-a-new-app/using-ee/bonfire/getting-started-with-ees.html
 # Checkout this: https://github.com/RedHatInsights/bonfire/commit/15ac80bfcf9c386eabce33cb219b015a58b756c8
@@ -93,7 +92,7 @@ ephemeral-login: .old-ephemeral-login ## Help in login to the ephemeral cluster
 	@echo '# make ephemeral-namespace-list'
 	@echo ""
 	@echo "If you need to extend 1hour the time for the namespace reservation"
-	@echo '# make ephemeral-namespace-extend DURATION=1h'
+	@echo '# make ephemeral-namespace-extend EPHEMERAL_DURATION=1h'
 	@echo ""
 	@echo "Finally if you don't need the reserved namespace or just you want to cleanup and restart with a fresh namespace you run:"
 	@echo '# make ephemeral-namespace-delete-all'
@@ -109,6 +108,7 @@ ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.
 	$(BONFIRE) deploy \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
+		--local-config-method override \
 		--secrets-dir "$(PROJECT_DIR)/secrets/ephemeral" \
 		--import-secrets \
 		--namespace "$(NAMESPACE)" \
@@ -149,7 +149,7 @@ ephemeral-db-cli: ## Open a database client
 # TODO Add command to specify to bonfire the clowdenv template to be used
 .PHONY: ephemeral-namespace-create
 ephemeral-namespace-create: $(BONFIRE)  ## Create a namespace (requires ephemeral environment)
-	oc project "$(shell $(BONFIRE) namespace reserve --force --duration "$(DURATION)" --pool "$(POOL)" 2>/dev/null)"
+	oc project "$(shell $(BONFIRE) namespace reserve --force --duration "$(EPHEMERAL_DURATION)" --pool "$(POOL)" 2>/dev/null)"
 
 .PHONY: ephemeral-namespace-delete
 ephemeral-namespace-delete: $(BONFIRE) ## Delete current namespace (requires ephemeral environment)
@@ -166,8 +166,8 @@ ephemeral-namespace-list: $(BONFIRE) ## List all the namespaces reserved to the 
 	$(BONFIRE) namespace list --mine
 
 .PHONY: ephemeral-namespace-extend
-ephemeral-namespace-extend: $(BONFIRE) ## Extend duration of the current ephemeral environment (default: DURATION=1h)
-	$(BONFIRE) namespace extend --duration $(DURATION) "$(NAMESPACE)"
+ephemeral-namespace-extend: $(BONFIRE) ## Extend duration of the current ephemeral environment (default: EPHEMERAL_DURATION=1h)
+	$(BONFIRE) namespace extend --duration $(EPHEMERAL_DURATION) "$(NAMESPACE)"
 
 .PHONY: ephemeral-namespace-describe
 ephemeral-namespace-describe: $(BONFIRE) ## Display information about the current namespace
