@@ -20,19 +20,24 @@ apps:
   - name: idmsvc
     components:
       - name: backend
-        # host: gitlab
-        # repo: identity-management/idmocp/idm-domains-backend
+        # host: github
+        # repo: idmsvc/idmsvc-backend
         host: local
         repo: ./
         path: deployments/clowder.yaml
         parameters:
-          ENV_NAME: ""
+          ENV_NAME: "ephemeral"
           IMAGE: ""
           IMAGE_TAG: ""
+          # LOGGING_LEVEL: "info"
+          APP_ACCEPT_X_RH_FAKE_IDENTITY: "true"
 
-#      - name: frontend
-#        host: github
-#        repo: content-services/idmsvc-frontend
-#        parameters:
-#          ENV_NAME: ""
-#        path: /deploy/frontend.yaml
+      - name: frontend
+        host: github
+        repo: podengo-project/idmsvc-frontend
+        ref: main
+        path: /deploy/frontend.yaml
+        parameters:
+          ENV_NAME: "ephemeral"
+          IMAGE: "quay.io/cloudservices/idmsvc-frontend"
+          # IMAGE_TAG: "b82077d"
