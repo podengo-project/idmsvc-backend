@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
@@ -51,7 +52,7 @@ func (p *hostPresenter) fillRhelIdm(domain *model.Domain, response *public.HostC
 		EnrollmentServers: servers,
 		RealmName:         *domain.IpaDomain.RealmName,
 		// TODO: hard-coded value for testing and demonstration
-		IpaClientInstallArgs: &[]string{"--automount-location=default"},
+		AutomountLocation: pointy.String("default"),
 	}
 	return nil
 }

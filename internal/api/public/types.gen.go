@@ -44,7 +44,7 @@ type Domain struct {
 	// DomainId A domain id
 	DomainId *DomainId `json:"domain_id,omitempty"`
 
-	// DomainName A name of a domain (all lower-case)
+	// DomainName A name of a domain (all lower-case). The domain name can only be set during initial registration and not be modified by updates.
 	DomainName DomainName `json:"domain_name"`
 
 	// DomainType Type of domain (currently only rhel-idm)
@@ -74,7 +74,7 @@ type DomainIpa struct {
 	// RealmDomains List of realm associated to the IPA domain.
 	RealmDomains []DomainName `json:"realm_domains"`
 
-	// RealmName A Kerberos realm name (usually all upper-case domain name)
+	// RealmName A Kerberos realm name (usually all upper-case domain name). The realm can only be set during initial registration and not be modified by updates.
 	RealmName RealmName `json:"realm_name"`
 
 	// Servers List of auto-enrollment enabled servers for this domain.
@@ -98,7 +98,7 @@ type DomainIpaServer struct {
 	SubscriptionManagerId *SubscriptionManagerId `json:"subscription_manager_id,omitempty"`
 }
 
-// DomainName A name of a domain (all lower-case)
+// DomainName A name of a domain (all lower-case). The domain name can only be set during initial registration and not be modified by updates.
 type DomainName = string
 
 // DomainRegToken A domain registration response
@@ -166,7 +166,7 @@ type HostConf struct {
 	// DomainId A domain id
 	DomainId *DomainId `json:"domain_id,omitempty"`
 
-	// DomainName A name of a domain (all lower-case)
+	// DomainName A name of a domain (all lower-case). The domain name can only be set during initial registration and not be modified by updates.
 	DomainName *DomainName `json:"domain_name,omitempty"`
 
 	// DomainType Type of domain (currently only rhel-idm)
@@ -175,6 +175,9 @@ type HostConf struct {
 
 // HostConfIpa Options for ipa domains
 type HostConfIpa struct {
+	// AutomountLocation Automount location name for ipa-client-automount
+	AutomountLocation *string `json:"automount_location,omitempty"`
+
 	// Cabundle A string of concatenated, PEM-encoded X.509 certificates
 	Cabundle CaCertBundle `json:"cabundle"`
 
@@ -184,7 +187,7 @@ type HostConfIpa struct {
 	// IpaClientInstallArgs List of additional arguments for ipa-client-install
 	IpaClientInstallArgs *[]string `json:"ipa_client_install_args,omitempty"`
 
-	// RealmName A Kerberos realm name (usually all upper-case domain name)
+	// RealmName A Kerberos realm name (usually all upper-case domain name). The realm can only be set during initial registration and not be modified by updates.
 	RealmName RealmName `json:"realm_name"`
 }
 
@@ -205,7 +208,7 @@ type HostConfResponseSchema struct {
 	// DomainId A domain id
 	DomainId DomainId `json:"domain_id"`
 
-	// DomainName A name of a domain (all lower-case)
+	// DomainName A name of a domain (all lower-case). The domain name can only be set during initial registration and not be modified by updates.
 	DomainName DomainName `json:"domain_name"`
 
 	// DomainType Type of domain (currently only rhel-idm)
@@ -234,7 +237,7 @@ type ListDomainsData struct {
 	// DomainId A domain id
 	DomainId DomainId `json:"domain_id"`
 
-	// DomainName A name of a domain (all lower-case)
+	// DomainName A name of a domain (all lower-case). The domain name can only be set during initial registration and not be modified by updates.
 	DomainName DomainName `json:"domain_name"`
 
 	// DomainType Type of domain (currently only rhel-idm)
@@ -294,7 +297,7 @@ type PaginationMeta struct {
 	Offset int `json:"offset"`
 }
 
-// RealmName A Kerberos realm name (usually all upper-case domain name)
+// RealmName A Kerberos realm name (usually all upper-case domain name). The realm can only be set during initial registration and not be modified by updates.
 type RealmName = string
 
 // RegisterDomainRequest A domain resource
@@ -314,7 +317,7 @@ type SubscriptionManagerId = openapi_types.UUID
 
 // UpdateDomainAgentRequest A domain resource
 type UpdateDomainAgentRequest struct {
-	// DomainName A name of a domain (all lower-case)
+	// DomainName A name of a domain (all lower-case). The domain name can only be set during initial registration and not be modified by updates.
 	DomainName DomainName `json:"domain_name"`
 
 	// DomainType Type of domain (currently only rhel-idm)
