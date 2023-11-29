@@ -15,7 +15,7 @@ require (
 	github.com/loov/goda v0.5.7
 	github.com/mikefarah/yq/v4 v4.34.2
 	github.com/subpop/xrhidgen v0.0.0-20221013174335-ca910188f4c9
-	github.com/vektra/mockery/v2 v2.36.0
+	github.com/vektra/mockery/v2 v2.38.0
 )
 
 require (
