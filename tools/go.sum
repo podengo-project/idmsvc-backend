@@ -374,8 +374,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc h1:U9qPSI2PIWSS1VwoXQT9A3Wy9MM3WgvqSxFWenqJduM=
 github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/deepmap/oapi-codegen v1.14.0 h1:b51/kQwH69rjN5pu+8j/Q5fUGD/rUclLAcGLQWQwa3E=
-github.com/deepmap/oapi-codegen v1.14.0/go.mod h1:QcEpzjVDwJEH3Fq6I7XYkI0M/JwvoL82ToYveaeVMAw=
+github.com/deepmap/oapi-codegen v1.16.2 h1:xGHx0dNqYfy9gE8a7AVgVM8Sd5oF9SEgePzP+UPAUXI=
+github.com/deepmap/oapi-codegen v1.16.2/go.mod h1:rdYoEA2GE+riuZ91DvpmBX9hJbQpuY9wchXpfQ3n+ho=
 github.com/denis-tingaikin/go-header v0.4.3 h1:tEaZKAlqql6SKCY++utLmkPLd6K8IBM20Ha7UVm+mtU=
 github.com/denis-tingaikin/go-header v0.4.3/go.mod h1:0wOCWuN71D5qIgE2nz9KrKmuYBAC2Mra5RassOIQ2/c=
 github.com/denisenkom/go-mssqldb v0.10.0/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
