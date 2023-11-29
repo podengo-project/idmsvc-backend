@@ -10,7 +10,7 @@ go 1.20
 require (
 	github.com/achiku/planter v0.0.0-20230118102009-4847a8211e35
 	github.com/atombender/go-jsonschema v0.13.1
-	github.com/deepmap/oapi-codegen v1.14.0
+	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/loov/goda v0.5.7
 	github.com/mikefarah/yq/v4 v4.34.2
