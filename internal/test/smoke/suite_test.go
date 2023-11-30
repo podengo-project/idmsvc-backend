@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
@@ -194,6 +195,46 @@ func (s *SuiteBase) RegisterIpaDomain(domain *public.Domain) (*public.Domain, er
 		return nil, fmt.Errorf("failure when unmarshalling the information for %s %s", http.MethodPost, url)
 	}
 	return createdDomain, nil
+}
+
+// ReadDomain is a helper function to read a domain with the API
+// for a rhel-idm domain using the OrgID assigned to the unit test.
+// Return the token response or error.
+func (s *SuiteBase) ReadDomain(domainID uuid.UUID) (*public.Domain, error) {
+	var headers http.Header = http.Header{}
+	var resp *http.Response
+	var err error
+
+	method := http.MethodGet
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
+	headers.Add(http.CanonicalHeaderKey("X-Rh-Insights-Request-Id"), "read_domain")
+	headers.Add(http.CanonicalHeaderKey("X-Rh-Identity"), header.EncodeXRHID(&s.UserXRHID))
+	if resp, err = s.DoRequest(
+		method,
+		url,
+		headers,
+		nil,
+	); err != nil {
+		return nil, fmt.Errorf("failure when %s %s: %w", method, url, err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+
+	var data []byte
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failure when reading body for POST %s because an empty response", url)
+	}
+
+	var domain *public.Domain = &public.Domain{}
+	err = json.Unmarshal(data, domain)
+	if err != nil {
+		return nil, fmt.Errorf("failure when unmarshalling the information for %s %s", method, url)
+	}
+
+	return domain, nil
 }
 
 // RunTestCase run test for one specific testcase
@@ -420,7 +461,7 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, new(SuiteRegisterDomain))
 	// suite.Run(t, new(SuiteDomainUpdateUser))
 	// suite.Run(t, new(SuiteDomainUpdateAgent))
-	// suite.Run(t, new(SuiteDomainRead))
+	suite.Run(t, new(SuiteReadDomain))
 	suite.Run(t, new(SuiteListDomains))
 	// suite.Run(t, new(SuiteDomainDelete))
 }
