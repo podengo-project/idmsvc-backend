@@ -79,13 +79,6 @@ func (s *SuiteListDomains) TearDownTest() {
 	s.SuiteBase.TearDownTest()
 }
 
-// bodyExpectationListDomains is a specific expectation method that fit BodyFuncListDomainsResponse
-func (s *SuiteListDomains) bodyExpectationListDomains(t *testing.T, body *public.ListDomainsResponse) error {
-	// TODO Implement the expectations
-
-	return nil
-}
-
 func (s *SuiteListDomains) TestListDomains() {
 	t := s.T()
 	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
