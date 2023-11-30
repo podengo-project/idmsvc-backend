@@ -173,6 +173,15 @@ ephemeral-namespace-extend: $(BONFIRE) ## Extend duration of the current ephemer
 ephemeral-namespace-describe: $(BONFIRE) ## Display information about the current namespace
 	@$(BONFIRE) namespace describe "$(NAMESPACE)"
 
+.PHONY: ephemeral-namespace-hccconf
+ephemeral-namespace-hccconf: ## Generate hcc.conf for current namespace
+	@echo "# /etc/ipa/hcc.conf"
+	@echo "[hcc]"
+	@echo "token_url=https://sso.invalid/auth/realms/redhat-external/protocol/openid-connect/token"
+	@echo "inventory_api_url=https://console.redhat.com/api/inventory/v1"
+	@echo "idmsvc_api_url=https://$(shell oc get routes -l app=idmsvc-backend -o jsonpath='{.items[0].spec.host}')/api/idmsvc/v1"
+	@echo "dev_username=$(shell oc get secrets/env-$(NAMESPACE)-keycloak -o jsonpath='{.data.defaultUsername}' | base64 -d)"
+	@echo "dev_password=$(shell oc get secrets/env-$(NAMESPACE)-keycloak -o jsonpath='{.data.defaultPassword}' | base64 -d)"
 
 # CONTAINER_IMAGE_BASE should be a public image
 # Tested by 'make ephemeral-build-deploy CONTAINER_IMAGE_BASE=quay.io/avisied0/hmsidm-backend'
