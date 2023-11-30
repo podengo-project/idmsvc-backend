@@ -52,6 +52,7 @@ func (b *systemXRHID) Build() identity.XRHID {
 
 func (b *systemXRHID) WithOrgID(value string) SystemXRHID {
 	b.Identity.OrgID = value
+	b.Identity.Internal.OrgID = value
 	return b
 }
 

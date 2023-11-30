@@ -68,6 +68,7 @@ func (b *userXRHID) Build() identity.XRHID {
 
 func (b *userXRHID) WithOrgID(value string) UserXRHID {
 	b.Identity.OrgID = value
+	b.Identity.Internal.OrgID = value
 	return b
 }
 
