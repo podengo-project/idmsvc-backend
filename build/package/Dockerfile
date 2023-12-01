@@ -2,6 +2,7 @@
 # This build the container image for the service
 ##
 FROM registry.access.redhat.com/ubi9/go-toolset:1.20 as builder
+LABEL idmsvc-backend=builder
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
 WORKDIR /go/src/app
@@ -11,6 +12,7 @@ RUN make get-deps build
 
 
 FROM registry.access.redhat.com/ubi9/ubi:9.3-1361.1699548029
+LABEL idmsvc-backend=backend
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
 RUN mkdir -p /opt/bin /opt/bin/scripts/db /opt/bin/configs
