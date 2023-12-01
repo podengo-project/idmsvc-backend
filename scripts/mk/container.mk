@@ -56,9 +56,17 @@ container-build:  ## Build image CONTAINER_IMAGE from CONTAINERFILE using the CO
 	  -t "$(CONTAINER_IMAGE)" \
 	  $(CONTAINER_CONTEXT_DIR) \
 	  -f "$(CONTAINERFILE)"
+	@# prune builder container
+	$(CONTAINER_ENGINE) image prune --filter label=idmsvc-backend=builder --force
+
 .PHONY: container-push
 container-push:  ## Push image to remote registry
 	$(CONTAINER_ENGINE) push "$(CONTAINER_IMAGE)"
+
+.PHONY: container-clean
+container-clean:  ## Remove all local images with label=idmsvc-backend
+	$(CONTAINER_ENGINE) image prune --filter label=idmsvc-backend --force
+	$(CONTAINER_ENGINE) image list --filter label=idmsvc-backend --format "{{.ID}}" | xargs -r $(CONTAINER_ENGINE) image rm
 
 # TODO Indicate in the options the IP assigned to the postgres container
 # .PHONY: container-run
