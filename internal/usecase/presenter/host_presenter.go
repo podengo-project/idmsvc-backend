@@ -52,7 +52,8 @@ func (p *hostPresenter) fillRhelIdm(domain *model.Domain, response *public.HostC
 		EnrollmentServers: servers,
 		RealmName:         *domain.IpaDomain.RealmName,
 		// TODO: hard-coded value for testing and demonstration
-		AutomountLocation: pointy.String("default"),
+		IpaClientInstallArgs: &[]string{"--mkhomedir", "--subid"},
+		AutomountLocation:    pointy.String("default"),
 	}
 	return nil
 }
