@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
@@ -79,6 +80,33 @@ func (s *SuiteListDomains) TearDownTest() {
 	s.SuiteBase.TearDownTest()
 }
 
+func (s *SuiteListDomains) existDomain(id string) bool {
+	for j := range s.Domains {
+		if s.Domains[j].DomainId.String() == id {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *SuiteListDomains) assertInDomains(t *testing.T, data []public.ListDomainsData, msgAndArgs ...any) bool {
+	if data == nil {
+		return true
+	}
+	if len(data) == 0 {
+		return true
+	}
+
+	for i := range data {
+		DomainIDString := data[i].DomainId.String()
+		if !s.existDomain(DomainIDString) {
+			return assert.Fail(t, fmt.Sprintf("Not in slice: DomainID=%s\n", DomainIDString), msgAndArgs...)
+		}
+	}
+
+	return true
+}
+
 func (s *SuiteListDomains) TestListDomains() {
 	t := s.T()
 	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
@@ -91,12 +119,18 @@ func (s *SuiteListDomains) TestListDomains() {
 	q.Set("offset", "40")
 	q.Set("limit", "10")
 	url2 := req.URL.String() + "?" + q.Encode()
+	q.Set("offset", "20")
+	q.Set("limit", "10")
+	url3 := req.URL.String() + "?" + q.Encode()
+	q.Del("offset")
+	q.Del("limit")
+	url4 := req.URL.String() + "?" + q.Encode()
 	domainName := builder_helper.GenRandDomainName(2)
 
 	// Prepare the tests
 	testCases := []TestCase{
 		{
-			Name: "TestListDomains: offset=0&limit=10",
+			Name: "TestListDomains: offset=0&limit=10 case",
 			Given: TestCaseGiven{
 				Method: http.MethodGet,
 				URL:    url1,
@@ -107,25 +141,36 @@ func (s *SuiteListDomains) TestListDomains() {
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
 			Expected: TestCaseExpect{
-				// FIXME It must be http.StatusCreated
 				StatusCode: http.StatusOK,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
 					"X-Rh-Insights-Request-Id": {"test_token"},
 					"X-Rh-Identity":            nil,
-					// TODO Check format for X-Rh-Idm-Version
 				},
 				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
 					require.NotNil(t, body)
-					assert.Equal(t, 10, body.Meta.Limit)
-					assert.Equal(t, 0, body.Meta.Offset)
-					assert.Equal(t, int64(49), body.Meta.Count)
+
+					// Check Meta
+					assert.Equal(t, public.PaginationMeta{Count: int64(len(s.Domains)), Limit: 10, Offset: 0}, body.Meta)
+
+					// Check links
+					assert.Equal(t, public.PaginationLinks{
+						First:    pointy.String("/api/idmsvc/v1/domains?limit=10&offset=0"),
+						Previous: nil,
+						Next:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=10"),
+						Last:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=40"),
+					}, body.Links)
+
+					// Check items
+					assert.Equal(t, 10, len(body.Data))
+					s.assertInDomains(t, body.Data)
+
 					return nil
 				}),
 			},
 		},
 		{
-			Name: "TestListDomains: offset=40&limit=10",
+			Name: "TestListDomains: offset=40&limit=10 case",
 			Given: TestCaseGiven{
 				Method: http.MethodGet,
 				URL:    url2,
@@ -136,7 +181,6 @@ func (s *SuiteListDomains) TestListDomains() {
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
 			Expected: TestCaseExpect{
-				// FIXME It must be http.StatusCreated
 				StatusCode: http.StatusOK,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
@@ -146,12 +190,104 @@ func (s *SuiteListDomains) TestListDomains() {
 				},
 				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
 					require.NotNil(t, body)
-					assert.Equal(t, 10, body.Meta.Limit)
-					assert.Equal(t, 40, body.Meta.Offset)
-					// FIXME Review the metadata to return
-					// assert.Equal(t, int64(49), body.Meta.Count)
+
+					// Check Meta
+					assert.Equal(t, public.PaginationMeta{Count: int64(len(s.Domains)), Limit: 10, Offset: 40}, body.Meta)
+
+					// Check links
+					assert.Equal(t, public.PaginationLinks{
+						First:    pointy.String("/api/idmsvc/v1/domains?limit=10&offset=0"),
+						Previous: pointy.String("/api/idmsvc/v1/domains?limit=10&offset=30"),
+						Next:     nil,
+						Last:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=40"),
+					}, body.Links)
+
+					// Check items
 					assert.Equal(t, 9, len(body.Data))
-					// TODO
+					s.assertInDomains(t, body.Data)
+
+					return nil
+				}),
+			},
+		},
+		{
+			Name: "TestListDomains: offset=20&limit=10 case",
+			Given: TestCaseGiven{
+				Method: http.MethodGet,
+				URL:    url3,
+				Header: http.Header{
+					"X-Rh-Insights-Request-Id": {"test_token"},
+					"X-Rh-Identity":            {xrhidEncoded},
+				},
+				Body: builder_api.NewDomain(domainName).Build(),
+			},
+			Expected: TestCaseExpect{
+				StatusCode: http.StatusOK,
+				Header: http.Header{
+					// FIXME Avoid hardcode the key name of the header
+					"X-Rh-Insights-Request-Id": {"test_token"},
+					"X-Rh-Identity":            nil,
+					// TODO Check format for X-Rh-Idm-Version
+				},
+				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
+					require.NotNil(t, body)
+
+					// Check Meta
+					assert.Equal(t, public.PaginationMeta{Count: int64(len(s.Domains)), Limit: 10, Offset: 20}, body.Meta)
+
+					// Check links
+					assert.Equal(t, public.PaginationLinks{
+						First:    pointy.String("/api/idmsvc/v1/domains?limit=10&offset=0"),
+						Previous: pointy.String("/api/idmsvc/v1/domains?limit=10&offset=10"),
+						Next:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=30"),
+						Last:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=40"),
+					}, body.Links)
+
+					// Check items
+					assert.Equal(t, 10, len(body.Data))
+					s.assertInDomains(t, body.Data)
+
+					return nil
+				}),
+			},
+		},
+		{
+			Name: "TestListDomains: no params",
+			Given: TestCaseGiven{
+				Method: http.MethodGet,
+				URL:    url4,
+				Header: http.Header{
+					"X-Rh-Insights-Request-Id": {"test_token"},
+					"X-Rh-Identity":            {xrhidEncoded},
+				},
+				Body: builder_api.NewDomain(domainName).Build(),
+			},
+			Expected: TestCaseExpect{
+				StatusCode: http.StatusOK,
+				Header: http.Header{
+					// FIXME Avoid hardcode the key name of the header
+					"X-Rh-Insights-Request-Id": {"test_token"},
+					"X-Rh-Identity":            nil,
+					// TODO Check format for X-Rh-Idm-Version
+				},
+				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
+					require.NotNil(t, body)
+
+					// Check Meta
+					assert.Equal(t, public.PaginationMeta{Count: int64(len(s.Domains)), Limit: 10, Offset: 0}, body.Meta)
+
+					// Check links
+					assert.Equal(t, public.PaginationLinks{
+						First:    pointy.String("/api/idmsvc/v1/domains?limit=10&offset=0"),
+						Previous: nil,
+						Next:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=10"),
+						Last:     pointy.String("/api/idmsvc/v1/domains?limit=10&offset=40"),
+					}, body.Links)
+
+					// Check items
+					assert.Equal(t, 10, len(body.Data))
+					s.assertInDomains(t, body.Data)
+
 					return nil
 				}),
 			},
