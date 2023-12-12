@@ -56,10 +56,10 @@ func (r *domainRepository) List(
 	}
 	if err = db.
 		Table("domains").
-		Limit(limit).
 		Where("org_id = ?", orgID).
-		Offset(int(offset)).
 		Count(&count).
+		Offset(int(offset)).
+		Limit(limit).
 		Find(&output).
 		Error; err != nil {
 		return nil, 0, err
