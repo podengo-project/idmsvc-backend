@@ -460,7 +460,7 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, new(SuiteTokenCreate))
 	suite.Run(t, new(SuiteRegisterDomain))
 	// suite.Run(t, new(SuiteDomainUpdateUser))
-	// suite.Run(t, new(SuiteDomainUpdateAgent))
+	suite.Run(t, new(SuiteDomainUpdateAgent))
 	suite.Run(t, new(SuiteReadDomain))
 	suite.Run(t, new(SuiteListDomains))
 	// suite.Run(t, new(SuiteDomainDelete))
