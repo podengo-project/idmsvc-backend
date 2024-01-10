@@ -7,6 +7,8 @@ ifeq (,$(APP_NAME))
 $(error APP_NAME is empty; did you miss to set APP_NAME=my-app at your scripts/mk/variables.mk)
 endif
 
+CLUSTER ?= crc-eph.r9lp.p1.openshiftapps.com
+
 APP_COMPONENT ?= backend
 
 # Set the default duration for the namespace reservation and extension
@@ -79,7 +81,7 @@ ephemeral-login: .old-ephemeral-login ## Help in login to the ephemeral cluster
 
 .PHONY: .old-ephemeral-login
 .old-ephemeral-login:
-	xdg-open "https://oauth-openshift.apps.c-rh-c-eph.8p0c.p1.openshiftapps.com/oauth/token/request"
+	xdg-open "https://oauth-openshift.apps.$(CLUSTER)/oauth/token/request"
 	@echo "- Login with github"
 	@echo "- Do click on 'Display Token'"
 	@echo "- Copy 'Log in with this token' command"
