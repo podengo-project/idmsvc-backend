@@ -2,6 +2,7 @@ package logger
 
 import (
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
@@ -103,4 +104,42 @@ func InitLogger(cfg *config.Config) {
 	default:
 		globalLevel.Set(LevelWarn)
 	}
+}
+
+func LogBuildInfo(msg string) {
+	var (
+		version    string = "unknown"
+		revision   string = "unknown"
+		commitTime string = "unknown"
+		dirty      bool   = false
+	)
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return
+	}
+	// version is set to "(devel)" when building from a git checkout
+	if info.Main.Version != "" {
+		version = info.Main.Version
+	}
+
+	for _, s := range info.Settings {
+		if s.Value == "" {
+			continue
+		}
+		switch s.Key {
+		case "vcs.modified":
+			dirty = s.Value == "true"
+		case "vcs.revision":
+			revision = s.Value
+		case "vcs.time":
+			commitTime = s.Value
+		}
+	}
+	slog.Info(
+		msg,
+		slog.String("Version", version),
+		slog.String("Commit", revision),
+		slog.String("CommitTime", commitTime),
+		slog.Bool("Dirty", dirty),
+	)
 }

@@ -30,6 +30,7 @@ func startSignalHandler(c context.Context) (context.Context, context.CancelFunc)
 
 func main() {
 	wg := &sync.WaitGroup{}
+	logger.LogBuildInfo("idmscv-backend")
 	cfg := config.Get()
 	logger.InitLogger(cfg)
 	db := datastore.NewDB(cfg)
