@@ -60,3 +60,6 @@ APP_TOKEN_EXPIRATION_SECONDS ?= 7200
 # extending the reservation.
 #
 # DURATION ?= 4h
+
+# Cluster to use for development purpose
+CLUSTER ?= crc-eph.r9lp.p1.openshiftapps.com
