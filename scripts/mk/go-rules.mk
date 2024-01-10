@@ -37,8 +37,10 @@ $(BIN) $(TOOLS_BIN):
 
 # export CGO_ENABLED
 # $(BIN)/%: CGO_ENABLED=0
+# Build by path, not by referring to main.go. It's required to bake VCS
+# information into binary, see golang/go#51279.
 $(BIN)/%: cmd/%/main.go $(BIN)
-	go build $(MOD_VENDOR) -o "$@" "$<"
+	go build -C $(dir $<) $(MOD_VENDOR) -buildvcs=true -o "$(CURDIR)/$@" .
 
 $(TOOLS_BIN)/%: $(TOOLS_DEPS)
 	cd tools && GOBIN="$(PROJECT_DIR)/tools/bin" go install $(shell grep $(notdir $@) tools/tools.go | awk '{print $$2}')
