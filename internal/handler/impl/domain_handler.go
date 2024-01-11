@@ -245,7 +245,7 @@ func (a *application) RegisterDomain(
 		return err
 	}
 
-	return ctx.JSON(http.StatusOK, *output)
+	return ctx.JSON(http.StatusCreated, *output)
 }
 
 // UpdateDomain (PUT /domains/{uuid}) update the
