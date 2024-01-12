@@ -198,6 +198,7 @@ func setDefaults(v *viper.Viper) {
 
 	// Miscelanea
 	v.SetDefault("logging.level", "info")
+	v.SetDefault("logging.console", true)
 
 	// Clients
 	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
