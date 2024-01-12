@@ -58,7 +58,7 @@ func NewConsumer(config *config.Kafka) (*kafka.Consumer, error) {
 	}
 	slog.Info(
 		"Consumer subscribed to topics",
-		slog.String("strings", strings.Join(config.Topics, ",")),
+		slog.String("topics", strings.Join(config.Topics, ",")),
 	)
 
 	return consumer, nil
