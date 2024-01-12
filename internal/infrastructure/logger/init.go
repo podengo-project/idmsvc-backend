@@ -54,7 +54,7 @@ func InitLogger(cfg *config.Config) {
 	}
 
 	opts := slog.HandlerOptions{
-		AddSource: false,
+		AddSource: cfg.Logging.Location,
 		Level:     globalLevel,
 		// This will print TRACE and NOTICE in logs nicely
 		ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {

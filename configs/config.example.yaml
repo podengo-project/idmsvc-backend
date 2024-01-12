@@ -5,6 +5,8 @@ logging:
   level: warn
   # Set to false to get a json output for the log
   console: true
+  # Set to true to get source code locations printed
+  location: false
 
 web:
   port: 8000
