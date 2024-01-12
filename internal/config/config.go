@@ -70,8 +70,9 @@ type Database struct {
 }
 
 type Logging struct {
-	Level   string
-	Console bool
+	Level    string
+	Console  bool
+	Location bool
 }
 
 type Cloudwatch struct {
@@ -199,6 +200,7 @@ func setDefaults(v *viper.Viper) {
 	// Miscelanea
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.console", true)
+	v.SetDefault("logging.location", false)
 
 	// Clients
 	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
@@ -261,9 +263,7 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 }
 
 func Load(cfg *Config) *viper.Viper {
-	var (
-		err error
-	)
+	var err error
 
 	if cfg == nil {
 		panic("'cfg' is nil")
