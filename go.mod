@@ -16,7 +16,7 @@ require (
 	github.com/google/uuid v1.4.0
 	github.com/labstack/echo/v4 v4.11.3
 	github.com/labstack/gommon v0.4.1
-	github.com/lestrrat-go/jwx/v2 v2.0.18
+	github.com/lestrrat-go/jwx/v2 v2.0.19
 	github.com/lib/pq v1.10.9
 	github.com/oapi-codegen/runtime v1.1.0
 	github.com/openlyinc/pointy v1.2.1
