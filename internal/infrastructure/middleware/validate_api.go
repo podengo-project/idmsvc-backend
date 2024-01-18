@@ -36,7 +36,7 @@ func (x xrhiAlwaysTrue) ValidateXRhIdentity(xrhi *identity.XRHID) error {
 func InitOpenAPIFormats() {
 	// TODO Review all the regular expressions
 	openapi3.DefineStringFormat("url", `^https?:\/\/.*$`)
-	openapi3.DefineStringFormat("realm", `^(([A-Z0-9][A-Z0-9\-]*[A-Z0-9])|[A-Z0-9]+\.)*([A-Z]+|xn\-\-[A-Z0-9]+)\.?$`)
+	openapi3.DefineStringFormat("realm", `^([A-Z]|[A-Z][A-Z0-9\-]*[A-Z0-9])(\.([A-Z]|[A-Z][A-Z0-9\-]*[A-Z0-9]))+$`)
 
 	// FIXME Search the regular expressions for the below formats
 	openapi3.DefineStringFormatCallback("cert-issuer", func(value string) error {
