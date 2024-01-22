@@ -18,7 +18,7 @@ objects:
       # FIXME Update dependencies when integration with rbac is made
       # dependencies: ["rbac"]
       # https://consoledot.pages.redhat.com/clowder/dev/providers/dependencies.html
-      dependencies: []
+      dependencies: ["rbac"]
 
       # https://consoledot.pages.redhat.com/clowder/dev/providers/deployment.html
       deployments:
