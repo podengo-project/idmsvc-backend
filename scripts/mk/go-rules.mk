@@ -134,10 +134,6 @@ generate-api: $(OAPI_CODEGEN) $(API_LIST) ## Generate server stubs from openapi
 	$(OAPI_CODEGEN) -generate spec -package private -o internal/api/private/spec.gen.go api/internal.openapi.yaml
 	$(OAPI_CODEGEN) -generate server -package private -o internal/api/private/server.gen.go api/internal.openapi.yaml
 	$(OAPI_CODEGEN) -generate types -package private -o internal/api/private/types.gen.go api/internal.openapi.yaml
-	# metrics API
-	$(OAPI_CODEGEN) -generate spec -package metrics -o internal/api/metrics/spec.gen.go api/metrics.openapi.yaml
-	$(OAPI_CODEGEN) -generate server -package metrics -o internal/api/metrics/server.gen.go api/metrics.openapi.yaml
-	$(OAPI_CODEGEN) -generate types -package metrics -o internal/api/metrics/types.gen.go api/metrics.openapi.yaml
 
 $(API_LIST):
 	git submodule update --init
