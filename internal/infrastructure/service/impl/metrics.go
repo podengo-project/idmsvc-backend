@@ -7,10 +7,8 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	"golang.org/x/exp/slog"
@@ -50,24 +48,6 @@ func NewMetrics(ctx context.Context, wg *sync.WaitGroup, config *config.Config, 
 		routerConfig,
 	)
 	result.echo.HideBanner = true
-
-	result.echo.Pre(middleware.RemoveTrailingSlash())
-
-	result.echo.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		// Request logger values for middleware.RequestLoggerValues
-		LogError:  true,
-		LogMethod: true,
-		LogStatus: true,
-		LogURI:    true,
-
-		// Forwards error to the global error handler, so it can decide
-		// appropriate status code.
-		HandleError: true,
-
-		LogValuesFunc: logger.MiddlewareLogValues,
-	}))
-
-	result.echo.Use(middleware.Recover())
 
 	if result.config.Logging.Level == "debug" {
 		routes := result.echo.Routes()
