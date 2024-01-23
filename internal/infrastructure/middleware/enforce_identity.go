@@ -19,6 +19,13 @@ const headerXRhIdentity = "X-Rh-Identity"
 //	context
 type IdentityPredicate func(data *identity.XRHID) error
 
+// IdentityPredicateEntry represents a predicate in the chain of
+// responsibility established.
+type IdentityPredicateEntry struct {
+	Name      string
+	Predicate IdentityPredicate
+}
+
 // IdentityConfig Represent the configuration for this middleware
 // enforcement.
 type IdentityConfig struct {
@@ -27,7 +34,7 @@ type IdentityConfig struct {
 	// Map of predicates to be applied, all the predicates must
 	// return true, if any of them fail, the enforcement will
 	// return error for the request.
-	Predicates map[string]IdentityPredicate
+	Predicates []IdentityPredicateEntry
 }
 
 // IdentityAlwaysTrue is a predicate that always return nil
@@ -118,7 +125,9 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 
 			// The predicate must return no error, otherwise
 			// the request is not authorised.
-			for key, predicate := range config.Predicates {
+			for _, entry := range config.Predicates {
+				key := entry.Name
+				predicate := entry.Predicate
 				if err = predicate(xrhid); err != nil {
 					cc.Logger().Error(fmt.Errorf("'%s' IdentityPredicate failed: %w", key, err))
 					return echo.ErrUnauthorized
