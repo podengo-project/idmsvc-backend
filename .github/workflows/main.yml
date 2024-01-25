@@ -13,16 +13,11 @@ jobs:
     # https://docs.github.com/en/actions/using-containerized-services/creating-postgresql-service-containers
     services:
       postgres:
-        # https://hub.docker.com/_/postgres/
-        image: postgres:13
+        image: quay.io/cloudservices/postgresql-rds:15
         env:
-          POSTGRES_USERNAME: postgres
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          POSTGRESQL_DATABASE: idmsvc-db
+          POSTGRESQL_USER: idmsvc-user
+          POSTGRESQL_PASSWORD: idmsvc-secret
         ports:
           - 5432:5432
     runs-on: "ubuntu-latest"
@@ -30,9 +25,9 @@ jobs:
     env:
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
-      DATABASE_USER: postgres
-      DATABASE_NAME: postgres
-      DATABASE_PASSWORD: postgres
+      DATABASE_NAME: idmsvc-db
+      DATABASE_USER: idmsvc-user
+      DATABASE_PASSWORD: idmsvc-secret
     steps:
       - uses: "actions/checkout@v4"
         with:
