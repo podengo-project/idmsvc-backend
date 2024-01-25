@@ -125,7 +125,7 @@ objects:
       # https://consoledot.pages.redhat.com/clowder/dev/providers/database.html
       database:
         name: ${APP_NAME}
-        version: 13
+        version: 15
 
 parameters:
   - name: ENV_NAME
