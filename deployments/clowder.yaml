@@ -85,6 +85,11 @@ objects:
                 value: ${APP_ACCEPT_X_RH_FAKE_IDENTITY}
               - name: APP_VALIDATE_API
                 value: ${APP_VALIDATE_API}
+              - name: APP_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    key: app_secret
+                    name: app-secret
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
