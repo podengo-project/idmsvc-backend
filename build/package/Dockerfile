@@ -12,12 +12,13 @@ RUN git log -1
 RUN make get-deps build
 
 
-FROM registry.access.redhat.com/ubi9/ubi:9.3-1552
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.3-1552
 LABEL idmsvc-backend=backend
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
 RUN mkdir -p /opt/bin /opt/bin/scripts/db /opt/bin/configs
 WORKDIR /opt/bin
+RUN microdnf update -y && microdnf clean all
 COPY --from=builder /go/src/app/bin/* ./
 COPY scripts/db/migrations /opt/bin/scripts/db/migrations
 COPY configs/config.example.yaml /opt/bin/configs/config.yaml
