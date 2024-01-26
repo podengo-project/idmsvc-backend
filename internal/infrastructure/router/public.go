@@ -74,16 +74,22 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	systemIdentityMiddleware := middleware.EnforceIdentityWithConfig(
 		&middleware.IdentityConfig{
 			Skipper: skipperSystemPredicate,
-			Predicates: map[string]middleware.IdentityPredicate{
-				"system-identity": middleware.EnforceSystemPredicate,
+			Predicates: []middleware.IdentityPredicateEntry{
+				{
+					Name:      "system-identity",
+					Predicate: middleware.EnforceSystemPredicate,
+				},
 			},
 		},
 	)
 	userIdentityMiddleware := middleware.EnforceIdentityWithConfig(
 		&middleware.IdentityConfig{
 			Skipper: skipperUserPredicate,
-			Predicates: map[string]middleware.IdentityPredicate{
-				"user-identity": middleware.EnforceUserPredicate,
+			Predicates: []middleware.IdentityPredicateEntry{
+				{
+					Name:      "user-identity",
+					Predicate: middleware.EnforceUserPredicate,
+				},
 			},
 		},
 	)

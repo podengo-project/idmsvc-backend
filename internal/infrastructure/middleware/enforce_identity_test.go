@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
@@ -181,8 +182,11 @@ func TestEnforceIdentity(t *testing.T) {
 	e := helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
 			&IdentityConfig{
-				Predicates: map[string]IdentityPredicate{
-					"test-fail-predicate": helperCreatePredicate("test-fail-predicate"),
+				Predicates: []IdentityPredicateEntry{
+					{
+						Name:      "test-fail-predicate",
+						Predicate: helperCreatePredicate("test-fail-predicate"),
+					},
 				},
 			},
 		))
@@ -211,8 +215,11 @@ func TestEnforceIdentityNoDomainContext(t *testing.T) {
 	e.Use(
 		EnforceIdentityWithConfig(
 			&IdentityConfig{
-				Predicates: map[string]IdentityPredicate{
-					"test-fail-predicate": helperCreatePredicate("test-fail-predicate"),
+				Predicates: []IdentityPredicateEntry{
+					{
+						Name:      "test-fail-predicate",
+						Predicate: helperCreatePredicate("test-fail-predicate"),
+					},
 				},
 			},
 		))
@@ -427,5 +434,50 @@ func TestEnforceSystemPredicate(t *testing.T) {
 		} else {
 			assert.Nil(t, err)
 		}
+	}
+}
+
+func TestEnforceIdentityOrder(t *testing.T) {
+	var order map[string]time.Time = map[string]time.Time{
+		"first":  {},
+		"second": {},
+	}
+
+	// Get echo instance with the middleware and one predicate for test it
+	e := helperNewEchoEnforceIdentity(
+		EnforceIdentityWithConfig(
+			&IdentityConfig{
+				Predicates: []IdentityPredicateEntry{
+					{
+						Name: "first",
+						Predicate: func(data *identity.XRHID) error {
+							order["first"] = time.Now().UTC()
+							return nil
+						},
+					},
+					{
+						Name: "second",
+						Predicate: func(data *identity.XRHID) error {
+							order["second"] = time.Now().UTC()
+							return nil
+						},
+					},
+				},
+			},
+		))
+	// xrhid := `{"identity":{"org_id":"12345","internal":{"org_id":"12345"},"user":{"username":"sapheaded","email":"hooked@bought.biz","first_name":"Leslie","last_name":"Jacobs","is_active":false,"is_org_admin":false,"is_internal":false,"locale":"km","user_id":"jeweljeweler"},"system":{},"associate":{"Role":null,"email":"","givenName":"","rhatUUID":"","surname":""},"x509":{"subject_dn":"","issuer_dn":""},"service_account":{"client_id":"","username":""},"type":"User","auth_type":"basic-auth"},"entitlements":null}`
+	xrhid := header.EncodeXRHID(helperGenerateUserIdentity("12345", "test"))
+	for i := 0; i < 1000; i++ {
+		order["first"] = time.Time{}
+		order["second"] = time.Time{}
+		res := httptest.NewRecorder()
+		req := httptest.NewRequest(http.MethodGet, "/test", nil)
+		req.Header.Add("X-Rh-Identity", xrhid)
+		e.ServeHTTP(res, req)
+
+		// Check expectations
+		require.Condition(t, func() (success bool) {
+			return order["first"].Compare(order["second"]) < 0
+		})
 	}
 }

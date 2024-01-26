@@ -66,7 +66,7 @@ func NewTopicTranslationWithDefaults() *TopicTranslation {
 // NewTopicTranslationWithClowder Build a topic map based into the
 // clowder configuration.
 func NewTopicTranslationWithClowder(cfg *clowder.AppConfig) *TopicTranslation {
-	if cfg == nil {
+	if cfg == nil || cfg.Kafka == nil {
 		return NewTopicTranslationWithDefaults()
 	}
 
