@@ -61,14 +61,23 @@ endif
 
 EPHEMERAL_BONFIRE_PATH ?= $(PROJECT_DIR)/configs/bonfire.yaml
 EPHEMERAL_SECRETS_DIR ?= $(PROJECT_DIR)/secrets/ephemeral
+EPHEMERAL_APP_SECRET ?= $(PROJECT_DIR)/secrets/ephemeral/app-secret.yaml
 
-EPHEMERAL_DEPS = $(BONFIRE) $(EPHEMERAL_BONFIRE_PATH) $(EPHEMERAL_SECRETS_DIR) secrets/private.mk
+EPHEMERAL_DEPS = \
+    $(BONFIRE) \
+	$(EPHEMERAL_BONFIRE_PATH) \
+	$(EPHEMERAL_SECRETS_DIR) \
+	$(EPHEMERAL_APP_SECRET) \
+	secrets/private.mk
 
 $(EPHEMERAL_BONFIRE_PATH):
 	cp configs/bonfire.example.yaml $@
 
 $(EPHEMERAL_SECRETS_DIR):
 	mkdir -p $@
+
+$(EPHEMERAL_APP_SECRET): $(EPHEMERAL_SECRETS_DIR)
+	$(PROJECT_DIR)/scripts/gen-app-secret.py $@
 
 # Enable frontend deployment
 EPHEMERAL_OPTS += --frontends true
@@ -166,6 +175,7 @@ ephemeral-namespace-create: $(BONFIRE)  ## Create a namespace (requires ephemera
 .PHONY: ephemeral-namespace-delete
 ephemeral-namespace-delete: $(BONFIRE) ## Delete current namespace (requires ephemeral environment)
 	$(BONFIRE) namespace release --force "$(oc project -q)"
+	rm -f $(EPHEMERAL_APP_SECRET)
 
 .PHONY: ephemeral-namespace-delete-all
 ephemeral-namespace-delete-all: $(BONFIRE) ## Delete all namespace created by us (requires ephemeral environment)
