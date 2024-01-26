@@ -8,10 +8,11 @@ ENV OPENSSL_FORCE_FIPS_MODE=1
 WORKDIR /go/src/app
 COPY . .
 USER 0
+RUN git log -1
 RUN make get-deps build
 
 
-FROM registry.access.redhat.com/ubi9/ubi:9.3-1361.1699548029
+FROM registry.access.redhat.com/ubi9/ubi:9.3-1552
 LABEL idmsvc-backend=backend
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
