@@ -103,10 +103,15 @@ ephemeral-login: .old-ephemeral-login ## Help in login to the ephemeral cluster
 $(GO_OUTPUT/get-token.py):
 	curl -Ls -o "$(GO_OUTPUT/get-token.py)" "https://gitlab.cee.redhat.com/klape/get-token/-/raw/main/get-token.py"
 
+.PHONY: ephemeral-build
+ephemeral-build:  ## Build and push the image using 'build_deploy.sh' scripts; It creates $(CONTAINER_IMAGE_BASE):$(CONTAINER_IMAGE_TAG) container image
+	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" \
+		set -o pipefail; \
+		./.rhcicd/build_deploy.sh 2>&1 | tee build_deploy.log | grep -v "login -u"
+
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-deploy
-ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.yaml'. Set EPHEMERAL_NO_BUILD=y to skip image build and push.
-	[ "$(EPHEMERAL_NO_BUILD)" == "y" ] || $(MAKE) ephemeral-build-deploy
+ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.yaml'.
 	$(BONFIRE) deploy \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
@@ -118,6 +123,11 @@ ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.
 		--set-parameter "$(APP_COMPONENT)/IMAGE_TAG=$(CONTAINER_IMAGE_TAG)" \
 		$(EPHEMERAL_OPTS) \
 		"$(APP_NAME)"
+
+.PHONY: ephemeral-build-deploy
+ephemeral-build-deploy:  ## Build and deploy the image (run ephemeral-build and ephemeral-deploy sequentially)
+	$(MAKE) ephemeral-build
+	$(MAKE) ephemeral-deploy
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-undeploy
@@ -184,15 +194,6 @@ ephemeral-namespace-hccconf: ## Generate hcc.conf for current namespace
 	@echo "idmsvc_api_url=https://$(shell oc get routes -l app=idmsvc-backend -o jsonpath='{.items[0].spec.host}')/api/idmsvc/v1"
 	@echo "dev_username=$(shell oc get secrets/env-$(NAMESPACE)-keycloak -o jsonpath='{.data.defaultUsername}' | base64 -d)"
 	@echo "dev_password=$(shell oc get secrets/env-$(NAMESPACE)-keycloak -o jsonpath='{.data.defaultPassword}' | base64 -d)"
-
-# CONTAINER_IMAGE_BASE should be a public image
-# Tested by 'make ephemeral-build-deploy CONTAINER_IMAGE_BASE=quay.io/avisied0/hmsidm-backend'
-.PHONY: ephemeral-build-deploy
-ephemeral-build-deploy:  ## Build and deploy image using 'build_deploy.sh' scripts; It requires to pass CONTAINER_IMAGE_BASE
-	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" \
-		set -o pipefail; \
-		./.rhcicd/build_deploy.sh 2>&1 | tee build_deploy.log
-
 
 # FIXME This rule will require some updates but it will be something similar
 .PHONY: ephemeral-test-backend
