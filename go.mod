@@ -21,7 +21,7 @@ require (
 	github.com/oapi-codegen/runtime v1.1.0
 	github.com/openlyinc/pointy v1.2.1
 	github.com/pioz/faker v1.7.3
-	github.com/prometheus/client_golang v1.17.0
+	github.com/prometheus/client_golang v1.18.0
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/redhatinsights/app-common-go v1.6.7
 	github.com/redhatinsights/platform-go-middlewares v0.20.0
