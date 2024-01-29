@@ -13,12 +13,12 @@ require (
 	github.com/getkin/kin-openapi v0.122.0
 	github.com/go-playground/validator/v10 v10.17.0
 	github.com/golang-migrate/migrate/v4 v4.17.0
-	github.com/google/uuid v1.4.0
+	github.com/google/uuid v1.5.0
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/labstack/gommon v0.4.2
 	github.com/lestrrat-go/jwx/v2 v2.0.19
 	github.com/lib/pq v1.10.9
-	github.com/oapi-codegen/runtime v1.1.0
+	github.com/oapi-codegen/runtime v1.1.1
 	github.com/openlyinc/pointy v1.2.1
 	github.com/pioz/faker v1.7.3
 	github.com/prometheus/client_golang v1.17.0
