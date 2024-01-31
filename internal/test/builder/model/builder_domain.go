@@ -42,7 +42,7 @@ func NewDomain(gormModel gorm.Model) Domain {
 	var title *string
 	var description *string
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	switch builder_helper.GenRandNum(1, 3) % 3 {
+	switch builder_helper.GenRandNum(1, 3) {
 	case 1:
 		autoEnrollmentEnabled = pointy.Bool(false)
 	case 2:
@@ -53,7 +53,7 @@ func NewDomain(gormModel gorm.Model) Domain {
 		panic("something went wrong for random AutoEnrollmentEnabled")
 	}
 
-	switch builder_helper.GenRandNum(1, 2) % 2 {
+	switch builder_helper.GenRandNum(1, 2) {
 	case 1:
 		title = pointy.String(builder_helper.GenRandString(letters, int(builder_helper.GenRandNum(5, 20))))
 	case 2:
@@ -62,7 +62,7 @@ func NewDomain(gormModel gorm.Model) Domain {
 		panic("something went wrong for random title")
 	}
 
-	switch builder_helper.GenRandNum(1, 2) % 2 {
+	switch builder_helper.GenRandNum(1, 2) {
 	case 1:
 		description = pointy.String(builder_helper.GenRandString(letters, int(builder_helper.GenRandNum(10, 300))))
 	case 2:
