@@ -18,6 +18,7 @@ import (
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
+	builder_model "github.com/podengo-project/idmsvc-backend/internal/test/builder/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -1304,6 +1305,127 @@ func (s *DomainRepositorySuite) TestPrepareUpdateUser() {
 	flag, ok = v.(*bool)
 	require.True(t, ok)
 	assert.Equal(t, true, *flag)
+}
+
+func (s *DomainRepositorySuite) helperTestDeleteById(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+				WithArgs(
+					data.OrgId,
+					data.DomainUuid,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				autoenrollment := false
+				if data.AutoEnrollmentEnabled != nil {
+					autoenrollment = *data.AutoEnrollmentEnabled
+				}
+				expectQuery.WillReturnRows(sqlmock.NewRows([]string{
+					"id", "created_at", "updated_at", "deletet_at",
+
+					"org_id", "domain_uuid", "domain_name",
+					"title", "description", "type",
+					"auto_enrollment_enabled",
+				}).
+					AddRow(
+						data.ID,
+						data.CreatedAt,
+						data.UpdatedAt,
+						nil,
+
+						data.OrgId,
+						data.DomainUuid,
+						data.DomainName,
+						data.Title,
+						data.Description,
+						data.Type,
+						autoenrollment,
+					))
+			}
+		case 2:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT 1`)).
+				WithArgs(
+					data.OrgId,
+					data.DomainUuid,
+				)
+			if i == stage && expectedErr != nil {
+				if expectedErr == gorm.ErrRecordNotFound {
+					expectQuery.WillReturnRows(sqlmock.NewRows([]string{"count"}).
+						AddRow(int64(0)))
+				} else {
+					expectQuery.WillReturnError(expectedErr)
+				}
+			} else {
+				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"count"}).
+					AddRow(int64(1)))
+			}
+		case 3:
+			expectQuery := s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."id" = $3`)).
+				WithArgs(
+					data.OrgId,
+					data.DomainUuid,
+					data.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				expectQuery.WillReturnResult(driver.RowsAffected(1))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func (s *DomainRepositorySuite) TestDeleteById() {
+	t := s.T()
+	r := &domainRepository{}
+
+	d := builder_model.NewDomain(builder_model.NewModel().Build()).Build()
+
+	err := r.DeleteById(nil, "", model.NilUUID)
+	require.EqualError(t, err, "code=500, message='db' cannot be nil")
+
+	s.helperTestDeleteById(1, d, s.mock, gorm.ErrRecordNotFound)
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", d.DomainUuid.String()))
+
+	s.helperTestDeleteById(1, d, s.mock, gorm.ErrInvalidTransaction)
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.EqualError(t, err, "invalid transaction")
+
+	s.helperTestDeleteById(2, d, s.mock, gorm.ErrRecordNotFound)
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", d.DomainUuid.String()))
+
+	s.helperTestDeleteById(3, d, s.mock, gorm.ErrRecordNotFound)
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", d.DomainUuid.String()))
+
+	s.helperTestDeleteById(3, d, s.mock, gorm.ErrInvalidTransaction)
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.EqualError(t, err, gorm.ErrInvalidTransaction.Error())
+
+	// Success scenario
+	s.helperTestDeleteById(3, d, s.mock, nil)
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.NoError(t, err)
+}
+
+func (s *DomainRepositorySuite) TestWrapErrNotFound() {
+	var err error
+	t := s.T()
+	r := &domainRepository{}
+	UUID := uuid.New()
+
+	err = r.wrapErrNotFound(nil, UUID)
+	require.NoError(t, err)
+
+	err = r.wrapErrNotFound(gorm.ErrRecordNotFound, UUID)
+	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", UUID.String()))
 }
 
 func TestDomainRepositorySuite(t *testing.T) {
