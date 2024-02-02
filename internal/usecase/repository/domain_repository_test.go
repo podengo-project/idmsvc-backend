@@ -6,6 +6,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
+	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	builder_model "github.com/podengo-project/idmsvc-backend/internal/test/builder/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1426,6 +1428,98 @@ func (s *DomainRepositorySuite) TestWrapErrNotFound() {
 
 	err = r.wrapErrNotFound(gorm.ErrRecordNotFound, UUID)
 	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", UUID.String()))
+}
+
+func (s *DomainRepositorySuite) helperTestRegister(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+				WithArgs(
+					data.Model.CreatedAt,
+					data.Model.UpdatedAt,
+					data.Model.DeletedAt,
+
+					data.OrgId,
+					data.DomainUuid,
+					data.DomainName,
+					data.Title,
+					data.Description,
+					data.Type,
+					data.AutoEnrollmentEnabled,
+
+					data.Model.ID,
+				)
+			if i == stage && expectedErr != nil {
+				expectQuery.WillReturnError(expectedErr)
+			} else {
+				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(data.Model.ID))
+			}
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func (s *DomainRepositorySuite) TestRegister() {
+	var err error
+	t := s.T()
+	r := &domainRepository{}
+	realm := strings.ToUpper(helper.GenRandDomainName(3))
+	d := builder_model.NewDomain(builder_model.NewModel().Build()).Build()
+
+	err = r.Register(nil, d.OrgId, d)
+	require.EqualError(t, err, "code=500, message='db' cannot be nil")
+
+	s.helperTestRegister(1, d, s.mock, gorm.ErrDuplicatedKey)
+	err = r.Register(s.DB, d.OrgId, d)
+	require.EqualError(t, err, fmt.Sprintf("code=409, message=domain id '%s' is already registered.", d.DomainUuid))
+
+	s.helperTestRegister(1, d, s.mock, gorm.ErrInvalidField)
+	err = r.Register(s.DB, d.OrgId, d)
+	require.EqualError(t, err, "invalid field")
+	id := uint(helper.GenRandNum(0, 2^63))
+
+	d = builder_model.NewDomain(builder_model.NewModel().WithID(id).Build()).
+		WithIpaDomain(
+			builder_model.NewIpaDomain().
+				WithModel(builder_model.NewModel().WithID(id).Build()).
+				WithRealmName(&realm).
+				WithRealmDomains(pq.StringArray{strings.ToLower(realm)}).
+				WithServers([]model.IpaServer{
+					builder_model.NewIpaServer(
+						builder_model.NewModel().Build(),
+					).WithIpaID(id).Build(),
+				}).
+				WithLocations([]model.IpaLocation{
+					builder_model.NewIpaLocation(
+						builder_model.NewModel().Build(),
+					).WithIpaID(id).Build(),
+				}).
+				WithCaCerts([]model.IpaCert{
+					builder_model.NewIpaCert(
+						builder_model.NewModel().Build(),
+						realm,
+					).WithIpaID(id).Build(),
+				}).
+				Build(),
+		).Build()
+	s.helperTestRegister(1, d, s.mock, nil)
+	s.helperTestCreateIpaDomain(1, d.IpaDomain, s.mock, gorm.ErrInvalidField)
+	err = r.Register(s.DB, d.OrgId, d)
+	require.EqualError(t, err, "invalid field")
+
+	// Success case
+	s.helperTestRegister(1, d, s.mock, nil)
+	s.helperTestCreateIpaDomain(4, d.IpaDomain, s.mock, nil)
+	err = r.Register(s.DB, d.OrgId, d)
+	require.NoError(t, err)
+
+	// IpaDomain is nil
+	s.helperTestRegister(1, d, s.mock, nil)
+	d.IpaDomain = nil
+	err = r.Register(s.DB, d.OrgId, d)
+	require.EqualError(t, err, "code=500, message='IpaDomain' cannot be nil")
 }
 
 func TestDomainRepositorySuite(t *testing.T) {
