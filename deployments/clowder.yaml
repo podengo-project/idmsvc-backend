@@ -127,6 +127,30 @@ objects:
         name: ${APP_NAME}
         version: 15
 
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      labels:
+        service: ${APP_NAME}
+      name: ${APP_NAME}
+      # annotations:
+      #   prometheus.io/path: /metrics
+      #   prometheus.io/scrape: 'true'
+    spec:
+      ports:
+        - name: ${APP_NAME}
+          protocol: TCP
+          port: 8080
+          targetPort: 8000
+        - name: metrics
+          protocol: TCP
+          port: 9000
+          targetPort: 9000
+      selector:
+        pod: ${APP_NAME}-service
+      sessionAffinity: None
+      type: ClusterIP
+
 parameters:
   - name: ENV_NAME
     required: true
