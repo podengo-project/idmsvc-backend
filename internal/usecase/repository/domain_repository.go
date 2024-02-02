@@ -239,15 +239,7 @@ func (r *domainRepository) FindByID(
 	if err = db.Model(&model.Domain{}).
 		First(output, "org_id = ? AND domain_uuid = ?", orgID, UUID).
 		Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, internal_errors.NewHTTPErrorF(
-				http.StatusNotFound,
-				"unknown domain '%s'",
-				UUID.String(),
-			)
-		} else {
-			return nil, err
-		}
+		return nil, r.wrapErrNotFound(err, UUID)
 	}
 	if err = output.FillAndPreload(db); err != nil {
 		return nil, err
@@ -269,21 +261,13 @@ func (r *domainRepository) DeleteById(
 		return err
 	}
 	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Count(&count).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return internal_errors.NewHTTPErrorF(
-				http.StatusNotFound,
-				"unknown domain '%s'",
-				UUID.String(),
-			)
-		} else {
-			return err
-		}
+		return r.wrapErrNotFound(err, UUID)
 	}
 	if count == 0 {
-		return fmt.Errorf("Register not found")
+		return r.wrapErrNotFound(gorm.ErrRecordNotFound, UUID)
 	}
 	if err = db.Unscoped().Delete(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Error; err != nil {
-		return err
+		return r.wrapErrNotFound(err, UUID)
 	}
 	return nil
 }
@@ -444,4 +428,16 @@ func (r *domainRepository) updateIpaDomain(
 	}
 
 	return nil
+}
+
+func (r *domainRepository) wrapErrNotFound(err error, UUID uuid.UUID) error {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return internal_errors.NewHTTPErrorF(
+			http.StatusNotFound,
+			"unknown domain '%s'",
+			UUID.String(),
+		)
+	} else {
+		return err
+	}
 }
