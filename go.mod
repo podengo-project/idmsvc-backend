@@ -32,7 +32,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/crypto v0.18.0
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa
-	gorm.io/driver/postgres v1.5.4
+	gorm.io/driver/postgres v1.5.5
 	gorm.io/gorm v1.25.5
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 )
