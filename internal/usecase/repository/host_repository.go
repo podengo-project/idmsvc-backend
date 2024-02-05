@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
@@ -21,8 +20,8 @@ func NewHostRepository() repository.HostRepository {
 	return &hostRepository{}
 }
 
-// MatchDomain() uses information from `options` to find a matching domain.
-// It returns an error when either no matching domain is found or multiple
+// MatchDomain uses information from `options` to find a matching domain.
+// Return an error when either no matching domain is found or multiple
 // domains are matching.
 //
 // Exclude domains with auto_enrollment_enabled = FALSE.
@@ -54,7 +53,7 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 
 	matchedDomains := make([]model.Domain, 0, len(domains))
 	for _, domain := range domains {
-		if !pointy.BoolValue(domain.AutoEnrollmentEnabled, false) {
+		if domain.AutoEnrollmentEnabled == nil || !(*domain.AutoEnrollmentEnabled) {
 			continue
 		}
 		// TODO: match FQDN with domain realms
