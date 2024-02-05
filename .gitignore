@@ -14,6 +14,7 @@ configs/**
 !configs/config.example.yaml
 !configs/config.ci.yaml
 !configs/bonfire.example.yaml
+!configs/cdappconfig.json
 
 # File generated when running unit tests
 coverage.out

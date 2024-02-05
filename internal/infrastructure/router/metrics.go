@@ -5,7 +5,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/metrics"
 )
 
-func newGroupMetrics(e *echo.Group, c RouterConfig) *echo.Group {
-	metrics.RegisterHandlers(e, c.Handlers)
+func newGroupMetrics(e *echo.Echo, c RouterConfig) *echo.Echo {
+	metrics.RegisterHandlersWithBaseURL(e, c.Handlers, c.MetricsPath)
 	return e
 }
