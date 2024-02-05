@@ -81,7 +81,7 @@ func NewDomain(gormModel gorm.Model) Domain {
 			Title:                 title,
 			Description:           description,
 			Type:                  pointy.Uint(model.DomainTypeIpa),
-			IpaDomain:             NewIpaDomain().Build(),
+			IpaDomain:             NewIpaDomain().WithModel(gormModel).Build(),
 		},
 	}
 }
