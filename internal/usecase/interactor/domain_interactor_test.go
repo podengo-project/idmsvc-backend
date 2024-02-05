@@ -975,3 +975,29 @@ func TestUpdateUser(t *testing.T) {
 	//
 	orgID, domain, err = i.UpdateUser(&xrhidUser, testID, testParams, testBody)
 }
+
+func TestDelete(t *testing.T) {
+	i := NewDomainInteractor()
+
+	xrhidUser := test.UserXRHID
+	testID := test.DomainUUID
+	params := api_public.DeleteDomainParams{}
+
+	// Guard xrhid is nil
+	orgID, UUID, err := i.Delete(nil, testID, &params)
+	assert.Equal(t, "", orgID)
+	assert.Equal(t, uuid.UUID{}, UUID)
+	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
+
+	// Guard params is nil
+	orgID, UUID, err = i.Delete(&xrhidUser, testID, nil)
+	assert.Equal(t, "", orgID)
+	assert.Equal(t, uuid.UUID{}, UUID)
+	assert.EqualError(t, err, "'params' cannot be nil")
+
+	// Success result
+	orgID, UUID, err = i.Delete(&xrhidUser, testID, &params)
+	assert.Equal(t, xrhidUser.Identity.OrgID, orgID)
+	assert.Equal(t, testID, UUID)
+	assert.NoError(t, err)
+}
