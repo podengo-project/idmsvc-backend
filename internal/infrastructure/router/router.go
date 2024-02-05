@@ -63,6 +63,12 @@ func loggerSkipperWithPaths(paths ...string) middleware.Skipper {
 func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 	e.Pre(middleware.RemoveTrailingSlash())
 
+	skipperPaths := []string{
+		c.PrivatePath + "/readyz",
+		c.PrivatePath + "/livez",
+		c.MetricsPath,
+	}
+
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		// Request logger values for middleware.RequestLoggerValues
 		LogError:  true,
@@ -74,11 +80,7 @@ func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 		// appropriate status code.
 		HandleError: true,
 
-		Skipper: loggerSkipperWithPaths(
-			c.MetricsPath,
-			c.PrivatePath+"/readyz",
-			c.PrivatePath+"/livez",
-		),
+		Skipper: loggerSkipperWithPaths(skipperPaths...),
 
 		LogValuesFunc: logger.MiddlewareLogValues,
 	}))
@@ -125,6 +127,5 @@ func NewRouterForMetrics(e *echo.Echo, c RouterConfig) *echo.Echo {
 	configCommonMiddlewares(e, c)
 
 	// Register handlers
-	newGroupMetrics(e.Group(c.MetricsPath), c)
-	return e
+	return newGroupMetrics(e, c)
 }

@@ -4,5 +4,6 @@
         "CONFIG_PATH": "${workspaceFolder}/configs"
     },
     "go.autocompleteUnimportedPackages": true,
-    "go.formatTool": "gofumpt"
+    "go.formatTool": "gofumpt",
+    "go.lintTool": "golangci-lint"
 }
