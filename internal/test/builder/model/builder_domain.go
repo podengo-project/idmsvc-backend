@@ -31,9 +31,7 @@ type Domain interface {
 }
 
 // domain is the specific builder implementation
-type domain struct {
-	model.Domain
-}
+type domain model.Domain
 
 // NewDomain create a new builder for mode.Domain data.
 // Return the Domain builder interface.
@@ -72,17 +70,15 @@ func NewDomain(gormModel gorm.Model) Domain {
 	}
 
 	return &domain{
-		Domain: model.Domain{
-			Model:                 gormModel,
-			OrgId:                 strconv.Itoa(int(builder_helper.GenRandNum(minOrgID, maxOrgID))),
-			DomainUuid:            uuid.New(),
-			DomainName:            pointy.String(builder_helper.GenRandDomainName(2)),
-			AutoEnrollmentEnabled: autoEnrollmentEnabled,
-			Title:                 title,
-			Description:           description,
-			Type:                  pointy.Uint(model.DomainTypeIpa),
-			IpaDomain:             NewIpaDomain().WithModel(gormModel).Build(),
-		},
+		Model:                 gormModel,
+		OrgId:                 strconv.Itoa(int(builder_helper.GenRandNum(minOrgID, maxOrgID))),
+		DomainUuid:            uuid.New(),
+		DomainName:            pointy.String(builder_helper.GenRandDomainName(2)),
+		AutoEnrollmentEnabled: autoEnrollmentEnabled,
+		Title:                 title,
+		Description:           description,
+		Type:                  pointy.Uint(model.DomainTypeIpa),
+		IpaDomain:             NewIpaDomain().WithModel(gormModel).Build(),
 	}
 }
 
@@ -90,7 +86,7 @@ func NewDomain(gormModel gorm.Model) Domain {
 // the current inputs and random data to fill the gaps.
 // Return the generated model.Domain instance.
 func (b *domain) Build() *model.Domain {
-	return &b.Domain
+	return (*model.Domain)(b)
 }
 
 func (b *domain) WithModel(value gorm.Model) Domain {
@@ -124,6 +120,7 @@ func (b *domain) WithDescription(value *string) Domain {
 }
 
 func (b *domain) WithIpaDomain(value *model.Ipa) Domain {
+	b.Type = pointy.Uint(model.DomainTypeIpa)
 	b.IpaDomain = value
 	return b
 }
