@@ -14,6 +14,7 @@ require (
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/loov/goda v0.5.7
 	github.com/mikefarah/yq/v4 v4.35.2
+	github.com/spf13/cobra-cli v1.3.0
 	github.com/subpop/xrhidgen v0.1.0
 	github.com/vektra/mockery/v2 v2.38.0
 )
@@ -99,7 +100,6 @@ require (
 	github.com/golangci/revgrep v0.5.2 // indirect
 	github.com/golangci/unconvert v0.0.0-20180507085042-28b1c447d1f4 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/pprof v0.0.0-20210715191844-86eeefc3e471 // indirect
 	github.com/google/subcommands v1.2.0 // indirect
 	github.com/gordonklaus/ineffassign v0.0.0-20230610083614-0e73809eb601 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
