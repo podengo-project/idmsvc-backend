@@ -34,8 +34,8 @@ tools manually with `make install-go-tools` or `make install-tools`.
 ## Adding a new tool
 
 - Add the dependency to `tools/tools.go` file.
-- From the root director, run `go get "the-tool-url"`.
-- From the root directory, run `go mod tidy`.
+- From the `tools` director, run `go get "the-tool-url"`.
+- From the `tools` directory, run `go mod tidy`.
 - Add a variable to `scripts/mk/variables.mk` and update the `TOOLS` variable.
   The binary name must match a substring of the Go import name.
 - From the base repository directory now check that your tool install correctly

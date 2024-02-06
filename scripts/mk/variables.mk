@@ -22,6 +22,7 @@ GO_VERSION ?= 1.20
 # Build dependencies
 TOOLS_BIN := tools/bin
 
+COBRA_CLI := $(TOOLS_BIN)/cobra-cli
 GODA := $(TOOLS_BIN)/goda
 GOJSONSCHEMA := $(TOOLS_BIN)/gojsonschema
 GOLANGCI_LINT := $(TOOLS_BIN)/golangci-lint
@@ -32,6 +33,7 @@ XRHIDGEN := $(TOOLS_BIN)/xrhidgen
 YQ := $(TOOLS_BIN)/yq
 
 TOOLS := \
+	$(COBRA_CLI) \
 	$(GODA) \
 	$(GOJSONSCHEMA) \
 	$(GOLANGCI_LINT) \

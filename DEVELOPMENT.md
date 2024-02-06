@@ -111,3 +111,17 @@ curl command against it as the below request:
       PASSWORD="$( base64 -d <<< "$(oc get "secrets/env-$( oc project -q )-keycloak" -o jsonpath='{.data.defaultPassword}' )" )"
       curl -u "$USER:$PASSWORD" "https://$( oc get routes -l app=hmsidm-backend -o jsonpath='{.items[0].spec.host}' )/api/idmsvc/v1/todo"
       ```
+
+## Cobra CLI parser and `cobra-cli`
+
+Command line arguments are parsed with [Cobra](https://github.com/spf13/cobra),
+[docs](https://umarcor.github.io/cobra/). Sub commands and sub-sub commands can be
+added with cobra-cli tool:
+
+```sh
+make tools/bin/cobra-cli
+cd cmd/db-tool
+../../tools/bin/cobra-cli add migrate
+../../tools/bin/cobra-cli add up -p migrateCmd
+git mv cmd/up.go cmd/migrate-up.go
+```
