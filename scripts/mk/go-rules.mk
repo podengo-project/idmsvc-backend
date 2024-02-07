@@ -60,8 +60,8 @@ run: $(BIN)/service .compose-wait-db ## Run the api & kafka consumer locally
 # See: https://go.dev/doc/modules/managing-dependencies#synchronizing
 .PHONY: tidy
 tidy:  ## Synchronize your code's dependencies
-	go mod tidy
-	cd tools && go mod tidy
+	go mod tidy -go=$(GO_VERSION)
+	cd tools && go mod tidy -go=$(GO_VERSION)
 
 .PHONY: get-deps
 get-deps: ## Download golang dependencies
@@ -119,6 +119,12 @@ $(patsubst cmd/%,$(BIN)/%,$(wildcard cmd/*)): $(shell find $(PROJECT_DIR)/cmd -t
 # $(shell find "$(EVENT_MESSAGE_DIR)" -type f -name '*.go'): $(SCHEMA_YAML_FILES)
 # 	$(MAKE) gen-event-messages
 
+.PHONY: pr-check
+pr-check: ## Run common checks before submitting a PR
+	$(MAKE) go-fmt
+	$(MAKE) tidy vet
+	$(MAKE) generate-api generate-mock install-go-tools
+	$(MAKE) build test-unit
 
 ############### TOOLS
 
