@@ -8,6 +8,8 @@ module github.com/podengo-project/idmsvc-backend
 //  .golangci.yaml
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
+//  scripts/mk/go-rules.mk
+//    => rule 'tidy'
 go 1.20
 
 require (
