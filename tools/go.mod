@@ -9,11 +9,11 @@ go 1.20
 
 require (
 	github.com/achiku/planter v0.0.0-20230118102009-4847a8211e35
-	github.com/atombender/go-jsonschema v0.13.1
+	github.com/atombender/go-jsonschema v0.10.0
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/golangci/golangci-lint v1.55.2
 	github.com/loov/goda v0.5.7
-	github.com/mikefarah/yq/v4 v4.40.5
+	github.com/mikefarah/yq/v4 v4.35.2
 	github.com/subpop/xrhidgen v0.1.0
 	github.com/vektra/mockery/v2 v2.38.0
 )
@@ -214,7 +214,6 @@ require (
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.2.0 // indirect
 	github.com/ykadowak/zerologlint v0.1.3 // indirect
-	github.com/yuin/gopher-lua v1.1.1 // indirect
 	gitlab.com/bosi/decorder v0.4.1 // indirect
 	go-simpler.org/sloglint v0.1.2 // indirect
 	go.tmz.dev/musttag v0.7.2 // indirect
