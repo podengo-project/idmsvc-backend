@@ -67,7 +67,6 @@ EPHEMERAL_DEPS = \
     $(BONFIRE) \
 	$(EPHEMERAL_BONFIRE_PATH) \
 	$(EPHEMERAL_SECRETS_DIR) \
-	$(EPHEMERAL_APP_SECRET) \
 	secrets/private.mk
 
 $(EPHEMERAL_BONFIRE_PATH):
@@ -76,6 +75,9 @@ $(EPHEMERAL_BONFIRE_PATH):
 $(EPHEMERAL_SECRETS_DIR):
 	mkdir -p $@
 
+# Secret is provided by vault app-interface/idmsvc/ephemeral/app-secret,
+# see app-interface ephemeral-base.yml. To use a custom secret, do
+# make $(pwd)/secrets/ephemeral/app-secret.yaml
 $(EPHEMERAL_APP_SECRET): $(EPHEMERAL_SECRETS_DIR)
 	$(PROJECT_DIR)/scripts/gen-app-secret.py $@
 
