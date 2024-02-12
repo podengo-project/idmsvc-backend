@@ -11,7 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -294,11 +294,11 @@ func (r *domainRepository) CreateDomainToken(
 	orgID string,
 	domainType public.DomainType,
 ) (drt *repository.DomainRegToken, err error) {
-	tok, expireNS, err := token.NewDomainRegistrationToken(key, string(domainType), orgID, validity)
+	tok, expireNS, err := domain_token.NewDomainRegistrationToken(key, string(domainType), orgID, validity)
 	if err != nil {
 		return nil, err
 	}
-	domainId := token.TokenDomainId(tok)
+	domainId := domain_token.TokenDomainId(tok)
 	drt = &repository.DomainRegToken{
 		DomainId:     domainId,
 		DomainToken:  string(tok),

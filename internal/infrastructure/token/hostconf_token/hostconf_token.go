@@ -1,4 +1,4 @@
-package token
+package hostconf_token
 
 import (
 	"crypto/rand"

@@ -1,4 +1,4 @@
-package token
+package hostconf_token
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jws"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 )
@@ -56,12 +57,12 @@ func TestSignToken(t *testing.T) {
 	assert.NoError(t, err)
 
 	exp := time.Now().Add(time.Hour)
-	priv1, err := GeneratePrivateJWK(exp)
+	priv1, err := hostconf_jwk.GeneratePrivateJWK(exp)
 	assert.NoError(t, err)
 	pub1, err := priv1.PublicKey()
 	assert.NoError(t, err)
 
-	priv2, err := GeneratePrivateJWK(exp)
+	priv2, err := hostconf_jwk.GeneratePrivateJWK(exp)
 	assert.NoError(t, err)
 	pub2, err := priv2.PublicKey()
 	assert.NoError(t, err)

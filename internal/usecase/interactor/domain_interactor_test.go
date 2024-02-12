@@ -15,7 +15,7 @@ import (
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
@@ -49,7 +49,7 @@ func TestRegisterIpa(t *testing.T) {
 		orgID = "12345"
 	)
 	secret := []byte("token secret")
-	tok, _, err := token.NewDomainRegistrationToken(
+	tok, _, err := domain_token.NewDomainRegistrationToken(
 		secret,
 		string(api_public.RhelIdm),
 		orgID,
@@ -58,7 +58,7 @@ func TestRegisterIpa(t *testing.T) {
 	assert.NoError(t, err)
 	var (
 		rhsmID      = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
-		domainID    = token.TokenDomainId(tok)
+		domainID    = domain_token.TokenDomainId(tok)
 		requestID   = pointy.String("TW9uIE1hciAyMCAyMDo1Mzoz")
 		xrhidSystem = identity.XRHID{
 			Identity: identity.Identity{

@@ -1,6 +1,6 @@
 .DS_Store
 .cicd_bootstrap.sh
-secrets
+/secrets
 /idm-ci-secrets
 .venv
 /bin
@@ -10,11 +10,11 @@ tmp.*/**
 
 *.log
 
-configs/**
-!configs/config.example.yaml
-!configs/config.ci.yaml
-!configs/bonfire.example.yaml
-!configs/cdappconfig.json
+/configs/**
+!/configs/config.example.yaml
+!/configs/config.ci.yaml
+!/configs/bonfire.example.yaml
+!/configs/cdappconfig.json
 
 # File generated when running unit tests
 coverage.out

@@ -16,7 +16,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1251,7 +1251,7 @@ func (s *Suite) TestCreateDomainToken() {
 	assert.Equal(
 		t,
 		drt.DomainId,
-		token.TokenDomainId(token.DomainRegistrationToken(drt.DomainToken)),
+		domain_token.TokenDomainId(domain_token.DomainRegistrationToken(drt.DomainToken)),
 	)
 	assert.Greater(t, drt.ExpirationNS, uint64(time.Now().UnixNano()))
 }

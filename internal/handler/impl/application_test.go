@@ -24,10 +24,6 @@ func TestNewHandler(t *testing.T) {
 	assert.Panics(t, func() {
 		NewHandler(&config.Config{}, nil, nil, nil)
 	})
-	// no app secrets
-	assert.Panics(t, func() {
-		NewHandler(&config.Config{}, gormDB, &metrics.Metrics{}, inventoryMock)
-	})
 	cfg := test.GetTestConfig()
 	assert.NotPanics(t, func() {
 		NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock)
@@ -43,6 +39,6 @@ func TestAppSecrets(t *testing.T) {
 	handler := NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock)
 	app := handler.(*application)
 
-	assert.NotEmpty(t, app.secrets.domainRegKey)
-	assert.Equal(t, len(app.secrets.domainRegKey), 32)
+	assert.NotEmpty(t, app.config.Secrets.DomainRegKey)
+	assert.Equal(t, len(app.config.Secrets.DomainRegKey), 32)
 }

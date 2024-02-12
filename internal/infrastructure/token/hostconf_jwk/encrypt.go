@@ -1,4 +1,4 @@
-package token
+package hostconf_jwk
 
 import (
 	"crypto/aes"

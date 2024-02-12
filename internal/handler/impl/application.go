@@ -1,19 +1,13 @@
 package impl
 
 import (
-	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
-	"fmt"
-	"hash"
-	"io"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
@@ -22,13 +16,7 @@ import (
 	usecase_interactor "github.com/podengo-project/idmsvc-backend/internal/usecase/interactor"
 	usecase_presenter "github.com/podengo-project/idmsvc-backend/internal/usecase/presenter"
 	usecase_repository "github.com/podengo-project/idmsvc-backend/internal/usecase/repository"
-	"golang.org/x/crypto/hkdf"
 	"gorm.io/gorm"
-)
-
-const (
-	Salt             = "idmsvc-backend"
-	DomainRegKeyInfo = "domain registration key"
 )
 
 type domainComponent struct {
@@ -44,8 +32,7 @@ type hostComponent struct {
 }
 
 // Application secrets
-type appSecrets struct {
-	domainRegKey []byte
+type hostConfKeys struct {
 	// TODO: store JWKs in database
 	signingKeys []jwk.Key
 	publicKeys  []string
@@ -53,7 +40,7 @@ type appSecrets struct {
 
 type application struct {
 	config    *config.Config
-	secrets   appSecrets
+	jwks      *hostConfKeys
 	metrics   *metrics.Metrics
 	domain    domainComponent
 	host      hostComponent
@@ -82,14 +69,14 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 		usecase_presenter.NewHostPresenter(config),
 	}
 
-	sec, err := getAppSecret(config)
+	jwks, err := getJwks()
 	if err != nil {
 		panic(err)
 	}
 	// Instantiate application
 	return &application{
 		config:    config,
-		secrets:   *sec,
+		jwks:      jwks,
 		db:        db,
 		metrics:   m,
 		domain:    dc,
@@ -98,46 +85,20 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 	}
 }
 
-// Parse main secret and get sub secrets
-func getAppSecret(config *config.Config) (sec *appSecrets, err error) {
-	const mainSecretLength = 16
-	// get / create main secret
-	var secret []byte
-	if config.Application.MainSecret == "random" {
-		secret = make([]byte, mainSecretLength)
-		if _, err = rand.Read(secret); err != nil {
-			return nil, err
-		}
-	} else {
-		if secret, err = base64.RawURLEncoding.DecodeString(config.Application.MainSecret); err != nil {
-			return nil, fmt.Errorf("Failed to main secret: %v", err)
-		}
-		if len(secret) < mainSecretLength {
-			return nil, fmt.Errorf("Master secret is too short, expected at least %d bytes.", mainSecretLength)
-		}
-	}
-
-	// extract PRK from main secret
-	var hash = sha256.New
-	prk := hkdf.Extract(hash, secret, []byte(Salt))
-
-	sec = &appSecrets{}
-	sec.domainRegKey, err = hkdfExpand(hash, prk, []byte(DomainRegKeyInfo), 32)
-	if err != nil {
-		return nil, err
-	}
-
+// Generate ephemeral JWKs
+func getJwks() (k *hostConfKeys, err error) {
 	// TODO: temporary hack
 	var (
 		priv jwk.Key
 		pub  jwk.Key
 		pubs []byte
 	)
+	k = &hostConfKeys{}
 	expiration := time.Now().Add(90 * 24 * time.Hour)
-	if priv, err = token.GeneratePrivateJWK(expiration); err != nil {
+	if priv, err = hostconf_jwk.GeneratePrivateJWK(expiration); err != nil {
 		return nil, err
 	}
-	sec.signingKeys = []jwk.Key{priv}
+	k.signingKeys = []jwk.Key{priv}
 
 	if pub, err = priv.PublicKey(); err != nil {
 		return nil, err
@@ -145,18 +106,8 @@ func getAppSecret(config *config.Config) (sec *appSecrets, err error) {
 	if pubs, err = json.Marshal(pub); err != nil {
 		return nil, err
 	}
-	sec.publicKeys = []string{string(pubs)}
+	k.publicKeys = []string{string(pubs)}
 
-	return sec, nil
+	return k, nil
 
-}
-
-// expand pseudo random key with HKDF
-func hkdfExpand(hash func() hash.Hash, prk []byte, info []byte, length int) (secret []byte, err error) {
-	reader := hkdf.Expand(hash, prk, info)
-	secret = make([]byte, length)
-	if _, err := io.ReadFull(reader, secret); err != nil {
-		return nil, err
-	}
-	return secret, err
 }
