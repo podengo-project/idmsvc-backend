@@ -30,6 +30,8 @@ const (
 	DefaultTokenExpirationTimeSeconds = 7200
 	// DefaultWebPort is the default port where the public API is listening
 	DefaultWebPort = 8000
+	// DefaultEnableRBAC is true
+	DefaultEnableRBAC = true
 
 	// https://github.com/project-koku/koku/blob/main/koku/api/common/pagination.py
 
@@ -176,6 +178,8 @@ type Application struct {
 	// token and encrypted private JWKs. "random" generates an ephemeral secret.
 	// Secrets are derived with HKDF-SHA256.
 	MainSecret string `mapstructure:"secret" validate:"required,base64rawurl"`
+	// Flag to enable/disable rbac
+	EnableRBAC bool `mapstructure:"enable_rbac"`
 }
 
 var config *Config = nil
@@ -217,6 +221,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)
 	v.SetDefault("app.validate_api", DefaultValidateAPI)
+	v.SetDefault("app.enable_rbac", DefaultEnableRBAC)
 	v.SetDefault("app.url_path_prefix", DefaultPathPrefix)
 	v.SetDefault("app.secret", "")
 	v.SetDefault("app.debug", false)

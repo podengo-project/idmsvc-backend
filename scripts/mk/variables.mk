@@ -117,3 +117,8 @@ export APP_TOKEN_EXPIRATION_SECONDS
 # domain registration token and encrypted private JWKs
 APP_SECRET ?= sFamo2ER65JN7wxZ48UZb5GbtDc053ahIPJ0Qx47bzA
 export APP_SECRET
+
+# Enable / disable the rbac middleware
+APP_ENABLE_RBAC ?= false
+export APP_ENABLE_RBAC
+

@@ -82,3 +82,6 @@ app:
   # main secret for various MAC and encryptions like domain registration
   # token and encrypted private JWKs. "random" generates an ephemeral secret.
   secret: random
+  # Enable/Disable RBAC verification
+  # TODO remove override when HMS-3521 is implemented
+  enable_rbac: false
