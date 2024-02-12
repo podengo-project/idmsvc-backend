@@ -9,7 +9,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
@@ -94,7 +94,7 @@ func (r *hostRepository) SignHostConfToken(
 	}
 
 	validity := time.Hour
-	tok, err := token.BuildHostconfToken(
+	tok, err := hostconf_token.BuildHostconfToken(
 		options.CommonName,
 		options.OrgId,
 		options.InventoryId,
@@ -105,7 +105,7 @@ func (r *hostRepository) SignHostConfToken(
 	if err != nil {
 		return "", err
 	}
-	b, err := token.SignToken(tok, privs)
+	b, err := hostconf_token.SignToken(tok, privs)
 	if err != nil {
 		return "", err
 	}

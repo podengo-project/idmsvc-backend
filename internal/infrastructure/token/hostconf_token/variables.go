@@ -1,14 +1,4 @@
-package token
-
-// JWK key state
-type KeyState int
-
-const (
-	ValidKey KeyState = iota
-	ExpiredKey
-	InvalidKey
-	RevokedKey
-)
+package hostconf_token
 
 // Token
 const (

@@ -13,7 +13,7 @@ import (
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
@@ -159,11 +159,11 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	}
 
 	// verify token
-	if domainID, err = token.VerifyDomainRegistrationToken(
+	if domainID, err = domain_token.VerifyDomainRegistrationToken(
 		domainRegKey,
 		string(body.DomainType),
 		orgID,
-		token.DomainRegistrationToken(params.XRhIdmRegistrationToken),
+		domain_token.DomainRegistrationToken(params.XRhIdmRegistrationToken),
 	); err != nil {
 		msg := fmt.Sprintf("Domain registration token is invalid: %s", err)
 		return "", nil, nil, echo.NewHTTPError(http.StatusUnauthorized, msg)

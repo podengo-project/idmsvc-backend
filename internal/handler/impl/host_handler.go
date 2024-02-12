@@ -50,7 +50,7 @@ func (a *application) HostConf(
 		return err
 	}
 	if hctoken, err = a.host.repository.SignHostConfToken(
-		a.secrets.signingKeys,
+		a.jwks.signingKeys,
 		options,
 		domain,
 	); err != nil {

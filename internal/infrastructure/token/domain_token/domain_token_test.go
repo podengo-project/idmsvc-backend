@@ -1,4 +1,4 @@
-package token
+package domain_token
 
 import (
 	"testing"

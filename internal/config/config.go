@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	validator "github.com/go-playground/validator/v10"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/secrets"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/spf13/viper"
 	"golang.org/x/exp/slog"
@@ -53,6 +54,8 @@ type Config struct {
 	Metrics     Metrics
 	Clients     Clients
 	Application Application `mapstructure:"app"`
+	// Secrets is an untagged field and filled out on load
+	Secrets secrets.AppSecrets `mapstructure:"-"`
 }
 
 type Web struct {
@@ -333,6 +336,13 @@ func Get() *Config {
 		reportError(err)
 		panic("Invalid configuration")
 	}
+
+	sec, err := secrets.NewAppSecrets(config.Application.MainSecret)
+	if err != nil {
+		panic(err)
+	}
+	config.Secrets = *sec
+
 	return config
 }
 

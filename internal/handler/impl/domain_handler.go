@@ -211,7 +211,7 @@ func (a *application) RegisterDomain(
 	}
 
 	if orgId, clientVersion, data, err = a.domain.interactor.Register(
-		a.secrets.domainRegKey,
+		a.config.Secrets.DomainRegKey,
 		xrhid,
 		&params,
 		&input,
@@ -439,7 +439,7 @@ func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDo
 
 	validity := time.Duration(a.config.Application.TokenExpirationTimeSeconds) * time.Second
 	if token, err = a.domain.repository.CreateDomainToken(
-		a.secrets.domainRegKey,
+		a.config.Secrets.DomainRegKey,
 		validity,
 		orgID,
 		domainType,

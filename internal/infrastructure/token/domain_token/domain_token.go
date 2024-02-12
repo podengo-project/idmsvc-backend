@@ -2,7 +2,7 @@
  *
  * see docs/domain-token.md for more information
  */
-package token
+package domain_token
 
 import (
 	"crypto/hmac"
