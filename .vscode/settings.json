@@ -5,5 +5,10 @@
     },
     "go.autocompleteUnimportedPackages": true,
     "go.formatTool": "gofumpt",
-    "go.lintTool": "golangci-lint"
+    // https://golangci-lint.run/usage/integrations/#go-for-visual-studio-code
+    "go.lintTool": "golangci-lint",
+    "go.lintOnSave": "workspace",
+    "go.lintFlags": [
+        "--fast"
+    ]
 }

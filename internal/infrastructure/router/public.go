@@ -8,6 +8,7 @@ import (
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/api/openapi"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 )
 
@@ -93,6 +94,19 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 			},
 		},
 	)
+
+	var rbacMiddleware echo.MiddlewareFunc
+	if config.Get().Application.EnableRBAC {
+		rbacMiddleware = middleware.RBACWithConfig(
+			&middleware.RBACConfig{
+				Skipper: nil,
+				// TODO HMS-3522
+				PermissionMap: middleware.RBACMap{},
+			},
+		)
+	} else {
+		rbacMiddleware = middleware.DefaultNooperation
+	}
 	metricsMiddleware := middleware.MetricsMiddlewareWithConfig(
 		&middleware.MetricsConfig{
 			Metrics: c.Metrics,
@@ -122,6 +136,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		fakeIdentityMiddleware,
 		systemIdentityMiddleware,
 		userIdentityMiddleware,
+		rbacMiddleware,
 		metricsMiddleware,
 		echo_middleware.Secure(),
 		// TODO Check if this is made by 3scale

@@ -20,12 +20,15 @@ func TestSetDefaults(t *testing.T) {
 		setDefaults(v)
 	})
 
+	// TODO HMS-3609 There are many more properties to check; complete the test
 	assert.Equal(t, DefaultWebPort, v.Get("web.port"))
 	assert.Equal(t, "info", v.Get("logging.level"))
 	assert.Equal(t, "http://localhost:8010/api/inventory/v1", v.Get("clients.host_inventory_base_url"))
 	assert.Equal(t, DefaultTokenExpirationTimeSeconds, v.Get("app.token_expiration_seconds"))
 	assert.Equal(t, PaginationDefaultLimit, v.Get("app.pagination_default_limit"))
 	assert.Equal(t, PaginationMaxLimit, v.Get("app.pagination_max_limit"))
+
+	assert.Equal(t, DefaultEnableRBAC, v.Get("app.enable_rbac"))
 }
 
 func TestSetClowderConfiguration(t *testing.T) {
@@ -159,6 +162,7 @@ func TestValidateConfig(t *testing.T) {
 	assert.Error(t, err)
 	ve, ok := err.(validator.ValidationErrors)
 	assert.True(t, ok)
+	// TODO Change the order; it should be (t, expected_value, current_calue)
 	assert.Equal(t, len(ve), 1)
 	assert.Equal(t, ve[0].Namespace(), "Config.Application.TokenExpirationTimeSeconds")
 	assert.Equal(t, ve[0].Tag(), "gte")

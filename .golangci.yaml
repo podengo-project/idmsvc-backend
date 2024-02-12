@@ -140,7 +140,6 @@ linters:
     - testifylint
     - unused
     - whitespace
-    - wrapcheck
     # WARN [runner] The linter 'golint' is deprecated (since v1.41.0) due to: The repository of the linter has been archived by the owner. Replaced by revive.
     # - golint
     # # - asasalint
