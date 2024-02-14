@@ -12,6 +12,8 @@ go 1.20
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
+	github.com/RedHatInsights/cloudwatch v0.0.0-20210111105023-1df2bdfe3291
+	github.com/aws/aws-sdk-go v1.49.13
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/getkin/kin-openapi v0.123.0
 	github.com/go-playground/validator/v10 v10.19.0
@@ -64,6 +66,7 @@ require (
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.2 // indirect

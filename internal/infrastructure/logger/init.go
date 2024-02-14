@@ -1,10 +1,16 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 	"runtime/debug"
 	"strings"
 
+	cw "github.com/RedHatInsights/cloudwatch"
+	"github.com/aws/aws-sdk-go/aws"
+	aws_creds "github.com/aws/aws-sdk-go/aws/credentials"
+	aws_session "github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"golang.org/x/exp/slog"
 )
@@ -71,7 +77,41 @@ func InitLogger(cfg *config.Config) {
 	}
 
 	metaHandler := NewSlogMetaHandler()
-	if cfg.Logging.Console {
+	if cfg.Logging.Type == "cloudwatch" {
+		// Stderr json handler
+		stderr_handler := slog.NewJSONHandler(
+			os.Stderr,
+			&opts,
+		)
+		metaHandler.Add(stderr_handler)
+
+		// Cloudwatch json handler
+		awsConf := aws.NewConfig().WithCredentials(
+			aws_creds.NewStaticCredentials(
+				cfg.Logging.Cloudwatch.Key,
+				cfg.Logging.Cloudwatch.Secret,
+				"",
+			),
+		).WithRegion(cfg.Logging.Cloudwatch.Region)
+
+		// This will panic on error
+		aws_sess := aws_session.Must(aws_session.NewSession(awsConf))
+
+		group := cw.NewGroup(
+			cfg.Logging.Cloudwatch.Group,
+			cloudwatchlogs.New(aws_sess),
+		)
+		w, err := group.Create(cfg.Logging.Cloudwatch.Stream)
+		if err != nil {
+			panic(fmt.Errorf("cloudwatch: Failed to create group: %w", err))
+		}
+
+		cloudwatch_handler := slog.NewJSONHandler(
+			w,
+			&opts,
+		)
+		metaHandler.Add(cloudwatch_handler)
+	} else if cfg.Logging.Console {
 		h := slog.NewTextHandler(
 			os.Stderr,
 			&opts,
