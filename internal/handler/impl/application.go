@@ -31,6 +31,12 @@ type hostComponent struct {
 	presenter  presenter.HostPresenter
 }
 
+type hostconfJwkComponent struct {
+	interactor interactor.HostconfJwkInteractor
+	repository repository.HostconfJwkRepository
+	presenter  presenter.HostconfJwkPresenter
+}
+
 // Application secrets
 type hostConfKeys struct {
 	// TODO: store JWKs in database
@@ -39,13 +45,14 @@ type hostConfKeys struct {
 }
 
 type application struct {
-	config    *config.Config
-	jwks      *hostConfKeys
-	metrics   *metrics.Metrics
-	domain    domainComponent
-	host      hostComponent
-	db        *gorm.DB
-	inventory client.HostInventory
+	config      *config.Config
+	jwks        *hostConfKeys
+	metrics     *metrics.Metrics
+	domain      domainComponent
+	host        hostComponent
+	hostconfjwk hostconfJwkComponent
+	db          *gorm.DB
+	inventory   client.HostInventory
 }
 
 func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client.HostInventory) handler.Application {
@@ -68,6 +75,11 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 		usecase_repository.NewHostRepository(),
 		usecase_presenter.NewHostPresenter(config),
 	}
+	hcjwkc := hostconfJwkComponent{
+		usecase_interactor.NewHostconfJwkInteractor(),
+		usecase_repository.NewHostconfJwkRepository(config),
+		usecase_presenter.NewHostconfJwkPresenter(config),
+	}
 
 	jwks, err := getJwks()
 	if err != nil {
@@ -75,13 +87,14 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 	}
 	// Instantiate application
 	return &application{
-		config:    config,
-		jwks:      jwks,
-		db:        db,
-		metrics:   m,
-		domain:    dc,
-		host:      hc,
-		inventory: inventory,
+		config:      config,
+		jwks:        jwks,
+		db:          db,
+		metrics:     m,
+		domain:      dc,
+		host:        hc,
+		hostconfjwk: hcjwkc,
+		inventory:   inventory,
 	}
 }
 

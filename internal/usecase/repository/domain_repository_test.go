@@ -24,7 +24,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Suite struct {
+type DomainRepositorySuite struct {
 	suite.Suite
 	DB         *gorm.DB
 	mock       sqlmock.Sqlmock
@@ -32,7 +32,7 @@ type Suite struct {
 }
 
 // https://pkg.go.dev/github.com/stretchr/testify/suite#SetupTestSuite
-func (s *Suite) SetupTest() {
+func (s *DomainRepositorySuite) SetupTest() {
 	var err error
 	s.mock, s.DB, err = test.NewSqlMock(&gorm.Session{
 		SkipHooks: true,
@@ -44,14 +44,14 @@ func (s *Suite) SetupTest() {
 	s.repository = &domainRepository{}
 }
 
-func (s *Suite) TestNewDomainRepository() {
+func (s *DomainRepositorySuite) TestNewDomainRepository() {
 	t := s.Suite.T()
 	assert.NotPanics(t, func() {
 		_ = NewDomainRepository()
 	})
 }
 
-func (s *Suite) helperTestCreateIpaDomain(stage int, data *model.Ipa, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *DomainRepositorySuite) helperTestCreateIpaDomain(stage int, data *model.Ipa, mock sqlmock.Sqlmock, expectedErr error) {
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
@@ -141,7 +141,7 @@ func (s *Suite) helperTestCreateIpaDomain(stage int, data *model.Ipa, mock sqlmo
 	}
 }
 
-func (s *Suite) TestCreateIpaDomain() {
+func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 	t := s.Suite.T()
 	// testUuid := uuid.New()
 	currentTime := time.Now()
@@ -239,7 +239,7 @@ func (s *Suite) TestCreateIpaDomain() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestUpdateErrors() {
+func (s *DomainRepositorySuite) TestUpdateErrors() {
 	t := s.Suite.T()
 	orgID := test.OrgId
 	testUUID := test.DomainUUID
@@ -294,7 +294,7 @@ func (s *Suite) TestUpdateErrors() {
 	require.NoError(t, err)
 }
 
-func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *DomainRepositorySuite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	if stage == 0 {
 		return
 	}
@@ -416,7 +416,7 @@ func (s *Suite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sq
 	}
 }
 
-func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *DomainRepositorySuite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	if stage == 0 {
 		return
 	}
@@ -459,7 +459,7 @@ func (s *Suite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock
 	}
 }
 
-func (s *Suite) TestUpdateIpaDomain() {
+func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 	var (
 		err error
 	)
@@ -651,7 +651,7 @@ func (s *Suite) TestUpdateIpaDomain() {
 	}
 }
 
-func (s *Suite) TestList() {
+func (s *DomainRepositorySuite) TestList() {
 	t := s.T()
 	r := &domainRepository{}
 	currentTime := time.Now()
@@ -801,7 +801,7 @@ func (s *Suite) TestList() {
 	}, output)
 }
 
-func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *DomainRepositorySuite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
@@ -947,7 +947,7 @@ func (s *Suite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.S
 	}
 }
 
-func (s *Suite) TestFindByID() {
+func (s *DomainRepositorySuite) TestFindByID() {
 	t := s.T()
 	r := &domainRepository{}
 	s.mock.MatchExpectationsInOrder(true)
@@ -1091,7 +1091,7 @@ func (s *Suite) TestFindByID() {
 	assert.Equal(t, data.Type, domain.Type)
 }
 
-func (s *Suite) TestUpdateUser() {
+func (s *DomainRepositorySuite) TestUpdateUser() {
 	var (
 		err error
 	)
@@ -1172,7 +1172,7 @@ func (s *Suite) TestUpdateUser() {
 
 // ---------------- Test for private methods ---------------------
 
-func (s *Suite) TestCheckCommon() {
+func (s *DomainRepositorySuite) TestCheckCommon() {
 	t := s.T()
 	r := &domainRepository{}
 
@@ -1186,7 +1186,7 @@ func (s *Suite) TestCheckCommon() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestCheckCommonAndUUID() {
+func (s *DomainRepositorySuite) TestCheckCommonAndUUID() {
 	t := s.T()
 	r := &domainRepository{}
 
@@ -1203,7 +1203,7 @@ func (s *Suite) TestCheckCommonAndUUID() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestCheckCommonAndData() {
+func (s *DomainRepositorySuite) TestCheckCommonAndData() {
 	t := s.T()
 	r := &domainRepository{}
 
@@ -1220,7 +1220,7 @@ func (s *Suite) TestCheckCommonAndData() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestCheckCommonAndDataAndType() {
+func (s *DomainRepositorySuite) TestCheckCommonAndDataAndType() {
 	t := s.T()
 	r := &domainRepository{}
 
@@ -1236,7 +1236,7 @@ func (s *Suite) TestCheckCommonAndDataAndType() {
 	assert.NoError(t, err)
 }
 
-func (s *Suite) TestCreateDomainToken() {
+func (s *DomainRepositorySuite) TestCreateDomainToken() {
 	var (
 		key       []byte        = []byte("secret")
 		validity  time.Duration = 2 * time.Hour
@@ -1256,7 +1256,7 @@ func (s *Suite) TestCreateDomainToken() {
 	assert.Greater(t, drt.ExpirationNS, uint64(time.Now().UnixNano()))
 }
 
-func (s *Suite) TestPrepareUpdateUser() {
+func (s *DomainRepositorySuite) TestPrepareUpdateUser() {
 	var (
 		value *string
 		flag  *bool
@@ -1306,6 +1306,6 @@ func (s *Suite) TestPrepareUpdateUser() {
 	assert.Equal(t, true, *flag)
 }
 
-func TestSuite(t *testing.T) {
-	suite.Run(t, new(Suite))
+func TestDomainRepositorySuite(t *testing.T) {
+	suite.Run(t, new(DomainRepositorySuite))
 }

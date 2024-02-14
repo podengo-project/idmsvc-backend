@@ -58,14 +58,19 @@ key is derived from the app secret using HKDF-SHA256.
 * `created_at` timestamp
 * `updated_at` timestamp
 * `deleted_at` timestamp
-* `kid` unique varchar (not NULL)
+* `key_id` unique varchar (not NULL)
 * `expiration` timestamp (not NULL)
-* `token` text (not NULL)
-* `encrypted` byte array (NULL-able)
+* `public_jwk` text (not NULL)
+* `encryption_id` varchar NOT NULL
+* `encrypted_jwk` byte array (NULL-able)
 
-The `token` field contains the serializes JSON string representation of the
-**public** JWK and `encrypted` is the encrypted private JWK. Revoked keys
-have a NULL `encrypted` field.
+The `public_jwk` field contains the serialized JSON string representation of
+the **public** JWK and `encrypted_jwk` is the encrypted private JWK. The
+`encryption_id` field contains a short hex string that identifies the
+encryption key. Revoked JWKs have a NULL `encrypted_jwk` field.
+
+Private keys are encrypted with AES-GCM. The symmetric encryption key and
+the encryption id are derived from a main secret with HKDF algorithm.
 
 
 ## Signed token (JWS / JWT)
@@ -118,7 +123,20 @@ Example payload:
 
 ### Key creation and rotation
 
-TODO
+Keys are created and rotated with `dbtool jwk refresh`. The tool creates a new
+JWK if either no valid private JWK is available or the last suitable key
+is going to expire. A private key is deemed valid if it is not revoked,
+not expired, and can be encrypted by the current main app secret (current
+encryption id matches the key's encryption id). At a given time, one or
+multiple private keys can be valid.
+
+The refresh command is executed in an init container on startup and by a
+periodic cron job at least once a day. This ensures that keys are created on
+startup and refreshed automatically.
+
+Validity and grace period are still TBD, probably similar values as
+"Let's Encrypt". Perhaps 90 days of validity and refresh 30 days before the
+last key expires.
 
 ### Key revocation
 
