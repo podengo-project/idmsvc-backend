@@ -7,6 +7,14 @@ logging:
   console: true
   # Set to true to get source code locations printed
   location: false
+  type: null
+# cloudwatch:
+#   region:
+#   group:
+#   stream:
+#   key:
+#   secret:
+#   session:
 
 web:
   port: 8000
@@ -50,13 +58,6 @@ kafka:
   #   mechanism: somemechanism
   #   protocol: someprotocol
 
-# cloudwatch:
-#   region:
-#   group:
-#   stream:
-#   key:
-#   secret:
-#   session:
 # options:
 #   paged_rpm_inserts_limit: 100
 metrics:
