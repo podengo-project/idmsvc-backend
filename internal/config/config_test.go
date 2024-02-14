@@ -99,10 +99,10 @@ func TestSetClowderConfiguration(t *testing.T) {
 	assert.NotPanics(t, func() {
 		setClowderConfiguration(v, &cfg)
 	})
-	assert.Equal(t, "testregion", v.Get("cloudwatch.region"))
-	assert.Equal(t, "testgroup", v.Get("cloudwatch.group"))
-	assert.Equal(t, "testsecret", v.Get("cloudwatch.secret"))
-	assert.Equal(t, "testaccesskeyid", v.Get("cloudwatch.key"))
+	assert.Equal(t, "testregion", v.Get("logging.cloudwatch.region"))
+	assert.Equal(t, "testgroup", v.Get("logging.cloudwatch.group"))
+	assert.Equal(t, "testsecret", v.Get("logging.cloudwatch.secret"))
+	assert.Equal(t, "testaccesskeyid", v.Get("logging.cloudwatch.key"))
 }
 
 func TestHasKafkaBrokerConfig(t *testing.T) {

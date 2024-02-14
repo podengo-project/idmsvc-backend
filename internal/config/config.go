@@ -57,7 +57,6 @@ type Config struct {
 	Database    Database
 	Logging     Logging
 	Kafka       Kafka
-	Cloudwatch  Cloudwatch
 	Metrics     Metrics
 	Clients     Clients
 	Application Application `mapstructure:"app"`
@@ -79,12 +78,6 @@ type Database struct {
 	CACertPath string `mapstructure:"ca_cert_path"`
 }
 
-type Logging struct {
-	Level    string
-	Console  bool
-	Location bool
-}
-
 type Cloudwatch struct {
 	Region  string
 	Key     string
@@ -92,6 +85,14 @@ type Cloudwatch struct {
 	Session string
 	Group   string
 	Stream  string
+}
+
+type Logging struct {
+	Level      string
+	Console    bool
+	Location   bool
+	Type       string
+	Cloudwatch Cloudwatch
 }
 
 type Kafka struct {
@@ -193,6 +194,14 @@ type Application struct {
 
 var config *Config = nil
 
+func DefaultCloudwatchStream() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return "idmsvc"
+	}
+	return hostname
+}
+
 func setDefaults(v *viper.Viper) {
 	if v == nil {
 		panic("viper instance cannot be nil")
@@ -211,12 +220,19 @@ func setDefaults(v *viper.Viper) {
 	// Kafka
 	addEventConfigDefaults(v)
 
-	// Clowdwatch
-
 	// Miscelanea
 	v.SetDefault("logging.level", "info")
 	v.SetDefault("logging.console", true)
 	v.SetDefault("logging.location", false)
+	v.SetDefault("logging.type", "null")
+
+	// Cloudwatch
+	v.SetDefault("logging.cloudwatch.region", "")
+	v.SetDefault("logging.cloudwatch.group", "")
+	v.SetDefault("logging.cloudwatch.stream", DefaultCloudwatchStream())
+	v.SetDefault("logging.cloudwatch.key", "")
+	v.SetDefault("logging.cloudwatch.secret", "")
+	v.SetDefault("logging.cloudwatch.session", "")
 
 	// Clients
 	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
@@ -269,11 +285,12 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 	}
 
 	// Clowdwatch
+	v.Set("logging.type", clowderConfig.Logging.Type)
 	if clowderConfig.Logging.Cloudwatch != nil {
-		v.Set("cloudwatch.region", clowderConfig.Logging.Cloudwatch.Region)
-		v.Set("cloudwatch.group", clowderConfig.Logging.Cloudwatch.LogGroup)
-		v.Set("cloudwatch.secret", clowderConfig.Logging.Cloudwatch.SecretAccessKey)
-		v.Set("cloudwatch.key", clowderConfig.Logging.Cloudwatch.AccessKeyId)
+		v.Set("logging.cloudwatch.key", clowderConfig.Logging.Cloudwatch.AccessKeyId)
+		v.Set("logging.cloudwatch.group", clowderConfig.Logging.Cloudwatch.LogGroup)
+		v.Set("logging.cloudwatch.region", clowderConfig.Logging.Cloudwatch.Region)
+		v.Set("logging.cloudwatch.secret", clowderConfig.Logging.Cloudwatch.SecretAccessKey)
 	}
 
 	// Metrics configuration
