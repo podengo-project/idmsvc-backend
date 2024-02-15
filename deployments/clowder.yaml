@@ -40,13 +40,19 @@ objects:
               apiPath: ${APP_NAME}
           podSpec:
             initContainers:
-              - name: db-migrate
+              - name: db-migrate-up
                 inheritEnv: true
                 args:
                   - /opt/bin/db-tool
                   - migrate
                   - up
                   - "0"
+              - name: db-jwk-refresh
+                inheritEnv: true
+                args:
+                  - /opt/bin/db-tool
+                  - jwk
+                  - refresh
             image: ${IMAGE}:${IMAGE_TAG}
             command:
               - /opt/bin/service
@@ -113,19 +119,36 @@ objects:
 
       # https://consoledot.pages.redhat.com/clowder/dev/providers/cronjob.html
       jobs:
-        # TODO Uncomment and update for your jobs
-        # - name: todo-job-name
-        #   # https://crontab.guru/
-        #   schedule: "0 0/8 * * *"
-        #   concurrencyPolicy: "Forbid"
-        #   podSpec:
-        #     image: ${IMAGE}:${IMAGE_TAG}
-        #     inheritEnv: true
-        #     command:
-        #       - /opt/bin/my-job-binary
-        #     env:
-        #       - name: LOGGING_LEVEL
-        #         value: ${{LOGGING_LEVEL}}
+        - name: jwk-refresh
+          schedule: "@hourly"
+          concurrencyPolicy: Replace
+          restartPolicy: Never
+          suspend: ${{DB_JWK_REFRESH_SUSPEND}}
+          podSpec:
+            image: ${IMAGE}:${IMAGE_TAG}
+            command:
+              - /opt/bin/db-tool
+              - jwk
+              - refresh
+            env:
+              - name: CLOWDER_ENABLED
+                value: "true"
+              - name: LOGGING_LEVEL
+                value: ${{LOGGING_LEVEL}}
+              - name: APP_TOKEN_EXPIRATION_SECONDS
+                value: "${APP_TOKEN_EXPIRATION_SECONDS}"
+              - name: APP_SECRET
+                valueFrom:
+                  secretKeyRef:
+                    key: app_secret
+                    name: app-secret
+            resources:
+              limits:
+                cpu: ${CPU_LIMIT}
+                memory: ${MEMORY_LIMIT}
+              requests:
+                cpu: ${CPU_REQUESTS}
+                memory: ${MEMORY_REQUESTS}
 
       # https://consoledot.pages.redhat.com/clowder/dev/providers/database.html
       database:
@@ -188,3 +211,7 @@ parameters:
     description: |
       It allows to validate API requests by using the
       service OpenAPI specification.
+  - name: DB_JWK_REFRESH_SUSPEND
+    value: "false"
+    description: |
+      A flag to suspend execution of 'db-tool jwk refresh' cron job.

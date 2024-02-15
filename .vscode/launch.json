@@ -31,6 +31,18 @@
             }
         },
         {
+            "name": "db-tool-jwk-refresh",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/db-tool",
+            "cwd": "${workspaceFolder}",
+            "args": ["jwk", "refresh"],
+            "env": {
+                "CONFIG_PATH": "${workspaceFolder}/configs",
+            }
+        },
+        {
             "name": "db-tool-migrate-down",
             "type": "go",
             "request": "launch",
