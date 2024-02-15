@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
@@ -26,6 +27,7 @@ func (a *application) HostConf(
 		hctoken public.HostToken
 		tx      *gorm.DB
 		xrhid   *identity.XRHID
+		keys    []jwk.Key
 	)
 	if xrhid, err = getXRHID(ctx); err != nil {
 		return err
@@ -49,8 +51,14 @@ func (a *application) HostConf(
 	); err != nil {
 		return err
 	}
+
+	if keys, err = a.hostconfjwk.repository.GetPrivateSigningKeys(tx); err != nil {
+		// TODO: log and convert to HTTP error
+		return err
+	}
+
 	if hctoken, err = a.host.repository.SignHostConfToken(
-		a.jwks.signingKeys,
+		keys,
 		options,
 		domain,
 	); err != nil {

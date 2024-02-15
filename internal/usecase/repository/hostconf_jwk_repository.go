@@ -1,10 +1,13 @@
 package repository
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk/model"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"gorm.io/gorm"
@@ -23,7 +26,12 @@ func NewHostconfJwkRepository(cfg *config.Config) repository.HostconfJwkReposito
 	if cfg == nil {
 		panic("'cfg' is nil")
 	}
-	return &hostconfJwkRepository{config: cfg}
+	r := &hostconfJwkRepository{config: cfg}
+	err := r.generateEphemeralJWK()
+	if err != nil {
+		panic(err)
+	}
+	return r
 }
 
 // CreateJWK generates and inserts a new JWK into the database. The private
@@ -45,7 +53,8 @@ func (r *hostconfJwkRepository) ListJWKs(db *gorm.DB) (models []model.HostconfJw
 // GetPublicKeyArray returns an array of string with all valid, non-expired
 // public JWKs as serialized JSON. Expired or invalid keys are ignored
 func (r *hostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) (pubkeys []string, err error) {
-	return nil, notImplementedError
+	// TODO use database
+	return r.publicKeys, nil
 }
 
 // GetPrivateSigningKeys returns a array of jwk.Keys with all valid, non-expired
@@ -53,5 +62,32 @@ func (r *hostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) (pubkeys []string
 // secret. Expired, invalid keys, and keys encrypted for a different main app
 // secret are ignored.
 func (r *hostconfJwkRepository) GetPrivateSigningKeys(db *gorm.DB) (privkeys []jwk.Key, err error) {
-	return nil, notImplementedError
+	// TODO use database
+	return r.signingKeys, nil
+}
+
+// TODO: temporary hack until DB layer is implemented
+// Generate ephemeral JWKs
+func (r *hostconfJwkRepository) generateEphemeralJWK() (err error) {
+	// TODO: temporary hack
+	var (
+		priv jwk.Key
+		pub  jwk.Key
+		pubs []byte
+	)
+	expiration := time.Now().Add(90 * 24 * time.Hour)
+	if priv, err = hostconf_jwk.GeneratePrivateJWK(expiration); err != nil {
+		return err
+	}
+	r.signingKeys = []jwk.Key{priv}
+
+	if pub, err = priv.PublicKey(); err != nil {
+		return err
+	}
+	if pubs, err = json.Marshal(pub); err != nil {
+		return err
+	}
+	r.publicKeys = []string{string(pubs)}
+
+	return nil
 }
