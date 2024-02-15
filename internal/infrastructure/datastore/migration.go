@@ -67,6 +67,18 @@ func MigrateDb(config *config.Config, direction string, steps ...int) error {
 		return err
 	}
 
+	// show current database version
+	version, dirty, verr := m.Version()
+	if verr == nil {
+		slog.Info(
+			"Current database migration status",
+			slog.Uint64("version", uint64(version)),
+			slog.Bool("dirty", dirty),
+		)
+	} else if verr == migrate.ErrNilVersion {
+		slog.Info("No database version")
+	}
+
 	var step int
 
 	switch direction {
@@ -88,7 +100,7 @@ func MigrateDb(config *config.Config, direction string, steps ...int) error {
 	}
 
 	if err != nil && err == migrate.ErrNoChange {
-		slog.Debug("No new migrations.")
+		slog.Info("No new migrations")
 		return nil
 	} else if err != nil {
 		// Force back to previous migration version. If errors running version 1,
@@ -108,6 +120,16 @@ func MigrateDb(config *config.Config, direction string, steps ...int) error {
 			}
 		}
 	}
+
+	version, dirty, verr = m.Version()
+	if verr == nil {
+		slog.Info(
+			"New database migration status",
+			slog.Uint64("version", uint64(version)),
+			slog.Bool("dirty", dirty),
+		)
+	}
+
 	return err
 
 }
