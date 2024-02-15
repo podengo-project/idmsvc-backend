@@ -66,15 +66,15 @@ func (s *HostConfJwkRepositorySuite) TestListJWKs() {
 func (s *HostConfJwkRepositorySuite) TestGetPublicKeyArray() {
 	t := s.Suite.T()
 	keys, err := s.repository.GetPublicKeyArray(s.db)
-	assert.Nil(t, keys)
-	assert.EqualError(t, err, notImplementedError.Error())
+	assert.Equal(t, keys, s.repository.(*hostconfJwkRepository).publicKeys)
+	assert.Nil(t, err)
 }
 
 func (s *HostConfJwkRepositorySuite) TestGetPrivateSigningKeys() {
 	t := s.Suite.T()
 	keys, err := s.repository.GetPrivateSigningKeys(s.db)
-	assert.Nil(t, keys)
-	assert.EqualError(t, err, notImplementedError.Error())
+	assert.Equal(t, keys, s.repository.(*hostconfJwkRepository).signingKeys)
+	assert.Nil(t, err)
 }
 
 func TestHostConfJwkRepositorySuite(t *testing.T) {
