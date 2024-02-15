@@ -6,8 +6,9 @@
 install-db-tool: $(BIN)/db-tool
 
 .PHONY: db-migrate-up
-db-migrate-up: $(BIN)/db-tool  ## Migrate the database upto the current state
+db-migrate-up: $(BIN)/db-tool  ## Migrate the database upto the current state and refresh/create JWKs
 	$(BIN)/db-tool migrate up 0
+	$(BIN)/db-tool jwk refresh
 
 .PHONY: db-cli
 db-cli:  ## Open a cli shell inside the databse container

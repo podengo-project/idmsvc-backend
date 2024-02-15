@@ -15,6 +15,7 @@ var rootCmd = &cobra.Command{
 	db-tool new [migration-name]
 	db-tool migrate up [steps]
 	db-tool migrate down [steps]
+	db-tool jwk refresh
 `,
 }
 
