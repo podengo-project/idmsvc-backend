@@ -19,7 +19,12 @@ const (
 )
 
 var (
+	// MAC key for domain registration token
 	DomainRegKeyInfo = HkdfInfo{[]byte("domain registration key"), 32}
+	// hex string to identify AES encryption keys for encrypted private JWKs
+	HostconfEncryptionIdInfo = HkdfInfo{[]byte("hostconf JWK encryption id"), 8}
+	// AES-GCM encryption keys for private JWKs
+	HostconfEncryptionKeyInfo = HkdfInfo{[]byte("hostconf JWK encryption key"), 16}
 )
 
 // Extract pseudo random key from a secret

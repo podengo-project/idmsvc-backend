@@ -5,6 +5,7 @@ import (
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/openlyinc/pointy"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/secrets"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -153,9 +154,11 @@ func TestLoad(t *testing.T) {
 func TestValidateConfig(t *testing.T) {
 	cfg := Config{
 		Application: Application{
-			PathPrefix:                 DefaultPathPrefix,
-			MainSecret:                 "random",
-			TokenExpirationTimeSeconds: 0,
+			PathPrefix:                  DefaultPathPrefix,
+			MainSecret:                  secrets.GenerateRandomMainSecret(),
+			TokenExpirationTimeSeconds:  0,
+			HostconfJwkValidity:         DefaultHostconfJwkValidity,
+			HostconfJwkRenewalThreshold: DefaultHostconfJwkRenewalThreshold,
 		},
 	}
 	err := Validate(&cfg)
