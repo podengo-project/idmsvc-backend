@@ -9,8 +9,12 @@ import (
 func GetTestConfig() (cfg *config.Config) {
 	cfg = &config.Config{}
 	config.Load(cfg)
+
 	// override some default settings
-	cfg.Application.MainSecret = "random"
+	cfg.Application.MainSecret = secrets.GenerateRandomMainSecret()
+	cfg.Application.TokenExpirationTimeSeconds = 3600
+	cfg.Application.HostconfJwkValidity = config.DefaultHostconfJwkValidity
+	cfg.Application.HostconfJwkRenewalThreshold = config.DefaultHostconfJwkRenewalThreshold
 	cfg.Application.PaginationDefaultLimit = 10
 	cfg.Application.PaginationMaxLimit = 100
 	// initialize secrets

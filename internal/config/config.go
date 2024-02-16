@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	validator "github.com/go-playground/validator/v10"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/secrets"
@@ -28,6 +29,10 @@ const (
 	// DefaultExpirationTime is used for the default token expiration period
 	// expressed in seconds. The default value is set to 7200 (2 hours)
 	DefaultTokenExpirationTimeSeconds = 7200
+	// HostconfJWKs expire after 90 days and get renewed when the last
+	// token expires in less than 30 days.
+	DefaultHostconfJwkValidity         = time.Duration(90 * 24 * time.Hour)
+	DefaultHostconfJwkRenewalThreshold = time.Duration(30 * 24 * time.Hour)
 	// DefaultWebPort is the default port where the public API is listening
 	DefaultWebPort = 8000
 	// DefaultEnableRBAC is true
@@ -164,6 +169,10 @@ type Application struct {
 	// This is the default expiration time for the token
 	// generated when a RHEL IDM domain is created
 	TokenExpirationTimeSeconds int `mapstructure:"token_expiration_seconds" validate:"gte=600,lte=86400"`
+	// Expiration and renewal duration for hostconf JWKs
+	// TODO: short gte for local testing
+	HostconfJwkValidity         time.Duration `mapstructure:"hostconf_jwk_validity" validate:"gte=1m,lte=8760h"`
+	HostconfJwkRenewalThreshold time.Duration `mapstructure:"hostconf_jwk_renewal_threshold" validate:"gte=1m,lte=2160h"`
 	// Indicate the default pagination limit when it is 0 or not filled
 	PaginationDefaultLimit int `mapstructure:"pagination_default_limit"`
 	// Indicate the max pagination limit when it is grather
@@ -175,7 +184,7 @@ type Application struct {
 	// requests and responses is disabled; by default it is enabled.
 	ValidateAPI bool `mapstructure:"validate_api"`
 	// secret for various MAC and encryptions like domain registration
-	// token and encrypted private JWKs. "random" generates an ephemeral secret.
+	// token and encrypted private JWKs.
 	// Secrets are derived with HKDF-SHA256.
 	MainSecret string `mapstructure:"secret" validate:"required,base64rawurl"`
 	// Flag to enable/disable rbac
@@ -217,6 +226,8 @@ func setDefaults(v *viper.Viper) {
 	// Set default value for application expiration time for
 	// the token created by the RHEL IDM domains
 	v.SetDefault("app.token_expiration_seconds", DefaultTokenExpirationTimeSeconds)
+	v.SetDefault("app.hostconf_jwk_validity", DefaultHostconfJwkValidity)
+	v.SetDefault("app.hostconf_jwk_renewal_threshold", DefaultHostconfJwkRenewalThreshold)
 	v.SetDefault("app.pagination_default_limit", PaginationDefaultLimit)
 	v.SetDefault("app.pagination_max_limit", PaginationMaxLimit)
 	v.SetDefault("app.accept_x_rh_fake_identity", DefaultAcceptXRHFakeIdentity)

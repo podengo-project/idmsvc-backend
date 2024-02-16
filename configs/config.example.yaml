@@ -80,8 +80,9 @@ app:
   # Validate API requests and response against the openapi specification
   validate_api: true
   # main secret for various MAC and encryptions like domain registration
-  # token and encrypted private JWKs. "random" generates an ephemeral secret.
-  secret: random
+  # token and encrypted private JWKs. You can generate a secret with:
+  #     python -c "import secrets; print(secrets.token_urlsafe())"
+  secret: sFamo2ER65JN7wxZ48UZb5GbtDc053ahIPJ0Qx47bzA
   # Enable/Disable RBAC verification
   # TODO remove override when HMS-3521 is implemented
   enable_rbac: false
