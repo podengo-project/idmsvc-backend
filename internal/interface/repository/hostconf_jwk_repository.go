@@ -7,10 +7,11 @@ import (
 )
 
 type HostconfJwkRepository interface {
-	CreateJWK(db *gorm.DB) (model *model.HostconfJwk, err error)
-	RevokeJWK(db *gorm.DB, kid string) (model *model.HostconfJwk, err error)
-	ListJWKs(db *gorm.DB) (models []model.HostconfJwk, err error)
-	GetPublicKeyArray(db *gorm.DB) (pubkeys []string, err error)
+	InsertJWK(db *gorm.DB, hcjwk *model.HostconfJwk) (err error)
+	RevokeJWK(db *gorm.DB, kid string) (hcjwk *model.HostconfJwk, err error)
+	ListJWKs(db *gorm.DB) (hcjwks []model.HostconfJwk, err error)
+	PurgeExpiredJWKs(db *gorm.DB) (hcjwks []model.HostconfJwk, err error)
+	GetPublicKeyArray(db *gorm.DB) (pubkeys []string, revokedKids []string, err error)
 	// TODO: refactor code to use jwk.Set instead of []jwk.Key
 	GetPrivateSigningKeys(db *gorm.DB) (privkeys []jwk.Key, err error)
 }

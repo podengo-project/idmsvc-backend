@@ -14,11 +14,11 @@ import (
 // HostconfJwks hold public and private JWKs
 type HostconfJwk struct {
 	gorm.Model
-	KeyId        string
-	ExpiresAt    time.Time
-	PublicJwk    string
-	EncryptionId string
-	EncryptedJwk []byte
+	KeyId        string    // JWK KID
+	ExpiresAt    time.Time // Expiration time stamp
+	PublicJwk    string    // Public JWK as serialized JSON
+	EncryptionId string    // id of the encryption key
+	EncryptedJwk []byte    // Encrypted private key, nil if key is revoked
 }
 
 var (
@@ -110,4 +110,14 @@ func (hc *HostconfJwk) GetPrivateJWK(secrets secrets.AppSecrets) (privkey jwk.Ke
 		return nil, hostconf_jwk.KeyDecryptionFailed, err
 	}
 	return privkey, state, err
+}
+
+// Revoke sets the encrypted private key to nil and marks the hostconf JWK
+// as revoked.
+func (hc *HostconfJwk) Revoke() (err error) {
+	if hc.EncryptedJwk == nil {
+		return ErrRevokedKey
+	}
+	hc.EncryptedJwk = nil
+	return nil
 }

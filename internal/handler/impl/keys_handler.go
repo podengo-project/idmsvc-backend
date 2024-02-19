@@ -10,10 +10,11 @@ import (
 
 func (a *application) GetSigningKeys(ctx echo.Context, params public.GetSigningKeysParams) error {
 	var (
-		err    error
-		tx     *gorm.DB
-		keys   []string
-		output *public.SigningKeysResponse
+		err         error
+		tx          *gorm.DB
+		keys        []string
+		revokedKids []string
+		output      *public.SigningKeysResponse
 	)
 
 	if tx = a.db.Begin(); tx.Error != nil {
@@ -21,7 +22,7 @@ func (a *application) GetSigningKeys(ctx echo.Context, params public.GetSigningK
 	}
 	defer tx.Rollback()
 
-	if keys, err = a.hostconfjwk.repository.GetPublicKeyArray(tx); err != nil {
+	if keys, revokedKids, err = a.hostconfjwk.repository.GetPublicKeyArray(tx); err != nil {
 		return err
 	}
 
@@ -29,7 +30,7 @@ func (a *application) GetSigningKeys(ctx echo.Context, params public.GetSigningK
 		return tx.Error
 	}
 
-	if output, err = a.hostconfjwk.presenter.PublicSigningKeys(keys); err != nil {
+	if output, err = a.hostconfjwk.presenter.PublicSigningKeys(keys, revokedKids); err != nil {
 		return err
 	}
 

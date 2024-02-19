@@ -2,7 +2,7 @@
 logging:
   # level: warn should be the level in production
   # level: trace - Will display the sql statements, usefult for development
-  level: warn
+  level: info
   # Set to false to get a json output for the log
   console: true
   # Set to true to get source code locations printed

@@ -15,36 +15,6 @@ type HostconfJwkRepository struct {
 	mock.Mock
 }
 
-// CreateJWK provides a mock function with given fields: db
-func (_m *HostconfJwkRepository) CreateJWK(db *gorm.DB) (*model.HostconfJwk, error) {
-	ret := _m.Called(db)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CreateJWK")
-	}
-
-	var r0 *model.HostconfJwk
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*gorm.DB) (*model.HostconfJwk, error)); ok {
-		return rf(db)
-	}
-	if rf, ok := ret.Get(0).(func(*gorm.DB) *model.HostconfJwk); ok {
-		r0 = rf(db)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.HostconfJwk)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*gorm.DB) error); ok {
-		r1 = rf(db)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetPrivateSigningKeys provides a mock function with given fields: db
 func (_m *HostconfJwkRepository) GetPrivateSigningKeys(db *gorm.DB) ([]jwk.Key, error) {
 	ret := _m.Called(db)
@@ -76,7 +46,7 @@ func (_m *HostconfJwkRepository) GetPrivateSigningKeys(db *gorm.DB) ([]jwk.Key, 
 }
 
 // GetPublicKeyArray provides a mock function with given fields: db
-func (_m *HostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) ([]string, error) {
+func (_m *HostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) ([]string, []string, error) {
 	ret := _m.Called(db)
 
 	if len(ret) == 0 {
@@ -84,8 +54,9 @@ func (_m *HostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) ([]string, error
 	}
 
 	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*gorm.DB) ([]string, error)); ok {
+	var r1 []string
+	var r2 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB) ([]string, []string, error)); ok {
 		return rf(db)
 	}
 	if rf, ok := ret.Get(0).(func(*gorm.DB) []string); ok {
@@ -93,6 +64,62 @@ func (_m *HostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) ([]string, error
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*gorm.DB) []string); ok {
+		r1 = rf(db)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(*gorm.DB) error); ok {
+		r2 = rf(db)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
+// InsertJWK provides a mock function with given fields: db, hcjwk
+func (_m *HostconfJwkRepository) InsertJWK(db *gorm.DB, hcjwk *model.HostconfJwk) error {
+	ret := _m.Called(db, hcjwk)
+
+	if len(ret) == 0 {
+		panic("no return value specified for InsertJWK")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB, *model.HostconfJwk) error); ok {
+		r0 = rf(db, hcjwk)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// ListJWKs provides a mock function with given fields: db
+func (_m *HostconfJwkRepository) ListJWKs(db *gorm.DB) ([]model.HostconfJwk, error) {
+	ret := _m.Called(db)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListJWKs")
+	}
+
+	var r0 []model.HostconfJwk
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*gorm.DB) ([]model.HostconfJwk, error)); ok {
+		return rf(db)
+	}
+	if rf, ok := ret.Get(0).(func(*gorm.DB) []model.HostconfJwk); ok {
+		r0 = rf(db)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.HostconfJwk)
 		}
 	}
 
@@ -105,12 +132,12 @@ func (_m *HostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) ([]string, error
 	return r0, r1
 }
 
-// ListJWKs provides a mock function with given fields: db
-func (_m *HostconfJwkRepository) ListJWKs(db *gorm.DB) ([]model.HostconfJwk, error) {
+// PurgeExpiredJWKs provides a mock function with given fields: db
+func (_m *HostconfJwkRepository) PurgeExpiredJWKs(db *gorm.DB) ([]model.HostconfJwk, error) {
 	ret := _m.Called(db)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListJWKs")
+		panic("no return value specified for PurgeExpiredJWKs")
 	}
 
 	var r0 []model.HostconfJwk

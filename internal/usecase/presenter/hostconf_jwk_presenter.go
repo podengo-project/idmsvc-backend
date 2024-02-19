@@ -18,13 +18,17 @@ func NewHostconfJwkPresenter(cfg *config.Config) presenter.HostconfJwkPresenter 
 	return &hostconfJwkPresenter{cfg}
 }
 
-func (p *hostconfJwkPresenter) PublicSigningKeys(keys []string) (*public.SigningKeysResponse, error) {
+func (p *hostconfJwkPresenter) PublicSigningKeys(keys []string, revokedKids []string) (*public.SigningKeysResponse, error) {
 	if keys == nil {
 		return nil, internal_errors.NilArgError("keys")
 	}
 
 	response := &public.SigningKeysResponse{
-		Keys: keys,
+		Keys:        keys,
+		RevokedKids: nil,
+	}
+	if len(revokedKids) > 0 {
+		response.RevokedKids = &revokedKids
 	}
 
 	return response, nil

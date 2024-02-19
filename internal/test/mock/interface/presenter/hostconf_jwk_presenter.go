@@ -13,9 +13,9 @@ type HostconfJwkPresenter struct {
 	mock.Mock
 }
 
-// PublicSigningKeys provides a mock function with given fields: keys
-func (_m *HostconfJwkPresenter) PublicSigningKeys(keys []string) (*public.SigningKeysResponse, error) {
-	ret := _m.Called(keys)
+// PublicSigningKeys provides a mock function with given fields: keys, revokedKids
+func (_m *HostconfJwkPresenter) PublicSigningKeys(keys []string, revokedKids []string) (*public.SigningKeysResponse, error) {
+	ret := _m.Called(keys, revokedKids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for PublicSigningKeys")
@@ -23,19 +23,19 @@ func (_m *HostconfJwkPresenter) PublicSigningKeys(keys []string) (*public.Signin
 
 	var r0 *public.SigningKeysResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]string) (*public.SigningKeysResponse, error)); ok {
-		return rf(keys)
+	if rf, ok := ret.Get(0).(func([]string, []string) (*public.SigningKeysResponse, error)); ok {
+		return rf(keys, revokedKids)
 	}
-	if rf, ok := ret.Get(0).(func([]string) *public.SigningKeysResponse); ok {
-		r0 = rf(keys)
+	if rf, ok := ret.Get(0).(func([]string, []string) *public.SigningKeysResponse); ok {
+		r0 = rf(keys, revokedKids)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*public.SigningKeysResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]string) error); ok {
-		r1 = rf(keys)
+	if rf, ok := ret.Get(1).(func([]string, []string) error); ok {
+		r1 = rf(keys, revokedKids)
 	} else {
 		r1 = ret.Error(1)
 	}

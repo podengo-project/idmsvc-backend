@@ -22,8 +22,9 @@ func TestNewHostconfJwkPresenter(t *testing.T) {
 
 func TestPublicSigningKeys(t *testing.T) {
 	type TestCaseGiven struct {
-		Keys   []string
-		Output *public.SigningKeysResponse
+		Keys        []string
+		RevokedKids []string
+		Output      *public.SigningKeysResponse
 	}
 	type TestCaseExpected struct {
 		Err    error
@@ -38,7 +39,8 @@ func TestPublicSigningKeys(t *testing.T) {
 		{
 			Name: "error when 'keys' is nil",
 			Given: TestCaseGiven{
-				Keys: nil,
+				Keys:        nil,
+				RevokedKids: nil,
 			},
 			Expected: TestCaseExpected{
 				Err:    internal_errors.NilArgError("keys"),
@@ -46,14 +48,29 @@ func TestPublicSigningKeys(t *testing.T) {
 			},
 		},
 		{
-			Name: "Success",
+			Name: "Success without revoked kids",
 			Given: TestCaseGiven{
 				Keys: []string{"key1", "key2"},
 			},
 			Expected: TestCaseExpected{
 				Err: nil,
 				Output: &public.SigningKeysResponse{
-					Keys: []string{"key1", "key2"},
+					Keys:        []string{"key1", "key2"},
+					RevokedKids: nil,
+				},
+			},
+		},
+		{
+			Name: "Success with revoked kids",
+			Given: TestCaseGiven{
+				Keys:        []string{"key1", "key2"},
+				RevokedKids: []string{"revoked"},
+			},
+			Expected: TestCaseExpected{
+				Err: nil,
+				Output: &public.SigningKeysResponse{
+					Keys:        []string{"key1", "key2"},
+					RevokedKids: &[]string{"revoked"},
 				},
 			},
 		},
@@ -62,7 +79,7 @@ func TestPublicSigningKeys(t *testing.T) {
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		obj := NewHostconfJwkPresenter(cfg)
-		output, err := obj.PublicSigningKeys(testCase.Given.Keys)
+		output, err := obj.PublicSigningKeys(testCase.Given.Keys, testCase.Given.RevokedKids)
 		if testCase.Expected.Err != nil {
 			require.Error(t, err)
 			assert.Equal(t, testCase.Expected.Err.Error(), err.Error())
@@ -72,6 +89,9 @@ func TestPublicSigningKeys(t *testing.T) {
 			assert.Equal(t,
 				testCase.Expected.Output.Keys,
 				output.Keys)
+			assert.Equal(t,
+				testCase.Expected.Output.RevokedKids,
+				output.RevokedKids)
 		}
 	}
 }
