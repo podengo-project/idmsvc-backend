@@ -12,19 +12,19 @@ import (
 )
 
 // refreshCmd represents the refresh command
-var jwkRefreshCmd = &cobra.Command{
-	Use:   "refresh",
-	Short: "Refresh or create JWKs",
-	Long:  `The refresh command ensures that the database contains valid JWKs.`,
+var jwkListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List JWKs",
+	Long:  `The list command shows all JWKs in the database.`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		logger.LogBuildInfo("db-tool")
 		cfg := config.Get()
 		logger.InitLogger(cfg)
 		r := datastore.NewHostconfJwkDb(cfg)
-		err := r.Refresh()
+		err := r.ListKeys()
 		if err != nil {
-			slog.Error("Refresh failed", slog.String("error", err.Error()))
+			slog.Error("List failed", slog.String("error", err.Error()))
 			os.Exit(2)
 		} else {
 			slog.Info("Done")
@@ -33,5 +33,5 @@ var jwkRefreshCmd = &cobra.Command{
 }
 
 func init() {
-	jwkCmd.AddCommand(jwkRefreshCmd)
+	jwkCmd.AddCommand(jwkListCmd)
 }
