@@ -28,15 +28,6 @@ var (
 	ErrKeyDecryptionFailed = errors.New("decryption failed")
 )
 
-// Before create hook
-func (hc *HostconfJwk) BeforeCreate(tx *gorm.DB) (err error) {
-	var currentTime = time.Now()
-	hc.CreatedAt = currentTime
-	hc.UpdatedAt = currentTime
-
-	return nil
-}
-
 // Create a new Hostconf JWK entry with public and encrypted private JWK
 func NewHostconfJwk(secrets secrets.AppSecrets, expiresAt time.Time) (hc *HostconfJwk, err error) {
 	var (

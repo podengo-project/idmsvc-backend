@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
@@ -63,15 +62,6 @@ func DomainTypeUint(data string) uint {
 }
 
 // See: https://gorm.io/docs/hooks.html
-
-func (d *Domain) BeforeCreate(tx *gorm.DB) (err error) {
-	var currentTime = time.Now()
-	d.CreatedAt = currentTime
-	d.UpdatedAt = currentTime
-
-	return nil
-}
-
 func (d *Domain) AfterCreate(tx *gorm.DB) (err error) {
 	if d.Type == nil {
 		return internal_errors.NilArgError("Type")

@@ -21,16 +21,6 @@ func TestDomainTypeUint(t *testing.T) {
 	assert.Equal(t, DomainTypeIpa, DomainTypeUint(DomainTypeIpaString))
 }
 
-func TestDomainBeforeCreate(t *testing.T) {
-	var item *Domain
-	item = &Domain{}
-	item.BeforeCreate(nil)
-
-	assert.Empty(t, item.DomainUuid)
-	assert.NotEmpty(t, item.CreatedAt)
-	assert.NotEmpty(t, item.UpdatedAt)
-}
-
 func TestDomainAfterCreate(t *testing.T) {
 	var item *Domain
 
