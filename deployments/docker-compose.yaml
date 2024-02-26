@@ -25,10 +25,21 @@ services:
       - POSTGRESQL_DATABASE=${DATABASE_NAME:-idmsvc-db}
       - POSTGRESQL_USER=${DATABASE_USER:-idmsvc-user}
       - POSTGRESQL_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+
+    # On Darwin you could want this block because at the moment
+    # of writting this, it is a multi-arch container image
+    # image: docker.io/postgres:15.6
+    # environment:
+    #   - POSTGRES_USER=${DATABASE_USER:-idmsvc-user}
+    #   - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
+    #   - POSTGRES_DB=${DATABASE_NAME:-idmsvc-db}
+
     ports:
       - ${DATABASE_EXTERNAL_PORT:-5432}:5432/tcp
+
     volumes:
       - database:/var/lib/postgresql/data
+
     healthcheck:
       test: "pg_isready"
       interval: 5s
