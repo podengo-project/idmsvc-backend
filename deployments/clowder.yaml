@@ -36,8 +36,7 @@ objects:
             public:
               enabled: true
               # See: https://github.com/RedHatInsights/clowder/blob/e1af1adc4dcbc5d0a8b28b37c6e367fff843acda/apis/cloud.redhat.com/v1alpha1/clowdapp_types.go#L152
-              apiPaths:
-                - "/api/${APP_NAME}/"
+              apiPath: idmsvc
           podSpec:
             initContainers:
               - name: db-migrate-up
