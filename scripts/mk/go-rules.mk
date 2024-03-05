@@ -183,6 +183,7 @@ MOCK_DIRS := internal/api/private \
 	internal/infrastructure/service \
 	internal/infrastructure/event \
 	internal/infrastructure/event/handler \
+	internal/infrastructure/logger \
 	internal/infrastructure/middleware \
 
 .PHONY: generate-mock
