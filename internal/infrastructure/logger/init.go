@@ -42,8 +42,6 @@ func InitLogger(cfg *config.Config) {
 		panic("'cfg' cannot be nil")
 	}
 
-	var h slog.Handler
-
 	globalLevel := new(slog.LevelVar)
 	// set default to warning
 	globalLevel.Set(LevelWarn)
@@ -72,18 +70,21 @@ func InitLogger(cfg *config.Config) {
 		},
 	}
 
+	metaHandler := NewSlogMetaHandler()
 	if cfg.Logging.Console {
-		h = slog.NewTextHandler(
+		h := slog.NewTextHandler(
 			os.Stderr,
 			&opts,
 		)
+		metaHandler.Add(h)
 	} else {
-		h = slog.NewJSONHandler(
+		h := slog.NewJSONHandler(
 			os.Stderr,
 			&opts,
 		)
+		metaHandler.Add(h)
 	}
-	slog.SetDefault(slog.New(h))
+	slog.SetDefault(slog.New(metaHandler))
 
 	// set global log level
 	lvl := strings.ToUpper(cfg.Logging.Level)
