@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"runtime/debug"
@@ -47,6 +48,17 @@ func InitLogger(cfg *config.Config) {
 	if cfg == nil {
 		panic("'cfg' cannot be nil")
 	}
+
+	// This will be always logged to console on service startup
+	slog.Info(
+		"idmsvc-backend",
+		slog.Group("Logging",
+			slog.Bool("Console", cfg.Logging.Console),
+			slog.String("Type", cfg.Logging.Type),
+			slog.String("Level", cfg.Logging.Level),
+			slog.Bool("Location", cfg.Logging.Location),
+		),
+	)
 
 	globalLevel := new(slog.LevelVar)
 	// set default to warning
@@ -145,6 +157,12 @@ func InitLogger(cfg *config.Config) {
 	default:
 		globalLevel.Set(LevelWarn)
 	}
+
+	slog.Log(
+		context.Background(),
+		LevelNotice,
+		"Logging successfully initialized",
+	)
 }
 
 func LogBuildInfo(msg string) {
