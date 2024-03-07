@@ -36,7 +36,7 @@ func (x xrhiAlwaysTrue) ValidateXRhIdentity(xrhi *identity.XRHID) error {
 func InitOpenAPIFormats() {
 	// TODO Review all the regular expressions
 	openapi3.DefineStringFormat("url", `^https?:\/\/.*$`)
-	openapi3.DefineStringFormat("realm", `^([A-Z]|[A-Z][A-Z0-9\-]*[A-Z0-9])(\.([A-Z]|[A-Z][A-Z0-9\-]*[A-Z0-9]))+$`)
+	openapi3.DefineStringFormatCallback("realm", checkRealm)
 
 	// FIXME Search the regular expressions for the below formats
 	openapi3.DefineStringFormatCallback("cert-issuer", func(value string) error {
@@ -92,6 +92,26 @@ func checkUtf8MultiLine(s string) error {
 	for _ /* index */, r /* rune */ := range s {
 		if unicode.IsControl(r) && !unicode.IsSpace(r) {
 			return fmt.Errorf("invalid code point: %U", r)
+		}
+	}
+	return nil
+}
+
+// Check that input is a valid Kerberos Realm name.  Realm is defined
+// as IA5String but we further restrict it to printable ASCII chars.
+//
+// It is customary to use an upper-cased DNS name, but we do not enforce
+// that.
+func checkRealm(s string) error {
+	if !utf8.ValidString(s) {
+		return fmt.Errorf("not a valid utf-8 string")
+	}
+	for _ /* index */, r /* rune */ := range s {
+		if r > unicode.MaxASCII {
+			return fmt.Errorf("non-ASCII char in realm name: %U", r)
+		}
+		if !unicode.IsPrint(r) {
+			return fmt.Errorf("non-printable char in realm name: %U", r)
 		}
 	}
 	return nil
