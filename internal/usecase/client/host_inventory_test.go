@@ -127,9 +127,7 @@ func helperBodyEmpty() string {
 func TestNewHostInventory(t *testing.T) {
 	cfg := &config.Config{
 		Clients: config.Clients{
-			Inventory: config.InventoryClient{
-				BaseUrl: "http://localhost:8010/api/inventory/v1",
-			},
+			InventoryBaseURL: "http://localhost:8010/api/inventory/v1",
 		},
 	}
 	result := NewHostInventory(cfg)
@@ -164,7 +162,7 @@ func TestGetHostByCN(t *testing.T) {
 	)
 	defer e.Shutdown(context.Background())
 
-	cfg.Clients.Inventory.BaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
 	cli := NewHostInventory(&cfg)
 	host, err := cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.NoError(t, err)
@@ -209,7 +207,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 	defer e.Shutdown(context.Background())
 
 	// Failure because a wrong base url
-	cfg.Clients.Inventory.BaseUrl = fmt.Sprintf("lhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("lhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
 	cli := NewHostInventory(&cfg)
 	host, err := cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t,
@@ -226,7 +224,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 
 	// Failure request because wrong Location header parsing
 	// (forcing req.Do operation to fail)
-	cfg.Clients.Inventory.BaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t,
@@ -244,8 +242,8 @@ func TestGetHostByCNErrors(t *testing.T) {
 	)
 	defer e.Shutdown(context.Background())
 	// Error unmarshalling response
-	cfg.Clients.Inventory.BaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
-	t.Logf("Listening for: %s", cfg.Clients.Inventory.BaseUrl)
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	t.Logf("Listening for: %s", cfg.Clients.InventoryBaseURL)
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t, err, "unexpected end of JSON input")
@@ -260,8 +258,8 @@ func TestGetHostByCNErrors(t *testing.T) {
 	)
 	defer e.Shutdown(context.Background())
 	// Error unmarshalling response
-	cfg.Clients.Inventory.BaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
-	t.Logf("Listening for: %s", cfg.Clients.Inventory.BaseUrl)
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	t.Logf("Listening for: %s", cfg.Clients.InventoryBaseURL)
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t, err, fmt.Sprintf("Failed to look up 'cn=%s'", cn))
@@ -276,8 +274,8 @@ func TestGetHostByCNErrors(t *testing.T) {
 	)
 	defer e.Shutdown(context.Background())
 	// Error unmarshalling response
-	cfg.Clients.Inventory.BaseUrl = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
-	t.Logf("Listening for: %s", cfg.Clients.Inventory.BaseUrl)
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	t.Logf("Listening for: %s", cfg.Clients.InventoryBaseURL)
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t, err, fmt.Sprintf("Looked up 'cn=%s' does not match", cn))

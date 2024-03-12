@@ -20,7 +20,7 @@ type hostInventory struct {
 // Return an instance that accomplish HostInventory interface.
 func NewHostInventory(cfg *config.Config) interface_client.HostInventory {
 	return &hostInventory{
-		baseURL: cfg.Clients.Inventory.BaseUrl,
+		baseURL: cfg.Clients.InventoryBaseURL,
 	}
 }
 
