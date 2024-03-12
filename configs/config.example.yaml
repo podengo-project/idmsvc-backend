@@ -65,8 +65,8 @@ metrics:
   port: 9000
 
 clients:
-  inventory:
-    base_url: http://localhost:8010/api/inventory/v1
+  inventory_base_url: http://localhost:8010/api/inventory/v1
+  rbac_base_url: http://localhost:8020/api/rbac/v1
 
 app:
   # Token expiration time in seconds
