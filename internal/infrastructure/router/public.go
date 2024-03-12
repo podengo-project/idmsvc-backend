@@ -1,6 +1,7 @@
 package router
 
 import (
+	_ "embed"
 	"fmt"
 	"strings"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
+	rbac_data "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware/rbac-data"
+	"github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 )
 
 // skipperValidate is an alias to represent skipper for API validation middleware
@@ -36,6 +39,9 @@ var systemEnforceRoutes = []enforceRoute{
 	{"POST", "/api/idmsvc/v1/host-conf/:inventory_id/:fqdn"},
 }
 
+//go:embed rbac.yaml
+var rbacMapBytes []byte
+
 func getOpenapiPaths(c RouterConfig) func() []string {
 	if c == (RouterConfig{}) {
 		panic(fmt.Errorf("'c' is empty"))
@@ -54,6 +60,47 @@ func getOpenapiPaths(c RouterConfig) func() []string {
 	}
 }
 
+func newRbacSkipper(service string) echo_middleware.Skipper {
+	if service == "" {
+		panic("service is an empty string")
+	}
+	return func(c echo.Context) bool {
+		return c.Path() == "/api/"+service+"/v1/openapi.json"
+	}
+}
+
+func initRbacMiddleware(cfg *config.Config) echo.MiddlewareFunc {
+	if !cfg.Application.EnableRBAC {
+		return middleware.DefaultNooperation
+	}
+
+	service := rbac_data.RBACService("idmsvc")
+	rbac_data.SetRbacServiceValidator(rbac_data.NewRbacServiceValidator(service))
+	rbac_data.SetRbacResourceValidator(
+		rbac_data.NewRbacResourceValidator(
+			rbac_data.RBACResource("token"),
+			rbac_data.RBACResource("domains"),
+			rbac_data.RBACResource("host_conf"),
+			rbac_data.RBACResource("signing_keys"),
+		),
+	)
+	prefix, rbacMap := rbac_data.RBACMapLoad(rbacMapBytes)
+	base := strings.TrimSuffix(cfg.Clients.RbacBaseURL, "/")
+	client, err := rbac.NewClientWithResponses(base)
+	if err != nil {
+		panic(fmt.Errorf("error creating rbac client: %w", err))
+	}
+	rbacMiddleware := middleware.RBACWithConfig(
+		&middleware.RBACConfig{
+			Skipper:       newRbacSkipper("idmsvc"),
+			Prefix:        prefix,
+			PermissionMap: rbacMap,
+			Client:        rbac.New("idmsvc", client),
+		},
+	)
+	return rbacMiddleware
+}
+
 func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	if e == nil {
 		panic("echo group is nil")
@@ -63,7 +110,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	}
 
 	// Initialize middlewares
-	var fakeIdentityMiddleware echo.MiddlewareFunc = middleware.DefaultNooperation
+	fakeIdentityMiddleware := middleware.DefaultNooperation
 	if c.IsFakeEnabled {
 		fakeIdentityMiddleware = middleware.FakeIdentityWithConfig(
 			&middleware.FakeIdentityConfig{
@@ -95,18 +142,9 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		},
 	)
 
-	var rbacMiddleware echo.MiddlewareFunc
-	if config.Get().Application.EnableRBAC {
-		rbacMiddleware = middleware.RBACWithConfig(
-			&middleware.RBACConfig{
-				Skipper: nil,
-				// TODO HMS-3522
-				PermissionMap: middleware.RBACMap{},
-			},
-		)
-	} else {
-		rbacMiddleware = middleware.DefaultNooperation
-	}
+	// FIXME Refactor to inject the config.Config dependency
+	rbacMiddleware := initRbacMiddleware(config.Get())
+
 	metricsMiddleware := middleware.MetricsMiddlewareWithConfig(
 		&middleware.MetricsConfig{
 			Metrics: c.Metrics,
@@ -117,7 +155,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 			TargetHeader: "X-Rh-Insights-Request-Id", // TODO Check this name is the expected
 		},
 	)
-	var validateAPI echo.MiddlewareFunc = middleware.DefaultNooperation
+	validateAPI := middleware.DefaultNooperation
 	if c.EnableAPIValidator {
 		middleware.InitOpenAPIFormats()
 		validateAPI = middleware.RequestResponseValidatorWithConfig(
@@ -191,7 +229,7 @@ func skipperSystemPredicate(ctx echo.Context) bool {
 	return true
 }
 
-// skipperOpenapi skip /api/idmsvc/v*/openapi.json path
+// newSkipperOpenapi skip /api/idmsvc/v*/openapi.json path
 func newSkipperOpenapi(c RouterConfig) echo_middleware.Skipper {
 	paths := getOpenapiPaths(c)()
 	return func(ctx echo.Context) bool {
