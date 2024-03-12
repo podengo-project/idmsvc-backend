@@ -2,11 +2,14 @@ package router
 
 import (
 	"fmt"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
@@ -319,4 +322,41 @@ func TestNewSkipperOpenapi(t *testing.T) {
 	path = fmt.Sprintf("%s/v%s/openapi2.json", c.PublicPath, strings.Split(c.Version, ".")[0])
 	ctx = helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
 	assert.False(t, skipper(ctx))
+}
+
+func TestNewRbacSkipper(t *testing.T) {
+	var skipper echo_middleware.Skipper
+
+	require.PanicsWithValue(t, "service is an empty string", func() {
+		skipper = newRbacSkipper("")
+	}, "newRbacSkipper panics on empty service")
+
+	require.NotPanics(t, func() {
+		skipper = newRbacSkipper("idmsvc")
+	}, "no panics for idmsvc")
+	skipper(echo.New().NewContext(httptest.NewRequest(http.MethodGet, "/api/idmsvc/v1/openapi.json", http.NoBody), httptest.NewRecorder()))
+}
+
+func TestInitRbacMiddleware(t *testing.T) {
+	var result echo.MiddlewareFunc
+	assert.NotPanics(t, func() {
+		result = initRbacMiddleware(&config.Config{
+			Application: config.Application{
+				EnableRBAC: false,
+			},
+		})
+	}, "Return DefaultNooperation")
+	assert.NotNil(t, result)
+
+	assert.NotPanics(t, func() {
+		result = initRbacMiddleware(&config.Config{
+			Application: config.Application{
+				EnableRBAC: true,
+			},
+			Clients: config.Clients{
+				RbacBaseURL: "http://rbac:8000",
+			},
+		})
+	}, "Initialize the rbac middleware")
+	assert.NotNil(t, result)
 }
