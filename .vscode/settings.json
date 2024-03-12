@@ -10,5 +10,7 @@
     "go.lintOnSave": "workspace",
     "go.lintFlags": [
         "--fast"
-    ]
+    ],
+    "go.coverageOptions": "showUncoveredCodeOnly",
+    "go.coverOnSave": true
 }
