@@ -1,0 +1,21 @@
+# https://github.com/RedHatInsights/rbac-config/blob/master/configs/stage/permissions/idmsvc.json
+# https://github.com/RedHatInsights/rbac-config/blob/master/configs/stage/roles/idmsvc.json
+# TODO Review with @tiran and @frasertweedale
+---
+version: "1.0"
+prefix: "/api/idmsvc/v1"
+data:
+  "/domains/token":
+    POST: "idmsvc:token:create"
+  "/domains":
+    POST: "idmsvc:domains:create"
+    GET: "idmsvc:domains:list"
+  "/domains/:uuid":
+    GET: "idmsvc:domains:read"
+    PUT: "idmsvc:domains:update"
+    PATCH: "idmsvc:domains:update"
+    DELETE: "idmsvc:domains:delete"
+  "/host-conf/:inventory_id/:fqdn":
+    POST: "idmsvc:host_conf:execute"
+  "/signing_keys":
+    GET: "idmsvc:signing_keys:execute"

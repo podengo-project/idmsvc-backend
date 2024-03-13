@@ -30,10 +30,18 @@ if [[ ! -x "${XRHIDGEN}" ]]; then
     exit 2
 fi
 
+base64nowrap() {
+    if [ "$(uname -s)" == "Darwin" ]; then
+        base64
+    else
+        base64 -w0
+    fi
+}
+
 identity_user() {
-    "${XRHIDGEN}" -org-id "${ORG_ID}" user -is-active=true -is-org-admin=true -user-id test -username test | base64 -w0
+    "${XRHIDGEN}" -org-id "${ORG_ID}" user -is-active=true -is-org-admin=true -user-id test -username test | base64nowrap
 }
 
 identity_system() {
-    "${XRHIDGEN}" -org-id "${ORG_ID}" system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64 -w0
+    "${XRHIDGEN}" -org-id "${ORG_ID}" system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64nowrap
 }

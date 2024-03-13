@@ -52,7 +52,11 @@ fi
 
 # Generate a X_RH_INSIGHTS_REQUEST_ID if it is not set
 if [ "${X_RH_INSIGHTS_REQUEST_ID}" == "" ]; then
-    X_RH_INSIGHTS_REQUEST_ID="test_$(sed 's/[-]//g' < "/proc/sys/kernel/random/uuid" | head -c 20)"
+    if [ "$(uname -s)" == "Darwin" ]; then
+        X_RH_INSIGHTS_REQUEST_ID="test_$(uuidgen | sed 's/[-]//g' | head -c 20)"
+    else
+        X_RH_INSIGHTS_REQUEST_ID="test_$(sed 's/[-]//g' < "/proc/sys/kernel/random/uuid" | head -c 20)"
+    fi
 fi
 opts+=("-H" "X-Rh-Insights-Request-Id: ${X_RH_INSIGHTS_REQUEST_ID}")
 verbose "-H X-Rh-Insights-Request-Id: ${X_RH_INSIGHTS_REQUEST_ID}"

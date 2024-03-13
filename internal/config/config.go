@@ -153,14 +153,13 @@ type Metrics struct {
 	Port int `mapstructure:"port"`
 }
 
-// Clients gather all the client settings for the
+// Clients gather all the configuration to properly setup
+// the third party services that idmsvc need to interact with.
 type Clients struct {
-	Inventory InventoryClient
-}
-
-type InventoryClient struct {
-	// Define the base url for the host inventory service
-	BaseUrl string `mapstructure:"base_url"`
+	// InventoryBaseURL is the base endpoint to launch inventory requests.
+	InventoryBaseURL string `mapstructure:"inventory_base_url"`
+	// RbacBaseURL is the base endpoint to launch RBAC requests.
+	RbacBaseURL string `mapstructure:"rbac_base_url"`
 }
 
 // Application hold specific application settings
