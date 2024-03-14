@@ -355,7 +355,7 @@ func Get() *Config {
 	v := Load(config)
 
 	// Dump configuration as JSON
-	if config.Logging.Level == "debug" {
+	if config.Logging.Level == "trace" {
 		c := v.AllSettings()
 		b, err := json.MarshalIndent(c, "", "  ")
 		if err != nil {
