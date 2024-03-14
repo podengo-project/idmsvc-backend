@@ -140,7 +140,7 @@ func (r *hostconfJwkRepository) GetPrivateSigningKeys(db *gorm.DB) (privkeys []j
 	now := time.Now()
 	if err = db.
 		Where("encrypted_jwk is not NULL").
-		Where("encrypted_id = ?", r.config.Secrets.HostconfEncryptionId).
+		Where("encryption_id = ?", r.config.Secrets.HostconfEncryptionId).
 		Where("expires_at > ?", now). // use SQL NOW()?
 		Order("id").
 		Find(&hcjwks).Error; err != nil {
