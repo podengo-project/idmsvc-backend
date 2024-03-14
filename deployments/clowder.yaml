@@ -80,6 +80,8 @@ objects:
                 value: "true"
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
+              - name: LOGGING_LOCATION
+                value: ${{LOGGING_LOCATION}}
               - name: APP_TOKEN_EXPIRATION_SECONDS
                 value: "${APP_TOKEN_EXPIRATION_SECONDS}"
               - name: APP_PAGINATION_DEFAULT_LIMIT
@@ -134,6 +136,8 @@ objects:
                 value: "true"
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
+              - name: LOGGING_LOCATION
+                value: ${{LOGGING_LOCATION}}
               - name: APP_TOKEN_EXPIRATION_SECONDS
                 value: "${APP_TOKEN_EXPIRATION_SECONDS}"
               - name: APP_SECRET
@@ -187,6 +191,10 @@ parameters:
     description: |
       The log level for the deployment; valid values
       are "info", "warn", "error", "debug", "trace".
+  - name: LOGGING_LOCATION
+    value: "false"
+    description: |
+      Log source code locations of log statements.
   - name: APP_TOKEN_EXPIRATION_SECONDS
     value: "7200"
     description: |
