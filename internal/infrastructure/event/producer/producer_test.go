@@ -85,7 +85,7 @@ func TestNewProducer(t *testing.T) {
 				},
 				Sasl: struct {
 					Username  string
-					Password  string
+					Password  string `json:"-"`
 					Mechanism string
 					Protocol  string
 				}{

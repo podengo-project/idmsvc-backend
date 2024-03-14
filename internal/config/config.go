@@ -72,7 +72,7 @@ type Database struct {
 	Host     string
 	Port     int
 	User     string
-	Password string
+	Password string `json:"-"`
 	Name     string
 	// https://stackoverflow.com/questions/54844546/how-to-unmarshal-golang-viper-snake-case-values
 	CACertPath string `mapstructure:"ca_cert_path"`
@@ -81,7 +81,7 @@ type Database struct {
 type Cloudwatch struct {
 	Region  string
 	Key     string
-	Secret  string
+	Secret  string `json:"-"`
 	Session string
 	Group   string
 	Stream  string
@@ -116,7 +116,7 @@ type Kafka struct {
 	Topics []string
 	Sasl   struct {
 		Username  string
-		Password  string
+		Password  string `json:"-"`
 		Mechanism string
 		Protocol  string
 	}
@@ -186,7 +186,7 @@ type Application struct {
 	// secret for various MAC and encryptions like domain registration
 	// token and encrypted private JWKs.
 	// Secrets are derived with HKDF-SHA256.
-	MainSecret string `mapstructure:"secret" validate:"required,base64rawurl"`
+	MainSecret string `mapstructure:"secret" validate:"required,base64rawurl" json:"-"`
 	// Flag to enable/disable rbac
 	EnableRBAC bool `mapstructure:"enable_rbac"`
 }
