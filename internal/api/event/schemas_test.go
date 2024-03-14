@@ -139,7 +139,7 @@ func TestValidate(t *testing.T) {
 		// },
 		{
 			Name: "success scenario",
-			Given: TodoCreatedEvent{
+			Given: TodoCreatedEventJson{
 				Id:          12345,
 				Title:       "Todo title",
 				Description: "Todo description",

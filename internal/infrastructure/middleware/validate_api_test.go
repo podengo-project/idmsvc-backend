@@ -117,6 +117,25 @@ func TestCheckUtf8MultiLine(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestCheckRealm(t *testing.T) {
+	var err error
+
+	err = checkRealm("NOT.VALID.UTF8\xF1")
+	assert.EqualError(t, err, "not a valid utf-8 string")
+
+	err = checkRealm("NON.PRINTABLE.ASCII\n")
+	assert.EqualError(t, err, "non-printable char in realm name: U+000A")
+
+	err = checkRealm("NON.PRINTABLE.ASCIÍ")
+	assert.EqualError(t, err, "non-ASCII char in realm name: U+00CD")
+
+	err = checkRealm("VALID.REALM")
+	assert.NoError(t, err)
+
+	err = checkRealm("a|s0 \\/AL!D")
+	assert.NoError(t, err)
+}
+
 func TestInitOpenAPIFormats(t *testing.T) {
 	InitOpenAPIFormats()
 }

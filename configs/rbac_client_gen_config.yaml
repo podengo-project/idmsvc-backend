@@ -1,0 +1,13 @@
+# Thanks RHEnvision:
+# See: https://github.com/RHEnVision/provisioning-backend/blob/main/config/rbac_config.yml
+---
+package: rbac
+generate:
+  models: true
+  client: true
+output: ./internal/usecase/client/rbac/client.gen.go
+output-options:
+  # the API is huge, we only need one endpoint tho
+  include-tags:
+    - Access
+    - Status

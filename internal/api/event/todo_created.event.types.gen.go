@@ -6,38 +6,38 @@ import "fmt"
 import "encoding/json"
 
 // Message schema for todo creation event
-type TodoCreatedEvent struct {
+type TodoCreatedEventJson struct {
 	// The Todo description
-	Description string `json:"description"`
+	Description string `json:"description" yaml:"description"`
 
 	// The id of the Todo resource.
 	//
-	Id float64 `json:"id"`
+	Id float64 `json:"id" yaml:"id"`
 
 	// The Todo title
-	Title string `json:"title"`
+	Title string `json:"title" yaml:"title"`
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
-func (j *TodoCreatedEvent) UnmarshalJSON(b []byte) error {
+func (j *TodoCreatedEventJson) UnmarshalJSON(b []byte) error {
 	var raw map[string]interface{}
 	if err := json.Unmarshal(b, &raw); err != nil {
 		return err
 	}
 	if v, ok := raw["description"]; !ok || v == nil {
-		return fmt.Errorf("field description: required")
+		return fmt.Errorf("field description in TodoCreatedEventJson: required")
 	}
 	if v, ok := raw["id"]; !ok || v == nil {
-		return fmt.Errorf("field id: required")
+		return fmt.Errorf("field id in TodoCreatedEventJson: required")
 	}
 	if v, ok := raw["title"]; !ok || v == nil {
-		return fmt.Errorf("field title: required")
+		return fmt.Errorf("field title in TodoCreatedEventJson: required")
 	}
-	type Plain TodoCreatedEvent
+	type Plain TodoCreatedEventJson
 	var plain Plain
 	if err := json.Unmarshal(b, &plain); err != nil {
 		return err
 	}
-	*j = TodoCreatedEvent(plain)
+	*j = TodoCreatedEventJson(plain)
 	return nil
 }

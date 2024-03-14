@@ -16,6 +16,9 @@ tmp.*/**
 !/configs/bonfire.example.yaml
 !/configs/cdappconfig.json
 
+!/configs/rbac_client_api.json
+!/configs/rbac_client_gen_config.yaml
+
 # File generated when running unit tests
 coverage.out
 

@@ -172,7 +172,10 @@ ephemeral-db-cli: ## Open a database client
 # TODO Add command to specify to bonfire the clowdenv template to be used
 .PHONY: ephemeral-namespace-create
 ephemeral-namespace-create: $(BONFIRE)  ## Create a namespace (requires ephemeral environment)
-	oc project "$(shell $(BONFIRE) namespace reserve --force --duration "$(EPHEMERAL_DURATION)" --pool "$(POOL)" 2>/dev/null)"
+	NAMESPACE="$(shell $(BONFIRE) namespace reserve --force --duration "$(EPHEMERAL_DURATION)" --pool "$(POOL)" 2>/dev/null)"; \
+	if [ "$${NAMESPACE}" == "" ]; then echo "Namespace reservation failed"; exit 1; else \
+		oc project "$${NAMESPACE}"; \
+	fi
 
 .PHONY: ephemeral-namespace-delete
 ephemeral-namespace-delete: $(BONFIRE) ## Delete current namespace (requires ephemeral environment)
