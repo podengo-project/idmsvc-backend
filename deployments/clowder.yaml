@@ -81,7 +81,7 @@ objects:
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
               - name: LOGGING_LOCATION
-                value: ${{LOGGING_LOCATION}}
+                value: ${LOGGING_LOCATION}
               - name: APP_TOKEN_EXPIRATION_SECONDS
                 value: "${APP_TOKEN_EXPIRATION_SECONDS}"
               - name: APP_PAGINATION_DEFAULT_LIMIT
@@ -137,7 +137,7 @@ objects:
               - name: LOGGING_LEVEL
                 value: ${{LOGGING_LEVEL}}
               - name: LOGGING_LOCATION
-                value: ${{LOGGING_LOCATION}}
+                value: ${LOGGING_LOCATION}
               - name: APP_TOKEN_EXPIRATION_SECONDS
                 value: "${APP_TOKEN_EXPIRATION_SECONDS}"
               - name: APP_SECRET
