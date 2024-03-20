@@ -290,6 +290,11 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 		v.Set("logging.cloudwatch.group", clowderConfig.Logging.Cloudwatch.LogGroup)
 		v.Set("logging.cloudwatch.region", clowderConfig.Logging.Cloudwatch.Region)
 		v.Set("logging.cloudwatch.secret", clowderConfig.Logging.Cloudwatch.SecretAccessKey)
+		// TODO Delete the block below when the below PR is merged
+		// See: https://github.com/RedHatInsights/clowder/pull/627
+		if clowderConfig.Logging.Type == "" && len(clowderConfig.Logging.Cloudwatch.SecretAccessKey) > 0 {
+			v.Set("logging.type", "cloudwatch")
+		}
 	}
 
 	// Metrics configuration
