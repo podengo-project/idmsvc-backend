@@ -103,6 +103,7 @@ func TestSetClowderConfiguration(t *testing.T) {
 	assert.Equal(t, "testgroup", v.Get("logging.cloudwatch.group"))
 	assert.Equal(t, "testsecret", v.Get("logging.cloudwatch.secret"))
 	assert.Equal(t, "testaccesskeyid", v.Get("logging.cloudwatch.key"))
+	assert.Equal(t, "cloudwatch", v.Get("logging.type"))
 }
 
 func TestHasKafkaBrokerConfig(t *testing.T) {
