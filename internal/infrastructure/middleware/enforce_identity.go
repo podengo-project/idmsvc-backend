@@ -57,7 +57,7 @@ func EnforceUserPredicate(data *identity.XRHID) error {
 		return fmt.Errorf("'data' cannot be nil")
 	}
 	if data.Identity.Type != "User" {
-		return fmt.Errorf("'Identity.Type' is not 'User'")
+		return fmt.Errorf("'Identity.Type=%s' is not 'User'", data.Identity.Type)
 	}
 	if !data.Identity.User.Active {
 		return fmt.Errorf("'Identity.User.Active' is not true")
@@ -88,6 +88,24 @@ func EnforceSystemPredicate(data *identity.XRHID) error {
 		return fmt.Errorf("'Identity.System.CommonName' is empty")
 	}
 	return nil
+}
+
+// NewEnforceOr allow to create new predicates by composing a
+// logical OR with existing predicates.
+func NewEnforceOr(predicates ...IdentityPredicate) IdentityPredicate {
+	return func(data *identity.XRHID) error {
+		var firsterr error
+		for i := range predicates {
+			if err := predicates[i](data); err == nil {
+				return nil
+			} else {
+				if firsterr == nil {
+					firsterr = err
+				}
+			}
+		}
+		return firsterr
+	}
 }
 
 // EnforceIdentityWithConfig instantiate a EnforceIdentity middleware
