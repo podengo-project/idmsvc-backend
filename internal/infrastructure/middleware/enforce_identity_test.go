@@ -308,7 +308,7 @@ func TestEnforceUserPredicate(t *testing.T) {
 					Type: "System",
 				},
 			},
-			Expected: fmt.Errorf("'Identity.Type' is not 'User'"),
+			Expected: fmt.Errorf("'Identity.Type=System' is not 'User'"),
 		},
 		{
 			Name: "Identity with disabled user",
@@ -479,5 +479,72 @@ func TestEnforceIdentityOrder(t *testing.T) {
 		require.Condition(t, func() (success bool) {
 			return order["first"].Compare(order["second"]) < 0
 		})
+	}
+}
+
+func TestNewEnforceOr(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    *identity.XRHID
+		Expected error
+	}
+	testCases := []TestCase{
+		{
+			Name: "'Identity' type is not 'System'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+				},
+			},
+			Expected: fmt.Errorf("'Identity.Type' must be 'System'"),
+		},
+		{
+			Name: "Identity type is not 'User'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+				},
+			},
+			Expected: fmt.Errorf("'Identity.System.CertType' is not 'system'"),
+		},
+		{
+			Name: "Success case for system",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+					System: identity.System{
+						CertType:   "system",
+						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
+					},
+				},
+			},
+			Expected: nil,
+		},
+		{
+			Name: "Success case for user",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+					User: identity.User{
+						Active:   true,
+						UserID:   "jdoe",
+						Username: "jdoe",
+					},
+				},
+			},
+			Expected: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		predicate := NewEnforceOr(EnforceSystemPredicate, EnforceUserPredicate)
+		err := predicate(testCase.Given)
+		if testCase.Expected != nil {
+			require.Error(t, err)
+			assert.EqualError(t, err, testCase.Expected.Error())
+		} else {
+			assert.NoError(t, err)
+		}
 	}
 }

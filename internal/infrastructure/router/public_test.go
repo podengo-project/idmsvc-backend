@@ -229,6 +229,13 @@ func TestSkipperUser(t *testing.T) {
 			Expected: true,
 		})
 	}
+	for i := range mixedEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip mixedEnforceRoutes[%d]: %v", i, mixedEnforceRoutes[i]),
+			Given:    mixedEnforceRoutes[i],
+			Expected: true,
+		})
+	}
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
 		ctx := helperNewContextForSkipper(
@@ -259,6 +266,13 @@ func TestSkipperSystem(t *testing.T) {
 		testCases = append(testCases, TestCase{
 			Name:     fmt.Sprintf("Skip userEnforceRoutes[%d]: %v", i, userEnforceRoutes[i]),
 			Given:    userEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for i := range mixedEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip mixedEnforceRoutes[%d]: %v", i, mixedEnforceRoutes[i]),
+			Given:    mixedEnforceRoutes[i],
 			Expected: true,
 		})
 	}
@@ -359,4 +373,44 @@ func TestInitRbacMiddleware(t *testing.T) {
 		})
 	}, "Initialize the rbac middleware")
 	assert.NotNil(t, result)
+}
+
+func TestSkipperMixedPredicate(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    enforceRoute
+		Expected bool
+	}
+	testCases := []TestCase{}
+	for i := range userEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip userEnforceRoutes[%d]: %v", i, userEnforceRoutes[i]),
+			Given:    userEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for i := range systemEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("Skip systemEnforceRoutes[%d]: %v", i, systemEnforceRoutes[i]),
+			Given:    systemEnforceRoutes[i],
+			Expected: true,
+		})
+	}
+	for i := range mixedEnforceRoutes {
+		testCases = append(testCases, TestCase{
+			Name:     fmt.Sprintf("No skip mixedEnforceRoutes[%d]: %v", i, mixedEnforceRoutes[i]),
+			Given:    mixedEnforceRoutes[i],
+			Expected: false,
+		})
+	}
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		ctx := helperNewContextForSkipper(
+			testCase.Given.Path,
+			testCase.Given.Method,
+			testCase.Given.Path,
+			nil)
+		result := skipperMixedPredicate(ctx)
+		assert.Equal(t, testCase.Expected, result)
+	}
 }
