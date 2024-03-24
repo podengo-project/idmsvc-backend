@@ -1,4 +1,4 @@
-package client
+package inventory
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	api_header "github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
-	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
+	client_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
 	test_client "github.com/podengo-project/idmsvc-backend/internal/test/client"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
@@ -167,7 +167,7 @@ func TestGetHostByCN(t *testing.T) {
 	host, err := cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)
-	assert.Equal(t, client.InventoryHost{
+	assert.Equal(t, client_inventory.InventoryHost{
 		ID:                    id,
 		SubscriptionManagerId: cn,
 		FQDN:                  fqdn,
@@ -182,10 +182,9 @@ func TestGetHostByCNErrors(t *testing.T) {
 		orgId   = "11111"
 		fqdn    = "server.idmsvc-dev.test"
 	)
-	var (
-		// rec *httptest.ResponseRecorder
-		e *echo.Echo
-	)
+
+	// rec *httptest.ResponseRecorder
+	var e *echo.Echo
 	cfg := config.Config{}
 	xrhid := identity.XRHID{
 		Identity: identity.Identity{
@@ -220,7 +219,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 			),
 		),
 	)
-	assert.Equal(t, client.InventoryHost{}, host)
+	assert.Equal(t, client_inventory.InventoryHost{}, host)
 
 	// Failure request because wrong Location header parsing
 	// (forcing req.Do operation to fail)
@@ -231,7 +230,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 		err,
 		"400 Bad Request",
 	)
-	assert.Equal(t, client.InventoryHost{}, host)
+	assert.Equal(t, client_inventory.InventoryHost{}, host)
 
 	// Error unmarshalling the body response
 	e, _, _ = newMockInventoryServer(t,
@@ -247,7 +246,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t, err, "unexpected end of JSON input")
-	assert.Equal(t, client.InventoryHost{}, host)
+	assert.Equal(t, client_inventory.InventoryHost{}, host)
 
 	// Force 'Failed to look up'
 	e, _, _ = newMockInventoryServer(t,
@@ -263,7 +262,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t, err, fmt.Sprintf("Failed to look up 'cn=%s'", cn))
-	assert.Equal(t, client.InventoryHost{}, host)
+	assert.Equal(t, client_inventory.InventoryHost{}, host)
 
 	// Force 'Look up does not match'
 	e, _, _ = newMockInventoryServer(t,
@@ -279,6 +278,5 @@ func TestGetHostByCNErrors(t *testing.T) {
 	cli = NewHostInventory(&cfg)
 	host, err = cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.EqualError(t, err, fmt.Sprintf("Looked up 'cn=%s' does not match", cn))
-	assert.Equal(t, client.InventoryHost{}, host)
-
+	assert.Equal(t, client_inventory.InventoryHost{}, host)
 }

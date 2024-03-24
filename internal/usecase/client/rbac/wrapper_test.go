@@ -86,7 +86,7 @@ func TestAddXRHID(t *testing.T) {
 	xrhid := builder_api.NewUserXRHID().Build()
 	xrhidRaw := header.EncodeXRHID(&xrhid)
 	assert.NotPanics(t, func() {
-		ctx := ContextWithXRHID(context.Background(), xrhidRaw)
+		ctx := ContextWithXRHIDRaw(context.Background(), xrhidRaw)
 		req := httptest.NewRequest(http.MethodGet, "/domains", http.NoBody)
 		err = c.addXRHID(ctx, req)
 	}, "No panic on normal operation")
