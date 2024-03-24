@@ -357,17 +357,7 @@ func Get() *Config {
 		return config
 	}
 	config = &Config{}
-	v := Load(config)
-
-	// Dump configuration as JSON
-	if config.Logging.Level == "trace" {
-		c := v.AllSettings()
-		b, err := json.MarshalIndent(c, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(b))
-	}
+	_ = Load(config)
 
 	if err := Validate(config); err != nil {
 		reportError(err)
@@ -379,6 +369,15 @@ func Get() *Config {
 		panic(err)
 	}
 	config.Secrets = *sec
+
+	// Dump configuration as JSON
+	if config.Logging.Level == "trace" {
+		b, err := json.MarshalIndent(config, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(b))
+	}
 
 	return config
 }

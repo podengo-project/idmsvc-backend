@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -36,7 +37,7 @@ func New(application string, rbacClient ClientInterface) rbac.Rbac {
 	}
 }
 
-func (c *rbacWrapper) IsAllowed(ctx context.Context, permission string) (bool, error) {
+func (c *rbacWrapper) IsAllowed(ctx context.Context, xrhid, permission string) (bool, error) {
 	var (
 		service  string
 		resource string
@@ -51,6 +52,7 @@ func (c *rbacWrapper) IsAllowed(ctx context.Context, permission string) (bool, e
 		return false, fmt.Errorf("permission to check is an empty string")
 	}
 	service, resource, verb = c.decomposePermission(permission)
+	ctx = ContextWithXRHIDRaw(ctx, xrhid)
 	if listACL, err = c.retrieveACL(ctx); err != nil {
 		return false, err
 	}
@@ -60,7 +62,7 @@ func (c *rbacWrapper) IsAllowed(ctx context.Context, permission string) (bool, e
 		}
 		return true, nil
 	}
-	return false, fmt.Errorf("permission '%s' not allowed", permission)
+	return false, nil
 }
 
 func (c *rbacWrapper) matchPermission(service, resource, verb, aclItem string) bool {
@@ -113,6 +115,7 @@ func (c *rbacWrapper) retrieveACL(ctx context.Context) ([]string, error) {
 
 	limit = limitDefault
 	offset = 0
+	permissions := []string{}
 	for {
 		response, err := c.client.GetPrincipalAccess(
 			ctx,
@@ -127,39 +130,41 @@ func (c *rbacWrapper) retrieveACL(ctx context.Context) ([]string, error) {
 			return []string{}, err
 		}
 		var dataBody []byte
-		if _, err = response.Body.Read(dataBody); err != nil {
+		if dataBody, err = io.ReadAll(response.Body); err != nil {
 			return []string{}, err
 		}
 		var dataACL AccessPagination
 		if err = json.Unmarshal(dataBody, &dataACL); err != nil {
 			return []string{}, err
 		}
-		permission := make([]string, offset+len(dataACL.Data))
 		for i := range dataACL.Data {
-			permission[offset+i] = dataACL.Data[i].Permission
+			permissions = append(permissions, dataACL.Data[i].Permission)
 		}
 		if *dataACL.Meta.Count == limitDefault {
 			offset += limitDefault
 			continue
 		}
-		return permission, nil
+		return permissions, nil
 	}
 }
 
 // XRHIDRawFromCtx read the contextKey entry from
-// a previoys created context by ContextWithXRHID
+// a previously created context by ContextWithXRHID
 // Return the string with the raw string xrhid or
 // a panic happen.
 func XRHIDRawFromCtx(ctx context.Context) string {
 	data := ctx.Value(contextKey)
+	if data == nil {
+		panic("xrhid value not found in the context")
+	}
 	if dataString, ok := data.(string); ok {
 		return dataString
 	}
 	panic("xrhid value is not a string")
 }
 
-// ContextWithXRHID create a new context
+// ContextWithXRHIDRaw create a new context
 // Return a new context with the entry contextKey
-func ContextWithXRHID(ctx context.Context, xrhidRaw string) context.Context {
+func ContextWithXRHIDRaw(ctx context.Context, xrhidRaw string) context.Context {
 	return context.WithValue(ctx, contextKey, xrhidRaw)
 }

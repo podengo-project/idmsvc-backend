@@ -54,8 +54,6 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	result.echo.HideBanner = true
 	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		result.echo.Debug = true
-	}
-	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		routes := result.echo.Routes()
 		slog.Debug("Printing routes")
 		for idx, route := range routes {
@@ -74,7 +72,7 @@ func (srv *apiService) Start() error {
 	go func() {
 		defer srv.waitGroup.Done()
 		srvAddress := fmt.Sprintf(":%d", srv.config.Web.Port)
-		slog.Debug("staring echo server", slog.String("srvAddress", srvAddress))
+		slog.Debug("Starting apiService", slog.String("srvAddress", srvAddress))
 		if err := srv.echo.Start(srvAddress); err != nil && err != http.ErrServerClosed {
 			slog.Error("Failed to start server", slog.Any("error", err))
 		}

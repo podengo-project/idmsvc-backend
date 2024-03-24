@@ -10,7 +10,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	rbac_data "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware/rbac-data"
 	api_builder "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
-	"github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client"
+	client_rbac "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/rbac"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -48,7 +48,7 @@ func helperRbacCreateMapping() rbac_data.RBACMap {
 
 func helperRbacSetup(t *testing.T, prefix string, skipper echo_middleware.Skipper) (RBACConfig, identity.XRHID, bool) {
 	rbacMap := helperRbacCreateMapping()
-	rbacClientMock := client.NewRbac(t)
+	rbacClientMock := client_rbac.NewRbac(t)
 	rbacConfig := RBACConfig{
 		Skipper:       skipper,
 		Prefix:        prefix,
@@ -113,7 +113,7 @@ func TestRBACWithConfigSkipper(t *testing.T) {
 func TestRBACWithConfigFailGetPermission(t *testing.T) {
 	prefix := "/api/idmsvc/v1"
 	rbacMap := helperRbacCreateMapping()
-	rbacClientMock := client.NewRbac(t)
+	rbacClientMock := client_rbac.NewRbac(t)
 	rbacConfig := RBACConfig{
 		Prefix:        prefix,
 		PermissionMap: rbacMap,
@@ -137,7 +137,7 @@ func TestRBACWithConfigFailGetPermission(t *testing.T) {
 func TestRBACWithConfigFailRbacClient(t *testing.T) {
 	prefix := "/api/idmsvc/v1"
 	rbacMap := helperRbacCreateMapping()
-	rbacClientMock := client.NewRbac(t)
+	rbacClientMock := client_rbac.NewRbac(t)
 	rbacConfig := RBACConfig{
 		Prefix:        prefix,
 		PermissionMap: rbacMap,
@@ -155,7 +155,7 @@ func TestRBACWithConfigFailRbacClient(t *testing.T) {
 	req := httptest.NewRequest(method, "http://localhost:8000"+path, http.NoBody)
 	req.Header.Add(headerXRhIdentity, header.EncodeXRHID(&xrhid))
 	permission := rbac_data.NewRbacPermission("idmsvc", "domains", rbac_data.RbacVerbRead)
-	rbacClientMock.On("IsAllowed", mock.Anything, string(permission)).Return(false, echo.NewHTTPError(http.StatusNotFound))
+	rbacClientMock.On("IsAllowed", mock.Anything, string(header.EncodeXRHID(&xrhid)), string(permission)).Return(false, echo.NewHTTPError(http.StatusNotFound))
 	e.ServeHTTP(rec, req)
 	assert.Equal(t, statusExpected, rec.Code)
 }
@@ -163,7 +163,7 @@ func TestRBACWithConfigFailRbacClient(t *testing.T) {
 func TestRBACWithConfigUnauthorized(t *testing.T) {
 	prefix := "/api/idmsvc/v1"
 	rbacMap := helperRbacCreateMapping()
-	rbacClientMock := client.NewRbac(t)
+	rbacClientMock := client_rbac.NewRbac(t)
 	rbacConfig := RBACConfig{
 		Prefix:        prefix,
 		PermissionMap: rbacMap,
@@ -181,7 +181,7 @@ func TestRBACWithConfigUnauthorized(t *testing.T) {
 	req := httptest.NewRequest(method, "http://localhost:8000"+path, http.NoBody)
 	req.Header.Add(headerXRhIdentity, header.EncodeXRHID(&xrhid))
 	permission := rbac_data.NewRbacPermission("idmsvc", "domains", rbac_data.RbacVerbRead)
-	rbacClientMock.On("IsAllowed", mock.Anything, string(permission)).Return(false, nil)
+	rbacClientMock.On("IsAllowed", mock.Anything, string(header.EncodeXRHID(&xrhid)), string(permission)).Return(false, nil)
 	e.ServeHTTP(rec, req)
 	assert.Equal(t, statusExpected, rec.Code)
 }
@@ -189,7 +189,7 @@ func TestRBACWithConfigUnauthorized(t *testing.T) {
 func TestRBACWithConfigGrantedPermission(t *testing.T) {
 	prefix := "/api/idmsvc/v1"
 	rbacMap := helperRbacCreateMapping()
-	rbacClientMock := client.NewRbac(t)
+	rbacClientMock := client_rbac.NewRbac(t)
 	rbacConfig := RBACConfig{
 		Prefix:        prefix,
 		PermissionMap: rbacMap,
@@ -207,7 +207,7 @@ func TestRBACWithConfigGrantedPermission(t *testing.T) {
 	req := httptest.NewRequest(method, "http://localhost:8000"+path, http.NoBody)
 	req.Header.Add(headerXRhIdentity, header.EncodeXRHID(&xrhid))
 	permission := rbac_data.NewRbacPermission("idmsvc", "domains", rbac_data.RbacVerbRead)
-	rbacClientMock.On("IsAllowed", mock.Anything, string(permission)).Return(true, nil)
+	rbacClientMock.On("IsAllowed", mock.Anything, string(header.EncodeXRHID(&xrhid)), string(permission)).Return(true, nil)
 	e.ServeHTTP(rec, req)
 	assert.Equal(t, statusExpected, rec.Code)
 }
@@ -215,7 +215,7 @@ func TestRBACWithConfigGrantedPermission(t *testing.T) {
 func TestRBACWithConfigFailGettingUserPermissions(t *testing.T) {
 	prefix := "/api/idmsvc/v1"
 	rbacMap := helperRbacCreateMapping()
-	rbacClientMock := client.NewRbac(t)
+	rbacClientMock := client_rbac.NewRbac(t)
 	rbacConfig := RBACConfig{
 		Prefix:        prefix,
 		PermissionMap: rbacMap,

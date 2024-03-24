@@ -1,19 +1,24 @@
 package router
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler/impl"
+	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
-	"github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client"
+	client_inventory "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/inventory"
+	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -34,11 +39,29 @@ func helperNewContextForSkipper(route string, method string, path string, header
 	return c
 }
 
+func initRbacWrapper(t *testing.T, cfg *config.Config) rbac.Rbac {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	svcRbac, mockRbac := mock_rbac.NewRbacMock(ctx, cfg)
+	svcRbac.Start()
+	defer svcRbac.Stop()
+	mockRbac.WaitAddress(3 * time.Second)
+	mockRbac.SetPermissions(mock_rbac.Profiles["domain-admin-profile"])
+	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(cfg.Clients.RbacBaseURL))
+	require.NoError(t, err)
+	assert.NotNil(t, rbacClient)
+	rbac := client_rbac.New(cfg.Clients.RbacBaseURL, rbacClient)
+	return rbac
+}
+
 func TestNewGroupPublicPanics(t *testing.T) {
 	var (
 		err error
 		db  *gorm.DB
 	)
+
+	cfg := test.GetTestConfig()
+
 	// FIXME Refactor in the future; it is too complex
 	const appPrefix = "/api"
 	const appName = "/idmsvc"
@@ -47,17 +70,18 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
-	inventory := client.NewHostInventory(t)
+	inventory := client_inventory.NewHostInventory(t)
 
-	cfg := test.GetTestConfig()
 	_, db, err = test.NewSqlMock(&gorm.Session{})
 	require.NoError(t, err)
 	require.NotNil(t, db)
+	rbac := initRbacWrapper(t, cfg)
+	require.NotNil(t, rbac)
 
 	// FIXME Refactor and encapsulate routerConfig in a factory function
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
-		Handlers:   impl.NewHandler(cfg, db, metrics, inventory),
+		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac),
 		Metrics:    metrics,
 	}
 	routerWrongConfig := RouterConfig{
@@ -139,7 +163,7 @@ func TestNewGroupPublic(t *testing.T) {
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
-	inventory := client.NewHostInventory(t)
+	inventory := client_inventory.NewHostInventory(t)
 	require.NotNil(t, inventory)
 
 	cfg := test.GetTestConfig()
@@ -147,11 +171,14 @@ func TestNewGroupPublic(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, db)
 
+	rbac := initRbacWrapper(t, cfg)
+	require.NotNil(t, rbac)
+
 	// FIXME Refactor and encapsulate routerConfig in a factory function
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
 		Version:    "1.0",
-		Handlers:   impl.NewHandler(cfg, db, metrics, inventory),
+		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac),
 		Metrics:    metrics,
 	}
 
