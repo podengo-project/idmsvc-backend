@@ -341,15 +341,15 @@ as expected:
 	for _, testCase := range testCases {
 		res := httptest.NewRecorder()
 		req := httptest.NewRequest(testCase.Given.Method, testCase.Given.Path, testCase.Given.Body)
-    if testCase.Given.Headers != nil {
-      for key, value := range testCase.Given.Headers {
-        req.Header.Add(key, value)
-      }
-    }
+		if testCase.Given.Headers != nil {
+			for key, value := range testCase.Given.Headers {
+				req.Header.Add(key, value)
+			}
+		}
 		e.ServeHTTP(res, req)
 
 		// Check expectations
-		data, err := ioutil.ReadAll(res.Body)
+		data, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		assert.Equal(t, testCase.Expected.Code, res.Code)
 		assert.Equal(t, testCase.Expected.Body, string(data))
