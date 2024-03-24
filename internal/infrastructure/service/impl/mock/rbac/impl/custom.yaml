@@ -1,0 +1,7 @@
+---
+- "idmsvc:token:create"
+- "idmsvc:domains:create"
+- "idmsvc:domains:list"
+- "idmsvc:domains:read"
+- "idmsvc:domains:update"
+- "idmsvc:domains:delete"

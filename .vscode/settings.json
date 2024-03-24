@@ -1,6 +1,7 @@
 {
     "git.mergeEditor": false,
     "go.testEnvVars": {
+        "CLIENTS_RBAC_BASE_URL": "http://localhost:8021/api/rbac/v1",
         "CONFIG_PATH": "${workspaceFolder}/configs"
     },
     "go.autocompleteUnimportedPackages": true,
