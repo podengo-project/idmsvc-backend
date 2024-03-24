@@ -24,39 +24,10 @@ POOL ?= default
 export NAMESPACE
 export POOL
 
-
-# CLIENTS_RBAC_BASE_URL ?= http://localhost:8801/api/rbac/v1  # For local workstation
-# CLIENTS_RBAC_BASE_URL ?= http://rbac-service:8080/api/rbac/v1
-# export CLIENTS_RBAC_BASE_URL
-
 ifneq (default,$(POOL))
 EPHEMERAL_OPTS += --no-single-replicas
 else
 EPHEMERAL_OPTS += --single-replicas
-endif
-
-ifeq (False,$(CLIENTS_RBAC_ENABLED))
-EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/CLIENTS_RBAC_ENABLED=False"
-else
-ifneq (,$(CLIENTS_RBAC_BASE_URL))
-EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/CLIENTS_RBAC_BASE_URL=$(CLIENTS_RBAC_BASE_URL)"
-endif
-endif
-
-ifneq (,$(EPHEMERAL_LOG_LEVEL))
-EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/LOGGING_LEVEL=$(EPHEMERAL_LOG_LEVEL)"
-endif
-
-ifeq (true,$(APP_ACCEPT_X_RH_FAKE_IDENTITY))
-EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_ACCEPT_X_RH_FAKE_IDENTITY=$(APP_ACCEPT_X_RH_FAKE_IDENTITY)"
-endif
-
-ifneq (,$(APP_VALIDATE_API))
-EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_VALIDATE_API=$(APP_VALIDATE_API)"
-endif
-
-ifneq (,$(APP_TOKEN_EXPIRATION_SECONDS))
-EPHEMERAL_OPTS += --set-parameter "$(APP_COMPONENT)/APP_TOKEN_EXPIRATION_SECONDS=$(APP_TOKEN_EXPIRATION_SECONDS)"
 endif
 
 EPHEMERAL_BONFIRE_PATH ?= $(PROJECT_DIR)/configs/bonfire.yaml
@@ -126,7 +97,7 @@ ephemeral-deploy: $(EPHEMERAL_DEPS) ## Deploy application using 'config/bonfire.
 	$(BONFIRE) deploy \
 	    --source appsre \
 		--local-config-path "$(EPHEMERAL_BONFIRE_PATH)" \
-		--local-config-method override \
+		--local-config-method merge \
 		--secrets-dir "$(PROJECT_DIR)/secrets/ephemeral" \
 		--import-secrets \
 		--namespace "$(NAMESPACE)" \

@@ -25,7 +25,7 @@ endif
 CONTAINER_REGISTRY_USER ?= $(USER)
 CONTAINER_REGISTRY ?= quay.io
 CONTAINER_CONTEXT_DIR ?= .
-CONTAINERFILE ?= build/package/Dockerfile
+CONTAINER_FILE ?= build/package/Dockerfile
 CONTAINER_IMAGE_BASE ?= $(CONTAINER_REGISTRY)/$(CONTAINER_REGISTRY_USER)/myapp
 CONTAINER_IMAGE_TAG ?= $(shell git rev-parse --short HEAD)
 CONTAINER_IMAGE ?= $(CONTAINER_IMAGE_BASE):$(CONTAINER_IMAGE_TAG)
@@ -48,14 +48,14 @@ registry-login:
 
 .PHONY: container-build
 container-build: QUAY_EXPIRATION ?= never
-container-build:  ## Build image CONTAINER_IMAGE from CONTAINERFILE using the CONTAINER_CONTEXT_DIR
+container-build:  ## Build image CONTAINER_IMAGE from CONTAINER_FILE using the CONTAINER_CONTEXT_DIR
 	$(USE_GO_CACHE) && mkdir -p $(shell go env GOCACHE) $(shell go env GOMODCACHE) || true
 	$(CONTAINER_ENGINE) build \
 	  --label "quay.expires-after=$(QUAY_EXPIRATION)" \
 	  $(CONTAINER_BUILD_OPTS) \
 	  -t "$(CONTAINER_IMAGE)" \
 	  $(CONTAINER_CONTEXT_DIR) \
-	  -f "$(CONTAINERFILE)"
+	  -f "$(CONTAINER_FILE)"
 	@# prune builder container
 	$(CONTAINER_ENGINE) image prune --filter label=idmsvc-backend=builder --force
 
