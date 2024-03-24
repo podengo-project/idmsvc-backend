@@ -7,7 +7,8 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	handler_impl "github.com/podengo-project/idmsvc-backend/internal/handler/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
-	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
+	client_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
+	client_rbac "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/prometheus/client_golang/prometheus"
 	"gorm.io/gorm"
@@ -21,10 +22,11 @@ type svcApplication struct {
 	Api       service.ApplicationService
 	Kafka     service.ApplicationService
 	Metrics   service.ApplicationService
+	MockRbac  service.ApplicationService
 	// AdditionalService service.ApplicationService
 }
 
-func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB, inventory client.HostInventory) service.ApplicationService {
+func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB, inventory client_inventory.HostInventory, rbac client_rbac.Rbac) service.ApplicationService {
 	if ctx == nil {
 		panic("ctx is nil")
 	}
@@ -47,7 +49,7 @@ func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config,
 	metrics := metrics.NewMetrics(reg)
 
 	// Create application handlers
-	handler := handler_impl.NewHandler(s.Config, db, metrics, inventory)
+	handler := handler_impl.NewHandler(s.Config, db, metrics, inventory, rbac)
 
 	// Create Metrics service
 	s.Metrics = NewMetrics(s.Context, s.WaitGroup, s.Config, handler)

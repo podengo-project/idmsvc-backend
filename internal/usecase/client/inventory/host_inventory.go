@@ -1,4 +1,4 @@
-package client
+package inventory
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	interface_client "github.com/podengo-project/idmsvc-backend/internal/interface/client"
+	interface_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
 )
 
 type hostInventory struct {
@@ -18,7 +18,7 @@ type hostInventory struct {
 // NewHostInventory initialize a new host inventory client.
 // cfg is the reference to the configuration used by our service.
 // Return an instance that accomplish HostInventory interface.
-func NewHostInventory(cfg *config.Config) interface_client.HostInventory {
+func NewHostInventory(cfg *config.Config) interface_inventory.HostInventory {
 	return &hostInventory{
 		baseURL: cfg.Clients.InventoryBaseURL,
 	}
@@ -31,8 +31,8 @@ func NewHostInventory(cfg *config.Config) interface_client.HostInventory {
 // x-rh-identity header.
 // Return the host matched and nil if the operation is successful, else it
 // returns an empty host struct and an error with the details.
-func (c *hostInventory) GetHostByCN(iden string, requestId string, cn string) (
-	interface_client.InventoryHost,
+func (c *hostInventory) GetHostByCN(iden, requestId, cn string) (
+	interface_inventory.InventoryHost,
 	error,
 ) {
 	// https://pkg.go.dev/net/http
@@ -44,35 +44,35 @@ func (c *hostInventory) GetHostByCN(iden string, requestId string, cn string) (
 		fmt.Sprintf("%s/hosts?%s", c.baseURL, q.Encode()),
 		nil)
 	if err != nil {
-		return interface_client.InventoryHost{}, err
+		return interface_inventory.InventoryHost{}, err
 	}
 	req.Header.Add("X-Rh-Identity", iden)
 	req.Header.Add("X-Rh-Insights-Request-Id", requestId)
 	resp, err := client.Do(req)
 	if err != nil {
-		return interface_client.InventoryHost{}, err
+		return interface_inventory.InventoryHost{}, err
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return interface_client.InventoryHost{}, err
+		return interface_inventory.InventoryHost{}, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return interface_client.InventoryHost{}, fmt.Errorf("%s", resp.Status)
+		return interface_inventory.InventoryHost{}, fmt.Errorf("%s", resp.Status)
 	}
-	page := interface_client.InventoryHostPage{}
+	page := interface_inventory.InventoryHostPage{}
 	err = json.Unmarshal(body, &page)
 	if err != nil {
-		return interface_client.InventoryHost{}, err
+		return interface_inventory.InventoryHost{}, err
 	}
 
 	if page.Total != 1 {
-		return interface_client.InventoryHost{},
+		return interface_inventory.InventoryHost{},
 			fmt.Errorf("Failed to look up 'cn=%s'", cn)
 	}
 
 	if page.Results[0].SubscriptionManagerId != cn {
-		return interface_client.InventoryHost{},
+		return interface_inventory.InventoryHost{},
 			fmt.Errorf("Looked up 'cn=%s' does not match", cn)
 	}
 	return page.Results[0], nil

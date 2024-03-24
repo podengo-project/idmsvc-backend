@@ -23,9 +23,10 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
+	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
-	"github.com/podengo-project/idmsvc-backend/internal/usecase/client"
+	client_inventory "github.com/podengo-project/idmsvc-backend/internal/usecase/client/inventory"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -33,6 +34,7 @@ import (
 	"gorm.io/gorm"
 
 	service_impl "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl"
+	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 )
 
 // SuiteBase represents the base Suite to be used for smoke tests, this
@@ -48,10 +50,12 @@ type SuiteBase struct {
 	UserXRHID   identity.XRHID
 	SystemXRHID identity.XRHID
 
-	cancel context.CancelFunc
-	svc    service.ApplicationService
-	wg     *sync.WaitGroup
-	db     *gorm.DB
+	cancel   context.CancelFunc
+	svc      service.ApplicationService
+	wg       *sync.WaitGroup
+	db       *gorm.DB
+	svcRbac  service.ApplicationService
+	RbacMock mock_rbac.MockRbac
 }
 
 // SetupTest start the services and await until they are ready
@@ -64,8 +68,17 @@ func (s *SuiteBase) SetupTest() {
 
 	ctx, cancel := StartSignalHandler(context.Background())
 	s.cancel = cancel
-	inventory := client.NewHostInventory(s.cfg)
-	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory)
+	inventory := client_inventory.NewHostInventory(s.cfg)
+	s.svcRbac, s.RbacMock = mock_rbac.NewRbacMock(ctx, s.cfg)
+	s.svcRbac.Start()
+	s.RbacMock.WaitAddress(3 * time.Second)
+	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainAdmin])
+	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(s.cfg.Clients.RbacBaseURL))
+	if err != nil {
+		panic(err)
+	}
+	rbac := client_rbac.New(s.cfg.Clients.RbacBaseURL, rbacClient)
+	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory, rbac)
 	go func() {
 		if e := s.svc.Start(); e != nil {
 			panic(e)
@@ -83,6 +96,7 @@ func (s *SuiteBase) TearDownTest() {
 	TearDownSignalHandler()
 	defer datastore.Close(s.db)
 	defer s.cancel()
+	s.svcRbac.Stop()
 	s.svc.Stop()
 	s.wg.Wait()
 }

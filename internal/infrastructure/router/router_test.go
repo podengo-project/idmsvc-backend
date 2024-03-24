@@ -1,16 +1,20 @@
 package router
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
-	"github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client"
+	client_inventory "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/inventory"
+	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -167,10 +171,22 @@ func TestNewRouterWithConfig(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	metrics := metrics.NewMetrics(reg)
 	_, db, _ := test.NewSqlMock(&gorm.Session{SkipHooks: true})
-	inventory := client.NewHostInventory(t)
+	inventory := client_inventory.NewHostInventory(t)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	svcRbac, mockRbac := mock_rbac.NewRbacMock(ctx, cfg)
+	svcRbac.Start()
+	defer svcRbac.Stop()
+	require.NoError(t, mockRbac.WaitAddress(3*time.Second))
+	mockRbac.SetPermissions(mock_rbac.Profiles["domain-admin-profile"])
+	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(cfg.Clients.RbacBaseURL))
+	if err != nil {
+		panic(err)
+	}
+	rbac := client_rbac.New(cfg.Clients.RbacBaseURL, rbacClient)
 	// Create application handlers
-	app := handler_impl.NewHandler(cfg, db, metrics, inventory)
+	app := handler_impl.NewHandler(cfg, db, metrics, inventory, rbac)
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",
@@ -204,10 +220,22 @@ func TestNewRouterForMetrics(t *testing.T) {
 	reg := prometheus.NewRegistry()
 	metrics := metrics.NewMetrics(reg)
 	_, db, _ := test.NewSqlMock(&gorm.Session{SkipHooks: true})
-	inventory := client.NewHostInventory(t)
+	inventory := client_inventory.NewHostInventory(t)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	svcRbac, mockRbac := mock_rbac.NewRbacMock(ctx, cfg)
+	svcRbac.Start()
+	defer svcRbac.Stop()
+	mockRbac.WaitAddress(3 * time.Second)
+	mockRbac.SetPermissions(mock_rbac.Profiles["domain-admin-profile"])
+	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(cfg.Clients.RbacBaseURL))
+	if err != nil {
+		panic(err)
+	}
+	rbac := client_rbac.New(cfg.Clients.RbacBaseURL, rbacClient)
 	// Create application handlers
-	app := handler_impl.NewHandler(cfg, db, metrics, inventory)
+	app := handler_impl.NewHandler(cfg, db, metrics, inventory, rbac)
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",

@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
+	slog "golang.org/x/exp/slog"
 )
 
 // The Identity header present into the public headers
@@ -127,17 +128,18 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				err   error
 			)
 			if config.Skipper != nil && config.Skipper(c) {
+				slog.DebugContext(c.Request().Context(), "Skipping EnforceIdentity middleware")
 				return next(c)
 			}
 			cc, ok := c.(DomainContextInterface)
 			if !ok {
-				c.Logger().Error("'DomainContextInterface' is expected")
+				slog.ErrorContext(c.Request().Context(), "'DomainContextInterface' is expected")
 				return echo.ErrInternalServerError
 			}
 			if xrhid, err = decodeXRHID(
 				cc.Request().Header.Get(headerXRhIdentity),
 			); err != nil {
-				cc.Logger().Error(err)
+				slog.ErrorContext(c.Request().Context(), err.Error())
 				return echo.ErrUnauthorized
 			}
 
@@ -147,7 +149,10 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				key := entry.Name
 				predicate := entry.Predicate
 				if err = predicate(xrhid); err != nil {
-					cc.Logger().Error(fmt.Errorf("'%s' IdentityPredicate failed: %w", key, err))
+					slog.ErrorContext(
+						c.Request().Context(),
+						fmt.Sprintf("'%s' IdentityPredicate failed: %s", key, err.Error()),
+					)
 					return echo.ErrUnauthorized
 				}
 			}
