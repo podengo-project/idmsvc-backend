@@ -66,6 +66,18 @@ Once tasks:
 
 ----
 
+- Run with specific rbac profile and use local rbac mock:
+  ```sh
+  export APP_CLIENTS_RBAC_PROFILE="domain-admin"
+  export APP_ENABLE_RBAC=true  # Or update your secrets/private.mk
+  export RBAC_BASE_URL="http://localhost:8020/api/rbac/v1"
+  make run
+  # In other terminal run
+  curl "http://localhost:8020/api/rbac/v1/authorize?application=idmsvc"
+  ```
+
+----
+
 For ephemeral environment look at: [DEVELOPMENT.md](DEVELOPMENT.md) file.
 
 ## Project layout
