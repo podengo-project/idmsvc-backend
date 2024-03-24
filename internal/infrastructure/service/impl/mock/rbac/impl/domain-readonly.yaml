@@ -1,0 +1,4 @@
+# Domain Read only profile
+---
+- idmsvc:domains:list
+- idmsvc:domains:read
