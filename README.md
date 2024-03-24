@@ -56,13 +56,30 @@ Once tasks:
 ----
 
 - Build by: `make build`
-- Launch tests by: `make test`
 - Lint code by: `make lint`
 - Start local infrastructure by: `make compose-up`
+- Launch tests by: `make test`
 - Run by: `make run`
+- Try locally by running scripts at: `./test/scripts/local-*.sh`
 - Stop local infrastructure by: `make compose-down`
 - Clean local infrastructure by: `make compose-clean`
 - Print out useful rules by: `make help`
+
+----
+
+- Run with specific rbac profile and use local rbac mock:
+
+  ```sh
+  $ make compose-clean clean build compose-up run APP_CLIENTS_RBAC_PROFILE=domain-read-only
+  $ curl "http://localhost:8020/api/rbac/v1/authorize?application=idmsvc"
+  $ ./test/scripts/local-domains-list.sh
+  ```
+
+> - Bear in mind the rbac mock is started with the local infra.
+> - Be aware to update some change in the rbac mock (such as some
+>   change on the custom.yaml profile), you will need to rebuild
+>   the container by `make mock-rbac-build` and restarting the
+>   local infra by `make compose-clean compose-up`.
 
 ----
 
