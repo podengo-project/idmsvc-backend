@@ -26,11 +26,15 @@ apps:
         repo: ./
         path: deployments/clowder.yaml
         parameters:
-          ENV_NAME: "ephemeral"
           IMAGE: ""
           IMAGE_TAG: ""
-          # LOGGING_LEVEL: "info"
+          LOGGING_LEVEL: "debug"
+          LOGGING_LOCATION: "true"
           APP_ACCEPT_X_RH_FAKE_IDENTITY: "true"
+          APP_VALIDATE_API: "true"
+          APP_TOKEN_EXPIRATION_SECONDS: "7200"
+          APP_ENABLE_RBAC: "true"
+          CLIENTS_RBAC_BASE_URL: "http://rbac-service:8000/api/rbac/v1"
 
       - name: frontend
         host: github
@@ -38,6 +42,5 @@ apps:
         ref: main
         path: /deploy/frontend.yaml
         parameters:
-          ENV_NAME: "ephemeral"
           IMAGE: "quay.io/cloudservices/idmsvc-frontend"
           # IMAGE_TAG: "b82077d"

@@ -8,13 +8,6 @@ logging:
   # Set to true to get source code locations printed
   location: false
   type: null
-# cloudwatch:
-#   region:
-#   group:
-#   stream:
-#   key:
-#   secret:
-#   session:
 
 web:
   port: 8000
@@ -26,40 +19,6 @@ database:
   password: idmsvc-secret
   name: idmsvc-db
 
-kafka:
-  auto:
-    offset:
-      reset: latest
-    commit:
-      interval:
-        ms: 5000
-  bootstrap:
-    servers: localhost:9092
-  group:
-    id: idmsvc
-  message:
-    send:
-      max:
-        retries: 15
-  request:
-    timeout:
-      ms: 30000
-    required:
-      acks: -1
-  retry:
-    backoff:
-      ms: 100
-  timeout: 10000
-  topics:
-    - platform.idmsvc.introspect
-  # sasl:
-  #   username: someusername
-  #   passowrd: somepassword
-  #   mechanism: somemechanism
-  #   protocol: someprotocol
-
-# options:
-#   paged_rpm_inserts_limit: 100
 metrics:
   path: "/metrics"
   port: 9000
@@ -80,10 +39,11 @@ app:
   accept_x_rh_fake_identity: true
   # Validate API requests and response against the openapi specification
   validate_api: true
+  # TODO Adapt this to ACG_CONFIG
+  url_path_prefix: /api/idmsvc/v1
   # main secret for various MAC and encryptions like domain registration
   # token and encrypted private JWKs. You can generate a secret with:
   #     python -c "import secrets; print(secrets.token_urlsafe())"
   secret: sFamo2ER65JN7wxZ48UZb5GbtDc053ahIPJ0Qx47bzA
   # Enable/Disable RBAC verification
-  # TODO remove override when HMS-3521 is implemented
   enable_rbac: false
