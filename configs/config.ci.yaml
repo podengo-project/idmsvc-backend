@@ -5,6 +5,7 @@ logging:
   # level: debug
   # Set to false to get a json output for the log
   console: true
+  location: true
 
 web:
   port: 8000
@@ -12,58 +13,17 @@ web:
 database:
   host: localhost
   port: 5432
-  user: postgres
-  password: postgres
-  name: postgres
+  user: idmsvc-user
+  password: idmsvc-secret
+  name: idmsvc-db
 
-kafka:
-  auto:
-    offset:
-      reset: latest
-    commit:
-      interval:
-        ms: 5000
-  bootstrap:
-    servers: localhost:9092
-  group:
-    id: idmsvc
-  message:
-    send:
-      max:
-        retries: 15
-  request:
-    timeout:
-      ms: 30000
-    required:
-      acks: -1
-  retry:
-    backoff:
-      ms: 100
-  timeout: 10000
-  topics:
-    - platform.idmsvc.introspect
-  # sasl:
-  #   username: someusername
-  #   passowrd: somepassword
-  #   mechanism: somemechanism
-  #   protocol: someprotocol
-
-# cloudwatch:
-#   region:
-#   group:
-#   stream:
-#   key:
-#   secret:
-#   session:
-# options:
-#   paged_rpm_inserts_limit: 100
 metrics:
   path: "/metrics"
   port: 9000
 
 clients:
-  inventory:
-    base_url: http://localhost:8010/api/inventory/v1
+  inventory_base_url: http://localhost:8010/api/inventory/v1
+  rbac_base_url: http://localhost:8020/api/rbac/v1
 
 app:
   # Token expiration time in seconds
@@ -78,8 +38,8 @@ app:
   # Validate API requests and response against the openapi specification
   validate_api: true
   # main secret for various MAC and encryptions like domain registration
-  # token and encrypted private JWKs. "random" generates an ephemeral secret.
-  secret: random
+  # token and encrypted private JWKs. You can generate a secret with:
+  #     python -c "import secrets; print(secrets.token_urlsafe())"
+  secret: 1w8KZbew7DzhxKKOY7O_cgVnyVWCl5dGp78uaLoxgbg
   # Enable/Disable RBAC verification
-  # TODO remove override when HMS-3521 is implemented
-  enable_rbac: false
+  enable_rbac: true
