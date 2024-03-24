@@ -14,6 +14,14 @@
             "args": [],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
+                "ENV_NAME": "local",
+                "CLIENTS_RBAC_BASE_URL": "http://localhost:8020/api/rbac/v1",
+                // TODO Uncomment this line to debug with a specific RBAC profile
+                // "APP_CLIENTS_RBAC_PROFILE": "domain-readonly",
+                "LOGGING_LEVEL": "info",
+                "LOGGING_LOCATION": "true",
+                "APP_VALIDATE_API": "true",
+                "APP_ENABLE_RBAC": "true",
                 // TODO Uncomment this line to debug when clowder.IsClowderEnabled
                 // "ACG_CONFIG": "${workspaceFolder}/configs/cdappconfig.json"
             }
@@ -28,6 +36,7 @@
             "args": ["migrate", "up", "0"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
+                "ENV_NAME": "local",
             }
         },
         {
@@ -40,6 +49,7 @@
             "args": ["jwk", "refresh"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
+                "ENV_NAME": "local",
             }
         },
         {
@@ -52,6 +62,7 @@
             "args": ["migrate", "down", "0"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
+                "ENV_NAME": "local",
             }
         },
     ]
