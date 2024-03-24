@@ -4,7 +4,7 @@ package client
 // out the host inventory service and abstract
 // the necessary operations.
 type HostInventory interface {
-	GetHostByCN(iden string, requestId string, cn string) (InventoryHost, error)
+	GetHostByCN(iden, requestId, cn string) (InventoryHost, error)
 }
 
 // InventoryHost only cover the necessary information

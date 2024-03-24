@@ -323,6 +323,17 @@ func Load(cfg *Config) *viper.Viper {
 		slog.Warn("Mapping to configuration", slog.Any("error", err))
 	}
 
+	sec, err := secrets.NewAppSecrets(cfg.Application.MainSecret)
+	if err != nil {
+		panic(err)
+	}
+	cfg.Secrets = *sec
+
+	if err := Validate(cfg); err != nil {
+		reportError(err)
+		panic("Invalid configuration")
+	}
+
 	return v
 }
 
@@ -363,17 +374,6 @@ func Get() *Config {
 		}
 		fmt.Println(string(b))
 	}
-
-	if err := Validate(config); err != nil {
-		reportError(err)
-		panic("Invalid configuration")
-	}
-
-	sec, err := secrets.NewAppSecrets(config.Application.MainSecret)
-	if err != nil {
-		panic(err)
-	}
-	config.Secrets = *sec
 
 	return config
 }
