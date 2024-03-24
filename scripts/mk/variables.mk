@@ -119,6 +119,16 @@ APP_SECRET ?= sFamo2ER65JN7wxZ48UZb5GbtDc053ahIPJ0Qx47bzA
 export APP_SECRET
 
 # Enable / disable the rbac middleware
-APP_ENABLE_RBAC ?= false
+APP_ENABLE_RBAC ?= true
 export APP_ENABLE_RBAC
 
+ENV_NAME ?= local
+export ENV_NAME
+ifeq (local,$(ENV_NAME))
+CLIENTS_RBAC_BASE_URL ?= http://localhost:8020/api/rbac/v1
+else
+CLIENTS_RBAC_BASE_URL ?= http://rbac-service:8080/api/rbac/v1
+endif
+export CLIENTS_RBAC_BASE_URL
+APP_CLIENTS_RBAC_PROFILE ?= domain-admin
+export APP_CLIENTS_RBAC_PROFILE

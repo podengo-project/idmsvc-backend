@@ -125,6 +125,18 @@ services:
   #       timeout: 3s
   #       start_period: 5s
 
+  # 'make test' will fail with mock-rbac running
+  mock-rbac:
+    image: "${MOCK_RBAC_CONTAINER}"
+    build:
+      dockerfile: build/mock-rbac/Dockerfile
+      context: ../
+    environment:
+      CLIENTS_RBAC_BASE_URL: http://0.0.0.0:8020/api/rbac/v1
+      APP_CLIENTS_RBAC_PROFILE: ${APP_CLIENTS_RBAC_PROFILE:-domain-admin}
+    ports:
+      - 8020:8020
+
 volumes:
   database:
   zookeeper:
