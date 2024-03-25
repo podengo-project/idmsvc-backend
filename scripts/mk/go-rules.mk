@@ -55,7 +55,7 @@ cleanall: ## Clean and remove all binaries
 
 .PHONY: run
 run: $(BIN)/service .compose-wait-db ## Run the api & kafka consumer locally
-	"$(BIN)/service"
+	env ENV_NAME="local" "$(BIN)/service"
 
 # See: https://go.dev/doc/modules/managing-dependencies#synchronizing
 .PHONY: tidy
@@ -109,7 +109,7 @@ test-ci: ## Run tests for ci
 
 .PHONY: test-smoke
 test-smoke:  ## Run smoke tests
-	CONFIG_PATH="$(PROJECT_DIR)/configs" go test -parallel 1 ./internal/test/smoke/... -test.failfast -test.v
+	go test -parallel 1 ./internal/test/smoke/... -test.failfast -test.v
 
 # Add dependencies from binaries to all the the sources
 # so any change is detected for the build rule
@@ -191,7 +191,8 @@ MOCK_DIRS := internal/api/private \
 	internal/interface/interactor \
 	internal/interface/presenter \
 	internal/interface/event \
-	internal/interface/client \
+	internal/interface/client/inventory \
+	internal/interface/client/rbac \
 	internal/handler \
 	internal/infrastructure/service \
 	internal/infrastructure/event \

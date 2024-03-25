@@ -35,3 +35,4 @@
 - [RBAC](05-rbac.md)
 - [Metrics](06-metrics.md)
 - [Configurations](07-configs.md)
+- [RBAC](08-rbac.md)

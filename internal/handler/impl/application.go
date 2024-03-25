@@ -3,7 +3,8 @@ package impl
 import (
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
-	"github.com/podengo-project/idmsvc-backend/internal/interface/client"
+	client_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
+	client_rbac "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
@@ -39,10 +40,10 @@ type application struct {
 	host        hostComponent
 	hostconfjwk hostconfJwkComponent
 	db          *gorm.DB
-	inventory   client.HostInventory
+	inventory   client_inventory.HostInventory
 }
 
-func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client.HostInventory) handler.Application {
+func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client_inventory.HostInventory, rbac client_rbac.Rbac) handler.Application {
 	if config == nil {
 		panic("config is nil")
 	}
