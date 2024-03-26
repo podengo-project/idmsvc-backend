@@ -756,8 +756,8 @@ func (s *DomainRepositorySuite) TestList() {
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE org_id = $1`)).
 		WithArgs(orgID).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE org_id = $1 AND "domains"."deleted_at" IS NULL LIMIT 5`)).
-		WithArgs(orgID).
+	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE org_id = $1 AND "domains"."deleted_at" IS NULL LIMIT $2`)).
+		WithArgs(orgID, 5).
 		WillReturnRows(sqlmock.NewRows([]string{
 			"id", "created_at", "updated_at", "deleted_at",
 			"org_id", "domain_uuid", "domain_name",
@@ -802,10 +802,11 @@ func (s *DomainRepositorySuite) helperTestFindByID(stage int, data *model.Domain
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+			expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT $3`)).
 				WithArgs(
 					data.OrgId,
 					data.DomainUuid,
+					1,
 				)
 			if i == stage && expectedErr != nil {
 				expectQuery.WillReturnError(expectedErr)
@@ -1207,10 +1208,11 @@ func (s *DomainRepositorySuite) helperTestDeleteById(stage int, data *model.Doma
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT 1`)).
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT $3`)).
 				WithArgs(
 					data.OrgId,
 					data.DomainUuid,
+					1,
 				)
 			if i == stage && expectedErr != nil {
 				expectQuery.WillReturnError(expectedErr)
@@ -1242,10 +1244,11 @@ func (s *DomainRepositorySuite) helperTestDeleteById(stage int, data *model.Doma
 					))
 			}
 		case 2:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT 1`)).
+			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL LIMIT $3`)).
 				WithArgs(
 					data.OrgId,
 					data.DomainUuid,
+					1,
 				)
 			if i == stage && expectedErr != nil {
 				if expectedErr == gorm.ErrRecordNotFound {
@@ -1421,8 +1424,11 @@ func helperTestFindByIDIpa(stage int, data *model.Domain, mock sqlmock.Sqlmock, 
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT 1`)).
-				WithArgs(data.Model.ID)
+			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT $2`)).
+				WithArgs(
+					data.Model.ID,
+					1,
+				)
 			if i == stage && expectedErr != nil {
 				expectedQuery.WillReturnError(expectedErr)
 			} else {
