@@ -1352,12 +1352,12 @@ type ClientWithResponsesInterface interface {
 	RegisterDomainWithResponse(ctx context.Context, params *RegisterDomainParams, body RegisterDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterDomainResponse, error)
 
 	// CreateDomainTokenWithBodyWithResponse request with any body
-	CreateDomainTokenWithBodyWithResponse(ctx context.Context, params *CreateDomainTokenParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainTokenResponse, error)
+	CreateDomainTokenWithBodyWithResponse(ctx context.Context, params *CreateDomainTokenParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainTokenOutput, error)
 
-	CreateDomainTokenWithResponse(ctx context.Context, params *CreateDomainTokenParams, body CreateDomainTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainTokenResponse, error)
+	CreateDomainTokenWithResponse(ctx context.Context, params *CreateDomainTokenParams, body CreateDomainTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainTokenOutput, error)
 
 	// DeleteDomainWithResponse request
-	DeleteDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *DeleteDomainParams, reqEditors ...RequestEditorFn) (*DeleteDomainResponse, error)
+	DeleteDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *DeleteDomainParams, reqEditors ...RequestEditorFn) (*DeleteDomainOutput, error)
 
 	// ReadDomainWithResponse request
 	ReadDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *ReadDomainParams, reqEditors ...RequestEditorFn) (*ReadDomainResponse, error)
@@ -1381,7 +1381,7 @@ type ClientWithResponsesInterface interface {
 	GetSigningKeysWithResponse(ctx context.Context, params *GetSigningKeysParams, reqEditors ...RequestEditorFn) (*GetSigningKeysResponse, error)
 }
 
-type ListDomainsResponse struct {
+type ListDomainsOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ListDomainsResponse
@@ -1390,7 +1390,7 @@ type ListDomainsResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r ListDomainsResponse) Status() string {
+func (r ListDomainsOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1398,14 +1398,14 @@ func (r ListDomainsResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ListDomainsResponse) StatusCode() int {
+func (r ListDomainsOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type RegisterDomainResponse struct {
+type RegisterDomainOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *RegisterDomainResponse
@@ -1414,7 +1414,7 @@ type RegisterDomainResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r RegisterDomainResponse) Status() string {
+func (r RegisterDomainOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1422,14 +1422,14 @@ func (r RegisterDomainResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r RegisterDomainResponse) StatusCode() int {
+func (r RegisterDomainOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type CreateDomainTokenResponse struct {
+type CreateDomainTokenOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON201      *DomainRegTokenResponse
@@ -1438,7 +1438,7 @@ type CreateDomainTokenResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r CreateDomainTokenResponse) Status() string {
+func (r CreateDomainTokenOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1446,14 +1446,14 @@ func (r CreateDomainTokenResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r CreateDomainTokenResponse) StatusCode() int {
+func (r CreateDomainTokenOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type DeleteDomainResponse struct {
+type DeleteDomainOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON400      *ErrorResponse
@@ -1461,7 +1461,7 @@ type DeleteDomainResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r DeleteDomainResponse) Status() string {
+func (r DeleteDomainOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1469,14 +1469,14 @@ func (r DeleteDomainResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r DeleteDomainResponse) StatusCode() int {
+func (r DeleteDomainOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type ReadDomainResponse struct {
+type ReadDomainOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *ReadDomainResponse
@@ -1485,7 +1485,7 @@ type ReadDomainResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r ReadDomainResponse) Status() string {
+func (r ReadDomainOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1493,14 +1493,14 @@ func (r ReadDomainResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r ReadDomainResponse) StatusCode() int {
+func (r ReadDomainOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type UpdateDomainUserResponse struct {
+type UpdateDomainUserOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *UpdateDomainUserResponse
@@ -1510,7 +1510,7 @@ type UpdateDomainUserResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r UpdateDomainUserResponse) Status() string {
+func (r UpdateDomainUserOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1518,14 +1518,14 @@ func (r UpdateDomainUserResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r UpdateDomainUserResponse) StatusCode() int {
+func (r UpdateDomainUserOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type UpdateDomainAgentResponse struct {
+type UpdateDomainAgentOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *UpdateDomainAgentResponse
@@ -1535,7 +1535,7 @@ type UpdateDomainAgentResponse struct {
 }
 
 // Status returns HTTPResponse.Status
-func (r UpdateDomainAgentResponse) Status() string {
+func (r UpdateDomainAgentOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1543,21 +1543,21 @@ func (r UpdateDomainAgentResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r UpdateDomainAgentResponse) StatusCode() int {
+func (r UpdateDomainAgentOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
 	return 0
 }
 
-type HostConfResponse struct {
+type HostConfOutput struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	JSON200      *HostConfResponse
 }
 
 // Status returns HTTPResponse.Status
-func (r HostConfResponse) Status() string {
+func (r HostConfOutput) Status() string {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.Status
 	}
@@ -1565,7 +1565,7 @@ func (r HostConfResponse) Status() string {
 }
 
 // StatusCode returns HTTPResponse.StatusCode
-func (r HostConfResponse) StatusCode() int {
+func (r HostConfOutput) StatusCode() int {
 	if r.HTTPResponse != nil {
 		return r.HTTPResponse.StatusCode
 	}
@@ -1597,7 +1597,7 @@ func (r GetSigningKeysResponse) StatusCode() int {
 }
 
 // ListDomainsWithResponse request returning *ListDomainsResponse
-func (c *ClientWithResponses) ListDomainsWithResponse(ctx context.Context, params *ListDomainsParams, reqEditors ...RequestEditorFn) (*ListDomainsResponse, error) {
+func (c *ClientWithResponses) ListDomainsWithResponse(ctx context.Context, params *ListDomainsParams, reqEditors ...RequestEditorFn) (*ListDomainsOutput, error) {
 	rsp, err := c.ListDomains(ctx, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1606,7 +1606,7 @@ func (c *ClientWithResponses) ListDomainsWithResponse(ctx context.Context, param
 }
 
 // RegisterDomainWithBodyWithResponse request with arbitrary body returning *RegisterDomainResponse
-func (c *ClientWithResponses) RegisterDomainWithBodyWithResponse(ctx context.Context, params *RegisterDomainParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterDomainResponse, error) {
+func (c *ClientWithResponses) RegisterDomainWithBodyWithResponse(ctx context.Context, params *RegisterDomainParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*RegisterDomainOutput, error) {
 	rsp, err := c.RegisterDomainWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1614,7 +1614,7 @@ func (c *ClientWithResponses) RegisterDomainWithBodyWithResponse(ctx context.Con
 	return ParseRegisterDomainResponse(rsp)
 }
 
-func (c *ClientWithResponses) RegisterDomainWithResponse(ctx context.Context, params *RegisterDomainParams, body RegisterDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterDomainResponse, error) {
+func (c *ClientWithResponses) RegisterDomainWithResponse(ctx context.Context, params *RegisterDomainParams, body RegisterDomainJSONRequestBody, reqEditors ...RequestEditorFn) (*RegisterDomainOutput, error) {
 	rsp, err := c.RegisterDomain(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1623,7 +1623,7 @@ func (c *ClientWithResponses) RegisterDomainWithResponse(ctx context.Context, pa
 }
 
 // CreateDomainTokenWithBodyWithResponse request with arbitrary body returning *CreateDomainTokenResponse
-func (c *ClientWithResponses) CreateDomainTokenWithBodyWithResponse(ctx context.Context, params *CreateDomainTokenParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainTokenResponse, error) {
+func (c *ClientWithResponses) CreateDomainTokenWithBodyWithResponse(ctx context.Context, params *CreateDomainTokenParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*CreateDomainTokenOutput, error) {
 	rsp, err := c.CreateDomainTokenWithBody(ctx, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1631,7 +1631,7 @@ func (c *ClientWithResponses) CreateDomainTokenWithBodyWithResponse(ctx context.
 	return ParseCreateDomainTokenResponse(rsp)
 }
 
-func (c *ClientWithResponses) CreateDomainTokenWithResponse(ctx context.Context, params *CreateDomainTokenParams, body CreateDomainTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainTokenResponse, error) {
+func (c *ClientWithResponses) CreateDomainTokenWithResponse(ctx context.Context, params *CreateDomainTokenParams, body CreateDomainTokenJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateDomainTokenOutput, error) {
 	rsp, err := c.CreateDomainToken(ctx, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1640,7 +1640,7 @@ func (c *ClientWithResponses) CreateDomainTokenWithResponse(ctx context.Context,
 }
 
 // DeleteDomainWithResponse request returning *DeleteDomainResponse
-func (c *ClientWithResponses) DeleteDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *DeleteDomainParams, reqEditors ...RequestEditorFn) (*DeleteDomainResponse, error) {
+func (c *ClientWithResponses) DeleteDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *DeleteDomainParams, reqEditors ...RequestEditorFn) (*DeleteDomainOutput, error) {
 	rsp, err := c.DeleteDomain(ctx, uuid, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1649,7 +1649,7 @@ func (c *ClientWithResponses) DeleteDomainWithResponse(ctx context.Context, uuid
 }
 
 // ReadDomainWithResponse request returning *ReadDomainResponse
-func (c *ClientWithResponses) ReadDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *ReadDomainParams, reqEditors ...RequestEditorFn) (*ReadDomainResponse, error) {
+func (c *ClientWithResponses) ReadDomainWithResponse(ctx context.Context, uuid DomainIdParam, params *ReadDomainParams, reqEditors ...RequestEditorFn) (*ReadDomainOutput, error) {
 	rsp, err := c.ReadDomain(ctx, uuid, params, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1658,7 +1658,7 @@ func (c *ClientWithResponses) ReadDomainWithResponse(ctx context.Context, uuid D
 }
 
 // UpdateDomainUserWithBodyWithResponse request with arbitrary body returning *UpdateDomainUserResponse
-func (c *ClientWithResponses) UpdateDomainUserWithBodyWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainUserParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainUserResponse, error) {
+func (c *ClientWithResponses) UpdateDomainUserWithBodyWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainUserParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainUserOutput, error) {
 	rsp, err := c.UpdateDomainUserWithBody(ctx, uuid, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1666,7 +1666,7 @@ func (c *ClientWithResponses) UpdateDomainUserWithBodyWithResponse(ctx context.C
 	return ParseUpdateDomainUserResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateDomainUserWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainUserParams, body UpdateDomainUserJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainUserResponse, error) {
+func (c *ClientWithResponses) UpdateDomainUserWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainUserParams, body UpdateDomainUserJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainUserOutput, error) {
 	rsp, err := c.UpdateDomainUser(ctx, uuid, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1675,7 +1675,7 @@ func (c *ClientWithResponses) UpdateDomainUserWithResponse(ctx context.Context, 
 }
 
 // UpdateDomainAgentWithBodyWithResponse request with arbitrary body returning *UpdateDomainAgentResponse
-func (c *ClientWithResponses) UpdateDomainAgentWithBodyWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainAgentResponse, error) {
+func (c *ClientWithResponses) UpdateDomainAgentWithBodyWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainAgentParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*UpdateDomainAgentOutput, error) {
 	rsp, err := c.UpdateDomainAgentWithBody(ctx, uuid, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1683,7 +1683,7 @@ func (c *ClientWithResponses) UpdateDomainAgentWithBodyWithResponse(ctx context.
 	return ParseUpdateDomainAgentResponse(rsp)
 }
 
-func (c *ClientWithResponses) UpdateDomainAgentWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainAgentParams, body UpdateDomainAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainAgentResponse, error) {
+func (c *ClientWithResponses) UpdateDomainAgentWithResponse(ctx context.Context, uuid DomainIdParam, params *UpdateDomainAgentParams, body UpdateDomainAgentJSONRequestBody, reqEditors ...RequestEditorFn) (*UpdateDomainAgentOutput, error) {
 	rsp, err := c.UpdateDomainAgent(ctx, uuid, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1692,7 +1692,7 @@ func (c *ClientWithResponses) UpdateDomainAgentWithResponse(ctx context.Context,
 }
 
 // HostConfWithBodyWithResponse request with arbitrary body returning *HostConfResponse
-func (c *ClientWithResponses) HostConfWithBodyWithResponse(ctx context.Context, inventoryId HostId, fqdn Fqdn, params *HostConfParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*HostConfResponse, error) {
+func (c *ClientWithResponses) HostConfWithBodyWithResponse(ctx context.Context, inventoryId HostId, fqdn Fqdn, params *HostConfParams, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*HostConfOutput, error) {
 	rsp, err := c.HostConfWithBody(ctx, inventoryId, fqdn, params, contentType, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1700,7 +1700,7 @@ func (c *ClientWithResponses) HostConfWithBodyWithResponse(ctx context.Context, 
 	return ParseHostConfResponse(rsp)
 }
 
-func (c *ClientWithResponses) HostConfWithResponse(ctx context.Context, inventoryId HostId, fqdn Fqdn, params *HostConfParams, body HostConfJSONRequestBody, reqEditors ...RequestEditorFn) (*HostConfResponse, error) {
+func (c *ClientWithResponses) HostConfWithResponse(ctx context.Context, inventoryId HostId, fqdn Fqdn, params *HostConfParams, body HostConfJSONRequestBody, reqEditors ...RequestEditorFn) (*HostConfOutput, error) {
 	rsp, err := c.HostConf(ctx, inventoryId, fqdn, params, body, reqEditors...)
 	if err != nil {
 		return nil, err
@@ -1718,14 +1718,14 @@ func (c *ClientWithResponses) GetSigningKeysWithResponse(ctx context.Context, pa
 }
 
 // ParseListDomainsResponse parses an HTTP response from a ListDomainsWithResponse call
-func ParseListDomainsResponse(rsp *http.Response) (*ListDomainsResponse, error) {
+func ParseListDomainsResponse(rsp *http.Response) (*ListDomainsOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ListDomainsResponse{
+	response := &ListDomainsOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1758,14 +1758,14 @@ func ParseListDomainsResponse(rsp *http.Response) (*ListDomainsResponse, error) 
 }
 
 // ParseRegisterDomainResponse parses an HTTP response from a RegisterDomainWithResponse call
-func ParseRegisterDomainResponse(rsp *http.Response) (*RegisterDomainResponse, error) {
+func ParseRegisterDomainResponse(rsp *http.Response) (*RegisterDomainOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &RegisterDomainResponse{
+	response := &RegisterDomainOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1798,14 +1798,14 @@ func ParseRegisterDomainResponse(rsp *http.Response) (*RegisterDomainResponse, e
 }
 
 // ParseCreateDomainTokenResponse parses an HTTP response from a CreateDomainTokenWithResponse call
-func ParseCreateDomainTokenResponse(rsp *http.Response) (*CreateDomainTokenResponse, error) {
+func ParseCreateDomainTokenResponse(rsp *http.Response) (*CreateDomainTokenOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &CreateDomainTokenResponse{
+	response := &CreateDomainTokenOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1838,14 +1838,14 @@ func ParseCreateDomainTokenResponse(rsp *http.Response) (*CreateDomainTokenRespo
 }
 
 // ParseDeleteDomainResponse parses an HTTP response from a DeleteDomainWithResponse call
-func ParseDeleteDomainResponse(rsp *http.Response) (*DeleteDomainResponse, error) {
+func ParseDeleteDomainResponse(rsp *http.Response) (*DeleteDomainOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &DeleteDomainResponse{
+	response := &DeleteDomainOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1871,14 +1871,14 @@ func ParseDeleteDomainResponse(rsp *http.Response) (*DeleteDomainResponse, error
 }
 
 // ParseReadDomainResponse parses an HTTP response from a ReadDomainWithResponse call
-func ParseReadDomainResponse(rsp *http.Response) (*ReadDomainResponse, error) {
+func ParseReadDomainResponse(rsp *http.Response) (*ReadDomainOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &ReadDomainResponse{
+	response := &ReadDomainOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1911,14 +1911,14 @@ func ParseReadDomainResponse(rsp *http.Response) (*ReadDomainResponse, error) {
 }
 
 // ParseUpdateDomainUserResponse parses an HTTP response from a UpdateDomainUserWithResponse call
-func ParseUpdateDomainUserResponse(rsp *http.Response) (*UpdateDomainUserResponse, error) {
+func ParseUpdateDomainUserResponse(rsp *http.Response) (*UpdateDomainUserOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &UpdateDomainUserResponse{
+	response := &UpdateDomainUserOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -1958,14 +1958,14 @@ func ParseUpdateDomainUserResponse(rsp *http.Response) (*UpdateDomainUserRespons
 }
 
 // ParseUpdateDomainAgentResponse parses an HTTP response from a UpdateDomainAgentWithResponse call
-func ParseUpdateDomainAgentResponse(rsp *http.Response) (*UpdateDomainAgentResponse, error) {
+func ParseUpdateDomainAgentResponse(rsp *http.Response) (*UpdateDomainAgentOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &UpdateDomainAgentResponse{
+	response := &UpdateDomainAgentOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
@@ -2005,14 +2005,14 @@ func ParseUpdateDomainAgentResponse(rsp *http.Response) (*UpdateDomainAgentRespo
 }
 
 // ParseHostConfResponse parses an HTTP response from a HostConfWithResponse call
-func ParseHostConfResponse(rsp *http.Response) (*HostConfResponse, error) {
+func ParseHostConfResponse(rsp *http.Response) (*HostConfOutput, error) {
 	bodyBytes, err := io.ReadAll(rsp.Body)
 	defer func() { _ = rsp.Body.Close() }()
 	if err != nil {
 		return nil, err
 	}
 
-	response := &HostConfResponse{
+	response := &HostConfOutput{
 		Body:         bodyBytes,
 		HTTPResponse: rsp,
 	}
