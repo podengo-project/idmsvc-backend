@@ -16,6 +16,7 @@ tmp.*/**
 !/configs/bonfire.example.yaml
 !/configs/cdappconfig.json
 
+!/configs/idmsvc_client_gen_config.yaml
 !/configs/rbac_client_api.json
 !/configs/rbac_client_gen_config.yaml
 

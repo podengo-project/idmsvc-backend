@@ -1,0 +1,8 @@
+# Domain Administrator profile
+---
+- idmsvc:token:create
+- idmsvc:domains:create
+- idmsvc:domains:list
+- idmsvc:domains:update
+- idmsvc:domains:delete
+- idmsvc:domains:read

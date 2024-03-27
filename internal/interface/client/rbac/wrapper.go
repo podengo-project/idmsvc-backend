@@ -5,5 +5,5 @@ import (
 )
 
 type Rbac interface {
-	IsAllowed(ctx context.Context, permission string) (bool, error)
+	IsAllowed(ctx context.Context, xrhid, permission string) (bool, error)
 }

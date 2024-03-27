@@ -92,11 +92,15 @@ objects:
                 value: ${APP_ACCEPT_X_RH_FAKE_IDENTITY}
               - name: APP_VALIDATE_API
                 value: ${APP_VALIDATE_API}
+              - name: APP_ENABLE_RBAC
+                value: ${APP_ENABLE_RBAC}
               - name: APP_SECRET
                 valueFrom:
                   secretKeyRef:
                     key: app_secret
                     name: app-secret
+              - name: CLIENTS_RBAC_BASE_URL
+                value: "${CLIENTS_RBAC_BASE_URL}"
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -140,11 +144,15 @@ objects:
                 value: ${LOGGING_LOCATION}
               - name: APP_TOKEN_EXPIRATION_SECONDS
                 value: "${APP_TOKEN_EXPIRATION_SECONDS}"
+              - name: APP_ENABLE_RBAC
+                value: ${APP_ENABLE_RBAC}
               - name: APP_SECRET
                 valueFrom:
                   secretKeyRef:
                     key: app_secret
                     name: app-secret
+              - name: CLIENTS_RBAC_BASE_URL
+                value: "${CLIENTS_RBAC_BASE_URL}"
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -227,3 +235,7 @@ parameters:
     value: "false"
     description: |
       It allows to enable / disable RBAC middleware.
+  - name: CLIENTS_RBAC_BASE_URL
+    required: true
+    description: |
+      Point out to the rbac service base url
