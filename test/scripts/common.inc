@@ -14,6 +14,10 @@ function error {
     exit $err
 }
 
+command -v jq &>/dev/null || error "'jq' tool is not available"
+command -v curl &>/dev/null || error "'curl' tool is not available"
+command -v base64 &>/dev/null || error "'base64' tool is not available"
+
 ORG_ID="${ORG_ID:-12345}"
 # shellcheck disable=SC2034
 IDM_VERSION='{"ipa-hcc": "0.7", "ipa": "4.10.0-8.el9_1"}'
