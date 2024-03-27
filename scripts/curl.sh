@@ -30,6 +30,9 @@
 # CREDS if it is not empty, then `-u "${CREDS}"` options
 #   are added to the curl command; this is used to reach out
 #   the ephemeral environment.
+# RH_API_TOKEN if it is not empty, then `-H "Authorization: Bearer ${CREDS}"`
+#   options are added to the curl command; this is used to
+#   reach out the stage environment.
 ##
 
 # Uncomment to print verbose traces into stderr
@@ -41,14 +44,6 @@ function verbose {
 
 # Initialize the array of options
 opts=()
-
-# Optionally add CREDS if it was set (used for testing in ephemeral)
-# See: make ephemeral-namespace-describe
-if [ "${CREDS}" != "" ]; then
-    opts+=("-u" "${CREDS}")
-    # shellcheck disable=SC2016
-    verbose '-u "${CREDS}"'
-fi
 
 # Generate a X_RH_INSIGHTS_REQUEST_ID if it is not set
 if [ "${X_RH_INSIGHTS_REQUEST_ID}" == "" ]; then
@@ -88,6 +83,20 @@ fi
 # Add Content-Type
 opts+=("-H" "Content-Type: application/json")
 verbose "-H Content-Type: application/json"
+
+# Optionally add CREDS if it was set (used for testing in ephemeral)
+# See: make ephemeral-namespace-describe
+if [ "${CREDS}" != "" ]; then
+    if [ "${RH_API_TOKEN}" == "" ] && [ "${https_proxy}" == "" ]; then
+        opts+=("-u" "${CREDS}")
+        # shellcheck disable=SC2016
+        verbose '-u "${CREDS}"'
+    else
+        verbose "https_proxy=${https_proxy:-${http_proxy}}"
+        opts+=("-H" "Authorization: Bearer ${CREDS}")
+        verbose '-H Authorization: Bearer ${CREDS}'
+    fi
+fi
 
 # Add the rest of values
 opts+=("$@")
