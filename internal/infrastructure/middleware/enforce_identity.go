@@ -134,11 +134,10 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				slog.ErrorContext(c.Request().Context(), "'DomainContextInterface' is expected")
 				return echo.ErrInternalServerError
 			}
-			if xrhid, err = decodeXRHID(
-				cc.Request().Header.Get(header.HeaderXRHID),
-			); err != nil {
+			xrhidRaw := cc.Request().Header.Get(header.HeaderXRHID)
+			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
 				slog.ErrorContext(c.Request().Context(), err.Error())
-				return echo.ErrUnauthorized
+				return echo.ErrBadRequest
 			}
 
 			// The predicate must return no error, otherwise

@@ -120,24 +120,24 @@ func TestEnforceIdentity(t *testing.T) {
 			Name:  header.HeaderXRHID + " header not present",
 			Given: nil,
 			Expected: TestCaseExpected{
-				Code: http.StatusUnauthorized,
-				Body: "{\"message\":\"Unauthorized\"}\n",
+				Code: http.StatusBadRequest,
+				Body: "{\"message\":\"Bad Request\"}\n",
 			},
 		},
 		{
 			Name:  header.HeaderXRHID + " bad base64 coding",
 			Given: pointy.String("bad base64 coding"),
 			Expected: TestCaseExpected{
-				Code: http.StatusUnauthorized,
-				Body: "{\"message\":\"Unauthorized\"}\n",
+				Code: http.StatusBadRequest,
+				Body: "{\"message\":\"Bad Request\"}\n",
 			},
 		},
 		{
 			Name:  header.HeaderXRHID + " bad json encoding",
 			Given: pointy.String("ewo="),
 			Expected: TestCaseExpected{
-				Code: http.StatusUnauthorized,
-				Body: "{\"message\":\"Unauthorized\"}\n",
+				Code: http.StatusBadRequest,
+				Body: "{\"message\":\"Bad Request\"}\n",
 			},
 		},
 		{
@@ -268,8 +268,8 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	// Check expectations
 	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, res.Code)
-	assert.Equal(t, "{\"message\":\"Unauthorized\"}\n", string(data))
+	assert.Equal(t, http.StatusBadRequest, res.Code)
+	assert.Equal(t, "{\"message\":\"Bad Request\"}\n", string(data))
 
 	// When skipper return true the middleware does not process the header or the predicates
 	e = helperNewEchoEnforceIdentity(
