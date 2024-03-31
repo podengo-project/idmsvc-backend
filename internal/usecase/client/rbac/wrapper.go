@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
+	slog "golang.org/x/exp/slog"
 )
 
 type rbacWrapper struct {
@@ -46,14 +47,17 @@ func (c *rbacWrapper) IsAllowed(ctx context.Context, xrhid, permission string) (
 		listACL  []string
 	)
 	if ctx == nil {
+		slog.ErrorContext(ctx, "ctx is nil")
 		return false, fmt.Errorf("ctx is nil")
 	}
 	if permission == "" {
+		slog.ErrorContext(ctx, "permission to check is an empty string")
 		return false, fmt.Errorf("permission to check is an empty string")
 	}
 	service, resource, verb = c.decomposePermission(permission)
 	ctx = ContextWithXRHIDRaw(ctx, xrhid)
 	if listACL, err = c.retrieveACL(ctx); err != nil {
+		slog.ErrorContext(ctx, err.Error())
 		return false, err
 	}
 	for i := range listACL {
@@ -80,7 +84,7 @@ func (c *rbacWrapper) matchPermission(service, resource, verb, aclItem string) b
 }
 
 func (c *rbacWrapper) matchPermissionLabel(label, aclLabel string) bool {
-	if label == aclLabel || label == wildcard {
+	if label == aclLabel || aclLabel == wildcard {
 		return true
 	}
 	return false
