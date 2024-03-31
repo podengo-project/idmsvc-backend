@@ -4,7 +4,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
+	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -12,6 +14,7 @@ import (
 // SuiteTokenCreate is the suite token for smoke tests at /api/idmsvc/v1/domains/token
 type SuiteRbacPermission struct {
 	SuiteBase
+	token *public.DomainRegTokenResponse
 }
 
 type TestCasePermission struct {
@@ -35,15 +38,21 @@ func (s *SuiteRbacPermission) doTestTokenCreate(t *testing.T) int {
 	return res.StatusCode
 }
 
-func (s *SuiteRbacPermission) prepareDomainIpaCreate(t *testing.T, state map[string]any) {
+func (s *SuiteRbacPermission) prepareDomainIpaCreate(t *testing.T) {
 	token, err := s.CreateToken()
 	require.NoError(t, err)
 	require.NotNil(t, token)
 	require.NotEqual(t, "", token.DomainToken)
+	s.token = token
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaCreate(t *testing.T) int {
-	res, err := s.CreateTokenWithResponse()
+	hdr := http.Header{}
+	res, err := s.RegisterIpaDomainWithResponse(hdr, s.token.DomainToken,
+		builder_api.NewDomain("test.example").WithDomainID(&s.token.DomainId).WithRhelIdm(
+			builder_api.NewRhelIdmDomain("test.example").Build(),
+		).Build(),
+	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	return res.StatusCode
@@ -103,13 +112,12 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			// TODO Probably this will be change to http.StatusCreated
 			Expected: http.StatusOK,
 		},
-		// {
-		// 	Name:  "Test idmsvc:domain:create",
-		// 	Given: s.prepareDomainIpaCreate,
-		// 	Then:  s.doTestDomainIpaCreate,
-		// 	// TODO Refactor to http.StatusCreated
-		// 	Expected: http.StatusOK,
-		// },
+		{
+			Name:     "Test idmsvc:domain:create",
+			Given:    s.prepareDomainIpaCreate,
+			Then:     s.doTestDomainIpaCreate,
+			Expected: http.StatusCreated,
+		},
 		// {
 		// 	Name:     "Test idmsvc:domain:update",
 		// 	Given:    s.doTestDomainIpaUpdate,
