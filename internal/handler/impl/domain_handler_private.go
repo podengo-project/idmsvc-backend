@@ -9,6 +9,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	slog "golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -30,12 +31,24 @@ func ensureSubscriptionManagerIDAuthorizedToUpdate(
 	servers []model.IpaServer,
 ) error {
 	if subscriptionManagerID == "" {
+		slog.Error("'subscriptionManagerID' is an empty string")
 		return fmt.Errorf("'subscriptionManagerID' is empty")
 	}
 	if servers == nil {
+		slog.Error("'servers' is nil")
 		return internal_errors.NilArgError("servers")
 	}
 	for i := range servers {
+		rhsmid := "nil"
+		if servers[i].RHSMId != nil {
+			rhsmid = *servers[i].RHSMId
+		}
+
+		slog.Debug("Checking server",
+			slog.Bool("HCCUpdateServer", servers[i].HCCUpdateServer),
+			slog.String("RHSMId", rhsmid),
+			slog.String("subscriptionManagerID", subscriptionManagerID),
+		)
 		if servers[i].HCCUpdateServer &&
 			servers[i].RHSMId != nil &&
 			*servers[i].RHSMId == subscriptionManagerID {
