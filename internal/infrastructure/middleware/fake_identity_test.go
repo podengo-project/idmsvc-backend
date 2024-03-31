@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -108,7 +108,7 @@ func TestFakeIdentityWithConfig(t *testing.T) {
 		e.ServeHTTP(res, req)
 
 		// Check expectations
-		data, err := ioutil.ReadAll(res.Body)
+		data, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		assert.Equal(t, "Ok", string(data))
 		assert.Equal(t, http.StatusOK, res.Code)
@@ -140,7 +140,7 @@ func TestFakeIdentitySkipper(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header[headerXRhFakeIdentity] = []string{testXRHIDString}
 	e.ServeHTTP(res, req)
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
@@ -163,7 +163,7 @@ func TestFakeIdentitySkipper(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header[headerXRhFakeIdentity] = []string{testXRHIDString}
 	e.ServeHTTP(res, req)
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
@@ -186,7 +186,7 @@ func TestFakeIdentitySkipper(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
 	req.Header[headerXRhFakeIdentity] = []string{testXRHIDString}
 	e.ServeHTTP(res, req)
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -47,7 +47,7 @@ func TestNooperation(t *testing.T) {
 		e.ServeHTTP(res, req)
 
 		// Check expectations
-		data, err := ioutil.ReadAll(res.Body)
+		data, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		assert.Equal(t, "Ok", string(data))
 		assert.Equal(t, http.StatusOK, res.Code)
