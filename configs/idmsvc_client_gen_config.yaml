@@ -1,0 +1,15 @@
+# https://github.com/deepmap/oapi-codegen/blob/v1.16.2/pkg/codegen/configuration.go
+---
+package: public
+generate:
+  client: true
+  models: true
+compatibility:
+  # old-aliasing: true
+  # old-enum-conflicts: true
+output: ./pkg/public/client.gen.go
+output-options:
+  # the API is huge, we only need one endpoint tho
+  include-tags:
+    - resources
+    - actions
