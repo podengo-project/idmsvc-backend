@@ -13,6 +13,7 @@ import (
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -218,15 +219,15 @@ func (a *application) RegisterDomain(
 	); err != nil {
 		return err
 	}
-	ctx.Logger().Info(
-		"ipa-hcc",
-		clientVersion.IPAHCCVersion,
-		"ipa",
-		clientVersion.IPAVersion,
-		"os-release-id",
-		clientVersion.OSReleaseID,
-		"os-release-version-id",
-		clientVersion.OSReleaseVersionID,
+	slog.InfoContext(
+		ctx.Request().Context(),
+		"ipa-hcc client version",
+		slog.Group("client-version",
+			slog.String("ipa-hcc", clientVersion.IPAHCCVersion),
+			slog.String("ipa", clientVersion.IPAVersion),
+			slog.String("os-release-id", clientVersion.OSReleaseID),
+			slog.String("os-release-version", clientVersion.OSReleaseVersionID),
+		),
 	)
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
@@ -286,13 +287,15 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 	); err != nil {
 		return err
 	}
-	ctx.Logger().Info(
-		"{",
-		"\"ipa-hcc\":\"", clientVersion.IPAHCCVersion, "\",",
-		"\"ipa\": \"", clientVersion.IPAVersion, "\",",
-		"\"os-release-id\": \"", clientVersion.OSReleaseID, "\",",
-		"\"os-release-version-id\": \"", clientVersion.OSReleaseVersionID, "\"",
-		"}",
+	slog.InfoContext(
+		ctx.Request().Context(),
+		"ipa-hcc client version",
+		slog.Group("client-version",
+			slog.String("ipa-hcc", clientVersion.IPAHCCVersion),
+			slog.String("ipa", clientVersion.IPAVersion),
+			slog.String("os-release-id", clientVersion.OSReleaseID),
+			slog.String("os-release-version", clientVersion.OSReleaseVersionID),
+		),
 	)
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
