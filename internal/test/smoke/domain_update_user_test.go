@@ -35,7 +35,7 @@ func (s *SuiteDomainUpdateUser) TestReadDomain() {
 func (s *SuiteDomainUpdateUser) TestPatchDomain() {
 	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
 	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId.String())
-	patchedDomain := builder_api.NewUpdateDomainUserJSONRequestBody().Build()
+	patchedDomain := builder_api.NewUpdateDomainUserRequest().Build()
 
 	// Prepare the tests
 	testCases := []TestCase{

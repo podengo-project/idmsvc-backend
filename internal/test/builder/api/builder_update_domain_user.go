@@ -6,20 +6,20 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 )
 
-type UpdateDomainUserJSONRequestBody interface {
-	Build() *public.UpdateDomainUserJSONRequestBody
-	WithTitle(value *string) UpdateDomainUserJSONRequestBody
-	WithDescription(value *string) UpdateDomainUserJSONRequestBody
-	WithAutoEnrollmentEnabled(value *bool) UpdateDomainUserJSONRequestBody
+type UpdateDomainUserRequest interface {
+	Build() *public.UpdateDomainUserRequest
+	WithTitle(value *string) UpdateDomainUserRequest
+	WithDescription(value *string) UpdateDomainUserRequest
+	WithAutoEnrollmentEnabled(value *bool) UpdateDomainUserRequest
 }
 
-type updateDomainUserJSONRequestBody public.UpdateDomainUserJSONRequestBody
+type updateDomainUserRequest public.UpdateDomainUserRequest
 
-// NewUpdateDomainUserJSONRequestBody instantiate a new generator for
+// NewUpdateDomainUserRequest instantiate a new generator for
 // the user domain patch operation.
-func NewUpdateDomainUserJSONRequestBody() UpdateDomainUserJSONRequestBody {
+func NewUpdateDomainUserRequest() UpdateDomainUserRequest {
 	letters := []rune("abcdefghijklmnopqrstuvwxyz 0123456789")
-	return &updateDomainUserJSONRequestBody{
+	return &updateDomainUserRequest{
 		// TODO Enhance generator
 		Title:                 pointy.String(helper.GenRandString(letters, 30)),
 		AutoEnrollmentEnabled: pointy.Bool(helper.GenRandBool()),
@@ -27,21 +27,21 @@ func NewUpdateDomainUserJSONRequestBody() UpdateDomainUserJSONRequestBody {
 	}
 }
 
-func (b *updateDomainUserJSONRequestBody) Build() *public.UpdateDomainUserJSONRequestBody {
+func (b *updateDomainUserRequest) Build() *public.UpdateDomainUserJSONRequestBody {
 	return (*public.UpdateDomainUserJSONRequestBody)(b)
 }
 
-func (b *updateDomainUserJSONRequestBody) WithTitle(value *string) UpdateDomainUserJSONRequestBody {
+func (b *updateDomainUserRequest) WithTitle(value *string) UpdateDomainUserRequest {
 	b.Title = value
 	return b
 }
 
-func (b *updateDomainUserJSONRequestBody) WithDescription(value *string) UpdateDomainUserJSONRequestBody {
+func (b *updateDomainUserRequest) WithDescription(value *string) UpdateDomainUserRequest {
 	b.Description = value
 	return b
 }
 
-func (b *updateDomainUserJSONRequestBody) WithAutoEnrollmentEnabled(value *bool) UpdateDomainUserJSONRequestBody {
+func (b *updateDomainUserRequest) WithAutoEnrollmentEnabled(value *bool) UpdateDomainUserRequest {
 	b.AutoEnrollmentEnabled = value
 	return b
 }
