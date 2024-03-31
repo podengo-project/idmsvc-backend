@@ -42,13 +42,13 @@ func TestMatchPermission(t *testing.T) {
 	assert.True(t, c.matchPermission("idmsvc", "domains", "create", "idmsvc:domains:create"))
 	assert.False(t, c.matchPermission("idmsvc", "domains", "read", "idmsvc:domains:create"))
 
-	assert.True(t, c.matchPermission("idmsvc", "domains", wildcard, "idmsvc:domains:create"))
-	assert.True(t, c.matchPermission("idmsvc", wildcard, wildcard, "idmsvc:domains:create"))
+	assert.True(t, c.matchPermission("idmsvc", "domains", "create", "idmsvc:domains:*"))
+	assert.True(t, c.matchPermission("idmsvc", "domains", "create", "idmsvc:*:*"))
 
-	assert.False(t, c.matchPermission("idmsvc", "domains", wildcard, "rbac:permission:read"))
-	assert.False(t, c.matchPermission("idmsvc", wildcard, wildcard, "rbac:permission:read"))
+	assert.False(t, c.matchPermission("idmsvc", "domains", "read", "rbac:permission:*"))
+	assert.False(t, c.matchPermission("idmsvc", "permission", "read", "rbac:*:*"))
 
-	assert.True(t, c.matchPermission(wildcard, wildcard, wildcard, "idmsvc:domains:create"))
+	assert.True(t, c.matchPermission("idmsvc", "domains", "create", "*:*:*"))
 }
 
 func TestMatchPermissionLabel(t *testing.T) {
@@ -58,7 +58,7 @@ func TestMatchPermissionLabel(t *testing.T) {
 	}
 	assert.True(t, c.matchPermissionLabel("read", "read"))
 	assert.False(t, c.matchPermissionLabel("write", "read"))
-	assert.True(t, c.matchPermissionLabel(wildcard, "read"))
+	assert.True(t, c.matchPermissionLabel("read", wildcard))
 }
 
 func TestDecomposePermission(t *testing.T) {
