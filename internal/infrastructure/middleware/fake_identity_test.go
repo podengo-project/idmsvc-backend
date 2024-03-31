@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -81,10 +82,10 @@ func TestFakeIdentityWithConfig(t *testing.T) {
 		{
 			Name: "X-Rh-Fake-Identity only",
 			Given: http.Header(map[string][]string{
-				headerXRhFakeIdentity: []string{testXRHIDString},
+				header.HeaderXRHFakeID: {testXRHIDString},
 			}),
 			Expected: http.Header(map[string][]string{
-				headerXRhIdentity: []string{testXRHIDString},
+				header.HeaderXRHID: {testXRHIDString},
 			}),
 		},
 	}
@@ -138,16 +139,15 @@ func TestFakeIdentitySkipper(t *testing.T) {
 	)
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header[headerXRhFakeIdentity] = []string{testXRHIDString}
+	req.Header[header.HeaderXRHFakeID] = []string{testXRHIDString}
 	e.ServeHTTP(res, req)
 	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
 	assert.Equal(t, 1, len(req.Header))
-	assert.Equal(t, testXRHIDString, req.Header.Get(headerXRhIdentity))
-	assert.Equal(t, "", req.Header.Get(headerXRhFakeIdentity))
-	assert.Equal(t, testXRHIDString, req.Header.Get(headerXRhIdentity))
+	assert.Equal(t, testXRHIDString, req.Header.Get(header.HeaderXRHID))
+	assert.Equal(t, "", req.Header.Get(header.HeaderXRHFakeID))
 
 	// With skipper returning false, the middleware excute always
 	e = helperNewEchoFakeIdentity(
@@ -161,16 +161,15 @@ func TestFakeIdentitySkipper(t *testing.T) {
 	)
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header[headerXRhFakeIdentity] = []string{testXRHIDString}
+	req.Header[header.HeaderXRHFakeID] = []string{testXRHIDString}
 	e.ServeHTTP(res, req)
 	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
 	assert.Equal(t, 1, len(req.Header))
-	assert.Equal(t, testXRHIDString, req.Header.Get(headerXRhIdentity))
-	assert.Equal(t, "", req.Header.Get(headerXRhFakeIdentity))
-	assert.Equal(t, testXRHIDString, req.Header.Get(headerXRhIdentity))
+	assert.Equal(t, testXRHIDString, req.Header.Get(header.HeaderXRHID))
+	assert.Equal(t, "", req.Header.Get(header.HeaderXRHFakeID))
 
 	// With skipper returning true, the middleware does not execute
 	e = helperNewEchoFakeIdentity(
@@ -184,13 +183,13 @@ func TestFakeIdentitySkipper(t *testing.T) {
 	)
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header[headerXRhFakeIdentity] = []string{testXRHIDString}
+	req.Header[header.HeaderXRHFakeID] = []string{testXRHIDString}
 	e.ServeHTTP(res, req)
 	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
 	assert.Equal(t, 1, len(req.Header))
-	assert.Equal(t, testXRHIDString, req.Header.Get(headerXRhFakeIdentity))
-	assert.Equal(t, "", req.Header.Get(headerXRhIdentity))
+	assert.Equal(t, testXRHIDString, req.Header.Get(header.HeaderXRHFakeID))
+	assert.Equal(t, "", req.Header.Get(header.HeaderXRHID))
 }

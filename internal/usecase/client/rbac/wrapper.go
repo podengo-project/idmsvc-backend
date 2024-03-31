@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	slog "golang.org/x/exp/slog"
 )
@@ -103,7 +104,7 @@ func (c *rbacWrapper) decomposePermission(permission string) (s, r, v string) {
 
 func (c *rbacWrapper) addXRHID(ctx context.Context, req *http.Request) error {
 	xrhid := XRHIDRawFromCtx(ctx)
-	req.Header.Set("X-Rh-Identity", xrhid)
+	req.Header.Set(header.HeaderXRHID, xrhid)
 	return nil
 }
 

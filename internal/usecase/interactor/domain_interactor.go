@@ -155,7 +155,7 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	// Retrieve the ipa-hcc version information
 	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
 	if clientVersion == nil {
-		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+		return "", nil, nil, fmt.Errorf("'" + header.HeaderXRHIDMVersion + "' is invalid")
 	}
 
 	// verify token
@@ -207,7 +207,7 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 	// Retrieve the ipa-hcc version information
 	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
 	if clientVersion == nil {
-		return "", nil, nil, fmt.Errorf("'X-Rh-Idm-Version' is invalid")
+		return "", nil, nil, fmt.Errorf("'" + header.HeaderXRHIDMVersion + "' is invalid")
 	}
 
 	// Read the body payload

@@ -67,9 +67,9 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 				Method: http.MethodPut,
 				URL:    url,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_domain_update"},
-					"X-Rh-Identity":            {xrhidEncoded},
-					"X-Rh-Idm-Version": {
+					header.HeaderXRequestID: {"test_domain_update"},
+					header.HeaderXRHID:      {xrhidEncoded},
+					header.HeaderXRHIDMVersion: {
 						header.EncodeXRHIDMVersion(
 							header.NewXRHIDMVersion(
 								"v1.0.0",
@@ -85,8 +85,8 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_domain_update"},
-					"X-Rh-Identity":            nil,
+					header.HeaderXRequestID: {"test_domain_update"},
+					header.HeaderXRHID:      nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					test_assert.AssertDomain(t, s.Domains[0], body)

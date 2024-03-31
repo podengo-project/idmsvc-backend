@@ -62,8 +62,8 @@ func (s *SuiteReadDomain) TestReadDomain() {
 				Method: http.MethodGet,
 				URL:    url,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            {xrhidEncoded},
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -71,8 +71,8 @@ func (s *SuiteReadDomain) TestReadDomain() {
 				// FIXME It must be http.StatusCreated
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            nil,
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					test_assert.AssertDomain(t, s.Domains[0], body)

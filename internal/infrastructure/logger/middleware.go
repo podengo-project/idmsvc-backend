@@ -3,11 +3,8 @@ package logger
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"golang.org/x/exp/slog"
-)
-
-const (
-	HeaderXRHRequestID = "X-Rh-Insights-Request-Id"
 )
 
 // This requires the following values to be set in
@@ -24,9 +21,9 @@ func MiddlewareLogValues(c echo.Context, v middleware.RequestLoggerValues) error
 	req := c.Request()
 	res := c.Response()
 
-	request_id := req.Header.Get(HeaderXRHRequestID)
+	request_id := req.Header.Get(header.HeaderXRequestID)
 	if request_id == "" {
-		request_id = res.Header().Get(HeaderXRHRequestID)
+		request_id = res.Header().Get(header.HeaderXRequestID)
 	}
 
 	logAttr = append(logAttr,

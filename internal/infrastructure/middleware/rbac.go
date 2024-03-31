@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	rbac_data "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware/rbac-data"
 	rbac_client "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	slog "golang.org/x/exp/slog"
@@ -64,8 +65,8 @@ func RBACWithConfig(rbacConfig *RBACConfig) echo.MiddlewareFunc {
 			// Get X-Rh-Identity header
 			// This if statement is only possible if no enforce middleware
 			// is executed for the public API.
-			if xrhid = c.Request().Header.Get(headerXRhIdentity); xrhid == "" {
-				return echo.NewHTTPError(http.StatusBadRequest, headerXRhIdentity+" is missed")
+			if xrhid = c.Request().Header.Get(header.HeaderXRHID); xrhid == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, header.HeaderXRHID+" is missed")
 			}
 
 			// Get User permissions

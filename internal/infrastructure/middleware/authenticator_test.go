@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	mock_middleware "github.com/podengo-project/idmsvc-backend/internal/test/mock/infrastructure/middleware"
 )
 
@@ -74,7 +75,7 @@ func TestNewAuthenticator(t *testing.T) {
 	v.On("ValidateXRhIdentity", &xrhid).Return(fmt.Errorf("any error"))
 	ctx = context.WithValue(context.Background(), "oapi-codegen/echo-context", mockContext)
 	err = a(ctx, &input)
-	assert.EqualError(t, err, "No valid "+headerXRhIdentity)
+	assert.EqualError(t, err, "No valid "+header.HeaderXRHID)
 	mockContext.AssertExpectations(t)
 	v.AssertExpectations(t)
 

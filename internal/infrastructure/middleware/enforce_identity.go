@@ -7,12 +7,10 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 	slog "golang.org/x/exp/slog"
 )
-
-// The Identity header present into the public headers
-const headerXRhIdentity = "X-Rh-Identity"
 
 // FIXME Refactor to use the signature: func(c echo.Context) Error
 //
@@ -137,7 +135,7 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				return echo.ErrInternalServerError
 			}
 			if xrhid, err = decodeXRHID(
-				cc.Request().Header.Get(headerXRhIdentity),
+				cc.Request().Header.Get(header.HeaderXRHID),
 			); err != nil {
 				slog.ErrorContext(c.Request().Context(), err.Error())
 				return echo.ErrUnauthorized
@@ -166,7 +164,7 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 
 func decodeXRHID(b64XRHID string) (*identity.XRHID, error) {
 	if b64XRHID == "" {
-		return nil, fmt.Errorf("%s not present", headerXRhIdentity)
+		return nil, fmt.Errorf("%s not present", header.HeaderXRHID)
 	}
 	stringXRHID, err := base64.StdEncoding.DecodeString(b64XRHID)
 	if err != nil {

@@ -45,16 +45,16 @@ func (s *SuiteDomainUpdateUser) TestPatchDomain() {
 				Method: http.MethodPatch,
 				URL:    url,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_domain_patch"},
-					"X-Rh-Identity":            {xrhidEncoded},
+					header.HeaderXRequestID: {"test_domain_patch"},
+					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: patchedDomain,
 			},
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_domain_patch"},
-					"X-Rh-Identity":            nil,
+					header.HeaderXRequestID: {"test_domain_patch"},
+					header.HeaderXRHID:      nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					require.NotNil(t, body)
