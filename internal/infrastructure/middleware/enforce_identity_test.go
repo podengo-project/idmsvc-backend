@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -200,7 +200,7 @@ func TestEnforceIdentity(t *testing.T) {
 		e.ServeHTTP(res, req)
 
 		// Check expectations
-		data, err := ioutil.ReadAll(res.Body)
+		data, err := io.ReadAll(res.Body)
 		require.NoError(t, err)
 		assert.Equal(t, testCase.Expected.Code, res.Code)
 		assert.Equal(t, testCase.Expected.Body, string(data))
@@ -232,7 +232,7 @@ func TestEnforceIdentityNoDomainContext(t *testing.T) {
 	e.ServeHTTP(res, req)
 
 	// Check expectations
-	data, err := ioutil.ReadAll(res.Body)
+	data, err := io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusInternalServerError, res.Code)
 	assert.Equal(t,
@@ -266,7 +266,7 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
 	e.ServeHTTP(res, req)
 	// Check expectations
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusUnauthorized, res.Code)
 	assert.Equal(t, "{\"message\":\"Unauthorized\"}\n", string(data))
@@ -283,7 +283,7 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
 	e.ServeHTTP(res, req)
 	// Check expectations
-	data, err = ioutil.ReadAll(res.Body)
+	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
 	assert.Equal(t, http.StatusOK, res.Code)
 	assert.Equal(t, "Ok", string(data))
