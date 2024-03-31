@@ -134,8 +134,8 @@ func (s *SuiteBase) CreateToken() (*public.DomainRegTokenResponse, error) {
 
 	url := s.DefaultPublicBaseURL() + "/domains/token"
 
-	headers.Add("X-Rh-Insights-Request-Id", "get_token")
-	headers.Add("X-Rh-Identity", header.EncodeXRHID(&s.UserXRHID))
+	headers.Add(header.HeaderXRequestID, "get_token")
+	headers.Add(header.HeaderXRHID, header.EncodeXRHID(&s.UserXRHID))
 	if resp, err = s.DoRequest(
 		http.MethodPost,
 		url,
@@ -177,10 +177,10 @@ func (s *SuiteBase) RegisterIpaDomain(domain *public.Domain) (*public.Domain, er
 	}
 
 	url := s.DefaultPublicBaseURL() + "/domains"
-	headers.Add("X-Rh-Idm-Registration-Token", token.DomainToken)
-	headers.Add("X-Rh-Insights-Request-Id", "get_token")
-	headers.Add("X-Rh-Identity", header.EncodeXRHID(&s.SystemXRHID))
-	headers.Add("X-Rh-Idm-Version", header.EncodeXRHIDMVersion(&header.XRHIDMVersion{
+	headers.Add(header.HeaderXRHIDMRegistrationToken, token.DomainToken)
+	headers.Add(header.HeaderXRequestID, "get_token")
+	headers.Add(header.HeaderXRHID, header.EncodeXRHID(&s.SystemXRHID))
+	headers.Add(header.HeaderXRHIDMVersion, header.EncodeXRHIDMVersion(&header.XRHIDMVersion{
 		IPAHCCVersion:      "1.0.0",
 		IPAVersion:         "4.19.0",
 		OSReleaseID:        "9.3",
@@ -222,8 +222,8 @@ func (s *SuiteBase) ReadDomain(domainID uuid.UUID) (*public.Domain, error) {
 
 	method := http.MethodGet
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
-	headers.Add(http.CanonicalHeaderKey("X-Rh-Insights-Request-Id"), "read_domain")
-	headers.Add(http.CanonicalHeaderKey("X-Rh-Identity"), header.EncodeXRHID(&s.UserXRHID))
+	headers.Add(http.CanonicalHeaderKey(header.HeaderXRequestID), "read_domain")
+	headers.Add(http.CanonicalHeaderKey(header.HeaderXRHID), header.EncodeXRHID(&s.UserXRHID))
 	if resp, err = s.DoRequest(
 		method,
 		url,

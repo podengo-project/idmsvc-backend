@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	api_header "github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
@@ -31,7 +32,7 @@ func newMockInventoryServer(
 	*httptest.ResponseRecorder,
 ) {
 	rh := map[string]string{
-		"X-Rh-Identity": api_header.EncodeXRHID(xrhid),
+		header.HeaderXRHID: api_header.EncodeXRHID(xrhid),
 	}
 	return test_client.NewHandlerTester(t,
 		http.MethodGet,

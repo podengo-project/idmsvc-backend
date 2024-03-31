@@ -141,7 +141,7 @@ func TestRegisterIpa(t *testing.T) {
 				OrgId:         "",
 				ClientVersion: nil,
 				Output:        nil,
-				Error:         fmt.Errorf("'X-Rh-Idm-Version' is invalid"),
+				Error:         fmt.Errorf("'" + header.HeaderXRHIDMVersion + "' is invalid"),
 			},
 		},
 		{
@@ -495,28 +495,28 @@ func TestUpdateAgent(t *testing.T) {
 
 	// Get an error in guards
 	orgID, xrhidmVersion, domain, err := i.UpdateAgent(nil, uuid.Nil, nil, nil)
-	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
+	require.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Get an error with nil param
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, nil, &testBody)
-	assert.EqualError(t, err, "code=500, message='params' cannot be nil")
+	require.EqualError(t, err, "code=500, message='params' cannot be nil")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Error retrieving ipa-hcc version information
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, &testBadParams, &testBody)
-	assert.EqualError(t, err, "'X-Rh-Idm-Version' is invalid")
+	require.EqualError(t, err, "'"+header.HeaderXRHIDMVersion+"' is invalid")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)
 
 	// Error because of wrongtype
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, &testParams, &testWrongTypeBody)
-	assert.EqualError(t, err, "Unsupported domain_type='aninvalidtype'")
+	require.EqualError(t, err, "Unsupported domain_type='aninvalidtype'")
 	assert.Equal(t, "", orgID)
 	assert.Nil(t, xrhidmVersion)
 	assert.Nil(t, domain)

@@ -117,7 +117,7 @@ func TestEnforceIdentity(t *testing.T) {
 
 	testCases := []TestCase{
 		{
-			Name:  "x-rh-identity header not present",
+			Name:  header.HeaderXRHID + " header not present",
 			Given: nil,
 			Expected: TestCaseExpected{
 				Code: http.StatusUnauthorized,
@@ -125,7 +125,7 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name:  "x-rh-identity bad base64 coding",
+			Name:  header.HeaderXRHID + " bad base64 coding",
 			Given: pointy.String("bad base64 coding"),
 			Expected: TestCaseExpected{
 				Code: http.StatusUnauthorized,
@@ -133,7 +133,7 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name:  "x-rh-identity bad json encoding",
+			Name:  header.HeaderXRHID + " bad json encoding",
 			Given: pointy.String("ewo="),
 			Expected: TestCaseExpected{
 				Code: http.StatusUnauthorized,
@@ -141,7 +141,7 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name: "x-rh-identity fail predicates",
+			Name: header.HeaderXRHID + " fail predicates",
 			Given: pointy.String(
 				header.EncodeXRHID(
 					helperGenerateUserIdentity("12345", "test-fail-predicate"),
@@ -153,7 +153,7 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name: "x-rh-identity pass predicates",
+			Name: header.HeaderXRHID + " pass predicates",
 			Given: pointy.String(
 				header.EncodeXRHID(
 					helperGenerateUserIdentity("12345", "testuser"),
@@ -165,7 +165,7 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name: "x-rh-identity pass predicates",
+			Name: header.HeaderXRHID + " pass predicates",
 			Given: pointy.String(
 				header.EncodeXRHID(
 					helperGenerateSystemIdentity("12345", "testuser"),
@@ -195,7 +195,7 @@ func TestEnforceIdentity(t *testing.T) {
 		res := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
 		if testCase.Given != nil {
-			req.Header.Add("X-Rh-Identity", *testCase.Given)
+			req.Header.Add(header.HeaderXRHID, *testCase.Given)
 		}
 		e.ServeHTTP(res, req)
 
@@ -228,7 +228,7 @@ func TestEnforceIdentityNoDomainContext(t *testing.T) {
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
 	iden := header.EncodeXRHID(&identity.XRHID{})
-	req.Header.Add("X-Rh-Identity", iden)
+	req.Header.Add(header.HeaderXRHID, iden)
 	e.ServeHTTP(res, req)
 
 	// Check expectations
@@ -472,7 +472,7 @@ func TestEnforceIdentityOrder(t *testing.T) {
 		order["second"] = time.Time{}
 		res := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.Header.Add("X-Rh-Identity", xrhid)
+		req.Header.Add(header.HeaderXRHID, xrhid)
 		e.ServeHTTP(res, req)
 
 		// Check expectations

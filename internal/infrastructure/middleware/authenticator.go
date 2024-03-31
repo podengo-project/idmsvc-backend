@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/redhatinsights/platform-go-middlewares/identity"
 )
@@ -51,7 +52,7 @@ func Authenticate(v XRhIValidator, ctx context.Context, input *openapi3filter.Au
 	}
 	data = domainCtx.XRHID()
 	if err = v.ValidateXRhIdentity(data); err != nil {
-		return fmt.Errorf("No valid " + headerXRhIdentity)
+		return fmt.Errorf("No valid " + header.HeaderXRHID)
 	}
 
 	return nil

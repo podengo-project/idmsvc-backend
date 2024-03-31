@@ -64,16 +64,16 @@ func (s *SuiteDeleteDomain) TestDeleteDomain() {
 				Method: http.MethodDelete,
 				URL:    url,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            {xrhidEncoded},
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusNoContent,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            nil,
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      nil,
 				},
 			},
 		},

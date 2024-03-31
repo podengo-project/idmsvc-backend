@@ -87,10 +87,10 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 				Method: http.MethodPost,
 				URL:    url,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id":    {"test_token"},
-					"X-Rh-Identity":               {xrhidEncoded},
-					"X-Rh-Idm-Registration-Token": {s.token.DomainToken},
-					"X-Rh-Idm-Version": {
+					header.HeaderXRequestID:              {"test_token"},
+					header.HeaderXRHID:                   {xrhidEncoded},
+					header.HeaderXRHIDMRegistrationToken: {s.token.DomainToken},
+					header.HeaderXRHIDMVersion: {
 						header.EncodeXRHIDMVersion(
 							header.NewXRHIDMVersion(
 								"v1.0.0",
@@ -107,8 +107,8 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 				StatusCode: http.StatusCreated,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            nil,
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					require.NotNil(t, body)

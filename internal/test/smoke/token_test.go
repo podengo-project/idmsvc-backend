@@ -92,8 +92,8 @@ func (s *SuiteTokenCreate) TestToken() {
 				Method: http.MethodPost,
 				URL:    s.DefaultPublicBaseURL() + "/domains/token",
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            {xrhidEncoded},
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: public.DomainRegTokenRequest{
 					DomainType: "rhel-idm",
@@ -102,8 +102,8 @@ func (s *SuiteTokenCreate) TestToken() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					"X-Rh-Insights-Request-Id": {"test_token"},
-					"X-Rh-Identity":            nil,
+					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRHID:      nil,
 				},
 				BodyFunc: WrapBodyFuncTokenResponse(s.bodyExpectationTestToken),
 			},

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	interface_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
 )
@@ -46,8 +47,8 @@ func (c *hostInventory) GetHostByCN(iden, requestId, cn string) (
 	if err != nil {
 		return interface_inventory.InventoryHost{}, err
 	}
-	req.Header.Add("X-Rh-Identity", iden)
-	req.Header.Add("X-Rh-Insights-Request-Id", requestId)
+	req.Header.Add(header.HeaderXRHID, iden)
+	req.Header.Add(header.HeaderXRequestID, requestId)
 	resp, err := client.Do(req)
 	if err != nil {
 		return interface_inventory.InventoryHost{}, err
