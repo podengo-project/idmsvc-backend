@@ -148,7 +148,9 @@ generate-api: $(OAPI_CODEGEN) $(API_LIST) ## Generate server stubs from openapi
 
 # Thanks to RHEnvision
 # See: https://github.com/RHEnVision/provisioning-backend/blob/main/mk/clients.mk
-CLIENT_LIST := internal/usecase/client/rbac/client.gen.go ## Generate HTTP client stubs
+# Generate HTTP client stubs
+CLIENT_LIST := internal/usecase/client/rbac/client.gen.go
+# CLIENT_LIST += pkg/public/client.gen.go
 
 .PHONY: generate-client
 generate-client: $(OAPI_CODEGEN) $(CLIENT_LIST)  ## Generate client stubs from openapi
@@ -158,6 +160,9 @@ configs/rbac_client_api.json:
 
 internal/usecase/client/rbac/client.gen.go: configs/rbac_client_gen_config.yaml configs/rbac_client_api.json
 	$(OAPI_CODEGEN) -config configs/rbac_client_gen_config.yaml configs/rbac_client_api.json
+
+# pkg/public/client.gen.go: configs/idmsvc_client_gen_config.yaml api/public.openapi.json
+# 	$(OAPI_CODEGEN) -config configs/idmsvc_client_gen_config.yaml api/public.openapi.json
 
 $(API_LIST):
 	git submodule update --init
