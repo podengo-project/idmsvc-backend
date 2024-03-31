@@ -28,6 +28,13 @@ func (s *SuiteRbacPermission) prepareNoop(t *testing.T) {
 	// It is empty on porpose
 }
 
+func (s *SuiteRbacPermission) doTestTokenCreate(t *testing.T) int {
+	res, err := s.CreateTokenWithResponse()
+	require.NoError(t, err)
+	assert.NotNil(t, res)
+	return res.StatusCode
+}
+
 func (s *SuiteRbacPermission) prepareDomainIpaCreate(t *testing.T, state map[string]any) {
 	token, err := s.CreateToken()
 	require.NoError(t, err)
@@ -89,13 +96,13 @@ func (s *SuiteRbacPermission) commonRun(profile string, testCases []TestCasePerm
 
 func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 	testCases := []TestCasePermission{
-		// {
-		// 	Name:  "Test idmsvc:token:create",
-		// 	Given: s.prepareNoop,
-		// 	Then:  s.doTestTokenCreate,
-		// 	// TODO Probably this will be change to http.StatusCreated
-		// 	Expected: http.StatusOK,
-		// },
+		{
+			Name:  "Test idmsvc:token:create",
+			Given: s.prepareNoop,
+			Then:  s.doTestTokenCreate,
+			// TODO Probably this will be change to http.StatusCreated
+			Expected: http.StatusOK,
+		},
 		// {
 		// 	Name:  "Test idmsvc:domain:create",
 		// 	Given: s.prepareDomainIpaCreate,
