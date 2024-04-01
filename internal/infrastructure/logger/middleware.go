@@ -1,8 +1,6 @@
 package logger
 
 import (
-	"context"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"golang.org/x/exp/slog"
@@ -45,7 +43,7 @@ func MiddlewareLogValues(c echo.Context, v middleware.RequestLoggerValues) error
 	}
 
 	slog.LogAttrs(
-		context.Background(),
+		c.Request().Context(),
 		logLevel,
 		"http_request",
 		logAttr...,
