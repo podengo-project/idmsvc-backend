@@ -124,7 +124,10 @@ func (s *SuiteRbacPermission) doTestDomainIpaPatch(t *testing.T) int {
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaRead(t *testing.T) int {
-	return http.StatusNotImplemented
+	res, err := s.ReadDomainWithResponse(*s.domain.DomainId)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	return res.StatusCode
 }
 
 func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
@@ -187,15 +190,23 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusOK,
 		},
-		// {
-		// 	Name:     "Test idmsvc:domain:read",
-		// 	Given:    s.doTestDomainIpaRead,
-		// 	Expected: http.StatusOK,
-		// },
+		{
+			Name:     "Test idmsvc:domain:read",
+			Given:    s.prepareDomainIpaUpdate,
+			Then:     s.doTestDomainIpaRead,
+			Expected: http.StatusOK,
+		},
 		// {
 		// 	Name:     "Test idmsvc:domain:delete",
-		// 	Given:    s.doTestDomainIpaDelete,
+		// 	Given:    s.prepareDomainIpaUpdate,
+		// 	Then:     s.doTestDomainIpaDelete,
 		// 	Expected: http.StatusNoContent,
+		// },
+		// {
+		// 	Name:     "Test idmsvc:domain:list",
+		// 	Given:    s.prepareNoop,
+		// 	Then:     s.doTestDomainList,
+		// 	Expected: http.StatusOK,
 		// },
 	}
 	return testCases
