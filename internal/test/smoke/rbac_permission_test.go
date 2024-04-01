@@ -14,7 +14,8 @@ import (
 // SuiteTokenCreate is the suite token for smoke tests at /api/idmsvc/v1/domains/token
 type SuiteRbacPermission struct {
 	SuiteBase
-	token *public.DomainRegTokenResponse
+	token  *public.DomainRegTokenResponse
+	domain *public.Domain
 }
 
 type TestCasePermission struct {
@@ -46,12 +47,39 @@ func (s *SuiteRbacPermission) prepareDomainIpaCreate(t *testing.T) {
 	s.token = token
 }
 
+func (s *SuiteRbacPermission) prepareDomainIpaUpdate(t *testing.T) {
+	var err error
+	s.token, err = s.CreateToken()
+	require.NoError(t, err)
+	require.NotNil(t, s.token)
+	require.NotEqual(t, "", s.token.DomainToken)
+
+	s.domain, err = s.RegisterIpaDomain(s.token.DomainToken,
+		builder_api.NewDomain("test.example").
+			WithDomainID(&s.token.DomainId).
+			WithRhelIdm(builder_api.NewRhelIdmDomain("test.example").
+				AddServer(builder_api.NewDomainIpaServer("1.test.example").
+					WithHccUpdateServer(true).
+					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
+					Build()).
+				Build(),
+			).Build(),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, s.domain)
+}
+
 func (s *SuiteRbacPermission) doTestDomainIpaCreate(t *testing.T) int {
-	hdr := http.Header{}
-	res, err := s.RegisterIpaDomainWithResponse(hdr, s.token.DomainToken,
-		builder_api.NewDomain("test.example").WithDomainID(&s.token.DomainId).WithRhelIdm(
-			builder_api.NewRhelIdmDomain("test.example").Build(),
-		).Build(),
+	res, err := s.RegisterIpaDomainWithResponse(s.token.DomainToken,
+		builder_api.NewDomain("test.example").
+			WithDomainID(&s.token.DomainId).
+			WithRhelIdm(builder_api.NewRhelIdmDomain("test.example").
+				AddServer(builder_api.NewDomainIpaServer("1.test.example").
+					WithHccUpdateServer(true).
+					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
+					Build()).
+				Build(),
+			).Build(),
 	)
 	require.NoError(t, err)
 	require.NotNil(t, res)
@@ -59,7 +87,26 @@ func (s *SuiteRbacPermission) doTestDomainIpaCreate(t *testing.T) int {
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaUpdate(t *testing.T) int {
-	return http.StatusNotImplemented
+	subscriptionManagerID := s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String()
+	domainID := s.domain.DomainId.String()
+	res, err := s.UpdateDomainWithResponse(
+		domainID,
+		builder_api.NewUpdateDomainAgent("test.example").
+			WithHCCUpdate(true).
+			WithDomainRhelIdm(*builder_api.NewRhelIdmDomain("test.example").
+				WithServers([]public.DomainIpaServer{}).
+				AddServer(
+					builder_api.NewDomainIpaServer("1.test.example").
+						WithHccUpdateServer(true).
+						WithSubscriptionManagerId(subscriptionManagerID).
+						Build(),
+				).Build(),
+			).WithSubscriptionManagerID(subscriptionManagerID).
+			Build(),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	return res.StatusCode
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaPatch(t *testing.T) int {
@@ -118,11 +165,12 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			Then:     s.doTestDomainIpaCreate,
 			Expected: http.StatusCreated,
 		},
-		// {
-		// 	Name:     "Test idmsvc:domain:update",
-		// 	Given:    s.doTestDomainIpaUpdate,
-		// 	Expected: http.StatusOK,
-		// },
+		{
+			Name:     "Test Update Agent idmsvc:domain:update",
+			Given:    s.prepareDomainIpaUpdate,
+			Then:     s.doTestDomainIpaUpdate,
+			Expected: http.StatusOK,
+		},
 		// {
 		// 	Name:     "Test idmsvc:domain:update",
 		// 	Given:    s.doTestDomainIpaPatch,
