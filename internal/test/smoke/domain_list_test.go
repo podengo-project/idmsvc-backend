@@ -17,8 +17,7 @@ import (
 
 // SuiteTokenCreate is the suite token for smoke tests at /api/idmsvc/v1/domains/token
 type SuiteListDomains struct {
-	SuiteBase
-	Domains []*public.Domain
+	SuiteBaseWithDomain
 }
 
 // BodyFuncListResponse is the function that wrap
@@ -58,14 +57,22 @@ func WrapBodyFuncListDomainsResponse(expected BodyFuncListDomainsResponse) BodyF
 }
 
 func (s *SuiteListDomains) SetupTest() {
+	var (
+		token  *public.DomainRegToken
+		domain *public.Domain
+		err    error
+	)
 	s.SuiteBase.SetupTest()
 
 	s.Domains = []*public.Domain{}
 	for i := 1; i < 50; i++ {
 		domainName := fmt.Sprintf("domain%d.test", i)
-		domain, err := s.RegisterIpaDomain(builder_api.NewDomain(domainName).Build())
+		if token, err = s.CreateToken(); err != nil {
+			s.FailNow("error creating token")
+		}
+		domain, err = s.RegisterIpaDomain(token.DomainToken, builder_api.NewDomain(domainName).Build())
 		if err != nil {
-			s.FailNow("error creating ")
+			s.FailNow("error registering domain")
 		}
 		s.Domains = append(s.Domains, domain)
 	}

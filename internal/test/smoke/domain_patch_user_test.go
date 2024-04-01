@@ -14,22 +14,15 @@ import (
 
 // SuiteDomainUpdateUser is the suite to validate the smoke test when a user update the domain endpoint at PATCH /api/idmsvc/v1/domains/:domain_id
 type SuiteDomainUpdateUser struct {
-	SuiteReadDomain
+	SuiteBaseWithDomain
 }
 
 func (s *SuiteDomainUpdateUser) SetupTest() {
-	s.SuiteReadDomain.SetupTest()
+	s.SuiteBaseWithDomain.SetupTest()
 }
 
 func (s *SuiteDomainUpdateUser) TearDownTest() {
-	s.SuiteReadDomain.TearDownTest()
-}
-
-func (s *SuiteDomainUpdateUser) TestReadDomain() {
-	// This avoid the test from the wrapped suite is executed, so it runs only
-	// once
-	t := s.T()
-	t.Skip("skipping parent duplicated test")
+	s.SuiteBaseWithDomain.TearDownTest()
 }
 
 func (s *SuiteDomainUpdateUser) TestPatchDomain() {

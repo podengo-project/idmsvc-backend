@@ -15,38 +15,15 @@ import (
 
 // SuiteReadDomain is the suite to validate the smoke test when read domain endpoint at GET /api/idmsvc/v1/domains/:domain_id
 type SuiteReadDomain struct {
-	SuiteBase
-	Domains []*public.Domain
+	SuiteBaseWithDomain
 }
 
 func (s *SuiteReadDomain) SetupTest() {
-	s.SuiteBase.SetupTest()
-
-	var (
-		domainName string
-		domain     *public.Domain
-		err        error
-		i          int
-	)
-
-	// Domain 1 in OrgID1
-	i = 0
-	s.Domains = []*public.Domain{}
-	domainName = fmt.Sprintf("domain%d.test", i)
-	domain, err = s.RegisterIpaDomain(builder_api.NewDomain(domainName).Build())
-	if err != nil {
-		s.FailNow("error creating ")
-	}
-	s.Domains = append(s.Domains, domain)
+	s.SuiteBaseWithDomain.SetupTest()
 }
 
 func (s *SuiteReadDomain) TearDownTest() {
-	for i := range s.Domains {
-		s.Domains[i] = nil
-	}
-	s.Domains = nil
-
-	s.SuiteBase.TearDownTest()
+	s.SuiteBaseWithDomain.TearDownTest()
 }
 
 func (s *SuiteReadDomain) TestReadDomain() {
