@@ -138,7 +138,10 @@ func (s *SuiteRbacPermission) doTestDomainIpaDelete(t *testing.T) int {
 }
 
 func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
-	return http.StatusNotImplemented
+	res, err := s.ListDomainWithResponse(0, 10)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	return res.StatusCode
 }
 
 func (s *SuiteRbacPermission) doTestHostConfExecute(t *testing.T) int {
@@ -205,12 +208,12 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			Then:     s.doTestDomainIpaDelete,
 			Expected: http.StatusNoContent,
 		},
-		// {
-		// 	Name:     "Test idmsvc:domain:list",
-		// 	Given:    s.prepareNoop,
-		// 	Then:     s.doTestDomainList,
-		// 	Expected: http.StatusOK,
-		// },
+		{
+			Name:     "Test idmsvc:domain:list",
+			Given:    s.prepareNoop,
+			Then:     s.doTestDomainList,
+			Expected: http.StatusOK,
+		},
 	}
 	return testCases
 }
