@@ -672,4 +672,5 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, new(SuiteDomainUpdateAgent))
 	suite.Run(t, new(SuiteListDomains))
 	suite.Run(t, new(SuiteDeleteDomain))
+	suite.Run(t, new(SuiteRbacPermission))
 }
