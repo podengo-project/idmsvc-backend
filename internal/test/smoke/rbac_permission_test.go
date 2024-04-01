@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
@@ -110,7 +111,16 @@ func (s *SuiteRbacPermission) doTestDomainIpaUpdate(t *testing.T) int {
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaPatch(t *testing.T) int {
-	return http.StatusNotImplemented
+	res, err := s.PatchDomainWithResponse(
+		s.domain.DomainId.String(),
+		builder_api.NewUpdateDomainUserRequest().
+			WithAutoEnrollmentEnabled(pointy.Bool(true)).
+			WithTitle(pointy.String("new title")).
+			Build(),
+	)
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	return res.StatusCode
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaRead(t *testing.T) int {
@@ -171,11 +181,12 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			Then:     s.doTestDomainIpaUpdate,
 			Expected: http.StatusOK,
 		},
-		// {
-		// 	Name:     "Test idmsvc:domain:update",
-		// 	Given:    s.doTestDomainIpaPatch,
-		// 	Expected: http.StatusOK,
-		// },
+		{
+			Name:     "Test Update User idmsvc:domain:update",
+			Given:    s.prepareDomainIpaUpdate,
+			Then:     s.doTestDomainIpaPatch,
+			Expected: http.StatusOK,
+		},
 		// {
 		// 	Name:     "Test idmsvc:domain:read",
 		// 	Given:    s.doTestDomainIpaRead,
