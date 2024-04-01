@@ -50,12 +50,13 @@ type SuiteBase struct {
 	UserXRHID   identity.XRHID
 	SystemXRHID identity.XRHID
 
-	cancel   context.CancelFunc
-	svc      service.ApplicationService
-	wg       *sync.WaitGroup
-	db       *gorm.DB
-	svcRbac  service.ApplicationService
-	RbacMock mock_rbac.MockRbac
+	cancel        context.CancelFunc
+	svc           service.ApplicationService
+	wg            *sync.WaitGroup
+	db            *gorm.DB
+	svcRbac       service.ApplicationService
+	RbacMock      mock_rbac.MockRbac
+	IpaHccVersion *header.XRHIDMVersion
 }
 
 // SetupTest start the services and await until they are ready
@@ -88,6 +89,7 @@ func (s *SuiteBase) SetupTest() {
 	s.OrgID = strconv.Itoa(int(builder_helper.GenRandNum(1, 99999999)))
 	s.UserXRHID = builder_api.NewUserXRHID().WithOrgID(s.OrgID).WithActive(true).Build()
 	s.SystemXRHID = builder_api.NewSystemXRHID().WithOrgID(s.OrgID).Build()
+	s.IpaHccVersion = header.NewXRHIDMVersion("1.0.0", "4.19.0", "9.3", "redhat-9.3")
 	s.WaitReady(s.cfg)
 }
 
@@ -124,113 +126,142 @@ func (s *SuiteBase) WaitReady(cfg *config.Config) {
 	panic("WaitReady didn't return after 30 seconds checking for it")
 }
 
+func (s *SuiteBase) addXRHIDHeader(hdr *http.Header, xrhid *identity.XRHID) {
+	if xrhid == nil {
+		panic("xrhid is nil")
+	}
+	hdr.Set(header.HeaderXRHID, header.EncodeXRHID(xrhid))
+}
+
+func (s *SuiteBase) addXRHIpaClientVersionHeader(hdr *http.Header, version *header.XRHIDMVersion) {
+	if version == nil {
+		panic("version is nil")
+	}
+	data, err := json.Marshal(version)
+	if err != nil {
+		panic(err.Error())
+	}
+	hdr.Set(header.HeaderXRHIDMVersion, string(data))
+}
+
+func (s *SuiteBase) addRequestID(hdr *http.Header, requestID string) {
+	if requestID == "" {
+		panic("requestID is empty")
+	}
+	hdr.Set(header.HeaderXRequestID, requestID)
+}
+
+func (s *SuiteBase) addToken(hdr *http.Header, token string) {
+	if token == "" {
+		panic("token is empty")
+	}
+	hdr.Set(header.HeaderXRHIDMRegistrationToken, token)
+}
+
+func (s *SuiteBase) CreateTokenWithResponse() (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/domains/token"
+	s.addXRHIDHeader(&hdr, &s.UserXRHID)
+	s.addRequestID(&hdr, "test_create_token")
+	resp, err := s.DoRequest(
+		http.MethodPost,
+		url,
+		hdr,
+		&public.DomainRegTokenRequest{
+			DomainType: public.RhelIdm,
+		},
+	)
+	return resp, err
+}
+
 // CreateToken is a helper function to request a token to the API for registration
 // for a rhel-idm domain using the OrgID assigned to the unit test.
 // Return the token response or error.
 func (s *SuiteBase) CreateToken() (*public.DomainRegTokenResponse, error) {
-	var headers http.Header = http.Header{}
-	var resp *http.Response
-	var err error
-
-	url := s.DefaultPublicBaseURL() + "/domains/token"
-
-	headers.Add(header.HeaderXRequestID, "get_token")
-	headers.Add(header.HeaderXRHID, header.EncodeXRHID(&s.UserXRHID))
-	if resp, err = s.DoRequest(
-		http.MethodPost,
-		url,
-		headers,
-		&public.DomainRegTokenRequest{
-			DomainType: "rhel-idm",
-		},
-	); err != nil {
-		return nil, fmt.Errorf("failure when POST %s: %w", url, err)
+	t := s.T()
+	resp, err := s.CreateTokenWithResponse()
+	if err != nil {
+		return nil, err
 	}
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
-	}
+
+	// TODO Should be http.StatusCreated?
+	require.Equal(t, http.StatusOK, resp.StatusCode)
 	var data []byte
 	data, err = io.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("failure when reading body for POST %s because an empty response", url)
+		return nil, fmt.Errorf("failure by an empty response")
 	}
-	var token *public.DomainRegTokenResponse = &public.DomainRegTokenResponse{}
+	token := &public.DomainRegTokenResponse{}
 	err = json.Unmarshal(data, token)
-	if err != nil {
-		return nil, fmt.Errorf("failure when unmarshalling the information for POST %s", url)
-	}
+	require.NoError(t, err, "failure when unmarshalling the information")
 	return token, nil
+}
+
+func (s *SuiteBase) RegisterIpaDomainWithResponse(token string, domain *public.Domain) (*http.Response, error) {
+	hdr := http.Header{}
+	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
+	s.addXRHIpaClientVersionHeader(&hdr, s.IpaHccVersion)
+	s.addToken(&hdr, token)
+	s.addRequestID(&hdr, "test_register_domain")
+	resp, err := s.DoRequest(
+		http.MethodPost,
+		s.DefaultPublicBaseURL()+"/domains",
+		hdr,
+		domain,
+	)
+	return resp, err
 }
 
 // RegisterIpaDomain is a helper function to register a domain with the API
 // for a rhel-idm domain using the OrgID assigned to the unit test.
 // Return the token response or error.
-func (s *SuiteBase) RegisterIpaDomain(domain *public.Domain) (*public.Domain, error) {
-	var headers http.Header = http.Header{}
-	var resp *http.Response
-	var err error
-	var token *public.DomainRegTokenResponse = nil
-
-	if token, err = s.CreateToken(); err != nil {
-		s.FailNow("Error creating a token for registering a rhel-idm domain", "%s", err.Error())
+func (s *SuiteBase) RegisterIpaDomain(token string, domain *public.Domain) (*public.Domain, error) {
+	resp, err := s.RegisterIpaDomainWithResponse(token, domain)
+	if err != nil {
+		return nil, err
 	}
 
-	url := s.DefaultPublicBaseURL() + "/domains"
-	headers.Add(header.HeaderXRHIDMRegistrationToken, token.DomainToken)
-	headers.Add(header.HeaderXRequestID, "get_token")
-	headers.Add(header.HeaderXRHID, header.EncodeXRHID(&s.SystemXRHID))
-	headers.Add(header.HeaderXRHIDMVersion, header.EncodeXRHIDMVersion(&header.XRHIDMVersion{
-		IPAHCCVersion:      "1.0.0",
-		IPAVersion:         "4.19.0",
-		OSReleaseID:        "9.3",
-		OSReleaseVersionID: "redhat-9.3",
-	}))
-	if resp, err = s.DoRequest(
-		http.MethodPost,
-		url,
-		headers,
-		domain,
-	); err != nil {
-		return nil, fmt.Errorf("failure when %s %s: %w", http.MethodPost, url, err)
-	}
-	// FIXME This should be http.StatusCreated instead of StatusOK
 	if resp.StatusCode != http.StatusCreated {
-		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+		return nil, fmt.Errorf("failure when registering an rhel-idm domain: expected '%d' but got '%d'", http.StatusOK, resp.StatusCode)
 	}
 	var data []byte
 	data, err = io.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	if err != nil {
-		return nil, fmt.Errorf("failure when reading body for POST %s because an empty response", url)
+		return nil, fmt.Errorf("failure on reading body when registering a rhel-idm domain: %w", err)
 	}
 	var createdDomain *public.Domain = &public.Domain{}
 	err = json.Unmarshal(data, createdDomain)
 	if err != nil {
-		return nil, fmt.Errorf("failure when unmarshalling the information for %s %s", http.MethodPost, url)
+		return nil, fmt.Errorf("failure on unmarshalling when registering a rhel-idm domain: %w", err)
 	}
 	return createdDomain, nil
+}
+
+func (s *SuiteBase) ReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
+	method := http.MethodGet
+	s.addXRHIDHeader(&hdr, &s.UserXRHID)
+	s.addRequestID(&hdr, "test_read_domain")
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		http.NoBody,
+	)
+	return resp, err
 }
 
 // ReadDomain is a helper function to read a domain with the API
 // for a rhel-idm domain using the OrgID assigned to the unit test.
 // Return the token response or error.
 func (s *SuiteBase) ReadDomain(domainID uuid.UUID) (*public.Domain, error) {
-	var headers http.Header = http.Header{}
-	var resp *http.Response
-	var err error
-
-	method := http.MethodGet
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
-	headers.Add(http.CanonicalHeaderKey(header.HeaderXRequestID), "read_domain")
-	headers.Add(http.CanonicalHeaderKey(header.HeaderXRHID), header.EncodeXRHID(&s.UserXRHID))
-	if resp, err = s.DoRequest(
-		method,
-		url,
-		headers,
-		nil,
-	); err != nil {
-		return nil, fmt.Errorf("failure when %s %s: %w", method, url, err)
+	resp, err := s.ReadDomainWithResponse(domainID)
+	if err != nil {
+		return nil, err
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -246,10 +277,172 @@ func (s *SuiteBase) ReadDomain(domainID uuid.UUID) (*public.Domain, error) {
 	var domain *public.Domain = &public.Domain{}
 	err = json.Unmarshal(data, domain)
 	if err != nil {
-		return nil, fmt.Errorf("failure when unmarshalling the information for %s %s", method, url)
+		return nil, fmt.Errorf("failure when unmarshalling the information for reading a domain: %w", err)
 	}
 
 	return domain, nil
+}
+
+func (s *SuiteBase) ListDomainWithResponse(offset int, limit int) (*http.Response, error) {
+	hdr := http.Header{}
+	method := http.MethodGet
+	req, err := http.NewRequest(method, s.DefaultPublicBaseURL()+"/domains", nil)
+	q := req.URL.Query()
+	q.Add("offset", "0")
+	q.Add("limit", "10")
+	url := req.URL.String() + "?" + q.Encode()
+	s.addXRHIDHeader(&hdr, &s.UserXRHID)
+	s.addRequestID(&hdr, "test_list_domain")
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		http.NoBody,
+	)
+	return resp, err
+}
+
+// ListDomain is a helper function to list the domains for a
+// given interval.
+// Return the token response or error.
+func (s *SuiteBase) ListDomain(offset int, limit int) (*public.ListDomainsResponse, error) {
+	method := http.MethodGet
+	req, err := http.NewRequest(method, s.DefaultPublicBaseURL()+"/domains", nil)
+	q := req.URL.Query()
+	q.Add("offset", "0")
+	q.Add("limit", "10")
+	url := req.URL.String() + "?" + q.Encode()
+	resp, err := s.ListDomainWithResponse(offset, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when GET %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+
+	var data []byte
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failure when reading body for POST %s because an empty response", url)
+	}
+
+	var domains *public.ListDomainsResponse = &public.ListDomainsResponse{}
+	err = json.Unmarshal(data, domains)
+	if err != nil {
+		return nil, fmt.Errorf("failure when unmarshalling the information for reading a domain: %w", err)
+	}
+
+	return domains, nil
+}
+
+func (s *SuiteBase) DeleteDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
+	method := http.MethodDelete
+	s.addXRHIDHeader(&hdr, &s.UserXRHID)
+	s.addRequestID(&hdr, "test_delete_domain")
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		http.NoBody,
+	)
+	return resp, err
+}
+
+// DeleteDomain remove the specified domain.
+// domainID is the UUID that identify the domain.
+// Return nil on success operation, or a filled error.
+func (s *SuiteBase) DeleteDomain(domainID uuid.UUID) error {
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
+	resp, err := s.DeleteDomainWithResponse(domainID)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("failure when DELETE %s: expected '%d' but got '%d'", url, http.StatusNoContent, resp.StatusCode)
+	}
+
+	return nil
+}
+
+func (s *SuiteBase) UpdateDomainWithResponse(domainID string, domain *public.UpdateDomainAgentRequest) (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID
+	method := http.MethodPut
+	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
+	s.addRequestID(&hdr, "test_update_domain")
+	s.addXRHIpaClientVersionHeader(&hdr, s.IpaHccVersion)
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		domain,
+	)
+	return resp, err
+}
+
+func (s *SuiteBase) UpdateDomain(domainID string, domain *public.UpdateDomainAgentRequest) (*public.Domain, error) {
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID
+	resp, err := s.UpdateDomainWithResponse(domainID, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when PUT %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := &public.Domain{}
+	if err = json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *SuiteBase) PatchDomainWithResponse(domainID string, domain *public.UpdateDomainUserRequest) (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID
+	method := http.MethodPatch
+	s.addXRHIDHeader(&hdr, &s.UserXRHID)
+	s.addRequestID(&hdr, "test_patch_domain")
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		domain,
+	)
+	return resp, err
+}
+
+func (s *SuiteBase) PatchDomain(domainID string, domain *public.UpdateDomainUserRequest) (*public.Domain, error) {
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID
+	resp, err := s.PatchDomainWithResponse(domainID, domain)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when PATCH %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := &public.Domain{}
+	if err = json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 // RunTestCase run test for one specific testcase

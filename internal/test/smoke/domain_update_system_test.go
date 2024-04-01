@@ -15,8 +15,7 @@ import (
 
 // SuiteDomainUpdateAgent is the suite to validate the smoke test when read domain endpoint at PUT /api/idmsvc/v1/domains/:domain_id
 type SuiteDomainUpdateAgent struct {
-	SuiteBase
-	Domains []*public.Domain
+	SuiteBaseWithDomain
 }
 
 func (s *SuiteDomainUpdateAgent) SetupTest() {
@@ -27,6 +26,7 @@ func (s *SuiteDomainUpdateAgent) SetupTest() {
 		domain     *public.Domain
 		err        error
 		i          int
+		token      *public.DomainRegToken
 	)
 
 	i = 0
@@ -35,7 +35,10 @@ func (s *SuiteDomainUpdateAgent) SetupTest() {
 	newDomain := builder_api.NewDomain(domainName).Build()
 	*newDomain.RhelIdm.Servers[0].SubscriptionManagerId = uuid.MustParse(s.SystemXRHID.Identity.System.CommonName)
 	newDomain.RhelIdm.Servers[0].HccUpdateServer = true
-	domain, err = s.RegisterIpaDomain(newDomain)
+	if token, err = s.CreateToken(); err != nil {
+		s.FailNow("error creating token")
+	}
+	domain, err = s.RegisterIpaDomain(token.DomainToken, newDomain)
 	if err != nil {
 		s.FailNow("error registering rhel-idm domain")
 	}
