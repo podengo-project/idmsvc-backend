@@ -48,7 +48,7 @@ func (s *SuiteRbacPermission) prepareDomainIpaCreate(t *testing.T) {
 	s.token = token
 }
 
-func (s *SuiteRbacPermission) prepareDomainIpaUpdate(t *testing.T) {
+func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	var err error
 	s.token, err = s.CreateToken()
 	require.NoError(t, err)
@@ -59,11 +59,12 @@ func (s *SuiteRbacPermission) prepareDomainIpaUpdate(t *testing.T) {
 		builder_api.NewDomain("test.example").
 			WithDomainID(&s.token.DomainId).
 			WithRhelIdm(builder_api.NewRhelIdmDomain("test.example").
+				WithServers([]public.DomainIpaServer{}).
 				AddServer(builder_api.NewDomainIpaServer("1.test.example").
 					WithHccUpdateServer(true).
 					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
-					Build()).
-				Build(),
+					Build(),
+				).Build(),
 			).Build(),
 	)
 	require.NoError(t, err)
@@ -186,25 +187,25 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 		},
 		{
 			Name:     "Test Update Agent idmsvc:domain:update",
-			Given:    s.prepareDomainIpaUpdate,
+			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaUpdate,
 			Expected: http.StatusOK,
 		},
 		{
 			Name:     "Test Update User idmsvc:domain:update",
-			Given:    s.prepareDomainIpaUpdate,
+			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusOK,
 		},
 		{
 			Name:     "Test idmsvc:domain:read",
-			Given:    s.prepareDomainIpaUpdate,
+			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaRead,
 			Expected: http.StatusOK,
 		},
 		{
 			Name:     "Test idmsvc:domain:delete",
-			Given:    s.prepareDomainIpaUpdate,
+			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaDelete,
 			Expected: http.StatusNoContent,
 		},
