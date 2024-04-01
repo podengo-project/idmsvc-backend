@@ -276,7 +276,49 @@ func (s *SuiteRbacPermission) TestReadPermission() {
 }
 
 func (s *SuiteRbacPermission) TestNoPermission() {
-	t := s.T()
-	t.Log("TestReadPermission is not implemented")
-	// TODO Add the test set for an empty set of permission
+	testCases := []TestCasePermission{
+		{
+			Name:     "Test idmsvc:token:create",
+			Given:    s.prepareNoop,
+			Then:     s.doTestTokenCreate,
+			Expected: http.StatusUnauthorized,
+		},
+		{
+			Name:     "Test idmsvc:domain:create",
+			Given:    s.prepareDomainIpaCreate,
+			Then:     s.doTestDomainIpaCreate,
+			Expected: http.StatusUnauthorized,
+		},
+		{
+			Name:     "Test Update Agent idmsvc:domain:update",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaUpdate,
+			Expected: http.StatusUnauthorized,
+		},
+		{
+			Name:     "Test Update User idmsvc:domain:update",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaPatch,
+			Expected: http.StatusUnauthorized,
+		},
+		{
+			Name:     "Test idmsvc:domain:read",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaRead,
+			Expected: http.StatusUnauthorized,
+		},
+		{
+			Name:     "Test idmsvc:domain:delete",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaDelete,
+			Expected: http.StatusUnauthorized,
+		},
+		{
+			Name:     "Test idmsvc:domain:list",
+			Given:    s.prepareNoop,
+			Then:     s.doTestDomainList,
+			Expected: http.StatusUnauthorized,
+		},
+	}
+	s.commonRun(mock_rbac.ProfileDomainNoPerms, testCases)
 }
