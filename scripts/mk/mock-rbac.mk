@@ -15,6 +15,7 @@ mock-rbac-build: ## Build rbac mock container
 
 .PHONY: mock-rbac-up
 mock-rbac-up: ## Start rbac mock using local infra
+	@[ -e "$(PROJECT_DIR)/configs/config.yaml" ] || { echo "ERROR:Missed configs/config.yaml check README.md file"; exit 1 ; }
 	$(CONTAINER_COMPOSE) -p idmsvc -f "$(COMPOSE_FILE)" up -d mock-rbac
 
 .PHONY: mock-rbac-down

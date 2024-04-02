@@ -14,11 +14,31 @@
             "args": [],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
-                "ENV_NAME": "local",
                 "CLIENTS_RBAC_BASE_URL": "http://localhost:8020/api/rbac/v1",
                 // TODO Uncomment this line to debug with a specific RBAC profile
                 // "APP_CLIENTS_RBAC_PROFILE": "domain-readonly",
                 "LOGGING_LEVEL": "info",
+                "LOGGING_LOCATION": "true",
+                "APP_VALIDATE_API": "true",
+                "APP_ENABLE_RBAC": "true",
+                // TODO Uncomment this line to debug when clowder.IsClowderEnabled
+                // "ACG_CONFIG": "${workspaceFolder}/configs/cdappconfig.json"
+            }
+        },
+        {
+            "name": "mock-rbac",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/mock-rbac",
+            "cwd": "${workspaceFolder}",
+            "args": [],
+            "env": {
+                "CONFIG_PATH": "${workspaceFolder}/configs",
+                "CLIENTS_RBAC_BASE_URL": "http://0.0.0.0:8020/api/rbac/v1",
+                // TODO Uncomment this line to debug with a specific RBAC profile
+                "APP_CLIENTS_RBAC_PROFILE": "domain-no-perms",
+                "LOGGING_LEVEL": "debug",
                 "LOGGING_LOCATION": "true",
                 "APP_VALIDATE_API": "true",
                 "APP_ENABLE_RBAC": "true",
@@ -36,7 +56,6 @@
             "args": ["migrate", "up", "0"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
-                "ENV_NAME": "local",
             }
         },
         {
@@ -49,7 +68,6 @@
             "args": ["jwk", "refresh"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
-                "ENV_NAME": "local",
             }
         },
         {
@@ -62,7 +80,6 @@
             "args": ["migrate", "down", "0"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
-                "ENV_NAME": "local",
             }
         },
     ]

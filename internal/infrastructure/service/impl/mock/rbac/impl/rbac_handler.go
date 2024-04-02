@@ -34,6 +34,8 @@ func (m *mockRbac) accessHandler(c echo.Context) error {
 		page   Page
 		params queryParams
 		err    error
+		u      *url.URL
+		q      url.Values
 	)
 	if err = c.Bind(&params); err != nil {
 		slog.Error(err.Error())
@@ -43,6 +45,38 @@ func (m *mockRbac) accessHandler(c echo.Context) error {
 	limit := params.Limit
 	offset := params.Offset
 	count := len(m.data)
+
+	appName := m.appName
+	if appName == "" {
+		panic("APP_NAME is empty or unset")
+	}
+	if u, err = url.Parse(m.GetBaseURL() + "/access/"); err != nil {
+		return err
+	}
+	if params.Application != appName {
+		q = u.Query()
+		q.Set("application", params.Application)
+		q.Set("offset", strconv.Itoa(0))
+		q.Set("limit", strconv.Itoa(limit))
+		u.RawQuery = q.Encode()
+		return c.JSON(http.StatusOK, &Page{
+			Meta: map[string]any{
+				"count":  1,
+				"limit":  10,
+				"offset": 0,
+			},
+			Links: map[string]string{
+				"First": u.String(),
+				"Last":  u.String(),
+			},
+			Data: []Permission{
+				{
+					Permission:          "*:*:*",
+					ResourceDefinitions: nil,
+				},
+			},
+		})
+	}
 
 	if limit <= 0 {
 		limit = 100
@@ -67,11 +101,6 @@ func (m *mockRbac) accessHandler(c echo.Context) error {
 	}
 
 	// Fill links
-	var u *url.URL
-	var q url.Values
-	if u, err = url.Parse(m.GetBaseURL() + "/access/"); err != nil {
-		return err
-	}
 	q = u.Query()
 	q.Add(queryApplication, "idmsvc")
 	q.Add(queryOffset, strconv.Itoa(0))

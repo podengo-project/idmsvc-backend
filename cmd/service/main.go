@@ -6,17 +6,14 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
-	"time"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	impl_service "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl"
-	mock_rbac_impl "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/usecase/client/inventory"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
-	"golang.org/x/exp/slog"
 )
 
 func startSignalHandler(c context.Context) (context.Context, context.CancelFunc) {
@@ -36,20 +33,6 @@ func startSignalHandler(c context.Context) (context.Context, context.CancelFunc)
 // initRbacWrapper initialize the client wrapper to communicate with
 // rbac microservice.
 func initRbacWrapper(ctx context.Context, cfg *config.Config) rbac.Rbac {
-	if env, ok := os.LookupEnv("ENV_NAME"); ok && env == "local" {
-		if cfg.Application.EnableRBAC && cfg.Clients.RbacBaseURL != "" {
-			// Only for local environment and if it is enabled
-			srvRbac, mockRbac := mock_rbac_impl.NewRbacMock(ctx, cfg)
-			srvRbac.Start()
-			if err := mockRbac.WaitAddress(3 * time.Second); err != nil {
-				panic(err.Error())
-			}
-			slog.Info("rbac mock listening", "rbac_mock_base_url", mockRbac.GetBaseURL())
-		} else {
-			slog.Warn("local env running with no rbac mock")
-		}
-	}
-
 	// Initialize the rbac client wrapper
 	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(cfg.Clients.RbacBaseURL))
 	if err != nil {

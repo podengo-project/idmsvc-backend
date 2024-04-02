@@ -11,7 +11,7 @@ WORKDIR /go/src/app
 COPY . .
 USER 0
 RUN git log -1
-RUN make get-deps bin/mock-rbac
+RUN make bin/mock-rbac
 
 # https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.4-949.1714662671@sha256:cb6f20b9225031c8d704af95932c0331cfe0b229cd5b3dd805681d92a439186e
@@ -21,8 +21,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=1
 RUN mkdir -p /opt/bin /opt/bin/scripts/db /opt/bin/configs
 WORKDIR /opt/bin
 COPY --from=builder /go/src/app/bin/mock-rbac ./
-COPY scripts/db/migrations /opt/bin/scripts/db/migrations
-COPY configs/config.example.yaml /opt/bin/configs/config.yaml
 USER 1001
 
 ENV CLIENTS_RBAC_BASE_URL=http://0.0.0.0:8020/api/rbac/v1

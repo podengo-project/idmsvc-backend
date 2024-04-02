@@ -47,6 +47,7 @@ COMPOSE_VARS= \
 
 .PHONY: compose-up
 compose-up: ## Start local infrastructure
+	@[ -e "$(PROJECT_DIR)/configs/config.yaml" ] || { echo "ERROR:Missed configs/config.yaml check README.md file"; exit 1; }
 	$(COMPOSE_VARS) \
 	    $(CONTAINER_COMPOSE) -f $(COMPOSE_FILE) -p $(COMPOSE_PROJECT) up -d
 	$(MAKE) .compose-wait-db

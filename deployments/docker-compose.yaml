@@ -134,8 +134,11 @@ services:
     environment:
       CLIENTS_RBAC_BASE_URL: http://0.0.0.0:8020/api/rbac/v1
       APP_CLIENTS_RBAC_PROFILE: ${APP_CLIENTS_RBAC_PROFILE:-domain-admin}
+      CONFIG_PATH: /opt/etc
     ports:
       - 8020:8020
+    volumes:
+      - ../configs/config.yaml:/opt/etc/config.yaml:z
 
 volumes:
   database:

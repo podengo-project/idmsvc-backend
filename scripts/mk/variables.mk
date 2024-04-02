@@ -122,13 +122,11 @@ export APP_SECRET
 APP_ENABLE_RBAC ?= true
 export APP_ENABLE_RBAC
 
-ENV_NAME ?= local
-export ENV_NAME
-ifeq (local,$(ENV_NAME))
+# CLIENTS_RBAC_BASE_URL
+# When using ephemeral environment, the value is collected
+# from configs/bonfire.yaml if we deploy with the makefile,
+# or from app-interface if we deploy directly with bonfire.
 CLIENTS_RBAC_BASE_URL ?= http://localhost:8020/api/rbac/v1
-else
-CLIENTS_RBAC_BASE_URL ?= http://rbac-service:8080/api/rbac/v1
-endif
 export CLIENTS_RBAC_BASE_URL
 APP_CLIENTS_RBAC_PROFILE ?= domain-admin
 export APP_CLIENTS_RBAC_PROFILE
