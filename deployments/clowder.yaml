@@ -76,6 +76,8 @@ objects:
               successThreshold: 1
               timeoutSeconds: 120
             env:
+              - name: APP_NAME
+                value: ${{APP_NAME}}
               - name: CLOWDER_ENABLED
                 value: "true"
               - name: LOGGING_LEVEL

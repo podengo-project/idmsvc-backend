@@ -155,6 +155,7 @@ func TestLoad(t *testing.T) {
 func TestValidateConfig(t *testing.T) {
 	cfg := Config{
 		Application: Application{
+			Name:                        DefaultAppName,
 			PathPrefix:                  DefaultPathPrefix,
 			MainSecret:                  secrets.GenerateRandomMainSecret(),
 			TokenExpirationTimeSeconds:  0,

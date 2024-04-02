@@ -28,6 +28,7 @@ clients:
   rbac_base_url: http://localhost:8020/api/rbac/v1
 
 app:
+  name: idmsvc
   # Token expiration time in seconds
   # default: 2 hours
   token_expiration_seconds: 7200

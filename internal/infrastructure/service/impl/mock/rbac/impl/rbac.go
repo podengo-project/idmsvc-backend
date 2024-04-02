@@ -13,6 +13,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
+	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	"golang.org/x/exp/slog"
 	"gopkg.in/yaml.v3"
@@ -80,6 +81,7 @@ type mockRbac struct {
 	address    string
 	waitGroup  *sync.WaitGroup
 	port       string
+	appName    string
 	data       []Permission
 }
 
@@ -131,7 +133,19 @@ func NewRbacMock(ctx context.Context, cfg *config.Config) (service.ApplicationSe
 	ctx, cancelFunc = context.WithCancel(ctx)
 	e := echo.New()
 	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		// Request logger values for middleware.RequestLoggerValues
+		LogError:  true,
+		LogMethod: true,
+		LogStatus: true,
+		LogURI:    true,
+		// Forwards error to the global error handler, so it can decide
+		// appropriate status code.
+		HandleError:   true,
+		LogValuesFunc: logger.MiddlewareLogValues,
+	}))
 	m := &mockRbac{
+		appName:    cfg.Application.Name,
 		address:    address,
 		echo:       e,
 		context:    ctx,
@@ -144,12 +158,12 @@ func NewRbacMock(ctx context.Context, cfg *config.Config) (service.ApplicationSe
 	if profileName == "" {
 		profileName = ProfileDomainAdmin
 	}
-	if profileData, ok := Profiles[profileName]; ok {
-		m.SetPermissions(profileData)
-	} else {
+	profileData, ok := Profiles[profileName]
+	if !ok {
 		slog.Error("not found", "profile_name", profileName)
 		panic("rbac mock profile not found")
 	}
+	m.SetPermissions(profileData)
 	return m, m
 }
 

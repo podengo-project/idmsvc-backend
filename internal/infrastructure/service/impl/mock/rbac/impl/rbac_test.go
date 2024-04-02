@@ -72,11 +72,9 @@ func TestStartStop(t *testing.T) {
 	srv, _ := NewRbacMock(ctx, cfg)
 	assert.NotPanics(t, func() {
 		err = srv.Start()
-	})
-	require.NoError(t, err)
-
-	assert.NotPanics(t, func() {
-		err = srv.Stop()
+		if err == nil {
+			defer srv.Stop()
+		}
 	})
 	require.NoError(t, err)
 }
@@ -90,11 +88,10 @@ func TestGetBaseURL(t *testing.T) {
 	require.NotNil(t, srv)
 	require.NotNil(t, mock)
 	err = srv.Start()
-	require.NoError(t, err)
 	defer srv.Stop()
+	require.NoError(t, err)
 	err = mock.WaitAddress(3 * time.Second)
 	require.NoError(t, err)
-
 	assert.NotEqual(t, "", mock.GetBaseURL())
 }
 

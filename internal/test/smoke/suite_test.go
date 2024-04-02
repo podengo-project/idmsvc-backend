@@ -62,6 +62,7 @@ type SuiteBase struct {
 // for being used.
 func (s *SuiteBase) SetupTest() {
 	s.cfg = config.Get()
+	s.cfg.Application.EnableRBAC = true
 	s.wg = &sync.WaitGroup{}
 	logger.InitLogger(s.cfg)
 	s.db = datastore.NewDB(s.cfg)

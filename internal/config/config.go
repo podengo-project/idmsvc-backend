@@ -162,6 +162,8 @@ type Clients struct {
 
 // Application hold specific application settings
 type Application struct {
+	// Name is the internal application name
+	Name string `validate:"required"`
 	// API URL's path prefix, e.g. /api/idmsvc/v1
 	PathPrefix string `mapstructure:"url_path_prefix" validate:"required"`
 	// This is the default expiration time for the token
