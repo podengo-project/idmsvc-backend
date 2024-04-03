@@ -20,7 +20,7 @@ services:
     #   - ../test/mock/inventory/config:/config:ro,z
 
   database:
-    image: quay.io/cloudservices/postgresql-rds:15
+    image: quay.io/cloudservices/postgresql-rds:15-1
     environment:
       - POSTGRESQL_DATABASE=${DATABASE_NAME:-idmsvc-db}
       - POSTGRESQL_USER=${DATABASE_USER:-idmsvc-user}
