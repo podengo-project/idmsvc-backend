@@ -13,6 +13,7 @@ import (
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -43,16 +44,24 @@ func (r *domainRepository) List(
 	limit int,
 ) (output []model.Domain, count int64, err error) {
 	if db == nil {
-		return nil, 0, internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return nil, 0, err
 	}
 	if orgID == "" {
-		return nil, 0, fmt.Errorf("'orgID' is empty")
+		err = fmt.Errorf("'orgID' is empty")
+		slog.Error(err.Error())
+		return nil, 0, err
 	}
 	if offset < 0 {
-		return nil, 0, fmt.Errorf("'offset' is lower than 0")
+		err = fmt.Errorf("'offset' is lower than 0")
+		slog.Error(err.Error())
+		return nil, 0, err
 	}
 	if limit < 0 {
-		return nil, 0, fmt.Errorf("'limit' is lower than 0")
+		err = fmt.Errorf("'limit' is lower than 0")
+		slog.Error(err.Error())
+		return nil, 0, err
 	}
 	if err = db.
 		Table("domains").
@@ -62,6 +71,7 @@ func (r *domainRepository) List(
 		Limit(limit).
 		Find(&output).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return nil, 0, err
 	}
 
@@ -75,6 +85,7 @@ func (r *domainRepository) Register(
 	data *model.Domain,
 ) (err error) {
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -82,8 +93,10 @@ func (r *domainRepository) Register(
 		Create(data).Error; err != nil {
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			msg := fmt.Sprintf("domain id '%s' is already registered.", data.DomainUuid.String())
-			return echo.NewHTTPError(http.StatusConflict, msg)
+			err = echo.NewHTTPError(http.StatusConflict, msg)
+			return err
 		} else {
+			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -92,18 +105,23 @@ func (r *domainRepository) Register(
 	switch *data.Type {
 	case model.DomainTypeIpa:
 		if data.IpaDomain == nil {
-			return internal_errors.NilArgError("IpaDomain")
+			err = internal_errors.NilArgError("IpaDomain")
+			slog.Error(err.Error())
+			return err
 		}
 		if err = r.createIpaDomain(
 			db,
 			data.ID,
 			data.IpaDomain,
 		); err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 		return nil
 	default:
-		return fmt.Errorf("'Type' is invalid")
+		err = fmt.Errorf("'Type' is invalid")
+		slog.Error(err.Error())
+		return err
 	}
 }
 
@@ -131,6 +149,7 @@ func (r *domainRepository) UpdateAgent(
 ) (err error) {
 	var currentDomain *model.Domain
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -140,6 +159,7 @@ func (r *domainRepository) UpdateAgent(
 		orgID,
 		data.DomainUuid,
 	); err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -147,6 +167,7 @@ func (r *domainRepository) UpdateAgent(
 		Where("org_id = ? AND domain_uuid = ?", orgID, currentDomain.DomainUuid).
 		Updates(data).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -154,12 +175,16 @@ func (r *domainRepository) UpdateAgent(
 	switch *data.Type {
 	case model.DomainTypeIpa:
 		if data.IpaDomain == nil {
-			return internal_errors.NilArgError("IpaDomain")
+			err = internal_errors.NilArgError("IpaDomain")
+			slog.Error(err.Error())
+			return err
 		}
 		data.IpaDomain.ID = data.ID
 		return r.updateIpaDomain(db, data.IpaDomain)
 	default:
-		return fmt.Errorf("'Type' is invalid")
+		err = fmt.Errorf("'Type' is invalid")
+		slog.Error(err.Error())
+		return err
 	}
 }
 
@@ -192,6 +217,7 @@ func (r *domainRepository) UpdateUser(
 ) (err error) {
 	var currentDomain *model.Domain
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -201,6 +227,7 @@ func (r *domainRepository) UpdateUser(
 		orgID,
 		data.DomainUuid,
 	); err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -211,6 +238,7 @@ func (r *domainRepository) UpdateUser(
 		Where("org_id = ? AND domain_uuid = ?", orgID, currentDomain.DomainUuid).
 		Updates(fields).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -233,15 +261,19 @@ func (r *domainRepository) FindByID(
 ) (output *model.Domain, err error) {
 	// See: https://gorm.io/docs/query.html
 	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	output = &model.Domain{}
 	if err = db.Model(&model.Domain{}).
 		First(output, "org_id = ? AND domain_uuid = ?", orgID, UUID).
 		Error; err != nil {
-		return nil, r.wrapErrNotFound(err, UUID)
+		err = r.wrapErrNotFound(err, UUID)
+		slog.Error(err.Error())
+		return nil, err
 	}
 	if err = output.FillAndPreload(db); err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	return output, nil
@@ -258,16 +290,23 @@ func (r *domainRepository) DeleteById(
 		count int64
 	)
 	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Count(&count).Error; err != nil {
-		return r.wrapErrNotFound(err, UUID)
+		err = r.wrapErrNotFound(err, UUID)
+		slog.Error(err.Error())
+		return err
 	}
 	if count == 0 {
-		return r.wrapErrNotFound(gorm.ErrRecordNotFound, UUID)
+		err = r.wrapErrNotFound(gorm.ErrRecordNotFound, UUID)
+		slog.Error(err.Error())
+		return err
 	}
 	if err = db.Unscoped().Delete(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Error; err != nil {
-		return r.wrapErrNotFound(err, UUID)
+		err = r.wrapErrNotFound(err, UUID)
+		slog.Error(err.Error())
+		return err
 	}
 	return nil
 }
@@ -280,6 +319,7 @@ func (r *domainRepository) CreateDomainToken(
 ) (drt *repository.DomainRegToken, err error) {
 	tok, expireNS, err := domain_token.NewDomainRegistrationToken(key, string(domainType), orgID, validity)
 	if err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	domainId := domain_token.TokenDomainId(tok)
@@ -355,27 +395,33 @@ func (r *domainRepository) createIpaDomain(
 	data *model.Ipa,
 ) (err error) {
 	if data == nil {
-		return internal_errors.NilArgError("data' of type '*model.Ipa")
+		err = internal_errors.NilArgError("data")
+		slog.Error(err.Error())
+		return err
 	}
 	data.Model.ID = domainID
 	if err = db.Omit(clause.Associations).Create(data).Error; err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 	for idx := range data.CaCerts {
 		data.CaCerts[idx].IpaID = data.ID
 		if err = db.Create(&data.CaCerts[idx]).Error; err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 	}
 	for idx := range data.Servers {
 		data.Servers[idx].IpaID = data.ID
 		if err = db.Create(&data.Servers[idx]).Error; err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 	}
 	for idx := range data.Locations {
 		data.Locations[idx].IpaID = data.ID
 		if err = db.Create(&data.Locations[idx]).Error; err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -387,19 +433,25 @@ func (r *domainRepository) updateIpaDomain(
 	data *model.Ipa,
 ) (err error) {
 	if db == nil {
-		return internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return err
 	}
 	if data == nil {
-		return internal_errors.NilArgError("data' of type '*model.Ipa")
+		err = internal_errors.NilArgError("data")
+		slog.Error(err.Error())
+		return err
 	}
 	if err = db.Unscoped().
 		Delete(data).Error; err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
 	if err = db.Omit(clause.Associations).
 		Create(data).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 
@@ -407,6 +459,7 @@ func (r *domainRepository) updateIpaDomain(
 	for i := range data.CaCerts {
 		data.CaCerts[i].IpaID = data.ID
 		if err = db.Create(&data.CaCerts[i]).Error; err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -415,6 +468,7 @@ func (r *domainRepository) updateIpaDomain(
 	for i := range data.Servers {
 		data.Servers[i].IpaID = data.ID
 		if err = db.Create(&data.Servers[i]).Error; err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -423,6 +477,7 @@ func (r *domainRepository) updateIpaDomain(
 	for i := range data.Locations {
 		data.Locations[i].IpaID = data.ID
 		if err = db.Create(&data.Locations[i]).Error; err != nil {
+			slog.Error(err.Error())
 			return err
 		}
 	}
