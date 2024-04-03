@@ -10,6 +10,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk/model"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -31,10 +32,13 @@ func NewHostconfJwkRepository(cfg *config.Config) repository.HostconfJwkReposito
 // key is encrypted with the current app secret.
 func (r *hostconfJwkRepository) InsertJWK(db *gorm.DB, hcjwk *model.HostconfJwk) (err error) {
 	if db == nil {
-		return internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return err
 	}
 
 	if err = db.Create(&hcjwk).Error; err != nil {
+		slog.Error(err.Error())
 		return err
 	}
 	return nil
@@ -43,18 +47,22 @@ func (r *hostconfJwkRepository) InsertJWK(db *gorm.DB, hcjwk *model.HostconfJwk)
 // RevokeJWK revokes a JWK with key identifier `kid`
 func (r *hostconfJwkRepository) RevokeJWK(db *gorm.DB, kid string) (hcjwk *model.HostconfJwk, err error) {
 	if db == nil {
-		return nil, internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return nil, err
 	}
 	// find JKW by unique kid
 	if err = db.
 		Where("key_id = ?", kid).
 		First(&hcjwk).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 
 	hcjwk.Revoke()
 	if err = db.Save(hcjwk).Error; err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -64,13 +72,16 @@ func (r *hostconfJwkRepository) RevokeJWK(db *gorm.DB, kid string) (hcjwk *model
 // ListJWKs all JWKs, including expired and revoked JWKs
 func (r *hostconfJwkRepository) ListJWKs(db *gorm.DB) (hcjwks []model.HostconfJwk, err error) {
 	if db == nil {
-		return nil, internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return nil, err
 	}
 	// list JWKs, order by id to have determinstic sorting
 	if err = db.
 		Order("id").
 		Find(&hcjwks).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	return hcjwks, nil
@@ -79,7 +90,9 @@ func (r *hostconfJwkRepository) ListJWKs(db *gorm.DB) (hcjwks []model.HostconfJw
 // PurgeExpiredJWKs find and removes all JWKs that are expired
 func (r *hostconfJwkRepository) PurgeExpiredJWKs(db *gorm.DB) (hcjwks []model.HostconfJwk, err error) {
 	if db == nil {
-		return nil, internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return nil, err
 	}
 
 	// list JWKs, order by id to have determinstic sorting
@@ -89,12 +102,14 @@ func (r *hostconfJwkRepository) PurgeExpiredJWKs(db *gorm.DB) (hcjwks []model.Ho
 		Where("expires_at <= ?", now). // use SQL NOW()?
 		Find(&hcjwks).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	if err = db.
 		Unscoped(). // do not use GORM's soft delete for purging
 		Delete(&hcjwks).
 		Error; err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	return hcjwks, nil
@@ -113,6 +128,7 @@ func (r *hostconfJwkRepository) GetPublicKeyArray(db *gorm.DB) (pubkeys []string
 		Where("expires_at > ?", now). // use SQL NOW()?
 		Order("id").
 		Find(&hcjwks).Error; err != nil {
+		slog.Error(err.Error())
 		return nil, nil, err
 	}
 
@@ -144,6 +160,7 @@ func (r *hostconfJwkRepository) GetPrivateSigningKeys(db *gorm.DB) (privkeys []j
 		Where("expires_at > ?", now). // use SQL NOW()?
 		Order("id").
 		Find(&hcjwks).Error; err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	for _, hcjwk := range hcjwks {

@@ -3,6 +3,7 @@ package repository
 // https://pkg.go.dev/github.com/stretchr/testify/suite
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"fmt"
 	"regexp"
@@ -24,6 +25,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -200,7 +202,7 @@ func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 
 	// Check nil
 	err = s.repository.createIpaDomain(s.DB, 1, nil)
-	assert.EqualError(t, err, "code=500, message='data' of type '*model.Ipa' cannot be nil")
+	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
 	// Error on INSERT INTO "ipas"
 	expectedError = fmt.Errorf(`error at INSERT INTO "ipas"`)
@@ -568,7 +570,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 				DB:     s.DB,
 				Domain: nil,
 			},
-			Expected: internal_errors.NilArgError("data' of type '*model.Ipa"),
+			Expected: internal_errors.NilArgError("data"),
 		},
 		{
 			Name: "database error at DELETE FROM 'ipas'",
@@ -1540,6 +1542,28 @@ func helperTestFindByIDIpa(stage int, data *model.Domain, mock sqlmock.Sqlmock, 
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
 	}
+}
+
+func (s *DomainRepositorySuite) TestDeleteByIdLogError() {
+	t := s.T()
+	r := &domainRepository{}
+
+	var buf bytes.Buffer
+	var err error
+	h := slog.NewTextHandler(&buf, nil)
+	l := slog.New(h)
+	d := builder_model.NewDomain(builder_model.NewModel().WithID(1).Build()).Build()
+
+	s.helperTestDeleteById(1, d, s.mock, gorm.ErrInvalidTransaction)
+	oldLogDefault := slog.Default()
+	slog.SetDefault(l)
+	defer slog.SetDefault(oldLogDefault)
+
+	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	require.EqualError(t, err, "invalid transaction")
+
+	// Check the log message
+	assert.Contains(t, buf.String(), `level=ERROR msg="invalid transaction"`)
 }
 
 func TestDomainRepositorySuite(t *testing.T) {

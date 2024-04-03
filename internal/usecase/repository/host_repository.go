@@ -11,6 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
+	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -27,10 +28,14 @@ func NewHostRepository() repository.HostRepository {
 // Exclude domains with auto_enrollment_enabled = FALSE.
 func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOptions) (output *model.Domain, err error) {
 	if db == nil {
-		return nil, internal_errors.NilArgError("db")
+		err = internal_errors.NilArgError("db")
+		slog.Error(err.Error())
+		return nil, err
 	}
 	if options == nil {
-		return nil, internal_errors.NilArgError("options")
+		err = internal_errors.NilArgError("options")
+		slog.Error(err.Error())
+		return nil, err
 	}
 
 	var domains []model.Domain
@@ -48,6 +53,7 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 	}
 	if err = tx.Find(&domains).Error; err != nil {
 		// empty result set is not an error here, but is handled below
+		slog.Error(err.Error())
 		return nil, err
 	}
 
@@ -62,21 +68,26 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 
 	// only one domain is currently supported. Fail if query found multiple doamins.
 	if len(matchedDomains) < 1 {
-		return nil, internal_errors.NewHTTPErrorF(
+		err = internal_errors.NewHTTPErrorF(
 			http.StatusNotFound,
 			"no matching domains",
 		)
+		slog.Error(err.Error())
+		return nil, err
 	} else if len(matchedDomains) > 1 {
-		return nil, internal_errors.NewHTTPErrorF(
+		err = internal_errors.NewHTTPErrorF(
 			http.StatusConflict,
 			"matched %d domains, only one expected",
 			len(matchedDomains),
 		)
+		slog.Error(err.Error())
+		return nil, err
 	}
 
 	// verify and fill domain object
 	output = &domains[0]
 	if err = output.FillAndPreload(db); err != nil {
+		slog.Error(err.Error())
 		return nil, err
 	}
 	return output, nil
@@ -86,10 +97,14 @@ func (r *hostRepository) SignHostConfToken(
 	privs []jwk.Key, options *interactor.HostConfOptions, domain *model.Domain,
 ) (hctoken public.HostToken, err error) {
 	if options == nil {
-		return "", internal_errors.NilArgError("options")
+		err = internal_errors.NilArgError("options")
+		slog.Error(err.Error())
+		return "", err
 	}
 	if domain == nil {
-		return "", internal_errors.NilArgError("domain")
+		err = internal_errors.NilArgError("domain")
+		slog.Error(err.Error())
+		return "", err
 	}
 
 	validity := time.Hour
@@ -102,10 +117,12 @@ func (r *hostRepository) SignHostConfToken(
 		validity,
 	)
 	if err != nil {
+		slog.Error(err.Error())
 		return "", err
 	}
 	b, err := hostconf_token.SignToken(tok, privs)
 	if err != nil {
+		slog.Error(err.Error())
 		return "", err
 	}
 	return public.HostToken(b), nil
