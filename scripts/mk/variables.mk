@@ -122,3 +122,10 @@ export APP_SECRET
 APP_ENABLE_RBAC ?= false
 export APP_ENABLE_RBAC
 
+# relative to ./configs/ directory
+MOCK_RBAC_CONFIG ?= rbac-test.yaml
+export MOCK_RBAC_CONFIG
+
+# The image is updated automatically
+MOCK_RBAC_CONTAINER ?= quay.io/podengo/mock-rbac:main
+export MOCK_RBAC_CONTAINER

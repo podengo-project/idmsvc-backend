@@ -15,6 +15,7 @@ tmp.*/**
 !/configs/config.ci.yaml
 !/configs/bonfire.example.yaml
 !/configs/cdappconfig.json
+!/configs/rbac-test.yaml
 
 !/configs/rbac_client_api.json
 !/configs/rbac_client_gen_config.yaml

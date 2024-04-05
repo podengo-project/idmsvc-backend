@@ -1,0 +1,18 @@
+---
+users:
+  superadmin:
+    - "*:*:*"
+  adminuser:
+    - idmsvc:token:create
+    - idmsvc:domains:create
+    - idmsvc:domains:list
+    - idmsvc:domains:update
+    - idmsvc:domains:delete
+    - idmsvc:domains:read
+  test:
+    - idmsvc:domains:list
+    - idmsvc:domains:read
+
+systems:
+  "server1.ipa.test":
+    - domain-none
