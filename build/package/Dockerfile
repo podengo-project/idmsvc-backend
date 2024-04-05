@@ -6,9 +6,12 @@ LABEL idmsvc-backend=builder
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
 WORKDIR /go/src/app
-COPY . .
+COPY go.mod go.sum LICENSE Makefile requirements.txt requirements-dev.txt .
+COPY scripts scripts
+COPY tools tools
+COPY cmd cmd
+COPY internal internal
 USER 0
-RUN git log -1
 RUN make get-deps build
 
 
