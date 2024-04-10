@@ -1,3 +1,7 @@
+.podman
+.docker
+.kube
+
 .DS_Store
 .cicd_bootstrap.sh
 secrets
