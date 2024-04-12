@@ -231,9 +231,8 @@ parameters:
     value: "false"
     description: |
       A flag to suspend execution of 'db-tool jwk refresh' cron job.
-  # TODO HMS-3528 Set "true" or remove the feature flag
   - name: APP_ENABLE_RBAC
-    value: "false"
+    value: "true"
     description: |
       It allows to enable / disable RBAC middleware.
   - name: CLIENTS_RBAC_BASE_URL

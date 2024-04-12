@@ -47,4 +47,4 @@ app:
   #     python -c "import secrets; print(secrets.token_urlsafe())"
   secret: sFamo2ER65JN7wxZ48UZb5GbtDc053ahIPJ0Qx47bzA
   # Enable/Disable RBAC verification
-  enable_rbac: false
+  enable_rbac: true

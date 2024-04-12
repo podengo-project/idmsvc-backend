@@ -51,7 +51,7 @@ POOL ?= default
 
 # Set token expiration time, expressed in seconds (default 2 hours)
 APP_TOKEN_EXPIRATION_SECONDS ?= 7200
-APP_ENABLE_RBAC ?= true
+# APP_ENABLE_RBAC ?= true
 
 ########### NO SECRETS BUT GENERAL OVERRIDES
 
