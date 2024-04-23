@@ -243,3 +243,5 @@ require (
 )
 
 exclude github.com/mitchellh/osext v0.0.0-20151018003038-5e2d6d41470f
+
+replace go.tmz.dev/musttag v0.7.2 => go-simpler.org/musttag v0.7.2
