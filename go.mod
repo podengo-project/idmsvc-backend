@@ -13,7 +13,7 @@ go 1.20
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/RedHatInsights/cloudwatch v0.0.0-20210111105023-1df2bdfe3291
-	github.com/aws/aws-sdk-go v1.51.26
+	github.com/aws/aws-sdk-go v1.51.30
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/go-playground/validator/v10 v10.19.0
