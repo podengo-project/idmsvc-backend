@@ -178,8 +178,8 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	// default title is domain name
 	domain.Title = pointy.String(body.DomainName)
 	domain.Description = pointy.String("")
-	// new domains are enabled by default
-	domain.AutoEnrollmentEnabled = pointy.Bool(true)
+	// new domains are disabled by default
+	domain.AutoEnrollmentEnabled = pointy.Bool(false)
 
 	return orgID, clientVersion, domain, nil
 }
