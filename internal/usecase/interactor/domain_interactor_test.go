@@ -212,7 +212,7 @@ func TestRegisterIpa(t *testing.T) {
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("mydomain.example"),
 					Description:           pointy.String(""),
-					AutoEnrollmentEnabled: pointy.Bool(true),
+					AutoEnrollmentEnabled: pointy.Bool(false),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String(""),
@@ -249,7 +249,7 @@ func TestRegisterIpa(t *testing.T) {
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("mydomain.example"),
 					Description:           pointy.String(""),
-					AutoEnrollmentEnabled: pointy.Bool(true),
+					AutoEnrollmentEnabled: pointy.Bool(false),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
@@ -287,7 +287,7 @@ func TestRegisterIpa(t *testing.T) {
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("mydomain.example"),
 					Description:           pointy.String(""),
-					AutoEnrollmentEnabled: pointy.Bool(true),
+					AutoEnrollmentEnabled: pointy.Bool(false),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName:    pointy.String("MYDOMAIN.EXAMPLE"),
@@ -335,7 +335,7 @@ func TestRegisterIpa(t *testing.T) {
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("mydomain.example"),
 					Description:           pointy.String(""),
-					AutoEnrollmentEnabled: pointy.Bool(true),
+					AutoEnrollmentEnabled: pointy.Bool(false),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
@@ -393,7 +393,7 @@ func TestRegisterIpa(t *testing.T) {
 					DomainName:            pointy.String("mydomain.example"),
 					Title:                 pointy.String("mydomain.example"),
 					Description:           pointy.String(""),
-					AutoEnrollmentEnabled: pointy.Bool(true),
+					AutoEnrollmentEnabled: pointy.Bool(false),
 					Type:                  pointy.Uint(model.DomainTypeIpa),
 					IpaDomain: &model.Ipa{
 						RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
