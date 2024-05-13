@@ -3,12 +3,14 @@ module github.com/podengo-project/idmsvc-backend
 // See: https://go.dev/ref/mod#go-mod-edit
 
 // When updating go version, update the below too:
-//   .github/workflows/main.yml
-//   build/package/Dockerfile
+//  tools/go.mod
+//  .github/workflows/main.yml
+//  build/package/Dockerfile
 //  .golangci.yaml
+//  scripts/mk/variables.mk  GO_VERSION value
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
-go 1.20
+go 1.21
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
