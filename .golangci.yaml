@@ -75,7 +75,7 @@ run:
   # Define the Go version limit.
   # Mainly related to generics support since go1.18.
   # Default: use Go version from the go.mod file, fallback on the env var `GOVERSION`, fallback on 1.18
-  go: '1.20'
+  go: '1.21'
 
 # output configuration options
 output:
@@ -344,7 +344,7 @@ linters-settings:
     enable-all: true
   gofumpt:
   # https://golangci-lint.run/usage/linters/#gofumpt
-    lang-version: "1.20"
+    lang-version: "1.21"
     module-path: github.com/podengo-project/idmsvc-backend
     extra-rules: true
   testifylint:
