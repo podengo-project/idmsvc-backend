@@ -4,13 +4,13 @@
 
 **Pre-requisites**:
 
-- golang 1.20 (not `gcc-go`)
+- golang 1.21 (not `gcc-go`)
 - docker or podman (>4.0.0)
 - docker-compose or podman-compose
 - python3
 - openshift client [Installing OpenShift Client](https://docs.openshift.com/container-platform/4.12/cli_reference/openshift_cli/getting-started-cli.html#installing-openshift-cli).
 
-Packages for fedora 37:
+Packages for fedora 39:
 
 ```sh
 $ sudo dnf upgrade
