@@ -110,7 +110,7 @@ func (c *rbacWrapper) addXRHID(ctx context.Context, req *http.Request) error {
 
 func (c *rbacWrapper) retrieveACL(ctx context.Context) ([]string, error) {
 	// Credits on RHEnvision: https://github.com/RHEnVision/provisioning-backend/blob/main/internal/clients/http/rbac/rbac_client.go#L83
-	// Credits on hmscontent-service:
+	// Credits on hmscontent-service: https://github.com/content-services/content-sources-backend/blob/main/pkg/rbac/client_wrapper.go
 	var (
 		limit  int
 		offset int
