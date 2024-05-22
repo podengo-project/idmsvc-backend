@@ -7,8 +7,6 @@
 package config
 
 import (
-	"encoding/json"
-	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -61,7 +59,7 @@ type Config struct {
 	Clients     Clients
 	Application Application `mapstructure:"app"`
 	// Secrets is an untagged field and filled out on load
-	Secrets secrets.AppSecrets `mapstructure:"-"`
+	Secrets secrets.AppSecrets `mapstructure:"-" json:"-"`
 }
 
 type Web struct {
@@ -369,15 +367,6 @@ func Get() *Config {
 		panic(err)
 	}
 	config.Secrets = *sec
-
-	// Dump configuration as JSON
-	if config.Logging.Level == "trace" {
-		b, err := json.MarshalIndent(config, "", "  ")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println(string(b))
-	}
 
 	return config
 }
