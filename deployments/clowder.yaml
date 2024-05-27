@@ -13,8 +13,7 @@ objects:
     spec:
       envName: ${ENV_NAME}
       testing:
-        # TODO Rename to your IQE plugin name
-        iqePlugin: idmsvc
+        iqePlugin: idm
       # FIXME Update dependencies when integration with rbac is made
       # dependencies: ["rbac"]
       # https://consoledot.pages.redhat.com/clowder/dev/providers/dependencies.html
