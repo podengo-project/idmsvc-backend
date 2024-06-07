@@ -11,6 +11,7 @@ type DomainIpaServer interface {
 	// TODO Add methods and implement them as they are needed
 	// With...() DomainIpaServer
 	WithHccUpdateServer(value bool) DomainIpaServer
+	WithHccEnrollmentServer(value bool) DomainIpaServer
 	WithSubscriptionManagerId(value string) DomainIpaServer
 }
 
@@ -39,6 +40,11 @@ func (b *domainIpaServer) WithSubscriptionManagerId(value string) DomainIpaServe
 	subscriptionManagerID := &uuid.UUID{}
 	*subscriptionManagerID = uuid.MustParse(value)
 	b.SubscriptionManagerId = subscriptionManagerID
+	return b
+}
+
+func (b *domainIpaServer) WithHccEnrollmentServer(value bool) DomainIpaServer {
+	b.HccEnrollmentServer = value
 	return b
 }
 

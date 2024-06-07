@@ -105,12 +105,14 @@ func (r *hostconfJwkRepository) PurgeExpiredJWKs(db *gorm.DB) (hcjwks []model.Ho
 		slog.Error(err.Error())
 		return nil, err
 	}
-	if err = db.
-		Unscoped(). // do not use GORM's soft delete for purging
-		Delete(&hcjwks).
-		Error; err != nil {
-		slog.Error(err.Error())
-		return nil, err
+	if len(hcjwks) > 0 {
+		if err = db.
+			Unscoped(). // do not use GORM's soft delete for purging
+			Delete(&hcjwks).
+			Error; err != nil {
+			slog.Error(err.Error())
+			return nil, err
+		}
 	}
 	return hcjwks, nil
 }
