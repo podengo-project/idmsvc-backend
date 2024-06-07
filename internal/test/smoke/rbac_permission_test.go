@@ -40,14 +40,6 @@ func (s *SuiteRbacPermission) doTestTokenCreate(t *testing.T) int {
 	return res.StatusCode
 }
 
-func (s *SuiteRbacPermission) prepareDomainIpaCreate(t *testing.T) {
-	token, err := s.CreateToken()
-	require.NoError(t, err)
-	require.NotNil(t, token)
-	require.NotEqual(t, "", token.DomainToken)
-	s.token = token
-}
-
 func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	var err error
 	s.token, err = s.CreateToken()
@@ -83,46 +75,6 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	require.NotNil(t, s.domain)
 }
 
-func (s *SuiteRbacPermission) doTestDomainIpaCreate(t *testing.T) int {
-	res, err := s.RegisterIpaDomainWithResponse(s.token.DomainToken,
-		builder_api.NewDomain("test.example").
-			WithDomainID(&s.token.DomainId).
-			WithRhelIdm(builder_api.NewRhelIdmDomain("test.example").
-				AddServer(builder_api.NewDomainIpaServer("1.test.example").
-					WithHccUpdateServer(true).
-					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
-					Build()).
-				Build(),
-			).Build(),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	return res.StatusCode
-}
-
-func (s *SuiteRbacPermission) doTestDomainIpaUpdate(t *testing.T) int {
-	subscriptionManagerID := s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String()
-	domainID := s.domain.DomainId.String()
-	res, err := s.UpdateDomainWithResponse(
-		domainID,
-		builder_api.NewUpdateDomainAgent("test.example").
-			WithHCCUpdate(true).
-			WithDomainRhelIdm(*builder_api.NewRhelIdmDomain("test.example").
-				WithServers([]public.DomainIpaServer{}).
-				AddServer(
-					builder_api.NewDomainIpaServer("1.test.example").
-						WithHccUpdateServer(true).
-						WithSubscriptionManagerId(subscriptionManagerID).
-						Build(),
-				).Build(),
-			).WithSubscriptionManagerID(subscriptionManagerID).
-			Build(),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	return res.StatusCode
-}
-
 func (s *SuiteRbacPermission) doTestDomainIpaPatch(t *testing.T) int {
 	res, err := s.PatchDomainWithResponse(
 		s.domain.DomainId.String(),
@@ -154,18 +106,6 @@ func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
 	res, err := s.ListDomainWithResponse(0, 10)
 	require.NoError(t, err)
 	require.NotNil(t, res)
-	return res.StatusCode
-}
-
-func (s *SuiteRbacPermission) doTestReadSigningKeys(t *testing.T) int {
-	res, err := s.SystemSigningKeysWithResponse()
-	require.NoError(t, err)
-	return res.StatusCode
-}
-
-func (s *SuiteRbacPermission) doTestSystemReadDomain(t *testing.T) int {
-	res, err := s.SystemReadDomainWithResponse(*s.domain.DomainId)
-	require.NoError(t, err)
 	return res.StatusCode
 }
 
@@ -223,10 +163,12 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 }
 
 func (s *SuiteRbacPermission) TestSuperAdminRole() {
+	// This check the wildcards
 	s.commonRun(mock_rbac.ProfileSuperAdmin, s.helperCommonAdmin())
 }
 
 func (s *SuiteRbacPermission) TestAdminRole() {
+	// This check the Domains administrator role
 	s.commonRun(mock_rbac.ProfileDomainAdmin, s.helperCommonAdmin())
 }
 

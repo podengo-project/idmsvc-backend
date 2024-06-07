@@ -491,7 +491,6 @@ func (s *SuiteBase) SystemHostConfWithResponse(inventoryID string, fqdn string, 
 	method := http.MethodPost
 	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
 	s.addRequestID(&hdr, "test_system_host_conf")
-	// TODO Fill this content
 	body := hostconf
 	resp, err := s.DoRequest(
 		method,
@@ -529,12 +528,11 @@ func (s *SuiteBase) SystemSigningKeysWithResponse() (*http.Response, error) {
 	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
 	s.addRequestID(&hdr, "test_system_signing_keys")
 	// TODO Fill this content
-	body := http.NoBody
 	resp, err := s.DoRequest(
 		method,
 		url,
 		hdr,
-		body,
+		http.NoBody,
 	)
 	return resp, err
 }
@@ -786,4 +784,5 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, new(SuiteListDomains))
 	suite.Run(t, new(SuiteDeleteDomain))
 	suite.Run(t, new(SuiteRbacPermission))
+	suite.Run(t, new(SuiteSystemEndpoints))
 }
