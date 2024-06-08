@@ -239,11 +239,14 @@ func (s *SuiteBase) RegisterIpaDomain(token string, domain *public.Domain) (*pub
 	return createdDomain, nil
 }
 
-func (s *SuiteBase) ReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
+func (s *SuiteBase) readDomainWithResponse(xrhid *identity.XRHID, domainID uuid.UUID) (*http.Response, error) {
+	if xrhid == nil {
+		panic("'xrhid' is nil")
+	}
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
 	method := http.MethodGet
-	s.addXRHIDHeader(&hdr, &s.UserXRHID)
+	s.addXRHIDHeader(&hdr, xrhid)
 	s.addRequestID(&hdr, "test_read_domain")
 	resp, err := s.DoRequest(
 		method,
@@ -254,12 +257,49 @@ func (s *SuiteBase) ReadDomainWithResponse(domainID uuid.UUID) (*http.Response, 
 	return resp, err
 }
 
-// ReadDomain is a helper function to read a domain with the API
+func (s *SuiteBase) UserReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
+	return s.readDomainWithResponse(&s.UserXRHID, domainID)
+}
+
+// UserReadDomain is a helper function to read a domain with the API
 // for a rhel-idm domain using the OrgID assigned to the unit test.
 // Return the token response or error.
-func (s *SuiteBase) ReadDomain(domainID uuid.UUID) (*public.Domain, error) {
+func (s *SuiteBase) UserReadDomain(domainID uuid.UUID) (*public.Domain, error) {
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
-	resp, err := s.ReadDomainWithResponse(domainID)
+	resp, err := s.UserReadDomainWithResponse(domainID)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+
+	var data []byte
+	data, err = io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failure when reading body for POST %s because an empty response", url)
+	}
+
+	var domain *public.Domain = &public.Domain{}
+	err = json.Unmarshal(data, domain)
+	if err != nil {
+		return nil, fmt.Errorf("failure when unmarshalling the information for reading a domain: %w", err)
+	}
+
+	return domain, nil
+}
+
+func (s *SuiteBase) SystemReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
+	return s.readDomainWithResponse(&s.SystemXRHID, domainID)
+}
+
+// SystemReadDomain is a helper function to read a domain with the API
+// for a rhel-idm domain using the OrgID assigned to the unit test.
+// Return the token response or error.
+func (s *SuiteBase) SystemReadDomain(domainID uuid.UUID) (*public.Domain, error) {
+	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
+	resp, err := s.SystemReadDomainWithResponse(domainID)
 	if err != nil {
 		return nil, err
 	}
@@ -438,6 +478,79 @@ func (s *SuiteBase) PatchDomain(domainID string, domain *public.UpdateDomainUser
 		return nil, err
 	}
 	result := &public.Domain{}
+	if err = json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *SuiteBase) SystemHostConfWithResponse(inventoryID string, fqdn string, hostconf *public.HostConf) (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/host-conf/" + inventoryID + "/" + fqdn
+	method := http.MethodPost
+	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
+	s.addRequestID(&hdr, "test_system_host_conf")
+	// TODO Fill this content
+	body := hostconf
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		body,
+	)
+	return resp, err
+}
+
+func (s *SuiteBase) SystemHostConf(inventoryID string, fqdn string, hostconf *public.HostConf) (*public.HostConfResponse, error) {
+	url := s.DefaultPublicBaseURL() + "/host-conf/" + inventoryID + "/" + fqdn
+	resp, err := s.SystemHostConfWithResponse(inventoryID, fqdn, hostconf)
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := &public.HostConfResponse{}
+	if err = json.Unmarshal(data, result); err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (s *SuiteBase) SystemSigningKeysWithResponse() (*http.Response, error) {
+	hdr := http.Header{}
+	url := s.DefaultPublicBaseURL() + "/signing_keys"
+	method := http.MethodGet
+	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
+	s.addRequestID(&hdr, "test_system_signing_keys")
+	// TODO Fill this content
+	body := http.NoBody
+	resp, err := s.DoRequest(
+		method,
+		url,
+		hdr,
+		body,
+	)
+	return resp, err
+}
+
+func (s *SuiteBase) SystemSigningKeys() (*public.SigningKeysResponse, error) {
+	url := s.DefaultPublicBaseURL() + "/signing_keys"
+
+	resp, err := s.SystemSigningKeysWithResponse()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
+	}
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	result := &public.SigningKeysResponse{}
 	if err = json.Unmarshal(data, result); err != nil {
 		return nil, err
 	}

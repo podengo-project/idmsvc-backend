@@ -31,17 +31,13 @@ func helperRbacCreateMapping() rbac_data.RBACMap {
 	service := rbac_data.RBACService("idmsvc")
 	resourceToken := rbac_data.RBACResource("token")
 	resourceDomains := rbac_data.RBACResource("domains")
-	resourceSigningKeys := rbac_data.RBACResource("signing_keys")
-	resourceHostConf := rbac_data.RBACResource("host_conf")
+	// This map fit the one at internal/infrastructure/router/rbac.yaml
 	data := rbac_data.NewRBACMapBuilder().
 		Add("/domains/token", http.MethodPost, rbac_data.NewRbacPermission(service, resourceToken, rbac_data.RbacVerbCreate)).
 		Add("/domains", http.MethodGet, rbac_data.NewRbacPermission(service, resourceDomains, rbac_data.RbacVerbRead)).
 		Add("/domains/:uuid", http.MethodGet, rbac_data.NewRbacPermission(service, resourceDomains, rbac_data.RbacVerbRead)).
-		Add("/domains/:uuid", http.MethodPost, rbac_data.NewRbacPermission(service, resourceDomains, rbac_data.RbacVerbCreate)).
 		Add("/domains/:uuid", http.MethodPatch, rbac_data.NewRbacPermission(service, resourceDomains, rbac_data.RbacVerbUpdate)).
 		Add("/domains/:uuid", http.MethodDelete, rbac_data.NewRbacPermission(service, resourceDomains, rbac_data.RbacVerbDelete)).
-		Add("/signing_keys", http.MethodDelete, rbac_data.NewRbacPermission(service, resourceSigningKeys, rbac_data.RbacVerbExecute)).
-		Add("/host-conf/:inventory_id/:fqdn", http.MethodDelete, rbac_data.NewRbacPermission(service, resourceHostConf, rbac_data.RbacVerbExecute)).
 		Build()
 	return data
 }

@@ -8,14 +8,8 @@ data:
   "/domains/token":
     POST: "idmsvc:token:create"
   "/domains":
-    POST: "idmsvc:domains:create"
     GET: "idmsvc:domains:list"
   "/domains/:uuid":
     GET: "idmsvc:domains:read"
-    PUT: "idmsvc:domains:update"
     PATCH: "idmsvc:domains:update"
     DELETE: "idmsvc:domains:delete"
-  "/host-conf/:inventory_id/:fqdn":
-    POST: "idmsvc:host_conf:execute"
-  "/signing_keys":
-    GET: "idmsvc:signing_keys:execute"

@@ -179,7 +179,7 @@ func (a *application) DeleteDomain(
 	return ctx.NoContent(http.StatusNoContent)
 }
 
-// RegisterIpa (PUT /domains) initialize the
+// RegisterDomain (PUT /domains) initialize the
 // IPA domain information into the database. This requires
 // a valid X-Rh-IDM-Token. The token is removed when the
 // operation is success. Only update information that

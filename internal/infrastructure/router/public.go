@@ -3,6 +3,7 @@ package router
 import (
 	_ "embed"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -37,6 +38,7 @@ var systemEnforceRoutes = []enforceRoute{
 	{"POST", "/api/idmsvc/v1/domains"},
 	{"PUT", "/api/idmsvc/v1/domains/:uuid"},
 	{"POST", "/api/idmsvc/v1/host-conf/:inventory_id/:fqdn"},
+	{"GET", "/api/idmsvc/v1/signing_keys"},
 }
 
 var mixedEnforceRoutes = []enforceRoute{
@@ -69,7 +71,30 @@ func newRbacSkipper(service string) echo_middleware.Skipper {
 		panic("service is an empty string")
 	}
 	return func(c echo.Context) bool {
-		return c.Path() == "/api/"+service+"/v1/openapi.json"
+		var (
+			cc middleware.DomainContextInterface
+			ok bool
+		)
+		ctx := c.Request().Context()
+		routePath := c.Path()
+		// The access to the openapi specification is public
+		if routePath == "/api/"+service+"/v1/openapi.json" {
+			slog.DebugContext(ctx, "Skipping "+routePath)
+			return true
+		}
+		if cc, ok = c.(middleware.DomainContextInterface); !ok {
+			slog.WarnContext(ctx, "'c' is not a DomainContextInterface")
+			return false
+		}
+		if cc.XRHID().Identity.Type == "System" {
+			for i := range systemEnforceRoutes {
+				if routePath == systemEnforceRoutes[i].Path {
+					slog.DebugContext(ctx, "Skipping "+routePath+" for the System with CN="+cc.XRHID().Identity.System.CommonName)
+					return true
+				}
+			}
+		}
+		return false
 	}
 }
 

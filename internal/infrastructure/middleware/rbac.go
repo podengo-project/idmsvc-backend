@@ -52,6 +52,7 @@ func RBACWithConfig(rbacConfig *RBACConfig) echo.MiddlewareFunc {
 
 			// Process skippers
 			if rbacConfig.Skipper != nil && rbacConfig.Skipper(c) {
+				slog.DebugContext(c.Request().Context(), "Skipping rbac for "+c.Request().RequestURI)
 				return next(c)
 			}
 
