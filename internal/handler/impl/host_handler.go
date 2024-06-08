@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -53,7 +54,12 @@ func (a *application) HostConf(
 	}
 
 	if keys, err = a.hostconfjwk.repository.GetPrivateSigningKeys(tx); err != nil {
-		// TODO: log and convert to HTTP error
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		return err
+	}
+	if len(keys) == 0 {
+		err = echo.NewHTTPError(http.StatusInternalServerError, "no keys available")
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 

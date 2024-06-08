@@ -55,8 +55,12 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	require.NotNil(t, s.token)
 	require.NotEqual(t, "", s.token.DomainToken)
 
+	// This operation set AutoEnrollmentEnabled = False whatever
+	// is the value we indicate here; we have to PATCH in a second
+	// operation
 	s.domain, err = s.RegisterIpaDomain(s.token.DomainToken,
 		builder_api.NewDomain("test.example").
+			WithAutoEnrollmentEnabled(pointy.Bool(true)).
 			WithDomainID(&s.token.DomainId).
 			WithRhelIdm(builder_api.NewRhelIdmDomain("test.example").
 				WithServers([]public.DomainIpaServer{}).
@@ -67,6 +71,14 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 				).Build(),
 			).Build(),
 	)
+	require.NoError(t, err)
+	require.NotNil(t, s.domain)
+
+	s.domain, err = s.PatchDomain(
+		s.domain.DomainId.String(),
+		builder_api.NewUpdateDomainUserRequest().
+			WithAutoEnrollmentEnabled(pointy.Bool(true)).
+			Build())
 	require.NoError(t, err)
 	require.NotNil(t, s.domain)
 }
@@ -125,7 +137,7 @@ func (s *SuiteRbacPermission) doTestDomainIpaPatch(t *testing.T) int {
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaRead(t *testing.T) int {
-	res, err := s.ReadDomainWithResponse(*s.domain.DomainId)
+	res, err := s.UserReadDomainWithResponse(*s.domain.DomainId)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	return res.StatusCode
@@ -145,12 +157,16 @@ func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
 	return res.StatusCode
 }
 
-func (s *SuiteRbacPermission) doTestHostConfExecute(t *testing.T) int {
-	return http.StatusNotImplemented
+func (s *SuiteRbacPermission) doTestReadSigningKeys(t *testing.T) int {
+	res, err := s.SystemSigningKeysWithResponse()
+	require.NoError(t, err)
+	return res.StatusCode
 }
 
-func (s *SuiteRbacPermission) doTestJWKExecute(t *testing.T) int {
-	return http.StatusNotImplemented
+func (s *SuiteRbacPermission) doTestSystemReadDomain(t *testing.T) int {
+	res, err := s.SystemReadDomainWithResponse(*s.domain.DomainId)
+	require.NoError(t, err)
+	return res.StatusCode
 }
 
 func (s *SuiteRbacPermission) commonRun(profile string, testCases []TestCasePermission) {
@@ -173,26 +189,13 @@ func (s *SuiteRbacPermission) commonRun(profile string, testCases []TestCasePerm
 func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 	testCases := []TestCasePermission{
 		{
-			Name:  "Test idmsvc:token:create",
-			Given: s.prepareNoop,
-			Then:  s.doTestTokenCreate,
-			// TODO Probably this will be change to http.StatusCreated
+			Name:     "Test idmsvc:token:create",
+			Given:    s.prepareNoop,
+			Then:     s.doTestTokenCreate,
 			Expected: http.StatusOK,
 		},
 		{
-			Name:     "Test idmsvc:domain:create",
-			Given:    s.prepareDomainIpaCreate,
-			Then:     s.doTestDomainIpaCreate,
-			Expected: http.StatusCreated,
-		},
-		{
-			Name:     "Test Update Agent idmsvc:domain:update",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestDomainIpaUpdate,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Update User idmsvc:domain:update",
+			Name:     "Test User Update idmsvc:domain:update",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusOK,
@@ -213,6 +216,31 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			Name:     "Test idmsvc:domain:list",
 			Given:    s.prepareNoop,
 			Then:     s.doTestDomainList,
+			Expected: http.StatusOK,
+		},
+		// System requests are identified by its certificate
+		{
+			Name:     "Test Agent register domain",
+			Given:    s.prepareDomainIpaCreate,
+			Then:     s.doTestDomainIpaCreate,
+			Expected: http.StatusCreated,
+		},
+		{
+			Name:     "Test Update Agent",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaUpdate,
+			Expected: http.StatusOK,
+		},
+		{
+			Name:     "Test Agent Read domain",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestSystemReadDomain,
+			Expected: http.StatusOK,
+		},
+		{
+			Name:     "Test Read SigningKeys",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestReadSigningKeys,
 			Expected: http.StatusOK,
 		},
 	}
@@ -236,18 +264,6 @@ func (s *SuiteRbacPermission) TestReadPermission() {
 			Expected: http.StatusUnauthorized,
 		},
 		{
-			Name:     "Test idmsvc:domain:create",
-			Given:    s.prepareDomainIpaCreate,
-			Then:     s.doTestDomainIpaCreate,
-			Expected: http.StatusUnauthorized,
-		},
-		{
-			Name:     "Test Update Agent idmsvc:domain:update",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestDomainIpaUpdate,
-			Expected: http.StatusUnauthorized,
-		},
-		{
 			Name:     "Test Update User idmsvc:domain:update",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
@@ -269,6 +285,31 @@ func (s *SuiteRbacPermission) TestReadPermission() {
 			Name:     "Test idmsvc:domain:list",
 			Given:    s.prepareNoop,
 			Then:     s.doTestDomainList,
+			Expected: http.StatusOK,
+		},
+		// System requests are identified by its certificate
+		{
+			Name:     "Test Agent register domain",
+			Given:    s.prepareDomainIpaCreate,
+			Then:     s.doTestDomainIpaCreate,
+			Expected: http.StatusCreated,
+		},
+		{
+			Name:     "Test Update Agent",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaUpdate,
+			Expected: http.StatusOK,
+		},
+		{
+			Name:     "Test Agent Read domain",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestSystemReadDomain,
+			Expected: http.StatusOK,
+		},
+		{
+			Name:     "Test Read SigningKeys",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestReadSigningKeys,
 			Expected: http.StatusOK,
 		},
 	}
@@ -284,18 +325,6 @@ func (s *SuiteRbacPermission) TestNoPermission() {
 			Expected: http.StatusUnauthorized,
 		},
 		{
-			Name:     "Test idmsvc:domain:create",
-			Given:    s.prepareDomainIpaCreate,
-			Then:     s.doTestDomainIpaCreate,
-			Expected: http.StatusUnauthorized,
-		},
-		{
-			Name:     "Test Update Agent idmsvc:domain:update",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestDomainIpaUpdate,
-			Expected: http.StatusUnauthorized,
-		},
-		{
 			Name:     "Test Update User idmsvc:domain:update",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
@@ -319,6 +348,50 @@ func (s *SuiteRbacPermission) TestNoPermission() {
 			Then:     s.doTestDomainList,
 			Expected: http.StatusUnauthorized,
 		},
+		// System requests are identified by its certificate
+		{
+			Name:     "Test Agent register domain",
+			Given:    s.prepareDomainIpaCreate,
+			Then:     s.doTestDomainIpaCreate,
+			Expected: http.StatusCreated,
+		},
+		{
+			Name:     "Test Update Agent",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestDomainIpaUpdate,
+			Expected: http.StatusOK,
+		},
+		{
+			Name:     "Test Agent Read domain",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestSystemReadDomain,
+			Expected: http.StatusOK,
+		},
+		{
+			Name:     "Test Read SigningKeys",
+			Given:    s.prepareDomainIpa,
+			Then:     s.doTestReadSigningKeys,
+			Expected: http.StatusOK,
+		},
 	}
 	s.commonRun(mock_rbac.ProfileDomainNoPerms, testCases)
+}
+
+func (s *SuiteRbacPermission) TestHostConfExecute() {
+	// This is executed on their own test because
+	// one verification is that only one domain match
+	// for the current organization, for the specified
+	// criteria.
+	t := s.T()
+	s.prepareDomainIpa(t)
+	domainType := public.RhelIdm
+	res, err := s.SystemHostConfWithResponse(
+		s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String(),
+		"client."+s.domain.DomainName,
+		builder_api.NewHostConf().
+			WithDomainName(pointy.String(s.domain.DomainName)).
+			WithDomainType(&domainType).
+			Build())
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, res.StatusCode)
 }

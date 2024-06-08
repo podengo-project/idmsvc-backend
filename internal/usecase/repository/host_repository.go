@@ -43,7 +43,8 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 		Joins("left join ipas on domains.id = ipas.id").
 		Where("domains.org_id = ?", options.OrgId)
 	if options.DomainId != nil {
-		tx = tx.Where("domains.domain_uuid = ?", options.DomainId.String())
+		domainUUID := options.DomainId.String()
+		tx = tx.Where("domains.domain_uuid = ?", domainUUID)
 	}
 	if options.DomainName != nil {
 		tx = tx.Where("domains.domain_name = ?", *options.DomainName)
