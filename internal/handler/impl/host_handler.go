@@ -31,17 +31,21 @@ func (a *application) HostConf(
 		keys    []jwk.Key
 	)
 	if xrhid, err = getXRHID(ctx); err != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 
 	if err = ctx.Bind(&input); err != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 	if options, err = a.host.interactor.HostConf(xrhid, inventoryId, fqdn, &params, &input); err != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 
 	if tx = a.db.Begin(); tx.Error != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return tx.Error
 	}
 	defer tx.Rollback()
@@ -50,6 +54,7 @@ func (a *application) HostConf(
 		tx,
 		options,
 	); err != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 
@@ -68,16 +73,19 @@ func (a *application) HostConf(
 		options,
 		domain,
 	); err != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 
 	if tx.Commit(); tx.Error != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return tx.Error
 	}
 
 	if output, err = a.host.presenter.HostConf(
 		domain, hctoken,
 	); err != nil {
+		slog.ErrorContext(ctx.Request().Context(), err.Error())
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)
