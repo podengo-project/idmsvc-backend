@@ -75,11 +75,12 @@ func newRbacSkipper(service string) echo_middleware.Skipper {
 			cc middleware.DomainContextInterface
 			ok bool
 		)
+		openapiPath := "/api/" + service + "/v1/openapi.json"
 		ctx := c.Request().Context()
 		routePath := c.Path()
 		// The access to the openapi specification is public
-		if routePath == "/api/"+service+"/v1/openapi.json" {
-			slog.DebugContext(ctx, "Skipping "+routePath)
+		if routePath == openapiPath {
+			slog.DebugContext(ctx, "route is '"+openapiPath+"'")
 			return true
 		}
 		if cc, ok = c.(middleware.DomainContextInterface); !ok {
@@ -87,12 +88,7 @@ func newRbacSkipper(service string) echo_middleware.Skipper {
 			return false
 		}
 		if cc.XRHID().Identity.Type == "System" {
-			for i := range systemEnforceRoutes {
-				if routePath == systemEnforceRoutes[i].Path {
-					slog.DebugContext(ctx, "Skipping "+routePath+" for the System with CN="+cc.XRHID().Identity.System.CommonName)
-					return true
-				}
-			}
+			return true
 		}
 		return false
 	}
