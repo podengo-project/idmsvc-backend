@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"os"
 	"sync"
@@ -176,7 +177,11 @@ func (m *mockRbac) Start() error {
 		defer m.waitGroup.Done()
 		slog.Info("mock rbac service starting")
 		if err := m.echo.Start(m.address); err != nil {
-			slog.Error(err.Error())
+			if err != http.ErrServerClosed {
+				slog.Error(err.Error())
+			} else {
+				slog.Info("Service rbac mock closed")
+			}
 			return
 		}
 	}()
