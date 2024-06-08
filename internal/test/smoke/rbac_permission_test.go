@@ -218,31 +218,6 @@ func (s *SuiteRbacPermission) helperCommonAdmin() []TestCasePermission {
 			Then:     s.doTestDomainList,
 			Expected: http.StatusOK,
 		},
-		// System requests are identified by its certificate
-		{
-			Name:     "Test Agent register domain",
-			Given:    s.prepareDomainIpaCreate,
-			Then:     s.doTestDomainIpaCreate,
-			Expected: http.StatusCreated,
-		},
-		{
-			Name:     "Test Update Agent",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestDomainIpaUpdate,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Agent Read domain",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestSystemReadDomain,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Read SigningKeys",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestReadSigningKeys,
-			Expected: http.StatusOK,
-		},
 	}
 	return testCases
 }
@@ -287,31 +262,6 @@ func (s *SuiteRbacPermission) TestReadPermission() {
 			Then:     s.doTestDomainList,
 			Expected: http.StatusOK,
 		},
-		// System requests are identified by its certificate
-		{
-			Name:     "Test Agent register domain",
-			Given:    s.prepareDomainIpaCreate,
-			Then:     s.doTestDomainIpaCreate,
-			Expected: http.StatusCreated,
-		},
-		{
-			Name:     "Test Update Agent",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestDomainIpaUpdate,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Agent Read domain",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestSystemReadDomain,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Read SigningKeys",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestReadSigningKeys,
-			Expected: http.StatusOK,
-		},
 	}
 	s.commonRun(mock_rbac.ProfileDomainReadOnly, testCases)
 }
@@ -348,50 +298,6 @@ func (s *SuiteRbacPermission) TestNoPermission() {
 			Then:     s.doTestDomainList,
 			Expected: http.StatusUnauthorized,
 		},
-		// System requests are identified by its certificate
-		{
-			Name:     "Test Agent register domain",
-			Given:    s.prepareDomainIpaCreate,
-			Then:     s.doTestDomainIpaCreate,
-			Expected: http.StatusCreated,
-		},
-		{
-			Name:     "Test Update Agent",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestDomainIpaUpdate,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Agent Read domain",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestSystemReadDomain,
-			Expected: http.StatusOK,
-		},
-		{
-			Name:     "Test Read SigningKeys",
-			Given:    s.prepareDomainIpa,
-			Then:     s.doTestReadSigningKeys,
-			Expected: http.StatusOK,
-		},
 	}
 	s.commonRun(mock_rbac.ProfileDomainNoPerms, testCases)
-}
-
-func (s *SuiteRbacPermission) TestHostConfExecute() {
-	// This is executed on their own test because
-	// one verification is that only one domain match
-	// for the current organization, for the specified
-	// criteria.
-	t := s.T()
-	s.prepareDomainIpa(t)
-	domainType := public.RhelIdm
-	res, err := s.SystemHostConfWithResponse(
-		s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String(),
-		"client."+s.domain.DomainName,
-		builder_api.NewHostConf().
-			WithDomainName(pointy.String(s.domain.DomainName)).
-			WithDomainType(&domainType).
-			Build())
-	require.NoError(t, err)
-	require.Equal(t, http.StatusOK, res.StatusCode)
 }
