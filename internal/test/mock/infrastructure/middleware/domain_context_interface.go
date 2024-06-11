@@ -7,7 +7,7 @@ import (
 
 	echo "github.com/labstack/echo/v4"
 
-	identity "github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 
 	io "io"
 

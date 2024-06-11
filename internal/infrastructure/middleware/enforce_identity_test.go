@@ -13,7 +13,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -54,7 +54,7 @@ func helperGenerateUserIdentity(orgId string, username string) *identity.XRHID {
 				OrgID: orgId,
 			},
 			Type: "User",
-			User: identity.User{
+			User: &identity.User{
 				Username: username,
 				UserID:   "12345",
 				Active:   true,
@@ -77,7 +77,7 @@ func helperGenerateSystemIdentity(orgId string, commonName string) *identity.XRH
 			Internal: identity.Internal{
 				OrgID: orgId,
 			},
-			System: identity.System{
+			System: &identity.System{
 				CommonName: commonName,
 				CertType:   "system",
 			},
@@ -315,7 +315,7 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active: false,
 					},
 				},
@@ -327,7 +327,7 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active:   true,
 						UserID:   "jdoe",
 						Username: "",
@@ -341,7 +341,7 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active:   true,
 						UserID:   "jdoe",
 						Username: "jdoe",
@@ -390,7 +390,7 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType: "anothevalue",
 					},
 				},
@@ -402,7 +402,7 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType:   "system",
 						CommonName: "",
 					},
@@ -415,7 +415,7 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType:   "system",
 						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
 					},
@@ -512,7 +512,7 @@ func TestNewEnforceOr(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType:   "system",
 						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
 					},
@@ -525,7 +525,7 @@ func TestNewEnforceOr(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active:   true,
 						UserID:   "jdoe",
 						Username: "jdoe",

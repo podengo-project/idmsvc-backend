@@ -7,7 +7,7 @@ import (
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
 type hostInteractor struct{}

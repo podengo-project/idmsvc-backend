@@ -18,7 +18,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -64,7 +64,7 @@ func TestRegisterIpa(t *testing.T) {
 			Identity: identity.Identity{
 				OrgID: orgID,
 				Type:  "System",
-				System: identity.System{
+				System: &identity.System{
 					CommonName: cn,
 					CertType:   "system",
 				},
@@ -449,7 +449,7 @@ func TestUpdateAgent(t *testing.T) {
 		Identity: identity.Identity{
 			OrgID: testOrgID,
 			Type:  "user",
-			User:  identity.User{},
+			User:  &identity.User{},
 			Internal: identity.Internal{
 				OrgID: testOrgID,
 			},
@@ -830,7 +830,7 @@ func TestCreateDomainToken(t *testing.T) {
 			Identity: identity.Identity{
 				OrgID: testOrgID,
 				Type:  "User",
-				User:  identity.User{},
+				User:  &identity.User{},
 				Internal: identity.Internal{
 					OrgID: testOrgID,
 				},

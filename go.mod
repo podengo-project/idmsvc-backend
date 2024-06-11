@@ -31,7 +31,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/redhatinsights/app-common-go v1.6.8
-	github.com/redhatinsights/platform-go-middlewares v1.0.0
+	github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-beta.2
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
@@ -83,7 +83,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/onsi/gomega v1.24.1 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
@@ -109,6 +108,7 @@ require (
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/tools v0.16.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
