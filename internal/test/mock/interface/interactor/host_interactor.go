@@ -4,7 +4,7 @@ package interactor
 
 import (
 	interactor "github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
-	identity "github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 
 	mock "github.com/stretchr/testify/mock"
 
