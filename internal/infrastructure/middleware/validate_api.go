@@ -17,7 +17,7 @@ import (
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	public_api "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
 // See: https://github.com/stellirin/go-validator/blob/main/config.go
