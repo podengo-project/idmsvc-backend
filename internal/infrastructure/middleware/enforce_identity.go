@@ -58,6 +58,9 @@ func EnforceUserPredicate(data *identity.XRHID) error {
 	if data.Identity.Type != "User" {
 		return fmt.Errorf("'Identity.Type=%s' is not 'User'", data.Identity.Type)
 	}
+	if data.Identity.User == nil {
+		return fmt.Errorf("'Identity.User' is nil")
+	}
 	if !data.Identity.User.Active {
 		return fmt.Errorf("'Identity.User.Active' is not true")
 	}
@@ -79,6 +82,9 @@ func EnforceSystemPredicate(data *identity.XRHID) error {
 	}
 	if data.Identity.Type != "System" {
 		return fmt.Errorf("'Identity.Type' must be 'System'")
+	}
+	if data.Identity.System == nil {
+		return fmt.Errorf("'Identity.System' is nil")
 	}
 	if data.Identity.System.CertType != "system" {
 		return fmt.Errorf("'Identity.System.CertType' is not 'system'")
