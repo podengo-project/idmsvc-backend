@@ -82,18 +82,16 @@ func (s *SuiteTokenCreate) bodyExpectationTestToken(t *testing.T, body *public.D
 }
 
 func (s *SuiteTokenCreate) TestToken() {
-	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
-
 	// Prepare the tests
 	testCases := []TestCase{
 		{
 			Name: "TestToken",
 			Given: TestCaseGiven{
-				Method: http.MethodPost,
-				URL:    s.DefaultPublicBaseURL() + "/domains/token",
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodPost,
+				URL:          s.DefaultPublicBaseURL() + "/domains/token",
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: public.DomainRegTokenRequest{
 					DomainType: "rhel-idm",

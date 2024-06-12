@@ -33,11 +33,13 @@ func (s *SuiteDomainUpdateAgent) SetupTest() {
 	s.Domains = []*public.Domain{}
 	domainName = fmt.Sprintf("domain%d.test", i)
 	newDomain := builder_api.NewDomain(domainName).Build()
-	*newDomain.RhelIdm.Servers[0].SubscriptionManagerId = uuid.MustParse(s.SystemXRHID.Identity.System.CommonName)
+	*newDomain.RhelIdm.Servers[0].SubscriptionManagerId = uuid.MustParse(s.systemXRHID.Identity.System.CommonName)
 	newDomain.RhelIdm.Servers[0].HccUpdateServer = true
+	s.As(XRHIDUser)
 	if token, err = s.CreateToken(); err != nil {
 		s.FailNow("error creating token")
 	}
+	s.As(XRHIDSystem)
 	domain, err = s.RegisterIpaDomain(token.DomainToken, newDomain)
 	if err != nil {
 		s.FailNow("error registering rhel-idm domain")
@@ -55,10 +57,9 @@ func (s *SuiteDomainUpdateAgent) TearDownTest() {
 }
 
 func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
-	xrhidEncoded := header.EncodeXRHID(&s.SystemXRHID)
 	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId)
 	domainName := s.Domains[0].DomainName
-	updatedDomain := builder_api.NewUpdateDomainAgent(domainName).WithSubscriptionManagerID(s.SystemXRHID.Identity.System.CommonName).Build()
+	updatedDomain := builder_api.NewUpdateDomainAgent(domainName).WithSubscriptionManagerID(s.systemXRHID.Identity.System.CommonName).Build()
 	expectedDomain := s.Domains[0]
 	expectedDomain.RhelIdm = &updatedDomain.RhelIdm
 
@@ -67,11 +68,11 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 		{
 			Name: "TestReadDomain",
 			Given: TestCaseGiven{
-				Method: http.MethodPut,
-				URL:    url,
+				XRHIDProfile: XRHIDSystem,
+				Method:       http.MethodPut,
+				URL:          url,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_domain_update"},
-					header.HeaderXRHID:      {xrhidEncoded},
 					header.HeaderXRHIDMVersion: {
 						header.EncodeXRHIDMVersion(
 							header.NewXRHIDMVersion(
