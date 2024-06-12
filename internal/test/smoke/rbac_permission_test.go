@@ -116,7 +116,6 @@ func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
 
 func (s *SuiteRbacPermission) commonRun(rbacProfile RBACProfile, testCases []TestCasePermission) {
 	t := s.T()
-
 	xrhidProfiles := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
 	for _, testCase := range testCases {
 		for _, xrhidProfile := range xrhidProfiles {
@@ -190,7 +189,7 @@ func (s *SuiteRbacPermission) TestReadPermission() {
 			Expected: http.StatusUnauthorized,
 		},
 		{
-			Name:     "Test Update User idmsvc:domain:update",
+			Name:     "Test idmsvc:domain:update for patching",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusUnauthorized,
@@ -226,7 +225,7 @@ func (s *SuiteRbacPermission) TestNoPermission() {
 			Expected: http.StatusUnauthorized,
 		},
 		{
-			Name:     "Test Update User idmsvc:domain:update",
+			Name:     "Test idmsvc:domain:update for patching",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusUnauthorized,
