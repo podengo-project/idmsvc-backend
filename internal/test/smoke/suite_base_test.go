@@ -79,18 +79,27 @@ type SuiteBase struct {
 // SetupTest start the services and await until they are ready
 // for being used.
 func (s *SuiteBase) SetupTest() {
+	t := s.T()
+	t.Log("SetupTest")
 	s.cfg = config.Get()
+	require.NotNil(t, s.cfg)
 	s.cfg.Application.EnableRBAC = true
 	s.wg = &sync.WaitGroup{}
 	logger.InitLogger(s.cfg)
 	s.db = datastore.NewDB(s.cfg)
+	require.NotNil(t, s.db)
 
 	ctx, cancel := StartSignalHandler(context.Background())
+	require.NotNil(t, ctx)
+	require.NotNil(t, cancel)
 	s.cancel = cancel
 	inventory := client_inventory.NewHostInventory(s.cfg)
+	require.NotNil(t, inventory)
 	s.svcRbac, s.RbacMock = mock_rbac.NewRbacMock(ctx, s.cfg)
-	s.svcRbac.Start()
-	s.RbacMock.WaitAddress(3 * time.Second)
+	require.NotNil(t, s.svcRbac)
+	require.NotNil(t, s.RbacMock)
+	require.NoError(t, s.svcRbac.Start())
+	require.NoError(t, s.RbacMock.WaitAddress(3*time.Second))
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainAdmin])
 	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(s.cfg.Clients.RbacBaseURL))
 	if err != nil {
@@ -115,6 +124,8 @@ func (s *SuiteBase) SetupTest() {
 // TearDownTest Stop the services in an ordered way before every
 // smoke test executed.
 func (s *SuiteBase) TearDownTest() {
+	t := s.T()
+	t.Log("TearDownTest")
 	TearDownSignalHandler()
 	defer datastore.Close(s.db)
 	defer s.cancel()
