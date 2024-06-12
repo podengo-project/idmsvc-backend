@@ -9,7 +9,7 @@ require (
 	github.com/atombender/go-jsonschema v0.10.0
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/golangci/golangci-lint v1.55.2
-	github.com/loov/goda v0.5.8
+	github.com/loov/goda v0.5.9
 	github.com/mikefarah/yq/v4 v4.44.1
 	github.com/spf13/cobra-cli v1.3.0
 	github.com/subpop/xrhidgen v0.1.0

@@ -511,8 +511,8 @@ github.com/leonklingele/grouper v1.1.1 h1:suWXRU57D4/Enn6pXR0QVqqWWrnJ9Osrz+5rjt
 github.com/leonklingele/grouper v1.1.1/go.mod h1:uk3I3uDfi9B6PeUjsCKi6ndcf63Uy7snXgR4yDYQVDY=
 github.com/lib/pq v1.10.9 h1:YXG7RB+JIjhP29X+OtkiDnYaXQwpS4JEWq7dtCCRUEw=
 github.com/lib/pq v1.10.9/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
-github.com/loov/goda v0.5.8 h1:zrO4qM0EVBQCp9vO7gyE1T9xaTKgBz6Al5XpIBPxGQ4=
-github.com/loov/goda v0.5.8/go.mod h1:8EH+7nwUFt7/97R63EbyIMje43F95O6ZbbJJiOhVRFs=
+github.com/loov/goda v0.5.9 h1:CpI+3tYZs/yJalsa6i7Zt8l/4mM9m7Bc6FqEaFLYPyc=
+github.com/loov/goda v0.5.9/go.mod h1:8EH+7nwUFt7/97R63EbyIMje43F95O6ZbbJJiOhVRFs=
 github.com/lufeee/execinquery v1.2.1 h1:hf0Ems4SHcUGBxpGN7Jz78z1ppVkP/837ZlETPCEtOM=
 github.com/lufeee/execinquery v1.2.1/go.mod h1:EC7DrEKView09ocscGHC+apXMIaorh4xqSxS/dy8SbM=
 github.com/lyft/protoc-gen-star v0.5.3/go.mod h1:V0xaHgaf5oCCqmcxYcWiDfTiKsZsRc87/1qhoTACD8w=
