@@ -153,6 +153,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 					Predicate: middleware.NewEnforceOr(
 						middleware.EnforceSystemPredicate,
 						middleware.EnforceUserPredicate,
+						middleware.EnforceServiceAccountPredicate,
 					),
 				},
 			},
@@ -169,13 +170,16 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 			},
 		},
 	)
-	userIdentityMiddleware := middleware.EnforceIdentityWithConfig(
+	userAndSAIdentityMiddleware := middleware.EnforceIdentityWithConfig(
 		&middleware.IdentityConfig{
 			Skipper: skipperUserPredicate,
 			Predicates: []middleware.IdentityPredicateEntry{
 				{
-					Name:      "user-identity",
-					Predicate: middleware.EnforceUserPredicate,
+					Name: "user-and-sa-identity",
+					Predicate: middleware.NewEnforceOr(
+						middleware.EnforceUserPredicate,
+						middleware.EnforceServiceAccountPredicate,
+					),
 				},
 			},
 		},
@@ -213,7 +217,7 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		fakeIdentityMiddleware,
 		mixedIdentityMiddleware,
 		systemIdentityMiddleware,
-		userIdentityMiddleware,
+		userAndSAIdentityMiddleware,
 		rbacMiddleware,
 		metricsMiddleware,
 		echo_middleware.Secure(),
