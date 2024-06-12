@@ -42,7 +42,7 @@ type IdentityConfig struct {
 // Return nil if the enforce is passed, else details about the
 // enforce process.
 func EnforceUserPredicate(data *identity.XRHID) error {
-	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/basic.json
+	// See: https://github.com/RedHatInsights/identity-schemas/blob/main/3scale/identities/jwt.json
 	if data == nil {
 		return fmt.Errorf("'data' cannot be nil")
 	}
@@ -67,7 +67,7 @@ func EnforceUserPredicate(data *identity.XRHID) error {
 // Return nil if the enforce is passed, else details about the
 // enforce process.
 func EnforceSystemPredicate(data *identity.XRHID) error {
-	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/cert.json
+	// See: https://github.com/RedHatInsights/identity-schemas/blob/main/3scale/identities/cert.json
 	if data == nil {
 		return fmt.Errorf("'data' cannot be nil")
 	}
@@ -82,6 +82,33 @@ func EnforceSystemPredicate(data *identity.XRHID) error {
 	}
 	if data.Identity.System.CommonName == "" {
 		return fmt.Errorf("'Identity.System.CommonName' is empty")
+	}
+	return nil
+}
+
+// EnforceServiceAccountPredicate is a predicate that check fields for
+// ServiceAccount identities.
+// Return nil if the enforce is passed, else details about the
+// enforce process.
+func EnforceServiceAccountPredicate(data *identity.XRHID) error {
+	// See: https://github.com/RedHatInsights/identity-schemas/blob/main/3scale/identities/service-account.json
+	if data == nil {
+		return fmt.Errorf("'data' cannot be nil")
+	}
+	if data.Identity.Type != "ServiceAccount" {
+		return fmt.Errorf("'Identity.Type' must be 'ServiceAccount'")
+	}
+	if data.Identity.AuthType != "jwt-auth" {
+		return fmt.Errorf("'Identity.AuthType' is not 'jwt-auth'")
+	}
+	if data.Identity.ServiceAccount == nil {
+		return fmt.Errorf("'Identity.ServiceAccount' is nil")
+	}
+	if data.Identity.ServiceAccount.ClientId == "" {
+		return fmt.Errorf("'Identity.ServiceAccount.ClientId' is empty")
+	}
+	if data.Identity.ServiceAccount.Username == "" {
+		return fmt.Errorf("'Identity.ServiceAccount.Username' is empty")
 	}
 	return nil
 }
@@ -119,19 +146,21 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			var (
-				xrhid *identity.XRHID
-				err   error
+				xrhid    *identity.XRHID
+				xrhidRaw string
+				err      error
+				cc       DomainContextInterface
+				ok       bool
 			)
 			if config.Skipper != nil && config.Skipper(c) {
 				slog.DebugContext(c.Request().Context(), "Skipping EnforceIdentity middleware")
 				return next(c)
 			}
-			cc, ok := c.(DomainContextInterface)
-			if !ok {
+			if cc, ok = c.(DomainContextInterface); !ok {
 				slog.ErrorContext(c.Request().Context(), "'DomainContextInterface' is expected")
 				return echo.ErrInternalServerError
 			}
-			xrhidRaw := cc.Request().Header.Get(header.HeaderXRHID)
+			xrhidRaw = cc.Request().Header.Get(header.HeaderXRHID)
 			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
 				slog.ErrorContext(c.Request().Context(), err.Error())
 				return echo.ErrBadRequest
