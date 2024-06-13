@@ -253,9 +253,6 @@ func (i domainInteractor) CreateDomainToken(
 	if xrhid == nil {
 		return "", "", internal_errors.NilArgError("xrhid")
 	}
-	if xrhid.Identity.Type != "User" {
-		return "", "", fmt.Errorf("invalid identity type '%s'", xrhid.Identity.Type)
-	}
 	if params == nil {
 		return "", "", internal_errors.NilArgError("params")
 	}
