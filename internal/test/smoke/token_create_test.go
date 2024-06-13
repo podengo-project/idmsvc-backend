@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -60,36 +61,16 @@ func WrapBodyFuncTokenResponse(expected BodyFuncTokenResponse) BodyFunc {
 	}
 }
 
-// Specific expectation method that fit BodyFuncTokenResponse
-func (s *SuiteTokenCreate) bodyExpectationTestToken(t *testing.T, body *public.DomainRegTokenResponse) error {
-	if body.DomainToken == "" {
-		return fmt.Errorf("'domain_token' is empty")
-	}
-
-	if body.DomainType != "rhel-idm" {
-		return fmt.Errorf("'domain_type' is not rhel-idm")
-	}
-
-	if body.DomainId == (uuid.UUID{}) {
-		return fmt.Errorf("'domain_id' is empty")
-	}
-
-	if body.Expiration <= int(time.Now().Unix()) {
-		return fmt.Errorf("'expiration' is in the past")
-	}
-
-	return nil
-}
-
 func (s *SuiteTokenCreate) TestToken() {
+	xrhidSlice := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
+
 	// Prepare the tests
 	testCases := []TestCase{
 		{
 			Name: "TestToken",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodPost,
-				URL:          s.DefaultPublicBaseURL() + "/domains/token",
+				Method: http.MethodPost,
+				URL:    s.DefaultPublicBaseURL() + "/domains/token",
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 				},
@@ -103,11 +84,24 @@ func (s *SuiteTokenCreate) TestToken() {
 					header.HeaderXRequestID: {"test_token"},
 					header.HeaderXRHID:      nil,
 				},
-				BodyFunc: WrapBodyFuncTokenResponse(s.bodyExpectationTestToken),
+				BodyFunc: WrapBodyFuncTokenResponse(func(t *testing.T, body *public.DomainRegTokenResponse) error {
+					assert.NotEmpty(t, body.DomainToken)
+					assert.Equal(t, public.DomainType("rhel-idm"), body.DomainType)
+					assert.NotEqual(t, uuid.UUID{}, body.DomainId)
+					assert.True(t, int(time.Now().Unix()) < body.Expiration)
+					return nil
+				}),
 			},
 		},
 	}
 
-	// Execute the test cases
-	s.RunTestCases(testCases)
+	// Run for users and service accounts
+	s.As(RBACAdmin)
+	for _, xrhid := range xrhidSlice {
+		for i := range testCases {
+			testCases[i].Given.XRHIDProfile = xrhid
+		}
+		// Execute the test cases
+		s.RunTestCases(testCases)
+	}
 }

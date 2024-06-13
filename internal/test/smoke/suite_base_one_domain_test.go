@@ -33,9 +33,9 @@ func (s *SuiteBaseWithDomain) SetupTest() {
 		s.FailNow("error creating token")
 	}
 	domainName = fmt.Sprintf("domain%d.test", i)
+	domainRequest := builder_api.NewDomain(domainName).Build()
 	s.As(XRHIDSystem)
-	domain, err = s.RegisterIpaDomain(token.DomainToken, builder_api.NewDomain(domainName).Build())
-	if err != nil {
+	if domain, err = s.RegisterIpaDomain(token.DomainToken, domainRequest); err != nil {
 		s.FailNow("error creating rhel-idm domain")
 	}
 	s.Domains = append(s.Domains, domain)

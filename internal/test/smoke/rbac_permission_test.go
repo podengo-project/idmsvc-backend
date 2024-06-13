@@ -117,7 +117,7 @@ func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
 func (s *SuiteRbacPermission) commonRun(rbacProfile RBACProfile, testCases []TestCasePermission) {
 	t := s.T()
 
-	xrhidProfiles := []XRHIDProfile{XRHIDUser}
+	xrhidProfiles := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
 	for _, testCase := range testCases {
 		for _, xrhidProfile := range xrhidProfiles {
 			t.Logf("rbacProfile=%s, xrhidProfile=%s: %s", rbacProfile, xrhidProfile, testCase.Name)
