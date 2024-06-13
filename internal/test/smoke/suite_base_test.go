@@ -56,7 +56,7 @@ type RBACProfile string
 
 const (
 	RBACSuperAdmin RBACProfile = mock_rbac.ProfileSuperAdmin
-	RBACAdmin      RBACProfile = mock_rbac.ProfileSuperAdmin
+	RBACAdmin      RBACProfile = mock_rbac.ProfileDomainAdmin
 	RBACReadOnly   RBACProfile = mock_rbac.ProfileDomainReadOnly
 	RBACNoPermis   RBACProfile = mock_rbac.ProfileDomainNoPerms
 )

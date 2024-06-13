@@ -118,6 +118,9 @@ func (s *SuiteListDomains) assertInDomains(t *testing.T, data []public.ListDomai
 
 func (s *SuiteListDomains) TestListDomains() {
 	t := s.T()
+
+	xrhids := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
+
 	req, err := http.NewRequest(http.MethodGet, s.DefaultPublicBaseURL()+"/domains", nil)
 	require.NoError(t, err)
 	q := req.URL.Query()
@@ -140,9 +143,8 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: offset=0&limit=10 case",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodGet,
-				URL:          url1,
+				Method: http.MethodGet,
+				URL:    url1,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 				},
@@ -180,9 +182,8 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: offset=40&limit=10 case",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodGet,
-				URL:          url2,
+				Method: http.MethodGet,
+				URL:    url2,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 				},
@@ -221,9 +222,8 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: offset=20&limit=10 case",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodGet,
-				URL:          url3,
+				Method: http.MethodGet,
+				URL:    url3,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 				},
@@ -262,9 +262,8 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: no params",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodGet,
-				URL:          url4,
+				Method: http.MethodGet,
+				URL:    url4,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 				},
@@ -303,5 +302,10 @@ func (s *SuiteListDomains) TestListDomains() {
 	}
 
 	// Execute the test cases
-	s.RunTestCases(testCases)
+	for _, xrhid := range xrhids {
+		for i := range testCases {
+			testCases[i].Given.XRHIDProfile = xrhid
+		}
+		s.RunTestCases(testCases)
+	}
 }
