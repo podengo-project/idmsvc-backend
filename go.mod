@@ -30,7 +30,7 @@ require (
 	github.com/pioz/faker v1.7.3
 	github.com/prometheus/client_golang v1.19.1
 	github.com/qri-io/jsonschema v0.2.1
-	github.com/redhatinsights/app-common-go v1.6.7
+	github.com/redhatinsights/app-common-go v1.6.8
 	github.com/redhatinsights/platform-go-middlewares v1.0.0
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.19.0
