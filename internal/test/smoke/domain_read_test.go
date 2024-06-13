@@ -27,17 +27,17 @@ func (s *SuiteReadDomain) TearDownTest() {
 }
 
 func (s *SuiteReadDomain) TestReadDomain() {
-	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId)
+	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId.String())
 	domainName := builder_helper.GenRandDomainName(2)
+	xrhids := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount, XRHIDSystem}
 
 	// Prepare the tests
 	testCases := []TestCase{
 		{
 			Name: "TestReadDomain",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodGet,
-				URL:          url,
+				Method: http.MethodGet,
+				URL:    url,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 				},
@@ -59,6 +59,11 @@ func (s *SuiteReadDomain) TestReadDomain() {
 		},
 	}
 
-	// Execute the test cases
-	s.RunTestCases(testCases)
+	for _, xrhid := range xrhids {
+		for i := range testCases {
+			testCases[i].Given.XRHIDProfile = xrhid
+		}
+		// Execute the test cases
+		s.RunTestCases(testCases)
+	}
 }

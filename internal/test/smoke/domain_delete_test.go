@@ -2,47 +2,48 @@ package smoke
 
 import (
 	"fmt"
-	"net/http"
 
-	"github.com/podengo-project/idmsvc-backend/internal/api/header"
+	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
-	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
+	"github.com/stretchr/testify/require"
 )
 
 // SuiteDeleteDomain is the suite to validate the smoke test when read domain endpoint at GET /api/idmsvc/v1/domains/:domain_id
 type SuiteDeleteDomain struct {
-	SuiteBaseWithDomain
+	SuiteBase
 }
 
 func (s *SuiteDeleteDomain) TestDeleteDomain() {
-	xrhidEncoded := header.EncodeXRHID(&s.userXRHID)
-	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId)
-	domainName := builder_helper.GenRandDomainName(2)
-
-	// Prepare the tests
-	testCases := []TestCase{
-		{
-			Name: "TestDeleteDomain",
-			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodDelete,
-				URL:          url,
-				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
-				},
-				Body: builder_api.NewDomain(domainName).Build(),
-			},
-			Expected: TestCaseExpect{
-				StatusCode: http.StatusNoContent,
-				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
-				},
-			},
-		},
-	}
+	t := s.T()
+	var (
+		token  *public.DomainRegTokenResponse
+		domain *public.Domain
+		err    error
+	)
+	xrhids := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
 
 	// Execute the test cases
-	s.RunTestCases(testCases)
+	for i, xrhid := range xrhids {
+		// GIVEN
+		s.As(RBACAdmin, XRHIDUser)
+		token, err = s.CreateToken()
+		require.NoError(t, err)
+		require.NotNil(t, token)
+
+		domainName := fmt.Sprintf("domain%d.test", i)
+		domainRequest := builder_api.NewDomain(domainName).Build()
+
+		s.As(RBACAdmin, XRHIDSystem)
+		domain, err = s.RegisterIpaDomain(token.DomainToken, domainRequest)
+		require.NoError(t, err)
+		require.NotNil(t, domain)
+		require.NotNil(t, domain.DomainId)
+
+		// WHEN
+		s.As(RBACAdmin, xrhid)
+		err = s.DeleteDomain(*domain.DomainId)
+
+		// THEN
+		require.NoError(t, err)
+	}
 }

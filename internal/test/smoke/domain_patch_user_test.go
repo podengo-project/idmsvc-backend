@@ -28,15 +28,15 @@ func (s *SuiteDomainUpdateUser) TearDownTest() {
 func (s *SuiteDomainUpdateUser) TestPatchDomain() {
 	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId.String())
 	patchedDomain := builder_api.NewUpdateDomainUserRequest().Build()
+	xrhids := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
 
 	// Prepare the tests
 	testCases := []TestCase{
 		{
 			Name: "TestPatchDomain",
 			Given: TestCaseGiven{
-				XRHIDProfile: XRHIDUser,
-				Method:       http.MethodPatch,
-				URL:          url,
+				Method: http.MethodPatch,
+				URL:    url,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_domain_patch"},
 				},
@@ -66,5 +66,10 @@ func (s *SuiteDomainUpdateUser) TestPatchDomain() {
 	}
 
 	// Execute the test cases
-	s.RunTestCases(testCases)
+	for _, xrhid := range xrhids {
+		for i := range testCases {
+			testCases[i].Given.XRHIDProfile = xrhid
+		}
+		s.RunTestCases(testCases)
+	}
 }
