@@ -36,15 +36,6 @@ type IdentityConfig struct {
 	Predicates []IdentityPredicateEntry
 }
 
-// IdentityAlwaysTrue is a predicate that always return nil
-// so everything was ok.
-// data is the reference to the identity.Identity data.
-// Return nil on success or an error with additional
-// information about the predicate failure.
-func IdentityAlwaysTrue(data *identity.XRHID) error {
-	return nil
-}
-
 // EnforceUserPredicate is a predicate that enforce identity
 // is a user and some additional checks for a user identity.
 // data is the XRHID to enforce.
