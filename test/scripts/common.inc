@@ -24,6 +24,10 @@ BASEDIR="$(dirname "$(dirname "${SRCDIR}")")"
 REPOBASEDIR="$(git rev-parse --show-toplevel)"
 export REPOBASEDIR
 export XRHIDGEN="${REPOBASEDIR}/tools/bin/xrhidgen"
+# "jwt-auth" "cert-auth"
+export AUTH_TYPE="${AUTH_TYPE:-jwt-auth}"
+
+XRHID_CLIENT_ID="${XRHID_CLIENT_ID:-$(uuidgen)}"
 
 if [[ ! -x "${XRHIDGEN}" ]]; then
     error "${XRHIDGEN} is missing, run 'make install-tools'"
@@ -39,9 +43,36 @@ base64nowrap() {
 }
 
 identity_user() {
-    "${XRHIDGEN}" -org-id "${ORG_ID}" user -is-active=true -is-org-admin=true -user-id test -username test | base64nowrap
+    "${XRHIDGEN}" -org-id "${ORG_ID}" -auth-type "${AUTH_TYPE}" user -is-active=true -is-org-admin=true -user-id test -username test | base64nowrap
 }
 
 identity_system() {
-    "${XRHIDGEN}" -org-id "${ORG_ID}" system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64nowrap
+    "${XRHIDGEN}" -org-id "${ORG_ID}" -auth-type "${AUTH_TYPE}" system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64nowrap
 }
+
+identity_service_account() {
+    "${XRHIDGEN}" -org-id "${ORG_ID}" -auth-type "${AUTH_TYPE}" service-account -client-id "${XRHID_CLIENT_ID}" -username test | base64nowrap
+}
+
+XRHID_AS="${XRHID_AS:-user}"
+case "${XRHID_AS}" in
+    "user" )
+        identity_generator() {
+            identity_user "$@"
+        }
+        ;;
+    "system" )
+        identity_generator() {
+            identity_system "$@"
+        }
+        ;;
+    "service-account" )
+        identity_generator() {
+            identity_service_account "$@"
+        }
+        ;;
+    * )
+        error "XRHID_AS='${XRHID_AS}' not supported"
+        ;;
+esac
+export -f identity_generator

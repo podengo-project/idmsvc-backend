@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eo pipefail
 
+export XRHID_AS="${XRHID_AS:-system}"
+export AUTH_TYPE="${AUTH_TYPE:-cert-auth}"
+
 source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
 
 UUID="$1"

@@ -1,12 +1,15 @@
 #!/bin/bash
 set -eo pipefail
 
+export XRHID_AS="${XRHID_AS:-system}"
+export AUTH_TYPE="${AUTH_TYPE:-cert-auth}"
+
 source "$(dirname "${BASH_SOURCE[0]}")/local.inc"
 
 TOKEN="$1"
 [ "${TOKEN}" != "" ] || error "TOKEN is empty"
 
-export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_system)}"
+export X_RH_IDENTITY="${X_RH_IDENTITY:-$(identity_generator)}"
 unset CREDS
 export X_RH_IDM_REGISTRATION_TOKEN="$TOKEN"
 X_RH_IDM_VERSION="$IDM_VERSION"
