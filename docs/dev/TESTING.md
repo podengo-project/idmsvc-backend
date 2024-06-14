@@ -427,7 +427,7 @@ func WrapBodyFuncTokenResponse(expected BodyFuncTokenResponse) BodyFunc {
 	// To allow a generic interface for any body response type
 	// I have to use `body []byte`; I cannot use `any` because
 	// the response type is particular for the endpoint.
-	// That means the input to the function is not in a golang
+	// That would mean the input to the function is not in a golang
 	// structure; to let the tests to be defined with less boilerplate,
 	// every response type would implement a wrapper function like
 	// this, which unmarshall the bytes, and call to the more specific
@@ -467,13 +467,12 @@ Define your suite test by adding every success request at:
 
 ```golang
 func (s *SuiteTokenCreate) TestToken() {
-	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
-
 	// Prepare the tests
 	testCases := []TestCase{
 		{
 			Name: "TestToken",
 			Given: TestCaseGiven{
+				XRHIDProfile: XRHIDUser,
 				Method: http.MethodPost,
 				URL:    DefaultBaseURL + "/domains/token",
 				Header: http.Header{
@@ -490,37 +489,21 @@ func (s *SuiteTokenCreate) TestToken() {
 					"X-Rh-Insights-Request-Id": {"test_token"},
 					"X-Rh-Identity":            nil,
 				},
-				BodyFunc: WrapBodyFuncTokenResponse(s.bodyExpectationTestToken),
+				BodyFunc: WrapBodyFuncTokenResponse(func(t *testing.T, body *public.DomainRegTokenResponse) error {
+					// It allows to keep expectations checks closer
+					// to the test context.
+					assert.NotEmpty(t, body.DomainToken)
+					assert.Equal(t, "rhel-idm", body.DomainType)
+					assert.NotEqual(t, uuid.UUID{}, body.DomainId)
+					assert.Greater(t, int(time.Now().Unix()), body.Expiration)
+					return nil
+				}),
 			},
 		},
 	}
 
 	// Execute the test cases
 	s.RunTestCases(testCases)
-}
-```
-
-Where `bodyExpectationTestToken` is:
-
-```golang
-func (s *SuiteTokenCreate) bodyExpectationTestToken(t *testing.T, body *public.DomainRegTokenResponse) error {
-	if body.DomainToken == "" {
-		return fmt.Errorf("'domain_token' is empty")
-	}
-
-	if body.DomainType != "rhel-idm" {
-		return fmt.Errorf("'domain_type' is not rhel-idm")
-	}
-
-	if body.DomainId == (uuid.UUID{}) {
-		return fmt.Errorf("'domain_id' is empty")
-	}
-
-	if body.Expiration <= int(time.Now().Unix()) {
-		return fmt.Errorf("'expiration' is in the past")
-	}
-
-	return nil
 }
 ```
 
@@ -558,6 +541,20 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, new(SuiteToken))
 }
 ```
+
+## Scripts
+
+Finally, we could want to reach out directly the API by using scripts.
+
+We can use the scripts at `./test/scripts/{local,ephe}-*.sh`.
+
+- You can specify which XRHID profile to use by using `XRHID_AS` set
+  to `user`, `system` or `service-account`, for local requests.
+
+For instance:
+
+	APP_CLIENTS_RBAC_PROFILE=domain-admin make mock-rbac-down mock-rbac-up run
+    XRHID_AS=service-account ./test/scripts/local-domains-token.sh
 
 ## References
 

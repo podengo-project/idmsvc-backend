@@ -18,7 +18,7 @@ $ sudo dnf install git golang podman podman-compose
 $ sudo dnf remove gcc-go
 ```
 
-(Optional) Installing VSCode by repository on fedora 37:
+(Optional) Installing VSCode by repository on fedora 39:
 
 ```sh
 $ sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc
@@ -61,6 +61,7 @@ Once tasks:
 - Launch tests by: `make test`
 - Run by: `make run`
 - Try locally by running scripts at: `./test/scripts/local-*.sh`
+  You can override the used xrhid by: `XRHID_AS="service-account" ./test/scripts/local-*.sh`
 - Stop local infrastructure by: `make compose-down`
 - Clean local infrastructure by: `make compose-clean`
 - Print out useful rules by: `make help`
