@@ -25,6 +25,8 @@ REPOBASEDIR="$(git rev-parse --show-toplevel)"
 export REPOBASEDIR
 export XRHIDGEN="${REPOBASEDIR}/tools/bin/xrhidgen"
 
+XRHID_CLIENT_ID="${XRHID_CLIENT_ID:-$(uuidgen)}"
+
 if [[ ! -x "${XRHIDGEN}" ]]; then
     error "${XRHIDGEN} is missing, run 'make install-tools'"
     exit 2
@@ -45,3 +47,30 @@ identity_user() {
 identity_system() {
     "${XRHIDGEN}" -org-id "${ORG_ID}" system -cn "6f324116-b3d2-11ed-8a37-482ae3863d30" -cert-type system | base64nowrap
 }
+
+identity_service_account() {
+    "${XRHIDGEN}" -org-id "${ORG_ID}" service-account -client-id "${XRHID_CLIENT_ID}" -username test | base64nowrap
+}
+
+XRHID_AS="${XRHID_AS:-user}"
+case "${XRHID_AS}" in
+    "user" )
+        identity_generator() {
+            identity_user "$@"
+        }
+        ;;
+    "system" )
+        identity_generator() {
+            identity_system "$@"
+        }
+        ;;
+    "service-account" )
+        identity_generator() {
+            identity_service_account "$@"
+        }
+        ;;
+    * )
+        error "XRHID_AS='${XRHID_AS}' not supported"
+        ;;
+esac
+export -f identity_generator
