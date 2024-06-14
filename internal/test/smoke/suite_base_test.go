@@ -52,6 +52,15 @@ const (
 	XRHIDSystem XRHIDProfile = "System"
 )
 
+type RBACProfile string
+
+const (
+	RBACSuperAdmin RBACProfile = mock_rbac.ProfileSuperAdmin
+	RBACAdmin      RBACProfile = mock_rbac.ProfileSuperAdmin
+	RBACReadOnly   RBACProfile = mock_rbac.ProfileDomainReadOnly
+	RBACNoPermis   RBACProfile = mock_rbac.ProfileDomainNoPerms
+)
+
 // SuiteBase represents the base Suite to be used for smoke tests, this
 // start the services before run the smoke tests.
 // TODO the smoke tests cannot be executed in parallel yet, an alternative
@@ -100,7 +109,7 @@ func (s *SuiteBase) SetupTest() {
 	require.NotNil(t, s.RbacMock)
 	require.NoError(t, s.svcRbac.Start())
 	require.NoError(t, s.RbacMock.WaitAddress(3*time.Second))
-	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainAdmin])
+	s.As(RBACSuperAdmin)
 	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(s.cfg.Clients.RbacBaseURL))
 	if err != nil {
 		panic(err)
@@ -134,7 +143,28 @@ func (s *SuiteBase) TearDownTest() {
 	s.wg.Wait()
 }
 
-func (s *SuiteBase) As(profile XRHIDProfile) {
+func (s *SuiteBase) As(profiles ...any) {
+	for i := range profiles {
+		switch t := profiles[i].(type) {
+		case RBACProfile:
+			{
+				s.asRBACProfile(t)
+			}
+		case XRHIDProfile:
+			{
+				s.asXRHIDProfile(t)
+			}
+		default:
+			panic("profile has an unsupported type")
+		}
+	}
+}
+
+func (s *SuiteBase) asRBACProfile(profile RBACProfile) {
+	s.RbacMock.SetPermissions(mock_rbac.Profiles[string(profile)])
+}
+
+func (s *SuiteBase) asXRHIDProfile(profile XRHIDProfile) {
 	switch profile {
 	case XRHIDNone:
 		{

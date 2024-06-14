@@ -42,6 +42,7 @@ func (s *SuiteRbacPermission) doTestTokenCreate(t *testing.T) int {
 
 func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	var err error
+	s.As(RBACAdmin)
 	s.As(XRHIDUser)
 	s.token, err = s.CreateToken()
 	require.NoError(t, err)
@@ -68,6 +69,7 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, s.domain)
 
+	s.As(RBACAdmin)
 	s.As(XRHIDUser)
 	s.domain, err = s.PatchDomain(
 		s.domain.DomainId.String(),
@@ -112,21 +114,21 @@ func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
 	return res.StatusCode
 }
 
-func (s *SuiteRbacPermission) commonRun(profile string, testCases []TestCasePermission) {
+func (s *SuiteRbacPermission) commonRun(rbacProfile RBACProfile, testCases []TestCasePermission) {
 	t := s.T()
 
 	xrhidProfiles := []XRHIDProfile{XRHIDUser}
 	for _, testCase := range testCases {
 		for _, xrhidProfile := range xrhidProfiles {
-			t.Logf("rbacProfile=%s, xrhidProfile=%s: %s", profile, string(xrhidProfile), testCase.Name)
+			t.Logf("rbacProfile=%s, xrhidProfile=%s: %s", rbacProfile, xrhidProfile, testCase.Name)
 			require.NotNil(t, testCase.Given)
 			require.NotNil(t, testCase.Then)
 			require.NotEqual(t, 0, testCase.Expected)
 
-			s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileSuperAdmin])
 			testCase.Given(t)
-			s.RbacMock.SetPermissions(mock_rbac.Profiles[profile])
-			s.As(xrhidProfile)
+
+			s.As(rbacProfile)  // SuperAdmin, Admin, ReadOnly, NoPerms
+			s.As(xrhidProfile) // User and ServiceAccount
 			result := testCase.Then(t)
 			assert.Equal(t, testCase.Expected, result)
 		}

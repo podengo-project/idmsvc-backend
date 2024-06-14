@@ -27,6 +27,7 @@ func (s *SuiteBaseWithDomain) SetupTest() {
 	// Domain 1 in OrgID1
 	i = 0
 	s.Domains = []*public.Domain{}
+	s.As(RBACAdmin)
 	s.As(XRHIDUser)
 	if token, err = s.CreateToken(); err != nil {
 		s.FailNow("error creating token")
