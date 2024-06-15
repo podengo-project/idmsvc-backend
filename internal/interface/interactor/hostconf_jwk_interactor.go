@@ -2,7 +2,7 @@ package interactor
 
 import (
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
 type HostconfJwkInteractor interface {

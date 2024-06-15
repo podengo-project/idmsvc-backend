@@ -27,7 +27,7 @@ import (
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/usecase/client/inventory"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -35,6 +35,30 @@ import (
 
 	service_impl "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
+)
+
+type XRHIDProfile string
+
+const (
+	// XRHIDNothing does not make any action, letting a progressive change
+	XRHIDNothing XRHIDProfile = ""
+	// XRHIDNone no XRHID header is added
+	XRHIDNone XRHIDProfile = "None"
+	// XRHIDUser add a user XRHID header
+	XRHIDUser XRHIDProfile = "User"
+	// XRHIDServiceAccount add a service account XRHID header
+	XRHIDServiceAccount XRHIDProfile = "ServiceAccount"
+	// XRHIDSystem add a system XRHID header
+	XRHIDSystem XRHIDProfile = "System"
+)
+
+type RBACProfile string
+
+const (
+	RBACSuperAdmin RBACProfile = mock_rbac.ProfileSuperAdmin
+	RBACAdmin      RBACProfile = mock_rbac.ProfileDomainAdmin
+	RBACReadOnly   RBACProfile = mock_rbac.ProfileDomainReadOnly
+	RBACNoPermis   RBACProfile = mock_rbac.ProfileDomainNoPerms
 )
 
 // SuiteBase represents the base Suite to be used for smoke tests, this
@@ -45,10 +69,12 @@ import (
 // would provide data partition between the tests.
 type SuiteBase struct {
 	suite.Suite
-	cfg         *config.Config
-	OrgID       string
-	UserXRHID   identity.XRHID
-	SystemXRHID identity.XRHID
+	cfg                 *config.Config
+	OrgID               string
+	userXRHID           identity.XRHID
+	systemXRHID         identity.XRHID
+	serviceAccountXRHID identity.XRHID
+	currentXRHID        *identity.XRHID
 
 	cancel        context.CancelFunc
 	svc           service.ApplicationService
@@ -62,19 +88,28 @@ type SuiteBase struct {
 // SetupTest start the services and await until they are ready
 // for being used.
 func (s *SuiteBase) SetupTest() {
+	t := s.T()
+	t.Log("SetupTest")
 	s.cfg = config.Get()
+	require.NotNil(t, s.cfg)
 	s.cfg.Application.EnableRBAC = true
 	s.wg = &sync.WaitGroup{}
 	logger.InitLogger(s.cfg)
 	s.db = datastore.NewDB(s.cfg)
+	require.NotNil(t, s.db)
 
 	ctx, cancel := StartSignalHandler(context.Background())
+	require.NotNil(t, ctx)
+	require.NotNil(t, cancel)
 	s.cancel = cancel
 	inventory := client_inventory.NewHostInventory(s.cfg)
+	require.NotNil(t, inventory)
 	s.svcRbac, s.RbacMock = mock_rbac.NewRbacMock(ctx, s.cfg)
-	s.svcRbac.Start()
-	s.RbacMock.WaitAddress(3 * time.Second)
-	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainAdmin])
+	require.NotNil(t, s.svcRbac)
+	require.NotNil(t, s.RbacMock)
+	require.NoError(t, s.svcRbac.Start())
+	require.NoError(t, s.RbacMock.WaitAddress(3*time.Second))
+	s.As(RBACSuperAdmin)
 	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(s.cfg.Clients.RbacBaseURL))
 	if err != nil {
 		panic(err)
@@ -87,8 +122,10 @@ func (s *SuiteBase) SetupTest() {
 		}
 	}()
 	s.OrgID = strconv.Itoa(int(builder_helper.GenRandNum(1, 99999999)))
-	s.UserXRHID = builder_api.NewUserXRHID().WithOrgID(s.OrgID).WithActive(true).Build()
-	s.SystemXRHID = builder_api.NewSystemXRHID().WithOrgID(s.OrgID).Build()
+	s.userXRHID = builder_api.NewUserXRHID().WithOrgID(s.OrgID).WithActive(true).Build()
+	s.systemXRHID = builder_api.NewSystemXRHID().WithOrgID(s.OrgID).Build()
+	s.serviceAccountXRHID = builder_api.NewServiceAccountXRHID().WithOrgID(s.OrgID).Build()
+	s.currentXRHID = nil
 	s.IpaHccVersion = header.NewXRHIDMVersion("1.0.0", "4.19.0", "9.3", "redhat-9.3")
 	s.WaitReady(s.cfg)
 }
@@ -96,6 +133,8 @@ func (s *SuiteBase) SetupTest() {
 // TearDownTest Stop the services in an ordered way before every
 // smoke test executed.
 func (s *SuiteBase) TearDownTest() {
+	t := s.T()
+	t.Log("TearDownTest")
 	TearDownSignalHandler()
 	defer datastore.Close(s.db)
 	defer s.cancel()
@@ -104,11 +143,57 @@ func (s *SuiteBase) TearDownTest() {
 	s.wg.Wait()
 }
 
+func (s *SuiteBase) As(profiles ...any) {
+	for i := range profiles {
+		switch t := profiles[i].(type) {
+		case RBACProfile:
+			{
+				s.asRBACProfile(t)
+			}
+		case XRHIDProfile:
+			{
+				s.asXRHIDProfile(t)
+			}
+		default:
+			panic("profile has an unsupported type")
+		}
+	}
+}
+
+func (s *SuiteBase) asRBACProfile(profile RBACProfile) {
+	s.RbacMock.SetPermissions(mock_rbac.Profiles[string(profile)])
+}
+
+func (s *SuiteBase) asXRHIDProfile(profile XRHIDProfile) {
+	switch profile {
+	case XRHIDNone:
+		{
+			s.currentXRHID = nil
+		}
+	case XRHIDUser:
+		{
+			s.currentXRHID = &s.userXRHID
+		}
+	case XRHIDServiceAccount:
+		{
+			s.currentXRHID = &s.serviceAccountXRHID
+		}
+	case XRHIDSystem:
+		{
+			s.currentXRHID = &s.systemXRHID
+		}
+	default:
+		{
+			panic(fmt.Sprintf("XRHID profile = '%s' not supported", profile))
+		}
+	}
+}
+
 // WaitReady poll the ready healthcheck until the response is http.StatusOK
 // cfg is the current configuration to use for the application.
 func (s *SuiteBase) WaitReady(cfg *config.Config) {
 	if cfg == nil {
-		panic("cfg is nil")
+		panic("'cfg' is nil")
 	}
 	header := http.Header{}
 	for i := 0; i < 300; i++ {
@@ -161,7 +246,6 @@ func (s *SuiteBase) addToken(hdr *http.Header, token string) {
 func (s *SuiteBase) CreateTokenWithResponse() (*http.Response, error) {
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/domains/token"
-	s.addXRHIDHeader(&hdr, &s.UserXRHID)
 	s.addRequestID(&hdr, "test_create_token")
 	resp, err := s.DoRequest(
 		http.MethodPost,
@@ -200,7 +284,6 @@ func (s *SuiteBase) CreateToken() (*public.DomainRegTokenResponse, error) {
 
 func (s *SuiteBase) RegisterIpaDomainWithResponse(token string, domain *public.Domain) (*http.Response, error) {
 	hdr := http.Header{}
-	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
 	s.addXRHIpaClientVersionHeader(&hdr, s.IpaHccVersion)
 	s.addToken(&hdr, token)
 	s.addRequestID(&hdr, "test_register_domain")
@@ -239,14 +322,14 @@ func (s *SuiteBase) RegisterIpaDomain(token string, domain *public.Domain) (*pub
 	return createdDomain, nil
 }
 
-func (s *SuiteBase) readDomainWithResponse(xrhid *identity.XRHID, domainID uuid.UUID) (*http.Response, error) {
-	if xrhid == nil {
-		panic("'xrhid' is nil")
-	}
+// ReadDomainWithResponse is a helper function to read a domain with the API
+// for a rhel-idm domain using the OrgID assigned to the unit test.
+// Return the http response and nil, or nil and the error during
+// the request.
+func (s *SuiteBase) ReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
 	method := http.MethodGet
-	s.addXRHIDHeader(&hdr, xrhid)
 	s.addRequestID(&hdr, "test_read_domain")
 	resp, err := s.DoRequest(
 		method,
@@ -257,49 +340,13 @@ func (s *SuiteBase) readDomainWithResponse(xrhid *identity.XRHID, domainID uuid.
 	return resp, err
 }
 
-func (s *SuiteBase) UserReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
-	return s.readDomainWithResponse(&s.UserXRHID, domainID)
-}
-
-// UserReadDomain is a helper function to read a domain with the API
+// ReadDomain is a helper function to read a domain with the API
 // for a rhel-idm domain using the OrgID assigned to the unit test.
-// Return the token response or error.
-func (s *SuiteBase) UserReadDomain(domainID uuid.UUID) (*public.Domain, error) {
+// Return the Domain object unserialized and nil error on success,
+// or nil and the error filed with the cause.
+func (s *SuiteBase) ReadDomain(domainID uuid.UUID) (*public.Domain, error) {
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
-	resp, err := s.UserReadDomainWithResponse(domainID)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
-	}
-
-	var data []byte
-	data, err = io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failure when reading body for POST %s because an empty response", url)
-	}
-
-	var domain *public.Domain = &public.Domain{}
-	err = json.Unmarshal(data, domain)
-	if err != nil {
-		return nil, fmt.Errorf("failure when unmarshalling the information for reading a domain: %w", err)
-	}
-
-	return domain, nil
-}
-
-func (s *SuiteBase) SystemReadDomainWithResponse(domainID uuid.UUID) (*http.Response, error) {
-	return s.readDomainWithResponse(&s.SystemXRHID, domainID)
-}
-
-// SystemReadDomain is a helper function to read a domain with the API
-// for a rhel-idm domain using the OrgID assigned to the unit test.
-// Return the token response or error.
-func (s *SuiteBase) SystemReadDomain(domainID uuid.UUID) (*public.Domain, error) {
-	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
-	resp, err := s.SystemReadDomainWithResponse(domainID)
+	resp, err := s.ReadDomainWithResponse(domainID)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +378,6 @@ func (s *SuiteBase) ListDomainWithResponse(offset int, limit int) (*http.Respons
 	q.Add("offset", "0")
 	q.Add("limit", "10")
 	url := req.URL.String() + "?" + q.Encode()
-	s.addXRHIDHeader(&hdr, &s.UserXRHID)
 	s.addRequestID(&hdr, "test_list_domain")
 	resp, err := s.DoRequest(
 		method,
@@ -380,7 +426,6 @@ func (s *SuiteBase) DeleteDomainWithResponse(domainID uuid.UUID) (*http.Response
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID.String()
 	method := http.MethodDelete
-	s.addXRHIDHeader(&hdr, &s.UserXRHID)
 	s.addRequestID(&hdr, "test_delete_domain")
 	resp, err := s.DoRequest(
 		method,
@@ -412,7 +457,6 @@ func (s *SuiteBase) UpdateDomainWithResponse(domainID string, domain *public.Upd
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID
 	method := http.MethodPut
-	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
 	s.addRequestID(&hdr, "test_update_domain")
 	s.addXRHIpaClientVersionHeader(&hdr, s.IpaHccVersion)
 	resp, err := s.DoRequest(
@@ -451,7 +495,6 @@ func (s *SuiteBase) PatchDomainWithResponse(domainID string, domain *public.Upda
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/domains/" + domainID
 	method := http.MethodPatch
-	s.addXRHIDHeader(&hdr, &s.UserXRHID)
 	s.addRequestID(&hdr, "test_patch_domain")
 	resp, err := s.DoRequest(
 		method,
@@ -485,11 +528,10 @@ func (s *SuiteBase) PatchDomain(domainID string, domain *public.UpdateDomainUser
 	return result, nil
 }
 
-func (s *SuiteBase) SystemHostConfWithResponse(inventoryID string, fqdn string, hostconf *public.HostConf) (*http.Response, error) {
+func (s *SuiteBase) HostConfWithResponse(inventoryID string, fqdn string, hostconf *public.HostConf) (*http.Response, error) {
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/host-conf/" + inventoryID + "/" + fqdn
 	method := http.MethodPost
-	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
 	s.addRequestID(&hdr, "test_system_host_conf")
 	body := hostconf
 	resp, err := s.DoRequest(
@@ -501,9 +543,9 @@ func (s *SuiteBase) SystemHostConfWithResponse(inventoryID string, fqdn string, 
 	return resp, err
 }
 
-func (s *SuiteBase) SystemHostConf(inventoryID string, fqdn string, hostconf *public.HostConf) (*public.HostConfResponse, error) {
+func (s *SuiteBase) HostConf(inventoryID string, fqdn string, hostconf *public.HostConf) (*public.HostConfResponse, error) {
 	url := s.DefaultPublicBaseURL() + "/host-conf/" + inventoryID + "/" + fqdn
-	resp, err := s.SystemHostConfWithResponse(inventoryID, fqdn, hostconf)
+	resp, err := s.HostConfWithResponse(inventoryID, fqdn, hostconf)
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
@@ -521,12 +563,11 @@ func (s *SuiteBase) SystemHostConf(inventoryID string, fqdn string, hostconf *pu
 	return result, nil
 }
 
-func (s *SuiteBase) SystemSigningKeysWithResponse() (*http.Response, error) {
+func (s *SuiteBase) ReadSigningKeysWithResponse() (*http.Response, error) {
 	hdr := http.Header{}
 	url := s.DefaultPublicBaseURL() + "/signing_keys"
 	method := http.MethodGet
-	s.addXRHIDHeader(&hdr, &s.SystemXRHID)
-	s.addRequestID(&hdr, "test_system_signing_keys")
+	s.addRequestID(&hdr, "test_read_signing_keys")
 	// TODO Fill this content
 	resp, err := s.DoRequest(
 		method,
@@ -537,10 +578,10 @@ func (s *SuiteBase) SystemSigningKeysWithResponse() (*http.Response, error) {
 	return resp, err
 }
 
-func (s *SuiteBase) SystemSigningKeys() (*public.SigningKeysResponse, error) {
+func (s *SuiteBase) ReadSigningKeys() (*public.SigningKeysResponse, error) {
 	url := s.DefaultPublicBaseURL() + "/signing_keys"
 
-	resp, err := s.SystemSigningKeysWithResponse()
+	resp, err := s.ReadSigningKeysWithResponse()
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("failure when POST %s: expected '%d' but got '%d'", url, http.StatusOK, resp.StatusCode)
 	}
@@ -592,6 +633,7 @@ func (s *SuiteBase) RunTestCase(testCase *TestCase) {
 	}
 
 	// WHEN
+	s.As(XRHIDProfile(testCase.Given.XRHIDProfile))
 	resp, err = s.DoRequest(testCase.Given.Method, testCase.Given.URL, testCase.Given.Header, testCase.Given.Body)
 
 	// THEN
@@ -660,7 +702,7 @@ func (s *SuiteBase) DefaultPrivateBaseURL() string {
 // Return the http.Response object and nil when the endpoint is reached out,
 // or nil and a non error when some non API situation happens trying to reach
 // out the endpoint.
-func (s *SuiteBase) DoRequest(method string, url string, header http.Header, body any) (*http.Response, error) {
+func (s *SuiteBase) DoRequest(method string, url string, hdr http.Header, body any) (*http.Response, error) {
 	var reader io.Reader = nil
 	client := &http.Client{}
 
@@ -685,8 +727,14 @@ func (s *SuiteBase) DoRequest(method string, url string, header http.Header, bod
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	for key, value := range header {
+	for key, value := range hdr {
 		req.Header.Set(key, strings.Join(value, "; "))
+	}
+	// Override
+	if s.currentXRHID != nil {
+		s.addXRHIDHeader(&req.Header, s.currentXRHID)
+	} else {
+		req.Header.Del(header.HeaderXRHID)
 	}
 
 	resp, err := client.Do(req)
@@ -701,6 +749,8 @@ type BodyFunc func(t *testing.T, body []byte) bool
 
 // TestCaseGiven represents the requirements for the smoke test to implement.
 type TestCaseGiven struct {
+	// XRHIDProfile is a string that represent the XRHID to use if any.
+	XRHIDProfile XRHIDProfile
 	// Method represents the http method for the request.
 	Method string
 	// URL represents the url for the route to test.

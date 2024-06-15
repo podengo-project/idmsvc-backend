@@ -7,7 +7,7 @@ import (
 	"time"
 
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
 type UserXRHID interface {
@@ -21,6 +21,9 @@ type UserXRHID interface {
 	WithUsername(value string) UserXRHID
 	WithEmail(value string) UserXRHID
 	WithActive(value bool) UserXRHID
+	WithInternal(value bool) UserXRHID
+	WithOrgAdmin(value bool) UserXRHID
+	WithLocale(value string) UserXRHID
 	// TODO Add more methods as they are needed
 }
 
@@ -50,7 +53,7 @@ func NewUserXRHID() UserXRHID {
 				OrgID:    orgID,
 				AuthTime: float32(time.Now().Sub(time.Time{})),
 			},
-			User: identity.User{
+			User: &identity.User{
 				UserID:    userID,
 				Username:  username,
 				FirstName: firstName,
@@ -114,5 +117,20 @@ func (b *userXRHID) WithEmail(value string) UserXRHID {
 
 func (b *userXRHID) WithActive(value bool) UserXRHID {
 	b.Identity.User.Active = value
+	return b
+}
+
+func (b *userXRHID) WithInternal(value bool) UserXRHID {
+	b.Identity.User.Internal = value
+	return b
+}
+
+func (b *userXRHID) WithOrgAdmin(value bool) UserXRHID {
+	b.Identity.User.OrgAdmin = value
+	return b
+}
+
+func (b *userXRHID) WithLocale(value string) UserXRHID {
+	b.Identity.User.Locale = value
 	return b
 }

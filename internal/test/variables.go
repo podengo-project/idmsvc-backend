@@ -11,7 +11,7 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"gorm.io/gorm"
 )
 
@@ -109,7 +109,7 @@ func GetUserXRHID(orgId string, userName string, userId string, acountNumber str
 			Internal: identity.Internal{
 				OrgID: orgId,
 			},
-			User: identity.User{
+			User: &identity.User{
 				Active:    true,
 				Internal:  false,
 				OrgAdmin:  admin,
@@ -136,7 +136,7 @@ func GetSystemXRHID(orgId string, commonName string, acountNumber string) identi
 			Internal: identity.Internal{
 				OrgID: orgId,
 			},
-			System: identity.System{
+			System: &identity.System{
 				CommonName: commonName,
 				CertType:   "system",
 			},

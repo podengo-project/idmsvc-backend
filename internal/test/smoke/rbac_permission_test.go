@@ -42,6 +42,8 @@ func (s *SuiteRbacPermission) doTestTokenCreate(t *testing.T) int {
 
 func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	var err error
+	s.As(RBACAdmin)
+	s.As(XRHIDUser)
 	s.token, err = s.CreateToken()
 	require.NoError(t, err)
 	require.NotNil(t, s.token)
@@ -50,6 +52,7 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	// This operation set AutoEnrollmentEnabled = False whatever
 	// is the value we indicate here; we have to PATCH in a second
 	// operation
+	s.As(XRHIDSystem)
 	s.domain, err = s.RegisterIpaDomain(s.token.DomainToken,
 		builder_api.NewDomain("test.example").
 			WithAutoEnrollmentEnabled(pointy.Bool(true)).
@@ -58,7 +61,7 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 				WithServers([]public.DomainIpaServer{}).
 				AddServer(builder_api.NewDomainIpaServer("1.test.example").
 					WithHccUpdateServer(true).
-					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
+					WithSubscriptionManagerId(s.systemXRHID.Identity.System.CommonName).
 					Build(),
 				).Build(),
 			).Build(),
@@ -66,6 +69,8 @@ func (s *SuiteRbacPermission) prepareDomainIpa(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, s.domain)
 
+	s.As(RBACAdmin)
+	s.As(XRHIDUser)
 	s.domain, err = s.PatchDomain(
 		s.domain.DomainId.String(),
 		builder_api.NewUpdateDomainUserRequest().
@@ -89,7 +94,7 @@ func (s *SuiteRbacPermission) doTestDomainIpaPatch(t *testing.T) int {
 }
 
 func (s *SuiteRbacPermission) doTestDomainIpaRead(t *testing.T) int {
-	res, err := s.UserReadDomainWithResponse(*s.domain.DomainId)
+	res, err := s.ReadDomainWithResponse(*s.domain.DomainId)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	return res.StatusCode
@@ -109,20 +114,23 @@ func (s *SuiteRbacPermission) doTestDomainList(t *testing.T) int {
 	return res.StatusCode
 }
 
-func (s *SuiteRbacPermission) commonRun(profile string, testCases []TestCasePermission) {
+func (s *SuiteRbacPermission) commonRun(rbacProfile RBACProfile, testCases []TestCasePermission) {
 	t := s.T()
-
+	xrhidProfiles := []XRHIDProfile{XRHIDUser, XRHIDServiceAccount}
 	for _, testCase := range testCases {
-		t.Logf("profile=%s: %s", profile, testCase.Name)
-		require.NotNil(t, testCase.Given)
-		require.NotNil(t, testCase.Then)
-		require.NotEqual(t, 0, testCase.Expected)
+		for _, xrhidProfile := range xrhidProfiles {
+			t.Logf("rbacProfile=%s, xrhidProfile=%s: %s", rbacProfile, xrhidProfile, testCase.Name)
+			require.NotNil(t, testCase.Given)
+			require.NotNil(t, testCase.Then)
+			require.NotEqual(t, 0, testCase.Expected)
 
-		s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileSuperAdmin])
-		testCase.Given(t)
-		s.RbacMock.SetPermissions(mock_rbac.Profiles[profile])
-		result := testCase.Then(t)
-		assert.Equal(t, testCase.Expected, result)
+			testCase.Given(t)
+
+			s.As(rbacProfile)  // SuperAdmin, Admin, ReadOnly, NoPerms
+			s.As(xrhidProfile) // User and ServiceAccount
+			result := testCase.Then(t)
+			assert.Equal(t, testCase.Expected, result)
+		}
 	}
 }
 
@@ -181,7 +189,7 @@ func (s *SuiteRbacPermission) TestReadPermission() {
 			Expected: http.StatusUnauthorized,
 		},
 		{
-			Name:     "Test Update User idmsvc:domain:update",
+			Name:     "Test idmsvc:domain:update for patching",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusUnauthorized,
@@ -217,7 +225,7 @@ func (s *SuiteRbacPermission) TestNoPermission() {
 			Expected: http.StatusUnauthorized,
 		},
 		{
-			Name:     "Test Update User idmsvc:domain:update",
+			Name:     "Test idmsvc:domain:update for patching",
 			Given:    s.prepareDomainIpa,
 			Then:     s.doTestDomainIpaPatch,
 			Expected: http.StatusUnauthorized,

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -31,7 +31,7 @@ func TestSetIdentityIdentity(t *testing.T) {
 			OrgID:         "11111",
 			Type:          "System",
 			AccountNumber: "123",
-			System: identity.System{
+			System: &identity.System{
 				CommonName: "a6355a76-c6e8-11ed-8aed-482ae3863d30",
 				CertType:   "system",
 			},

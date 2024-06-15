@@ -61,6 +61,7 @@ Once tasks:
 - Launch tests by: `make test`
 - Run by: `make run`
 - Try locally by running scripts at: `./test/scripts/local-*.sh`
+  You can override the xrhid used by: `XRHID_AS="service-account" ./test/scripts/local-*.sh`
 - Stop local infrastructure by: `make compose-down`
 - Clean local infrastructure by: `make compose-clean`
 - Print out useful rules by: `make help`

@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
 func getXRHID(ctx echo.Context) (*identity.XRHID, error) {

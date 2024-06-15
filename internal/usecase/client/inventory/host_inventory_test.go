@@ -15,7 +15,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
 	test_client "github.com/podengo-project/idmsvc-backend/internal/test/client"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -149,7 +149,7 @@ func TestGetHostByCN(t *testing.T) {
 		Identity: identity.Identity{
 			OrgID: orgId,
 			Type:  "System",
-			System: identity.System{
+			System: &identity.System{
 				CommonName: cn,
 				CertType:   "system",
 			},
@@ -191,7 +191,7 @@ func TestGetHostByCNErrors(t *testing.T) {
 		Identity: identity.Identity{
 			OrgID: orgId,
 			Type:  "System",
-			System: identity.System{
+			System: &identity.System{
 				CommonName: cn,
 				CertType:   "system",
 			},

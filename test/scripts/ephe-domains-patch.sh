@@ -7,7 +7,7 @@ UUID="$1"
 [ "${UUID}" != "" ] || error "UUID is empty"
 
 unset X_RH_IDENTITY
-export X_RH_FAKE_IDENTITY="${X_RH_FAKE_IDENTITY:-$(identity_user)}"
+export X_RH_FAKE_IDENTITY="${X_RH_FAKE_IDENTITY:-$(identity_generator)}"
 unset X_RH_IDM_REGISTRATION_TOKEN
 X_RH_IDM_VERSION="$IDM_VERSION"
 export X_RH_IDM_VERSION

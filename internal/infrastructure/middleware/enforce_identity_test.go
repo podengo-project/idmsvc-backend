@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,25 +9,40 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	"github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const testPath = "/test"
 
-func helperCreatePredicate(username string) IdentityPredicate {
+func helperCreatePredicate(principal string) IdentityPredicate {
 	return func(data *identity.XRHID) error {
 		if data == nil {
 			return internal_errors.NilArgError("data")
 		}
-		if data.Identity.User.Username == username {
-			return fmt.Errorf("username='%s' is not accepted", username)
+		if data.Identity.Type == "User" {
+			if data.Identity.User == nil {
+				return fmt.Errorf("'Itentity.User' is nil")
+			}
+			if data.Identity.User.Username == principal {
+				return fmt.Errorf("principal='%s' is not accepted", principal)
+			}
+		}
+		if data.Identity.Type == "System" {
+			if data.Identity.System == nil {
+				return fmt.Errorf("'Identity.System' is nil")
+			}
+			if data.Identity.System.CommonName == principal {
+				return fmt.Errorf("principal='%s' is not accepted", principal)
+			}
 		}
 		return nil
 	}
@@ -44,47 +60,6 @@ func helperNewEchoEnforceIdentity(m echo.MiddlewareFunc) *echo.Echo {
 	return e
 }
 
-// FIXME
-func helperGenerateUserIdentity(orgId string, username string) *identity.XRHID {
-	return &identity.XRHID{
-		Identity: identity.Identity{
-			AccountNumber: "12345",
-			OrgID:         orgId,
-			Internal: identity.Internal{
-				OrgID: orgId,
-			},
-			Type: "User",
-			User: identity.User{
-				Username: username,
-				UserID:   "12345",
-				Active:   true,
-				Internal: true,
-				OrgAdmin: true,
-				Locale:   "en",
-			},
-		},
-	}
-}
-
-func helperGenerateSystemIdentity(orgId string, commonName string) *identity.XRHID {
-	// See: https://github.com/coderbydesign/identity-schemas/blob/add-validator/3scale/identities/cert.json
-	return &identity.XRHID{
-		Identity: identity.Identity{
-			OrgID:         orgId,
-			AccountNumber: "11111",
-			AuthType:      "cert-auth",
-			Type:          "System",
-			Internal: identity.Internal{
-				OrgID: orgId,
-			},
-			System: identity.System{
-				CommonName: commonName,
-				CertType:   "system",
-			},
-		},
-	}
-}
-
 func helperSkipper(data bool) echo_middleware.Skipper {
 	return func(c echo.Context) bool {
 		return data
@@ -95,10 +70,6 @@ func TestEnforceIdentityWithConfigPanic(t *testing.T) {
 	assert.Panics(t, func() {
 		EnforceIdentityWithConfig(nil)
 	})
-}
-
-func TestPredicateIdentityAlwaysTrue(t *testing.T) {
-	assert.Nil(t, IdentityAlwaysTrue(nil))
 }
 
 func TestEnforceIdentity(t *testing.T) {
@@ -114,6 +85,19 @@ func TestEnforceIdentity(t *testing.T) {
 		Given    *string
 		Expected TestCaseExpected
 	}
+
+	badUserXRHID := api.NewUserXRHID().
+		WithOrgID("12345").
+		WithUsername("test-fail-predicate").
+		Build()
+	userXRHID := api.NewUserXRHID().
+		WithOrgID("12345").
+		WithUsername("testuser").
+		Build()
+	systemXRHID := api.NewSystemXRHID().
+		WithOrgID("12345").
+		WithCommonName("testuser").
+		Build()
 
 	testCases := []TestCase{
 		{
@@ -144,7 +128,7 @@ func TestEnforceIdentity(t *testing.T) {
 			Name: header.HeaderXRHID + " fail predicates",
 			Given: pointy.String(
 				header.EncodeXRHID(
-					helperGenerateUserIdentity("12345", "test-fail-predicate"),
+					&badUserXRHID,
 				),
 			),
 			Expected: TestCaseExpected{
@@ -153,10 +137,10 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name: header.HeaderXRHID + " pass predicates",
+			Name: header.HeaderXRHID + " user pass predicates",
 			Given: pointy.String(
 				header.EncodeXRHID(
-					helperGenerateUserIdentity("12345", "testuser"),
+					&userXRHID,
 				),
 			),
 			Expected: TestCaseExpected{
@@ -165,10 +149,10 @@ func TestEnforceIdentity(t *testing.T) {
 			},
 		},
 		{
-			Name: header.HeaderXRHID + " pass predicates",
+			Name: header.HeaderXRHID + " system pass predicates",
 			Given: pointy.String(
 				header.EncodeXRHID(
-					helperGenerateSystemIdentity("12345", "testuser"),
+					&systemXRHID,
 				),
 			),
 			Expected: TestCaseExpected{
@@ -311,11 +295,21 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Expected: fmt.Errorf("'Identity.Type=System' is not 'User'"),
 		},
 		{
+			Name: "Identity with User nil",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "User",
+					User: nil,
+				},
+			},
+			Expected: fmt.Errorf("'Identity.User' is nil"),
+		},
+		{
 			Name: "Identity with disabled user",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active: false,
 					},
 				},
@@ -327,7 +321,7 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active:   true,
 						UserID:   "jdoe",
 						Username: "",
@@ -341,7 +335,7 @@ func TestEnforceUserPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "User",
-					User: identity.User{
+					User: &identity.User{
 						Active:   true,
 						UserID:   "jdoe",
 						Username: "jdoe",
@@ -389,8 +383,18 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Name: "'CertType' is not 'system'",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
+					Type:   "System",
+					System: nil,
+				},
+			},
+			Expected: fmt.Errorf("'Identity.System' is nil"),
+		},
+		{
+			Name: "'CertType' is not 'system'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType: "anothevalue",
 					},
 				},
@@ -402,7 +406,7 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType:   "system",
 						CommonName: "",
 					},
@@ -415,7 +419,7 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
-					System: identity.System{
+					System: &identity.System{
 						CertType:   "system",
 						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
 					},
@@ -429,7 +433,6 @@ func TestEnforceSystemPredicate(t *testing.T) {
 		t.Log(testCase.Name)
 		err := EnforceSystemPredicate(testCase.Given)
 		if testCase.Expected != nil {
-			require.NotNil(t, err)
 			assert.EqualError(t, err, testCase.Expected.Error())
 		} else {
 			assert.Nil(t, err)
@@ -465,14 +468,24 @@ func TestEnforceIdentityOrder(t *testing.T) {
 				},
 			},
 		))
-	// xrhid := `{"identity":{"org_id":"12345","internal":{"org_id":"12345"},"user":{"username":"sapheaded","email":"hooked@bought.biz","first_name":"Leslie","last_name":"Jacobs","is_active":false,"is_org_admin":false,"is_internal":false,"locale":"km","user_id":"jeweljeweler"},"system":{},"associate":{"Role":null,"email":"","givenName":"","rhatUUID":"","surname":""},"x509":{"subject_dn":"","issuer_dn":""},"service_account":{"client_id":"","username":""},"type":"User","auth_type":"basic-auth"},"entitlements":null}`
-	xrhid := header.EncodeXRHID(helperGenerateUserIdentity("12345", "test"))
+	xrhid := &identity.XRHID{}
+	*xrhid = api.NewUserXRHID().
+		WithAccountNumber("12345").
+		WithOrgID("12345").
+		WithUsername("test").
+		WithUserID("12345").
+		WithActive(true).
+		WithInternal(true).
+		WithOrgAdmin(true).
+		WithLocale("en").
+		Build()
+	xrhidRaw := header.EncodeXRHID(xrhid)
 	for i := 0; i < 1000; i++ {
 		order["first"] = time.Time{}
 		order["second"] = time.Time{}
 		res := httptest.NewRecorder()
 		req := httptest.NewRequest(http.MethodGet, "/test", nil)
-		req.Header.Add(header.HeaderXRHID, xrhid)
+		req.Header.Add(header.HeaderXRHID, xrhidRaw)
 		e.ServeHTTP(res, req)
 
 		// Check expectations
@@ -482,7 +495,86 @@ func TestEnforceIdentityOrder(t *testing.T) {
 	}
 }
 
+// IdentityAlwaysTrue is a predicate that always return nil
+// so everything was ok.
+// data is the reference to the identity.Identity data.
+// Return nil on success or an error with additional
+// information about the predicate failure.
+func identityAlwaysTrue(*identity.XRHID) error {
+	return nil
+}
+
+// NewIdentityAlwaysFalse is a predicate that always return
+// an error. It is useful for testing.
+func newIdentityAlwaysFalse(err error) func(*identity.XRHID) error {
+	return func(*identity.XRHID) error {
+		return err
+	}
+}
+
 func TestNewEnforceOr(t *testing.T) {
+	type TestCaseGiven struct {
+		First  func(*identity.XRHID) error
+		Second func(*identity.XRHID) error
+	}
+	type TestCase struct {
+		Name     string
+		Given    TestCaseGiven
+		Expected error
+	}
+	wrongSystemXRHID := api.NewUserXRHID().Build()
+	wrongSystemXRHID.Identity.Type = "System"
+	wrongUserXRHID := api.NewSystemXRHID().Build()
+	wrongUserXRHID.Identity.Type = "User"
+	testCases := []TestCase{
+		{
+			Name: "Fail first predicate, but return nil because second succeed",
+			Given: TestCaseGiven{
+				First:  newIdentityAlwaysFalse(errors.New("Failing first predicate")),
+				Second: identityAlwaysTrue,
+			},
+			Expected: nil,
+		},
+		{
+			Name: "Fail second predicate, but return nil because first succeed",
+			Given: TestCaseGiven{
+				First:  identityAlwaysTrue,
+				Second: newIdentityAlwaysFalse(errors.New("Failing second predicate")),
+			},
+			Expected: nil,
+		},
+		{
+			Name: "Failing both but return first",
+			Given: TestCaseGiven{
+				First:  newIdentityAlwaysFalse(errors.New("Failing both: first predicate")),
+				Second: newIdentityAlwaysFalse(errors.New("Failing both: second predicate")),
+			},
+			Expected: fmt.Errorf("Failing both: first predicate"),
+		},
+		{
+			Name: "Success",
+			Given: TestCaseGiven{
+				First:  identityAlwaysTrue,
+				Second: identityAlwaysTrue,
+			},
+			Expected: nil,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		predicate := NewEnforceOr(testCase.Given.First, testCase.Given.Second)
+		err := predicate(nil)
+		if testCase.Expected != nil {
+			require.Error(t, err)
+			assert.EqualError(t, err, testCase.Expected.Error())
+		} else {
+			assert.NoError(t, err)
+		}
+	}
+}
+
+func TestEnforceServiceAccountPredicate(t *testing.T) {
 	type TestCase struct {
 		Name     string
 		Given    *identity.XRHID
@@ -490,45 +582,76 @@ func TestNewEnforceOr(t *testing.T) {
 	}
 	testCases := []TestCase{
 		{
-			Name: "'Identity' type is not 'System'",
-			Given: &identity.XRHID{
-				Identity: identity.Identity{
-					Type: "User",
-				},
-			},
-			Expected: fmt.Errorf("'Identity.Type' must be 'System'"),
+			Name:     "nil argument",
+			Given:    nil,
+			Expected: fmt.Errorf("'data' cannot be nil"),
 		},
 		{
-			Name: "Identity type is not 'User'",
+			Name: "'Identity.Type' is not 'ServiceAccount'",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
 					Type: "System",
 				},
 			},
-			Expected: fmt.Errorf("'Identity.System.CertType' is not 'system'"),
+			Expected: fmt.Errorf("'Identity.Type' must be 'ServiceAccount'"),
 		},
 		{
-			Name: "Success case for system",
+			Name: "'Identity.AuthType' must be 'jwt-auth'",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
-					Type: "System",
-					System: identity.System{
-						CertType:   "system",
-						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
+					Type:     "ServiceAccount",
+					AuthType: "cert",
+				},
+			},
+			Expected: fmt.Errorf("'Identity.AuthType' is not 'jwt-auth'"),
+		},
+		{
+			Name: "'Identity.ServiceAccount' is nil",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type:           "ServiceAccount",
+					AuthType:       "jwt-auth",
+					ServiceAccount: nil,
+				},
+			},
+			Expected: fmt.Errorf("'Identity.ServiceAccount' is nil"),
+		},
+		{
+			Name: "'Identity.ServiceAccount.ClientId' is empty",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type:     "ServiceAccount",
+					AuthType: "jwt-auth",
+					ServiceAccount: &identity.ServiceAccount{
+						ClientId: "",
 					},
 				},
 			},
-			Expected: nil,
+			Expected: fmt.Errorf("'Identity.ServiceAccount.ClientId' is empty"),
 		},
 		{
-			Name: "Success case for user",
+			Name: "'Identity.ServiceAccount.ClientId' is empty",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
-					Type: "User",
-					User: identity.User{
-						Active:   true,
-						UserID:   "jdoe",
-						Username: "jdoe",
+					Type:     "ServiceAccount",
+					AuthType: "jwt-auth",
+					ServiceAccount: &identity.ServiceAccount{
+						ClientId: uuid.NewString(),
+						Username: "",
+					},
+				},
+			},
+			Expected: fmt.Errorf("'Identity.ServiceAccount.Username' is empty"),
+		},
+		{
+			Name: "Success ServiceAccount predicate",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type:     "ServiceAccount",
+					AuthType: "jwt-auth",
+					ServiceAccount: &identity.ServiceAccount{
+						ClientId: uuid.NewString(),
+						Username: "test-user",
 					},
 				},
 			},
@@ -538,10 +661,8 @@ func TestNewEnforceOr(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Log(testCase.Name)
-		predicate := NewEnforceOr(EnforceSystemPredicate, EnforceUserPredicate)
-		err := predicate(testCase.Given)
+		err := EnforceServiceAccountPredicate(testCase.Given)
 		if testCase.Expected != nil {
-			require.Error(t, err)
 			assert.EqualError(t, err, testCase.Expected.Error())
 		} else {
 			assert.NoError(t, err)

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
 type SystemXRHID interface {
@@ -38,7 +38,7 @@ func NewSystemXRHID() SystemXRHID {
 				OrgID:    orgID,
 				AuthTime: float32(time.Now().Sub(time.Time{})),
 			},
-			System: identity.System{
+			System: &identity.System{
 				CommonName: uuid.NewString(),
 				CertType:   "system",
 			},

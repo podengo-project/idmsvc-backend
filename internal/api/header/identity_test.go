@@ -4,7 +4,7 @@ import (
 	b64 "encoding/base64"
 	"testing"
 
-	"github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -16,7 +16,7 @@ func TestEncodeDecodeIdentity(t *testing.T) {
 			EmployeeAccountNumber: "22222",
 			OrgID:                 "12345",
 			Type:                  "User",
-			User: identity.User{
+			User: &identity.User{
 				Username:  "jdoe",
 				Email:     "jdoe@example.com",
 				FirstName: "Jhon",

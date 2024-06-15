@@ -62,6 +62,7 @@ func (s *SuiteRegisterDomain) SetupTest() {
 	s.SuiteBase.SetupTest()
 
 	// Get a token for the registration
+	s.As(XRHIDUser)
 	if s.token, err = s.CreateToken(); err != nil {
 		s.FailNow("Error creating a token for registering a rhel-idm domain", "%s", err.Error())
 	}
@@ -72,7 +73,6 @@ func (s *SuiteRegisterDomain) TearDownTest() {
 }
 
 func (s *SuiteRegisterDomain) TestRegisterDomain() {
-	xrhidEncoded := header.EncodeXRHID(&s.SystemXRHID)
 	url := s.DefaultPublicBaseURL() + "/domains"
 	domainName := builder_helper.GenRandDomainName(2)
 	bodyRequest := builder_api.
@@ -84,11 +84,11 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 		{
 			Name: "TestRegisterDomain rhel-idm",
 			Given: TestCaseGiven{
-				Method: http.MethodPost,
-				URL:    url,
+				XRHIDProfile: XRHIDSystem,
+				Method:       http.MethodPost,
+				URL:          url,
 				Header: http.Header{
 					header.HeaderXRequestID:              {"test_token"},
-					header.HeaderXRHID:                   {xrhidEncoded},
 					header.HeaderXRHIDMRegistrationToken: {s.token.DomainToken},
 					header.HeaderXRHIDMVersion: {
 						header.EncodeXRHIDMVersion(
@@ -106,7 +106,6 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusCreated,
 				Header: http.Header{
-					// FIXME Avoid hardcode the key name of the header
 					header.HeaderXRequestID: {"test_token"},
 					header.HeaderXRHID:      nil,
 				},

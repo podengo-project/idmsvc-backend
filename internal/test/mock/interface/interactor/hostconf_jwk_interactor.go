@@ -3,7 +3,7 @@
 package interactor
 
 import (
-	identity "github.com/redhatinsights/platform-go-middlewares/identity"
+	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 
 	mock "github.com/stretchr/testify/mock"
 
