@@ -10,7 +10,7 @@ require (
 	github.com/deepmap/oapi-codegen v1.16.2
 	github.com/golangci/golangci-lint v1.59.1
 	github.com/loov/goda v0.5.9
-	github.com/mikefarah/yq/v4 v4.44.1
+	github.com/mikefarah/yq/v4 v4.44.2
 	github.com/spf13/cobra-cli v1.3.0
 	github.com/subpop/xrhidgen v0.1.0
 	github.com/vektra/mockery/v2 v2.38.0
@@ -61,7 +61,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/denis-tingaikin/go-header v0.5.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
-	github.com/elliotchance/orderedmap v1.5.1 // indirect
+	github.com/elliotchance/orderedmap v1.6.0 // indirect
 	github.com/ettle/strcase v0.2.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fatih/structtag v1.2.0 // indirect
@@ -85,7 +85,7 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.0.0 // indirect
 	github.com/go-xmlfmt/xmlfmt v1.1.2 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
-	github.com/goccy/go-json v0.10.2 // indirect
+	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/goccy/go-yaml v1.11.3 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
