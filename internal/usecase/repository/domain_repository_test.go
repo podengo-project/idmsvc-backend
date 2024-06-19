@@ -4,8 +4,10 @@ package repository
 
 import (
 	"bytes"
+	"context"
 	"database/sql/driver"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 	"testing"
@@ -18,6 +20,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
@@ -25,7 +28,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -719,37 +721,22 @@ func (s *DomainRepositorySuite) TestList() {
 		},
 	}
 
-	// db is nil
-	output, count, err := r.List(nil, "", -1, -1)
-	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
-	assert.Equal(t, int64(0), count)
-	assert.Nil(t, output)
-
-	// orgID is empty
-	output, count, err = r.List(s.DB, "", -1, -1)
+	// Fail on checks
+	ctx := context.TODO()
+	ctx = app_context.CtxWithLog(ctx, slog.Default())
+	ctx = app_context.CtxWithDB(ctx, s.DB)
+	output, count, err := r.List(ctx, "", -1, -1)
 	assert.EqualError(t, err, "'orgID' is empty")
 	assert.Equal(t, int64(0), count)
 	assert.Nil(t, output)
 
-	// offset is lower than 0
-	output, count, err = r.List(s.DB, orgID, -1, -1)
-	assert.EqualError(t, err, "'offset' is lower than 0")
-	assert.Equal(t, int64(0), count)
-	assert.Nil(t, output)
-
-	// limit is lower than 0
-	offset := 0
-	output, count, err = r.List(s.DB, orgID, offset, -1)
-	assert.EqualError(t, err, "'limit' is lower than 0")
-	assert.Equal(t, int64(0), count)
-	assert.Nil(t, output)
-
 	// Return error
+	offset := 0
 	limit := 5
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE org_id = $1`)).
 		WithArgs(orgID).
 		WillReturnError(fmt.Errorf("an error happened"))
-	output, count, err = r.List(s.DB, orgID, offset, limit)
+	output, count, err = r.List(ctx, orgID, offset, limit)
 	assert.EqualError(t, err, "an error happened")
 	assert.Equal(t, int64(0), count)
 	assert.Nil(t, output)
@@ -779,7 +766,7 @@ func (s *DomainRepositorySuite) TestList() {
 			data.Type,
 			data.AutoEnrollmentEnabled,
 		))
-	output, count, err = r.List(s.DB, orgID, offset, limit)
+	output, count, err = r.List(ctx, orgID, offset, limit)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), count)
 	assert.Equal(t, []model.Domain{
@@ -1564,6 +1551,48 @@ func (s *DomainRepositorySuite) TestDeleteByIdLogError() {
 
 	// Check the log message
 	assert.Contains(t, buf.String(), `level=ERROR msg="invalid transaction"`)
+}
+
+func (s *DomainRepositorySuite) TestCheckList() {
+	t := s.T()
+	r := &domainRepository{}
+
+	var (
+		log *slog.Logger
+		db  *gorm.DB
+		err error
+		ctx context.Context
+	)
+
+	ctx = context.TODO()
+	ctx = app_context.CtxWithLog(ctx, slog.Default())
+	ctx = app_context.CtxWithDB(ctx, s.DB)
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "", -1, -1)
+	})
+	require.NotNil(t, log)
+	require.NotNil(t, db)
+	require.EqualError(t, err, "'orgID' is empty")
+
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "12345", -1, -1)
+	})
+	require.NotNil(t, log)
+	require.NotNil(t, db)
+	require.EqualError(t, err, "'offset' is lower than 0")
+
+	ctx = app_context.CtxWithDB(ctx, s.DB)
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "12345", 0, -1)
+	})
+	require.NotNil(t, log)
+	require.NotNil(t, db)
+	require.EqualError(t, err, "'limit' is lower than 0")
+
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "12345", 0, 10)
+	})
+	require.NoError(t, err)
 }
 
 func TestDomainRepositorySuite(t *testing.T) {
