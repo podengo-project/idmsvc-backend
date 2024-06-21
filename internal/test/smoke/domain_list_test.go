@@ -67,9 +67,11 @@ func (s *SuiteListDomains) SetupTest() {
 	s.Domains = []*public.Domain{}
 	for i := 1; i < 50; i++ {
 		domainName := fmt.Sprintf("domain%d.test", i)
+		s.As(XRHIDUser)
 		if token, err = s.CreateToken(); err != nil {
 			s.FailNow("error creating token")
 		}
+		s.As(XRHIDSystem)
 		domain, err = s.RegisterIpaDomain(token.DomainToken, builder_api.NewDomain(domainName).Build())
 		if err != nil {
 			s.FailNow("error registering domain")
@@ -116,7 +118,6 @@ func (s *SuiteListDomains) assertInDomains(t *testing.T, data []public.ListDomai
 
 func (s *SuiteListDomains) TestListDomains() {
 	t := s.T()
-	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
 	req, err := http.NewRequest(http.MethodGet, s.DefaultPublicBaseURL()+"/domains", nil)
 	require.NoError(t, err)
 	q := req.URL.Query()
@@ -139,11 +140,11 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: offset=0&limit=10 case",
 			Given: TestCaseGiven{
-				Method: http.MethodGet,
-				URL:    url1,
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodGet,
+				URL:          url1,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -179,11 +180,11 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: offset=40&limit=10 case",
 			Given: TestCaseGiven{
-				Method: http.MethodGet,
-				URL:    url2,
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodGet,
+				URL:          url2,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -220,11 +221,11 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: offset=20&limit=10 case",
 			Given: TestCaseGiven{
-				Method: http.MethodGet,
-				URL:    url3,
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodGet,
+				URL:          url3,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -261,11 +262,11 @@ func (s *SuiteListDomains) TestListDomains() {
 		{
 			Name: "TestListDomains: no params",
 			Given: TestCaseGiven{
-				Method: http.MethodGet,
-				URL:    url4,
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodGet,
+				URL:          url4,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},

@@ -27,7 +27,6 @@ func (s *SuiteReadDomain) TearDownTest() {
 }
 
 func (s *SuiteReadDomain) TestReadDomain() {
-	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
 	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId)
 	domainName := builder_helper.GenRandDomainName(2)
 
@@ -36,11 +35,11 @@ func (s *SuiteReadDomain) TestReadDomain() {
 		{
 			Name: "TestReadDomain",
 			Given: TestCaseGiven{
-				Method: http.MethodGet,
-				URL:    url,
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodGet,
+				URL:          url,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      {xrhidEncoded},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
