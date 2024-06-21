@@ -27,10 +27,12 @@ func (s *SuiteBaseWithDomain) SetupTest() {
 	// Domain 1 in OrgID1
 	i = 0
 	s.Domains = []*public.Domain{}
+	s.As(XRHIDUser)
 	if token, err = s.CreateToken(); err != nil {
 		s.FailNow("error creating token")
 	}
 	domainName = fmt.Sprintf("domain%d.test", i)
+	s.As(XRHIDSystem)
 	domain, err = s.RegisterIpaDomain(token.DomainToken, builder_api.NewDomain(domainName).Build())
 	if err != nil {
 		s.FailNow("error creating rhel-idm domain")

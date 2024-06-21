@@ -15,7 +15,7 @@ type SuiteDeleteDomain struct {
 }
 
 func (s *SuiteDeleteDomain) TestDeleteDomain() {
-	xrhidEncoded := header.EncodeXRHID(&s.UserXRHID)
+	xrhidEncoded := header.EncodeXRHID(&s.userXRHID)
 	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId)
 	domainName := builder_helper.GenRandDomainName(2)
 
@@ -24,8 +24,9 @@ func (s *SuiteDeleteDomain) TestDeleteDomain() {
 		{
 			Name: "TestDeleteDomain",
 			Given: TestCaseGiven{
-				Method: http.MethodDelete,
-				URL:    url,
+				XRHIDProfile: XRHIDUser,
+				Method:       http.MethodDelete,
+				URL:          url,
 				Header: http.Header{
 					header.HeaderXRequestID: {"test_token"},
 					header.HeaderXRHID:      {xrhidEncoded},

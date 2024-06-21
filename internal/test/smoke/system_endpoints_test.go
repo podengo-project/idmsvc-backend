@@ -21,6 +21,7 @@ type SuiteSystemEndpoints struct {
 }
 
 func (s *SuiteSystemEndpoints) prepareDomainIpaCreate(t *testing.T) {
+	s.As(XRHIDUser)
 	token, err := s.CreateToken()
 	require.NoError(t, err)
 	require.NotNil(t, token)
@@ -41,6 +42,7 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 
 	// Create a token to register a domain
 	t.Log("Creating token")
+	s.As(XRHIDUser)
 	s.token, err = s.CreateToken()
 	require.NoError(t, err)
 	require.NotNil(t, s.token)
@@ -51,6 +53,7 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 	// operation
 	t.Log("Registering a domain")
 	domain := "test.example"
+	s.As(XRHIDSystem)
 	s.domain, err = s.RegisterIpaDomain(s.token.DomainToken,
 		builder_api.NewDomain(domain).
 			WithDomainID(&s.token.DomainId).
@@ -59,7 +62,7 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 				AddServer(builder_api.NewDomainIpaServer("1."+domain).
 					WithHccUpdateServer(true).
 					WithHccEnrollmentServer(true).
-					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
+					WithSubscriptionManagerId(s.systemXRHID.Identity.System.CommonName).
 					Build(),
 				).Build(),
 			).Build(),
@@ -69,6 +72,7 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 
 	// Enable auto-join for the domain
 	t.Log("Enabling auto-enrollment")
+	s.As(XRHIDUser)
 	s.domain, err = s.PatchDomain(
 		s.domain.DomainId.String(),
 		builder_api.NewUpdateDomainUserRequest().
@@ -88,7 +92,8 @@ func (s *SuiteSystemEndpoints) TestHostConfExecute() {
 
 	t.Log("Calling SystemHostConfWithResponse")
 	domainType := public.RhelIdm
-	res, err := s.SystemHostConfWithResponse(
+	s.As(XRHIDSystem)
+	res, err := s.HostConfWithResponse(
 		s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String(),
 		"client."+s.domain.DomainName,
 		builder_api.NewHostConf().
@@ -105,7 +110,8 @@ func (s *SuiteSystemEndpoints) TestReadSigningKeys() {
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileSuperAdmin])
 	s.prepareDomainIpa(t)
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainNoPerms])
-	res, err := s.SystemSigningKeysWithResponse()
+	s.As(XRHIDSystem)
+	res, err := s.ReadSigningKeysWithResponse()
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -116,7 +122,8 @@ func (s *SuiteSystemEndpoints) TestSystemReadDomain() {
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileSuperAdmin])
 	s.prepareDomainIpa(t)
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainNoPerms])
-	res, err := s.SystemReadDomainWithResponse(*s.domain.DomainId)
+	s.As(XRHIDSystem)
+	res, err := s.ReadDomainWithResponse(*s.domain.DomainId)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 	assert.Equal(t, http.StatusOK, res.StatusCode)
@@ -129,6 +136,8 @@ func (s *SuiteSystemEndpoints) TestSystemUpdateDomain() {
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainNoPerms])
 	subscriptionManagerID := s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String()
 	domainID := s.domain.DomainId.String()
+
+	s.As(XRHIDSystem)
 	res, err := s.UpdateDomainWithResponse(
 		domainID,
 		builder_api.NewUpdateDomainAgent("test.example").
@@ -156,6 +165,7 @@ func (s *SuiteSystemEndpoints) TestSystemCreateDomain() {
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainAdmin])
 
 	// Create a token to register a domain
+	s.As(XRHIDUser)
 	s.token, err = s.CreateToken()
 	require.NoError(t, err)
 	require.NotNil(t, s.token)
@@ -163,6 +173,7 @@ func (s *SuiteSystemEndpoints) TestSystemCreateDomain() {
 
 	// Create the domains entry
 	s.RbacMock.SetPermissions(mock_rbac.Profiles[mock_rbac.ProfileDomainNoPerms])
+	s.As(XRHIDSystem)
 	s.domain, err = s.RegisterIpaDomain(s.token.DomainToken,
 		builder_api.NewDomain("test.example").
 			WithDomainID(&s.token.DomainId).
@@ -170,7 +181,7 @@ func (s *SuiteSystemEndpoints) TestSystemCreateDomain() {
 				WithServers([]public.DomainIpaServer{}).
 				AddServer(builder_api.NewDomainIpaServer("1.test.example").
 					WithHccUpdateServer(true).
-					WithSubscriptionManagerId(s.SystemXRHID.Identity.System.CommonName).
+					WithSubscriptionManagerId(s.systemXRHID.Identity.System.CommonName).
 					Build(),
 				).Build(),
 			).Build(),
