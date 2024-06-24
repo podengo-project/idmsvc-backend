@@ -29,3 +29,8 @@ func NewHTTPErrorF(code int, format string, a ...any) error {
 func NilArgError(name string) error {
 	return NewHTTPErrorF(http.StatusInternalServerError, "'%s' cannot be nil", name)
 }
+
+// EmptyArgError creates a new HTTPError instance with "'name' cannot be empty"
+func EmptyArgError(name string) error {
+	return NewHTTPErrorF(http.StatusBadRequest, "'%s' cannot be empty", name)
+}

@@ -380,6 +380,9 @@ func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID uuid.UUID, bod
 	if body == nil {
 		return internal_errors.NilArgError("body")
 	}
+	if body.Title != nil && *body.Title == "" {
+		return internal_errors.EmptyArgError("title")
+	}
 
 	return nil
 }
