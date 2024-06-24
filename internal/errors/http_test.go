@@ -7,6 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func httpErrorFromErr(t *testing.T, err error) (he *echo.HTTPError) {
@@ -37,4 +38,15 @@ func TestNilArgError(t *testing.T) {
 	assert.Equal(t, he.Code, http.StatusInternalServerError)
 	assert.Equal(t, he.Message, "'param' cannot be nil")
 	assert.Nil(t, he.Internal)
+}
+
+func TestEmptyArgError(t *testing.T) {
+	err := EmptyArgError("param")
+	he := httpErrorFromErr(t, err)
+	assert.Equal(t, he.Code, int(http.StatusBadRequest))
+	require.IsType(t, "string", he.Message)
+	msgString, ok := he.Message.(string)
+	require.True(t, ok)
+	assert.Equal(t, "'param' cannot be empty", msgString)
+	assert.NoError(t, he.Internal)
 }

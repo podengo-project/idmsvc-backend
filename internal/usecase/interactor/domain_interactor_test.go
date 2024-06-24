@@ -621,6 +621,14 @@ func TestGuardUpdate(t *testing.T) {
 	body := &public.Domain{}
 	err = i.guardUpdate(xrhid, UUID, body)
 	assert.NoError(t, err)
+
+	body.Title = pointy.String("")
+	err = i.guardUpdate(xrhid, UUID, body)
+	require.EqualError(t, err, "code=400, message='title' cannot be empty")
+
+	body.Title = pointy.String("Some title")
+	err = i.guardUpdate(xrhid, UUID, body)
+	require.NoError(t, err)
 }
 
 func TestCommonRegisterUpdate(t *testing.T) {
