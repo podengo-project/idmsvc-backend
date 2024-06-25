@@ -196,7 +196,7 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 		domain *model.Domain
 		err    error
 	)
-	if err = i.guardUpdate(xrhid, UUID, body); err != nil {
+	if err = i.guardXrhidUUID(xrhid, UUID); err != nil {
 		return "", nil, nil, err
 	}
 	if params == nil {
@@ -217,28 +217,32 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 	return orgID, clientVersion, domain, nil
 }
 
-// Update translates the API input format into the business
+// UpdateUser translates the API input format into the business
 // data models for the PATCH /domains/{uuid} endpoint.
-// params contains the header parameters.
-// body contains the input payload.
-// Return the orgId and the business model for Ipa information,
-// when success translation, else it returns empty string for orgId,
-// nil for the Ipa data, and an error filled.
-func (i domainInteractor) UpdateUser(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainUserParams, body *public.Domain) (string, *model.Domain, error) {
-	var (
-		domain *model.Domain
-		err    error
-	)
-	if err = i.guardUpdate(xrhid, UUID, body); err != nil {
+func (i domainInteractor) UpdateUser(
+	xrhid *identity.XRHID,
+	domainUUUID uuid.UUID,
+	_ *api_public.UpdateDomainUserParams,
+	body *public.UpdateDomainUserRequest,
+) (orgID string, domain *model.Domain, err error) {
+	// validation
+	if err = i.guardXrhidUUID(xrhid, domainUUUID); err != nil {
 		return "", nil, err
 	}
-	if params == nil {
-		return "", nil, internal_errors.NilArgError("params")
-	}
-	orgID := xrhid.Identity.OrgID
 
-	// Read the body payload
-	domain = i.commonRegisterUpdateUser(orgID, UUID, body)
+	if err = i.guardUserUpdate(body); err != nil {
+		return "", nil, err
+	}
+
+	orgID = xrhid.Identity.OrgID
+
+	// Copy only the necessary information for the associated handler
+	domain = &model.Domain{}
+	domain.OrgId = orgID
+	domain.DomainUuid = domainUUUID
+	domain.Title = body.Title
+	domain.Description = body.Description
+	domain.AutoEnrollmentEnabled = body.AutoEnrollmentEnabled
 	return orgID, domain, nil
 }
 
@@ -370,20 +374,23 @@ func (i domainInteractor) guardRegister(xrhid *identity.XRHID, params *api_publi
 	return nil
 }
 
-func (i domainInteractor) guardUpdate(xrhid *identity.XRHID, UUID uuid.UUID, body *public.Domain) (err error) {
+func (i domainInteractor) guardXrhidUUID(xrhid *identity.XRHID, UUID uuid.UUID) (err error) {
 	if xrhid == nil {
 		return internal_errors.NilArgError("xrhid")
 	}
 	if UUID == uuid.Nil {
 		return fmt.Errorf("'UUID' is invalid")
 	}
+	return nil
+}
+
+func (i domainInteractor) guardUserUpdate(body *public.UpdateDomainUserRequest) (err error) {
 	if body == nil {
 		return internal_errors.NilArgError("body")
 	}
 	if body.Title != nil && *body.Title == "" {
 		return internal_errors.EmptyArgError("title")
 	}
-
 	return nil
 }
 
@@ -407,15 +414,4 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, UUID uuid.UUID, bod
 		return nil, err
 	}
 	return domain, nil
-}
-
-func (i domainInteractor) commonRegisterUpdateUser(orgID string, UUID uuid.UUID, body *public.Domain) (domain *model.Domain) {
-	// Only copy the necessary information for the associated handler
-	domain = &model.Domain{}
-	domain.OrgId = orgID
-	domain.DomainUuid = UUID
-	domain.Title = body.Title
-	domain.Description = body.Description
-	domain.AutoEnrollmentEnabled = body.AutoEnrollmentEnabled
-	return domain
 }

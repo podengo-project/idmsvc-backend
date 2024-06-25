@@ -361,7 +361,7 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 func (a *application) UpdateDomainUser(ctx echo.Context, domain_id uuid.UUID, params public.UpdateDomainUserParams) error {
 	var (
 		err         error
-		input       public.Domain
+		input       public.UpdateDomainUserRequest
 		data        *model.Domain
 		currentData *model.Domain
 		orgID       string
