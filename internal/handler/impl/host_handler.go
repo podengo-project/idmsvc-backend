@@ -45,7 +45,7 @@ func (a *application) HostConf(
 	}
 
 	if tx = a.db.Begin(); tx.Error != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		slog.ErrorContext(ctx.Request().Context(), tx.Error.Error())
 		return tx.Error
 	}
 	defer tx.Rollback()
@@ -78,7 +78,7 @@ func (a *application) HostConf(
 	}
 
 	if tx.Commit(); tx.Error != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		slog.ErrorContext(ctx.Request().Context(), tx.Error.Error())
 		return tx.Error
 	}
 
