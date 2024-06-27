@@ -170,7 +170,7 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 	}
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgID, domainID, body); err != nil {
+	if domain, err = i.translateDomain(orgID, domainID, body); err != nil {
 		return "", nil, nil, err
 	}
 
@@ -195,7 +195,11 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, params *api_public.UpdateDomainAgentParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) UpdateAgent(
+	xrhid *identity.XRHID, UUID uuid.UUID,
+	params *api_public.UpdateDomainAgentParams,
+	body *public.UpdateDomainAgentRequest,
+) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domain *model.Domain
 		err    error
@@ -215,7 +219,7 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 	}
 
 	// Read the body payload
-	if domain, err = i.commonRegisterUpdate(orgID, UUID, body); err != nil {
+	if domain, err = i.translateUpdateDomainAgent(orgID, UUID, body); err != nil {
 		return "", nil, nil, err
 	}
 	return orgID, clientVersion, domain, nil
@@ -282,48 +286,49 @@ func (i domainInteractor) CreateDomainToken(
 
 // --------- Private methods -----------
 
-func (i domainInteractor) registerOrUpdateRhelIdm(body *public.Domain, domainIpa *model.Ipa) error {
-	domainIpa.RealmName = pointy.String(body.RhelIdm.RealmName)
+// translateIpaModel translates the public.DomainIpa to the model.Ipa
+func (i domainInteractor) translateDomainIpa(body *public.DomainIpa, domainIpa *model.Ipa) error {
+	domainIpa.RealmName = pointy.String(body.RealmName)
 
 	// Translate realm domains
-	i.registerOrUpdateRhelIdmRealmDomains(body, domainIpa)
+	i.translateRealmDomains(body, domainIpa)
 
 	// Certificate list
-	i.registerOrUpdateRhelIdmCaCerts(body, domainIpa)
+	i.translateIdmCaCerts(body, domainIpa)
 
 	// Server list
-	i.registerOrUpdateRhelIdmServers(body, domainIpa)
+	i.translateIdmServers(body, domainIpa)
 
 	// Location list
-	i.registerOrUpdateRhelIdmLocations(body, domainIpa)
+	i.translateIdmLocations(body, domainIpa)
 
 	return nil
 }
 
-func (i domainInteractor) registerOrUpdateRhelIdmRealmDomains(body *public.Domain, domainIpa *model.Ipa) {
-	if body.RhelIdm.RealmDomains == nil {
+func (i domainInteractor) translateRealmDomains(body *public.DomainIpa, domainIpa *model.Ipa) {
+	if body.RealmDomains == nil {
 		domainIpa.RealmDomains = pq.StringArray{}
 		return
 	}
 	domainIpa.RealmDomains = make(pq.StringArray, 0)
 	domainIpa.RealmDomains = append(
 		domainIpa.RealmDomains,
-		body.RhelIdm.RealmDomains...,
+		body.RealmDomains...,
 	)
 }
 
-func (i domainInteractor) registerOrUpdateRhelIdmCaCerts(body *public.Domain, domainIpa *model.Ipa) {
-	if body.RhelIdm.CaCerts == nil {
+func (i domainInteractor) translateIdmCaCerts(body *public.DomainIpa, domainIpa *model.Ipa) {
+	if body.CaCerts == nil {
 		domainIpa.CaCerts = []model.IpaCert{}
 		return
 	}
-	domainIpa.CaCerts = make([]model.IpaCert, len(body.RhelIdm.CaCerts))
-	for idx := range body.RhelIdm.CaCerts {
-		i.registerOrUpdateRhelIdmCaCertOne(&domainIpa.CaCerts[idx], &body.RhelIdm.CaCerts[idx])
+	domainIpa.CaCerts = make([]model.IpaCert, len(body.CaCerts))
+	for idx := range body.CaCerts {
+		i.translateIdmCaCert(&domainIpa.CaCerts[idx], &body.CaCerts[idx])
 	}
 }
 
-func (i domainInteractor) registerOrUpdateRhelIdmCaCertOne(caCert *model.IpaCert, cert *api_public.Certificate) {
+func (i domainInteractor) translateIdmCaCert(caCert *model.IpaCert, cert *api_public.Certificate) {
 	caCert.Nickname = cert.Nickname
 	caCert.Issuer = cert.Issuer
 	caCert.Subject = cert.Subject
@@ -333,13 +338,13 @@ func (i domainInteractor) registerOrUpdateRhelIdmCaCertOne(caCert *model.IpaCert
 	caCert.Pem = cert.Pem
 }
 
-func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, domainIpa *model.Ipa) {
-	if body.RhelIdm.Servers == nil {
+func (i domainInteractor) translateIdmServers(body *public.DomainIpa, domainIpa *model.Ipa) {
+	if body.Servers == nil {
 		domainIpa.Servers = []model.IpaServer{}
 		return
 	}
-	domainIpa.Servers = make([]model.IpaServer, len(body.RhelIdm.Servers))
-	for idx, server := range body.RhelIdm.Servers {
+	domainIpa.Servers = make([]model.IpaServer, len(body.Servers))
+	for idx, server := range body.Servers {
 		domainIpa.Servers[idx].FQDN = server.Fqdn
 		if server.SubscriptionManagerId != nil {
 			domainIpa.Servers[idx].RHSMId = pointy.String(server.SubscriptionManagerId.String())
@@ -352,13 +357,13 @@ func (i domainInteractor) registerOrUpdateRhelIdmServers(body *public.Domain, do
 	}
 }
 
-func (i domainInteractor) registerOrUpdateRhelIdmLocations(body *public.Domain, domainIpa *model.Ipa) {
-	if body.RhelIdm.Locations == nil {
+func (i domainInteractor) translateIdmLocations(body *public.DomainIpa, domainIpa *model.Ipa) {
+	if body.Locations == nil {
 		domainIpa.Locations = []model.IpaLocation{}
 		return
 	}
-	domainIpa.Locations = make([]model.IpaLocation, len(body.RhelIdm.Locations))
-	for idx, location := range body.RhelIdm.Locations {
+	domainIpa.Locations = make([]model.IpaLocation, len(body.Locations))
+	for idx, location := range body.Locations {
 		domainIpa.Locations[idx].Name = location.Name
 		domainIpa.Locations[idx].Description = location.Description
 	}
@@ -398,7 +403,8 @@ func (i domainInteractor) guardUserUpdate(body *public.UpdateDomainUserRequest) 
 	return nil
 }
 
-func (i domainInteractor) commonRegisterUpdate(orgID string, UUID uuid.UUID, body *public.Domain) (domain *model.Domain, err error) {
+// translateDomain translates the public.Domain to the model.Domain
+func (i domainInteractor) translateDomain(orgID string, UUID uuid.UUID, body *public.Domain) (domain *model.Domain, err error) {
 	domain = &model.Domain{}
 	domain.OrgId = orgID
 	domain.DomainUuid = UUID
@@ -410,7 +416,27 @@ func (i domainInteractor) commonRegisterUpdate(orgID string, UUID uuid.UUID, bod
 	case api_public.DomainType(api_public.RhelIdm):
 		domain.Type = pointy.Uint(model.DomainTypeIpa)
 		domain.IpaDomain = &model.Ipa{}
-		err = i.registerOrUpdateRhelIdm(body, domain.IpaDomain)
+		err = i.translateDomainIpa(body.RhelIdm, domain.IpaDomain)
+	default:
+		err = fmt.Errorf("Unsupported domain_type='%s'", body.DomainType)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return domain, nil
+}
+
+// translateUpdateDomainAgent translates the public.UpdateDomainAgentRequest to the model.Domain
+func (i domainInteractor) translateUpdateDomainAgent(orgID string, UUID uuid.UUID, body *public.UpdateDomainAgentRequest) (domain *model.Domain, err error) {
+	domain = &model.Domain{}
+	domain.OrgId = orgID
+	domain.DomainUuid = UUID
+	domain.DomainName = pointy.String(body.DomainName)
+	switch body.DomainType {
+	case api_public.DomainType(api_public.RhelIdm):
+		domain.Type = pointy.Uint(model.DomainTypeIpa)
+		domain.IpaDomain = &model.Ipa{}
+		err = i.translateDomainIpa(&body.RhelIdm, domain.IpaDomain)
 	default:
 		err = fmt.Errorf("Unsupported domain_type='%s'", body.DomainType)
 	}
