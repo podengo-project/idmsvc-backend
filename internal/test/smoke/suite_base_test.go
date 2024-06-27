@@ -855,3 +855,36 @@ func TestSuite(t *testing.T) {
 	suite.Run(t, new(SuiteRbacPermission))
 	suite.Run(t, new(SuiteSystemEndpoints))
 }
+
+// ErrorResponse represents the error response from the API
+//
+// Note: the structure is different than the public.ErrorResponse
+// as the API doesn't actually return a public.ErrorResponse which it should.
+type ErrorResponse struct {
+	Error   string `json:"error"`
+	Message string `json:"message"`
+}
+
+type BodyFuncErrorResponse func(t *testing.T, body *ErrorResponse) error
+
+func WrapBodyFuncErrorResponse(predicate BodyFuncErrorResponse) BodyFunc {
+	if predicate == nil {
+		return func(t *testing.T, body []byte) bool {
+			return len(body) == 0
+		}
+	}
+	return func(t *testing.T, body []byte) bool {
+		var data ErrorResponse
+		if err := json.Unmarshal(body, &data); err != nil {
+			require.Fail(t, fmt.Errorf("Error unmarshalling body: %w", err).Error())
+			return false
+		}
+
+		if err := predicate(t, &data); err != nil {
+			require.Fail(t, err.Error())
+			return false
+		}
+
+		return true
+	}
+}
