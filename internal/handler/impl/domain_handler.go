@@ -262,7 +262,7 @@ func (a *application) RegisterDomain(
 func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, params public.UpdateDomainAgentParams) error {
 	var (
 		err         error
-		input       public.Domain
+		input       public.UpdateDomainAgentRequest
 		data        *model.Domain
 		currentData *model.Domain
 		// host          client.InventoryHost

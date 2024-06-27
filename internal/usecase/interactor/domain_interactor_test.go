@@ -443,8 +443,6 @@ func TestRegisterIpa(t *testing.T) {
 func TestUpdateAgent(t *testing.T) {
 	const testOrgID = "12345"
 	testID := uuid.MustParse("658700b8-005b-11ee-9e09-482ae3863d30")
-	testTitle := pointy.String("My Example Domain Title")
-	testDescription := "My Example Domain Description"
 	testXRHID := identity.XRHID{
 		Identity: identity.Identity{
 			OrgID: testOrgID,
@@ -469,22 +467,14 @@ func TestUpdateAgent(t *testing.T) {
 		XRhInsightsRequestId: pointy.String("put_update_test"),
 		XRhIdmVersion:        "{",
 	}
-	testWrongTypeBody := api_public.Domain{
-		AutoEnrollmentEnabled: pointy.Bool(true),
-		Title:                 testTitle,
-		Description:           pointy.String(testDescription),
-		DomainName:            "mydomain.example",
-		DomainId:              &testID,
-		DomainType:            "aninvalidtype",
+	testWrongTypeBody := api_public.UpdateDomainAgentRequest{
+		DomainName: "mydomain.example",
+		DomainType: "aninvalidtype",
 	}
-	testBody := api_public.Domain{
-		AutoEnrollmentEnabled: pointy.Bool(true),
-		Title:                 testTitle,
-		Description:           pointy.String(testDescription),
-		DomainName:            "mydomain.example",
-		DomainId:              &testID,
-		DomainType:            api_public.RhelIdm,
-		RhelIdm: &api_public.DomainIpa{
+	testBody := api_public.UpdateDomainAgentRequest{
+		DomainName: "mydomain.example",
+		DomainType: api_public.RhelIdm,
+		RhelIdm: api_public.DomainIpa{
 			RealmName:    "mydomain.example",
 			RealmDomains: []string{"mydomain.example"},
 			CaCerts:      []api_public.Certificate{},
@@ -525,7 +515,6 @@ func TestUpdateAgent(t *testing.T) {
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, &testParams, &testBody)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
-	assert.Equal(t, testID, *testBody.DomainId)
 	require.NotNil(t, xrhidmVersion)
 	require.NotNil(t, domain)
 }
@@ -706,13 +695,14 @@ func TestGuardUserUpdate(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestCommonRegisterUpdate(t *testing.T) {
+func TestTranslateDomain(t *testing.T) {
 	testOrgID := "12345"
 	testID := uuid.MustParse("c95c6e74-005c-11ee-82b5-482ae3863d30")
 	testTitle := pointy.String("My Example Domain Title")
 	i := domainInteractor{}
 	assert.Panics(t, func() {
-		i.commonRegisterUpdate("", uuid.Nil, nil)
+		//nolint:errcheck,gosec
+		i.translateDomain("", uuid.Nil, nil)
 	})
 
 	testDescription := "My Example Domain Description"
@@ -745,14 +735,62 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		},
 	}
 
-	domain, err := i.commonRegisterUpdate(testOrgID, testID, &testWrongTypeBody)
+	domain, err := i.translateDomain(testOrgID, testID, &testWrongTypeBody)
 	assert.EqualError(t, err, "Unsupported domain_type='wrongtype'")
 	assert.Nil(t, domain)
 
 	// Success case
-	domain, err = i.commonRegisterUpdate(testOrgID, testID, &testBody)
+	domain, err = i.translateDomain(testOrgID, testID, &testBody)
 	assert.NoError(t, err)
 	assert.NotNil(t, domain)
+}
+
+func TestTranslateUpdateDomainAgent(t *testing.T) {
+	// Given
+	i := domainInteractor{}
+	testOrgID := "12345"
+	testUUID := uuid.MustParse("c95c6e74-005c-11ee-82b5-482ae3863d30")
+	agentRequest := public.UpdateDomainAgentRequest{
+		DomainName: "mydomain.example",
+		DomainType: api_public.RhelIdm,
+		RhelIdm: public.DomainIpa{
+			RealmName:    "mydomain.example",
+			RealmDomains: []string{"mydomain.example"},
+			CaCerts:      []api_public.Certificate{},
+			Servers:      []public.DomainIpaServer{},
+		},
+	}
+
+	t.Run("Correct input", func(t *testing.T) {
+		// When translateUpdateDomainAgent is called with expected values
+		domain, err := i.translateUpdateDomainAgent(testOrgID, testUUID, &agentRequest)
+
+		// Then it returns the expected domain and no error
+		require.NoError(t, err)
+		require.NotNil(t, domain)
+
+		// Fields are set as expected
+		assert.Equal(t, testOrgID, domain.OrgId)
+		assert.Equal(t, testUUID, domain.DomainUuid)
+		assert.Equal(t, "mydomain.example", *domain.DomainName)
+
+		// The domain type matches input (RhelIdm) and respected domain field is set
+		assert.Equal(t, model.DomainTypeIpa, *domain.Type)
+		assert.NotNil(t, domain.IpaDomain)
+		assert.Equal(t, "mydomain.example", *domain.IpaDomain.RealmName)
+	})
+
+	t.Run("Invalid domain type", func(t *testing.T) {
+		// Given an invalid domain type
+		agentRequest.DomainType = "invalid"
+
+		// When translateUpdateDomainAgent is called
+		domain, err := i.translateUpdateDomainAgent(testOrgID, testUUID, &agentRequest)
+
+		// Then it returns an error
+		require.EqualError(t, err, "Unsupported domain_type='invalid'")
+		assert.Nil(t, domain)
+	})
 }
 
 func TestGetByID(t *testing.T) {
@@ -860,7 +898,7 @@ func TestRegisterOrUpdateRhelIdmLocations(t *testing.T) {
 	for _, item := range testCases {
 		t.Log(item.Name)
 		ipa := &model.Ipa{}
-		i.registerOrUpdateRhelIdmLocations(item.Given, ipa)
+		i.translateIdmLocations(item.Given.RhelIdm, ipa)
 		assert.Equal(t, item.Expected, ipa)
 	}
 }
