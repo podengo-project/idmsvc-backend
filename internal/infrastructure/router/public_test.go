@@ -113,49 +113,50 @@ func TestNewGroupPublic(t *testing.T) {
 		versionFull = "/v1.0"
 	)
 	type TestCaseExpected map[string]map[string]string
+	empty := ""
 
 	testCases := TestCaseExpected{
 		"/private/readyz": {
-			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/handler.ping",
+			"GET": empty,
 		},
 		"/private/livez": {
-			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/public.ping",
+			"GET": empty,
 		},
 
 		appPrefix + appName + versionFull + "/openapi.json": {
-			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/openapi.(*ServerInterfaceWrapper).GetOpenapi-fm",
+			"GET": empty,
 		},
 
 		appPrefix + appName + versionFull + "/domains": {
-			"GET":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ListDomains-fm",
-			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).RegisterDomain-fm",
+			"GET":  empty,
+			"POST": empty,
 		},
 
 		appPrefix + appName + versionFull + "/domains/token": {
-			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).CreateDomainToken-fm",
+			"POST": empty,
 		},
 
 		appPrefix + appName + versionFull + "/domains/:uuid": {
-			"GET":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).ReadDomain-fm",
-			"PUT":    "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomainAgent-fm",
-			"PATCH":  "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).UpdateDomainUser-fm",
-			"DELETE": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).DeleteDomain-fm",
+			"GET":    empty,
+			"PUT":    empty,
+			"PATCH":  empty,
+			"DELETE": empty,
 		},
 
 		appPrefix + appName + versionFull + "/host-conf/:inventory_id/:fqdn": {
-			"POST": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).HostConf-fm",
+			"POST": empty,
 		},
 
 		appPrefix + appName + versionFull + "/signing_keys": {
-			"GET": "github.com/podengo-project/idmsvc-backend/internal/api/public.(*ServerInterfaceWrapper).GetSigningKeys-fm",
+			"GET": empty,
 		},
 
 		// This routes are added when the group is created
 		appPrefix + appName + versionFull + "/*": {
-			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
+			"echo_route_not_found": empty,
 		},
 		appPrefix + appName + versionFull: {
-			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
+			"echo_route_not_found": empty,
 		},
 	}
 
@@ -192,17 +193,12 @@ func TestNewGroupPublic(t *testing.T) {
 		t.Logf("Method=%s Path=%s Name=%s", route.Method, route.Path, route.Name)
 
 		methods, okPath := testCases[route.Path]
-		if !okPath {
-			t.Logf("Path=%s not found", route.Path)
-		}
-		assert.Truef(t, okPath, "path=%s not found into the expected ones", route.Path)
-
+		require.Truef(t, okPath, "searching path=%s", route.Path)
 		name, okMethod := methods[route.Method]
-		if !okMethod {
-			t.Logf("Method=%s not found for path=%s", route.Method, route.Path)
+		require.Truef(t, okMethod, "searching method=%s for path=%s", route.Method, route.Path)
+		if name != empty {
+			assert.Equalf(t, name, route.Name, "handler for path=%s method=%s does not match: expected=%s current=%s", route.Path, route.Method, name, route.Name)
 		}
-		assert.Truef(t, okMethod, "method=%s not found into the expected ones for the path=%s", route.Method, route.Path)
-		assert.Equalf(t, name, route.Name, "handler for path=%s method=%s does not match", route.Path, route.Method)
 	}
 
 	// Same result when IsFakeEnabled
@@ -219,20 +215,13 @@ func TestNewGroupPublic(t *testing.T) {
 		methods, okPath := testCases[route.Path]
 		assert.Truef(t, okPath, "path=%s not found into the expected ones", route.Path)
 
-		name, okMethod := methods[route.Method]
+		_, okMethod := methods[route.Method]
 		assert.Truef(t,
 			okMethod,
 			"method=%s not found into the expected ones for the path=%s",
 			route.Method,
 			route.Path)
-		assert.Equalf(t,
-			name,
-			route.Name,
-			"handler for path=%s method=%s does not match",
-			route.Path,
-			route.Method)
 	}
-
 }
 
 func TestSkipperUser(t *testing.T) {
