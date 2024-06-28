@@ -75,6 +75,9 @@ func EnforceSystemPredicate(data *identity.XRHID) error {
 	if data.Identity.Type != "System" {
 		return fmt.Errorf("'Identity.Type' must be 'System'")
 	}
+	if data.Identity.AuthType != "cert-auth" {
+		return fmt.Errorf("'Identity.AuthType' is not 'cert-auth'")
+	}
 	if data.Identity.System == nil {
 		return fmt.Errorf("'Identity.System' is nil")
 	}

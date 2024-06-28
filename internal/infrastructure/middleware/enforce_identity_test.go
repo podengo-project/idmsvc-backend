@@ -380,11 +380,21 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Expected: fmt.Errorf("'Identity.Type' must be 'System'"),
 		},
 		{
+			Name: "'Identity.AuthType' is not 'cert-auth'",
+			Given: &identity.XRHID{
+				Identity: identity.Identity{
+					Type: "System",
+				},
+			},
+			Expected: fmt.Errorf("'Identity.AuthType' is not 'cert-auth'"),
+		},
+		{
 			Name: "'Identity.System' is not nil",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
-					Type:   "System",
-					System: nil,
+					AuthType: "cert-auth",
+					Type:     "System",
+					System:   nil,
 				},
 			},
 			Expected: fmt.Errorf("'Identity.System' is nil"),
@@ -393,7 +403,8 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Name: "'CertType' is not 'system'",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
-					Type: "System",
+					AuthType: "cert-auth",
+					Type:     "System",
 					System: &identity.System{
 						CertType: "anothevalue",
 					},
@@ -405,7 +416,8 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Name: "'CommonName' is empty",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
-					Type: "System",
+					AuthType: "cert-auth",
+					Type:     "System",
 					System: &identity.System{
 						CertType:   "system",
 						CommonName: "",
@@ -418,7 +430,8 @@ func TestEnforceSystemPredicate(t *testing.T) {
 			Name: "Success case",
 			Given: &identity.XRHID{
 				Identity: identity.Identity{
-					Type: "System",
+					AuthType: "cert-auth",
+					Type:     "System",
 					System: &identity.System{
 						CertType:   "system",
 						CommonName: "10fbb716-ca5d-11ed-b384-482ae3863d30",
