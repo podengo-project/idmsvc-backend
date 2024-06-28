@@ -3,6 +3,7 @@ package middleware
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -117,17 +118,15 @@ func EnforceServiceAccountPredicate(data *identity.XRHID) error {
 // logical OR with existing predicates.
 func NewEnforceOr(predicates ...IdentityPredicate) IdentityPredicate {
 	return func(data *identity.XRHID) error {
-		var firsterr error
+		var allErrors error
 		for i := range predicates {
 			if err := predicates[i](data); err == nil {
 				return nil
 			} else {
-				if firsterr == nil {
-					firsterr = err
-				}
+				allErrors = errors.Join(allErrors, err)
 			}
 		}
-		return firsterr
+		return allErrors
 	}
 }
 
