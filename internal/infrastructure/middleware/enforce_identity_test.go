@@ -543,7 +543,7 @@ func TestNewEnforceOr(t *testing.T) {
 				First:  newIdentityAlwaysFalse(errors.New("Failing both: first predicate")),
 				Second: newIdentityAlwaysFalse(errors.New("Failing both: second predicate")),
 			},
-			Expected: fmt.Errorf("Failing both: first predicate"),
+			Expected: fmt.Errorf("Failing both: first predicate\nFailing both: second predicate"),
 		},
 		{
 			Name: "Success",
