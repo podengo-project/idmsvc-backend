@@ -33,7 +33,7 @@ func NewSystemXRHID() SystemXRHID {
 			EmployeeAccountNumber: strconv.Itoa(int(builder_helper.GenRandNum(1, 100000))),
 			OrgID:                 orgID,
 			Type:                  "System",
-			AuthType:              authType[int(builder_helper.GenRandNum(0, 1))],
+			AuthType:              "cert-auth",
 			Internal: identity.Internal{
 				OrgID:    orgID,
 				AuthTime: float32(time.Now().Sub(time.Time{})),
