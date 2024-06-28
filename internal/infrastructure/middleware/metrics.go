@@ -49,7 +49,7 @@ func MetricsMiddlewareWithConfig(config *MetricsConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			start := time.Now()
-			if config.Skipper != nil && config.Skipper(ctx) {
+			if config.Skipper(ctx) {
 				return next(ctx)
 			}
 			method := ctx.Request().Method
