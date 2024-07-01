@@ -123,10 +123,10 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 					}
 
 					require.NotNil(t, body.Description)
-					assert.Equal(t, "", *body.Description)
+					assert.Equal(t, *bodyRequest.Description, *body.Description)
 
 					require.NotNil(t, body.AutoEnrollmentEnabled)
-					assert.False(t, *body.AutoEnrollmentEnabled)
+					assert.Equal(t, *bodyRequest.AutoEnrollmentEnabled, *body.AutoEnrollmentEnabled)
 
 					// Check rhel-idm
 					if bodyRequest != nil {

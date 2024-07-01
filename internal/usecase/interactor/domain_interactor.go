@@ -141,7 +141,7 @@ func (i domainInteractor) GetByID(xrhid *identity.XRHID, params *public.ReadDoma
 // Return the orgId and the business model for Ipa information,
 // when success translation, else it returns empty string for orgId,
 // nil for the Ipa data, and an error filled.
-func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.Domain) (string, *header.XRHIDMVersion, *model.Domain, error) {
+func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, params *api_public.RegisterDomainParams, body *public.RegisterDomainRequest) (string, *header.XRHIDMVersion, *model.Domain, error) {
 	var (
 		domainID uuid.UUID
 		domain   *model.Domain
@@ -174,12 +174,16 @@ func (i domainInteractor) Register(domainRegKey []byte, xrhid *identity.XRHID, p
 		return "", nil, nil, err
 	}
 
-	// Agent request body has no/nil title, description, and auto enrollment flag
-	// default title is domain name
-	domain.Title = pointy.String(body.DomainName)
-	domain.Description = pointy.String("")
-	// new domains are disabled by default
-	domain.AutoEnrollmentEnabled = pointy.Bool(false)
+	// Set defaults for new domains when the attributes are not set.
+	if domain.Title == nil || *domain.Title == "" {
+		domain.Title = pointy.String(body.DomainName)
+	}
+	if domain.Description == nil {
+		domain.Description = pointy.String("")
+	}
+	if domain.AutoEnrollmentEnabled == nil {
+		domain.AutoEnrollmentEnabled = pointy.Bool(false)
+	}
 
 	return orgID, clientVersion, domain, nil
 }

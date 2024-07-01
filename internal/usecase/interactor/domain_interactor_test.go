@@ -43,9 +43,38 @@ func TestHelperDomainTypeToUint(t *testing.T) {
 	assert.Equal(t, model.DomainTypeIpa, result)
 }
 
+func createFakeSystemIdentity(orgID string) identity.XRHID {
+	return identity.XRHID{
+		Identity: identity.Identity{
+			OrgID: orgID,
+			Type:  "System",
+			System: &identity.System{
+				CommonName: "21258fc8-c755-11ed-afc4-482ae3863d30",
+				CertType:   "system",
+			},
+		},
+	}
+}
+
+func createFakeXRHIDMVersion() header.XRHIDMVersion {
+	return header.XRHIDMVersion{
+		IPAHCCVersion:      "0.7",
+		IPAVersion:         "4.10.0-8.el9_1",
+		OSReleaseID:        "rhel",
+		OSReleaseVersionID: "8",
+	}
+}
+
+func createFakeRegisterDomainsParams(token domain_token.DomainRegistrationToken, idmVersion header.XRHIDMVersion) *api_public.RegisterDomainParams {
+	return &api_public.RegisterDomainParams{
+		XRhInsightsRequestId:    pointy.String("TW9uIE1hciAyMCAyMDo1Mzoz"),
+		XRhIdmRegistrationToken: string(token),
+		XRhIdmVersion:           header.EncodeXRHIDMVersion(&idmVersion),
+	}
+}
+
 func TestRegisterIpa(t *testing.T) {
 	const (
-		cn    = "21258fc8-c755-11ed-afc4-482ae3863d30"
 		orgID = "12345"
 	)
 	secret := []byte("token secret")
@@ -57,26 +86,12 @@ func TestRegisterIpa(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	var (
-		rhsmID      = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
-		domainID    = domain_token.TokenDomainId(tok)
-		requestID   = pointy.String("TW9uIE1hciAyMCAyMDo1Mzoz")
-		xrhidSystem = identity.XRHID{
-			Identity: identity.Identity{
-				OrgID: orgID,
-				Type:  "System",
-				System: &identity.System{
-					CommonName: cn,
-					CertType:   "system",
-				},
-			},
-		}
-		clientVersionParsed = &header.XRHIDMVersion{
-			IPAHCCVersion:      "0.7",
-			IPAVersion:         "4.10.0-8.el9_1",
-			OSReleaseID:        "rhel",
-			OSReleaseVersionID: "8",
-		}
-		clientVersion         = header.EncodeXRHIDMVersion(clientVersionParsed)
+		rhsmID                = uuid.MustParse("cf26cd96-c75d-11ed-ae20-482ae3863d30")
+		domainID              = domain_token.TokenDomainId(tok)
+		requestID             = pointy.String("TW9uIE1hciAyMCAyMDo1Mzoz")
+		xrhidSystem           = createFakeSystemIdentity(orgID)
+		clientVersionParsed   = createFakeXRHIDMVersion()
+		clientVersion         = header.EncodeXRHIDMVersion(&clientVersionParsed)
 		paramsNoClientVersion = &api_public.RegisterDomainParams{
 			XRhInsightsRequestId:    requestID,
 			XRhIdmRegistrationToken: string(tok),
@@ -205,7 +220,7 @@ func TestRegisterIpa(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				OrgId:         orgID,
-				ClientVersion: clientVersionParsed,
+				ClientVersion: &clientVersionParsed,
 				Output: &model.Domain{
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
@@ -242,7 +257,7 @@ func TestRegisterIpa(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				OrgId:         orgID,
-				ClientVersion: clientVersionParsed,
+				ClientVersion: &clientVersionParsed,
 				Output: &model.Domain{
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
@@ -280,7 +295,7 @@ func TestRegisterIpa(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				OrgId:         orgID,
-				ClientVersion: clientVersionParsed,
+				ClientVersion: &clientVersionParsed,
 				Output: &model.Domain{
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
@@ -328,7 +343,7 @@ func TestRegisterIpa(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				OrgId:         orgID,
-				ClientVersion: clientVersionParsed,
+				ClientVersion: &clientVersionParsed,
 				Output: &model.Domain{
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
@@ -386,7 +401,7 @@ func TestRegisterIpa(t *testing.T) {
 			},
 			Expected: TestCaseExpected{
 				OrgId:         orgID,
-				ClientVersion: clientVersionParsed,
+				ClientVersion: &clientVersionParsed,
 				Output: &model.Domain{
 					OrgId:                 orgID,
 					DomainUuid:            domainID,
@@ -418,25 +433,146 @@ func TestRegisterIpa(t *testing.T) {
 		},
 	}
 	for _, testCase := range testCases {
-		t.Log(testCase.Name)
-		i := domainInteractor{}
-		orgID, clientVersion, output, err := i.Register(
-			testCase.Given.Secret,
-			testCase.Given.XRHID,
-			testCase.Given.Params,
-			testCase.Given.Body,
-		)
-		if testCase.Expected.Error != nil {
-			assert.EqualError(t, err, testCase.Expected.Error.Error())
-			assert.Equal(t, testCase.Expected.OrgId, orgID)
-			assert.Equal(t, testCase.Expected.Output, output)
-			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
-		} else {
-			require.NoError(t, err)
-			assert.Equal(t, testCase.Expected.OrgId, orgID)
-			assert.Equal(t, testCase.Expected.Output, output)
-			assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
-		}
+		t.Run(testCase.Name, func(t *testing.T) {
+			i := domainInteractor{}
+			orgID, clientVersion, output, tErr := i.Register(
+				testCase.Given.Secret,
+				testCase.Given.XRHID,
+				testCase.Given.Params,
+				testCase.Given.Body,
+			)
+			if testCase.Expected.Error != nil {
+				require.EqualError(t, tErr, testCase.Expected.Error.Error())
+				assert.Equal(t, testCase.Expected.OrgId, orgID)
+				assert.Equal(t, testCase.Expected.Output, output)
+				assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
+			} else {
+				require.NoError(t, tErr)
+				assert.Equal(t, testCase.Expected.OrgId, orgID)
+				assert.Equal(t, testCase.Expected.Output, output)
+				assert.Equal(t, testCase.Expected.ClientVersion, clientVersion)
+			}
+		})
+	}
+}
+
+//nolint:gocognit // cognitive complexity 13 of func `TestRegisterDefaultValues` is high (> 10)
+func TestRegisterDefaultValues(t *testing.T) {
+	// nolint:govet  // disable for "fieldalignment: struct with 64 pointer bytes could be 56"
+	type TestCase struct {
+		Name                          string
+		Title                         *string
+		Description                   *string
+		AutoEnrollmentEnabled         *bool
+		ExpectedTitle                 *string
+		ExpectedDescription           *string
+		ExpectedAutoEnrollmentEnabled *bool
+	}
+
+	// Prep
+	const (
+		orgID = "12345"
+	)
+	secret := []byte("token secret")
+	tok, _, err := domain_token.NewDomainRegistrationToken(
+		secret,
+		string(api_public.RhelIdm),
+		orgID,
+		time.Hour,
+	)
+	require.NoError(t, err)
+
+	var (
+		xrhidSystem         = createFakeSystemIdentity(orgID)
+		clientVersionParsed = createFakeXRHIDMVersion()
+		rhsmID              = uuid.MustParse(xrhidSystem.Identity.System.CommonName)
+		params              = createFakeRegisterDomainsParams(tok, clientVersionParsed)
+	)
+
+	domainRequest := &api_public.Domain{
+		DomainName: "mydomain.example",
+		DomainType: api_public.RhelIdm,
+		RhelIdm: &api_public.DomainIpa{
+			RealmName: "MYDOMAIN.EXAMPLE",
+			Servers: []api_public.DomainIpaServer{
+				{
+					Fqdn:                  "server.mydomain.example",
+					SubscriptionManagerId: &rhsmID,
+					Location:              pointy.String("europe"),
+					CaServer:              true,
+					PkinitServer:          true,
+					HccEnrollmentServer:   true,
+					HccUpdateServer:       true,
+				},
+			},
+		},
+	}
+
+	// Test Cases
+	testCases := []TestCase{
+		{
+			Name:                          "Nil/undefined values",
+			Title:                         nil,
+			Description:                   nil,
+			AutoEnrollmentEnabled:         nil,
+			ExpectedTitle:                 pointy.String("mydomain.example"),
+			ExpectedDescription:           pointy.String(""),
+			ExpectedAutoEnrollmentEnabled: pointy.Bool(false),
+		},
+		{
+			Name:                          "Empty values",
+			Title:                         pointy.String(""),
+			Description:                   pointy.String(""),
+			AutoEnrollmentEnabled:         pointy.Bool(false),
+			ExpectedTitle:                 pointy.String("mydomain.example"),
+			ExpectedDescription:           pointy.String(""),
+			ExpectedAutoEnrollmentEnabled: pointy.Bool(false),
+		},
+		{
+			Name:                          "Filled values",
+			Title:                         pointy.String("My Domain Title"),
+			Description:                   pointy.String("My Domain Description"),
+			AutoEnrollmentEnabled:         pointy.Bool(true),
+			ExpectedTitle:                 pointy.String("My Domain Title"),
+			ExpectedDescription:           pointy.String("My Domain Description"),
+			ExpectedAutoEnrollmentEnabled: pointy.Bool(true),
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Name, func(t *testing.T) {
+			i := domainInteractor{}
+			// Given
+			domainRequest.Title = testCase.Title
+			domainRequest.Description = testCase.Description
+			domainRequest.AutoEnrollmentEnabled = testCase.AutoEnrollmentEnabled
+
+			// When
+			_, _, output, tErr := i.Register(
+				secret,
+				&xrhidSystem,
+				params,
+				domainRequest,
+			)
+
+			// Then
+			require.NoError(t, tErr)
+			if testCase.ExpectedTitle != nil {
+				assert.Equal(t, *testCase.ExpectedTitle, *output.Title)
+			} else {
+				assert.Nil(t, output.Title)
+			}
+			if testCase.ExpectedDescription != nil {
+				assert.Equal(t, *testCase.ExpectedDescription, *output.Description)
+			} else {
+				assert.Nil(t, output.Description)
+			}
+			if testCase.ExpectedAutoEnrollmentEnabled != nil {
+				assert.Equal(t, *testCase.ExpectedAutoEnrollmentEnabled, *output.AutoEnrollmentEnabled)
+			} else {
+				assert.Nil(t, output.AutoEnrollmentEnabled)
+			}
+		})
 	}
 }
 
