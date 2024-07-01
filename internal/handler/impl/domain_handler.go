@@ -330,6 +330,15 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 		)
 	}
 
+	if data.IpaDomain != nil && currentData.IpaDomain != nil &&
+		data.IpaDomain.RealmName != nil && currentData.IpaDomain.RealmName != nil &&
+		*data.IpaDomain.RealmName != *currentData.IpaDomain.RealmName {
+		return internal_errors.NewHTTPErrorF(
+			http.StatusBadRequest,
+			"'realm_name' may not be changed",
+		)
+	}
+
 	if err = a.fillDomain(currentData, data); err != nil {
 		return err
 	}
