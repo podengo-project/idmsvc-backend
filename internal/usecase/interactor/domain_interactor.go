@@ -202,7 +202,7 @@ func (i domainInteractor) UpdateAgent(xrhid *identity.XRHID, UUID uuid.UUID, par
 	if params == nil {
 		return "", nil, nil, internal_errors.NilArgError("params")
 	}
-	orgID := xrhid.Identity.Internal.OrgID
+	orgID := xrhid.Identity.OrgID
 
 	// Retrieve the ipa-hcc version information
 	clientVersion := header.NewXRHIDMVersionWithHeader(params.XRhIdmVersion)
@@ -235,7 +235,7 @@ func (i domainInteractor) UpdateUser(xrhid *identity.XRHID, UUID uuid.UUID, para
 	if params == nil {
 		return "", nil, internal_errors.NilArgError("params")
 	}
-	orgID := xrhid.Identity.Internal.OrgID
+	orgID := xrhid.Identity.OrgID
 
 	// Read the body payload
 	domain = i.commonRegisterUpdateUser(orgID, UUID, body)
