@@ -11,6 +11,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"golang.org/x/exp/slog"
@@ -56,8 +57,9 @@ func (a *application) ListDomains(
 	}
 	// https://stackoverflow.com/a/46421989
 	defer tx.Rollback()
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
 	if data, count, err = a.domain.repository.List(
-		tx,
+		c,
 		orgID,
 		offset,
 		limit,

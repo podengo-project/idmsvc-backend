@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -11,9 +13,9 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -29,7 +31,7 @@ func NewDomainRepository() repository.DomainRepository {
 
 // List retrieve the list of domains for the given orgID and
 // the pagination info.
-// db is the gorm database connector.
+// ctx is the current request context with db and slog instances.
 // orgID is the organization id that we belongs.
 // offset is the starting record for the given ordered result.
 // limit is the number of items for the current requested page.
@@ -38,29 +40,14 @@ func NewDomainRepository() repository.DomainRepository {
 // is successful, else it return nil slice, 0 for count and a
 // filled error interface with the details.
 func (r *domainRepository) List(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	offset int,
 	limit int,
 ) (output []model.Domain, count int64, err error) {
-	if db == nil {
-		err = internal_errors.NilArgError("db")
-		slog.Error(err.Error())
-		return nil, 0, err
-	}
-	if orgID == "" {
-		err = fmt.Errorf("'orgID' is empty")
-		slog.Error(err.Error())
-		return nil, 0, err
-	}
-	if offset < 0 {
-		err = fmt.Errorf("'offset' is lower than 0")
-		slog.Error(err.Error())
-		return nil, 0, err
-	}
-	if limit < 0 {
-		err = fmt.Errorf("'limit' is lower than 0")
-		slog.Error(err.Error())
+	l, db, err := r.checkList(ctx, orgID, offset, limit)
+	if err != nil {
+		l.ErrorContext(ctx, err.Error())
 		return nil, 0, err
 	}
 	if err = db.
@@ -71,7 +58,7 @@ func (r *domainRepository) List(
 		Limit(limit).
 		Find(&output).
 		Error; err != nil {
-		slog.Error(err.Error())
+		l.ErrorContext(ctx, err.Error())
 		return nil, 0, err
 	}
 
@@ -495,4 +482,24 @@ func (r *domainRepository) wrapErrNotFound(err error, UUID uuid.UUID) error {
 	} else {
 		return err
 	}
+}
+
+func (r *domainRepository) checkList(
+	ctx context.Context,
+	orgID string,
+	offset int,
+	limit int,
+) (*slog.Logger, *gorm.DB, error) {
+	slog := app_context.LogFromCtx(ctx)
+	db := app_context.DBFromCtx(ctx)
+	if orgID == "" {
+		return slog, db, fmt.Errorf("'orgID' is empty")
+	}
+	if offset < 0 {
+		return slog, db, fmt.Errorf("'offset' is lower than 0")
+	}
+	if limit < 0 {
+		return slog, db, fmt.Errorf("'limit' is lower than 0")
+	}
+	return slog, db, nil
 }

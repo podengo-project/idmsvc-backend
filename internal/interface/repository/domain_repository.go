@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"time"
 
 	"github.com/google/uuid"
@@ -18,7 +19,7 @@ type DomainRegToken struct {
 
 // DomainRepository interface
 type DomainRepository interface {
-	List(db *gorm.DB, orgID string, offset int, limit int) (output []model.Domain, count int64, err error)
+	List(ctx context.Context, orgID string, offset, limit int) (output []model.Domain, count int64, err error)
 	// PartialUpdate(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
 	// Update(db *gorm.DB, orgId string, data *model.Domain) (output model.Domain, err error)
 	FindByID(db *gorm.DB, orgID string, UUID uuid.UUID) (output *model.Domain, err error)
