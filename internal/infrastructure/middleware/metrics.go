@@ -49,14 +49,16 @@ func MetricsMiddlewareWithConfig(config *MetricsConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			start := time.Now()
-			if config.Skipper != nil && config.Skipper(ctx) {
+			if config.Skipper(ctx) {
 				return next(ctx)
 			}
 			method := ctx.Request().Method
 			path := MatchedRoute(ctx)
 			err := next(ctx)
 			status := mapStatus(ctx.Response().Status)
-			defer config.Metrics.HttpStatusHistogram.WithLabelValues(status, method, path).Observe(time.Since(start).Seconds())
+			defer func() {
+				config.Metrics.HttpStatusHistogram.WithLabelValues(status, method, path).Observe(time.Since(start).Seconds())
+			}()
 			return err
 		}
 	}

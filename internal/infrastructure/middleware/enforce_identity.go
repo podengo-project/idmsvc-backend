@@ -3,6 +3,7 @@ package middleware
 import (
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -74,6 +75,9 @@ func EnforceSystemPredicate(data *identity.XRHID) error {
 	if data.Identity.Type != "System" {
 		return fmt.Errorf("'Identity.Type' must be 'System'")
 	}
+	if data.Identity.AuthType != "cert-auth" {
+		return fmt.Errorf("'Identity.AuthType' is not 'cert-auth'")
+	}
 	if data.Identity.System == nil {
 		return fmt.Errorf("'Identity.System' is nil")
 	}
@@ -117,17 +121,15 @@ func EnforceServiceAccountPredicate(data *identity.XRHID) error {
 // logical OR with existing predicates.
 func NewEnforceOr(predicates ...IdentityPredicate) IdentityPredicate {
 	return func(data *identity.XRHID) error {
-		var firsterr error
+		var allErrors error
 		for i := range predicates {
 			if err := predicates[i](data); err == nil {
 				return nil
 			} else {
-				if firsterr == nil {
-					firsterr = err
-				}
+				allErrors = errors.Join(allErrors, err)
 			}
 		}
-		return firsterr
+		return allErrors
 	}
 }
 

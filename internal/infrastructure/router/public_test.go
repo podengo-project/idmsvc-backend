@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -152,11 +153,22 @@ func TestNewGroupPublic(t *testing.T) {
 
 		// This routes are added when the group is created
 		appPrefix + appName + versionFull + "/*": {
-			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
+			"echo_route_not_found": "github.com/labstack/echo/v4.init.func1",
 		},
 		appPrefix + appName + versionFull: {
-			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
+			"echo_route_not_found": "github.com/labstack/echo/v4.init.func1",
 		},
+	}
+
+	// Workaround for go1.21
+	goVersion := strings.Join(strings.Split(runtime.Version(), ".")[:2], ".")
+	if goVersion == "go1.21" {
+		testCases[appPrefix+appName+versionFull+"/*"] = map[string]string{
+			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
+		}
+		testCases[appPrefix+appName+versionFull] = map[string]string{
+			"echo_route_not_found": "github.com/labstack/echo/v4.glob..func1",
+		}
 	}
 
 	reg := prometheus.NewRegistry()

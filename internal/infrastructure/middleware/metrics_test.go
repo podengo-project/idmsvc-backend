@@ -84,7 +84,7 @@ func TestMetricsMiddlewareWithConfigCreation(t *testing.T) {
 	e := echo.New()
 	m := MetricsMiddlewareWithConfig(config)
 	e.Use(m)
-	path := "/api/idmsvc/v1/domains/"
+	path := "/api/idmsvc/v1/domains"
 	e.Add(http.MethodGet, path, h)
 
 	resp := httptest.NewRecorder()
@@ -93,4 +93,10 @@ func TestMetricsMiddlewareWithConfigCreation(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.Code)
 	assert.Equal(t, "Ok", resp.Body.String())
+
+	// Check skipper
+	path = "/ping"
+	resp = httptest.NewRecorder()
+	req = httptest.NewRequest(http.MethodGet, path, nil)
+	e.ServeHTTP(resp, req)
 }
