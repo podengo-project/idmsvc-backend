@@ -443,8 +443,6 @@ func TestRegisterIpa(t *testing.T) {
 func TestUpdateAgent(t *testing.T) {
 	const testOrgID = "12345"
 	testID := uuid.MustParse("658700b8-005b-11ee-9e09-482ae3863d30")
-	testTitle := pointy.String("My Example Domain Title")
-	testDescription := "My Example Domain Description"
 	testXRHID := identity.XRHID{
 		Identity: identity.Identity{
 			OrgID: testOrgID,
@@ -469,22 +467,14 @@ func TestUpdateAgent(t *testing.T) {
 		XRhInsightsRequestId: pointy.String("put_update_test"),
 		XRhIdmVersion:        "{",
 	}
-	testWrongTypeBody := api_public.Domain{
-		AutoEnrollmentEnabled: pointy.Bool(true),
-		Title:                 testTitle,
-		Description:           pointy.String(testDescription),
-		DomainName:            "mydomain.example",
-		DomainId:              &testID,
-		DomainType:            "aninvalidtype",
+	testWrongTypeBody := api_public.UpdateDomainAgentRequest{
+		DomainName: "mydomain.example",
+		DomainType: "aninvalidtype",
 	}
-	testBody := api_public.Domain{
-		AutoEnrollmentEnabled: pointy.Bool(true),
-		Title:                 testTitle,
-		Description:           pointy.String(testDescription),
-		DomainName:            "mydomain.example",
-		DomainId:              &testID,
-		DomainType:            api_public.RhelIdm,
-		RhelIdm: &api_public.DomainIpa{
+	testBody := api_public.UpdateDomainAgentRequest{
+		DomainName: "mydomain.example",
+		DomainType: api_public.RhelIdm,
+		RhelIdm: api_public.DomainIpa{
 			RealmName:    "mydomain.example",
 			RealmDomains: []string{"mydomain.example"},
 			CaCerts:      []api_public.Certificate{},
@@ -525,7 +515,6 @@ func TestUpdateAgent(t *testing.T) {
 	orgID, xrhidmVersion, domain, err = i.UpdateAgent(&testXRHID, testID, &testParams, &testBody)
 	assert.NoError(t, err)
 	assert.Equal(t, testOrgID, orgID)
-	assert.Equal(t, testID, *testBody.DomainId)
 	require.NotNil(t, xrhidmVersion)
 	require.NotNil(t, domain)
 }
@@ -535,6 +524,79 @@ func assertListEqualError(t *testing.T, err error, msg string, orgID string, off
 	assert.Equal(t, "", orgID)
 	assert.Equal(t, -1, offset)
 	assert.Equal(t, -1, limit)
+}
+
+func TestUpdateUser(t *testing.T) {
+	i := NewDomainInteractor()
+
+	// given mock XRHID and header parasm
+	testXRHID := test.UserXRHID
+	testParams := api_public.UpdateDomainUserParams{
+		XRhInsightsRequestId: pointy.String("some-request-id"),
+	}
+
+	testOrgID := test.OrgId
+	testUUID := test.DomainUUID
+	testAutoEnrollment := pointy.Bool(true)
+	testDescription := "My Example Domain Description"
+
+	t.Run("empty body", func(t *testing.T) {
+		// when body is nil
+		orgID, domain, err := i.UpdateUser(&testXRHID, testUUID, &testParams, nil)
+
+		// return error
+		require.EqualError(t, err, "code=500, message='body' cannot be nil")
+		assert.Equal(t, "", orgID)
+		assert.Nil(t, domain)
+	})
+
+	t.Run("empty title", func(t *testing.T) {
+		// given
+		testEmptyTitle := ""
+		body := public.UpdateDomainUserRequest{
+			AutoEnrollmentEnabled: testAutoEnrollment,
+			Title:                 pointy.String(testEmptyTitle),
+			Description:           pointy.String(testDescription),
+		}
+
+		// when title is empty
+		orgID, domain, err := i.UpdateUser(&testXRHID, testUUID, &testParams, &body)
+
+		// return bad-request error
+		require.EqualError(t, err, "code=400, message='title' cannot be empty")
+		assert.Equal(t, "", orgID)
+		assert.Nil(t, domain)
+	})
+
+	t.Run("valid request", func(t *testing.T) {
+		// given
+		testTitle := "My Example Domain Title"
+		testBody := public.UpdateDomainUserRequest{
+			Title: pointy.String(testTitle),
+		}
+
+		// success
+		orgID, domain, err := i.UpdateUser(&testXRHID, testUUID, &testParams, &testBody)
+		require.NoError(t, err)
+		assert.Equal(t, testOrgID, orgID)
+		require.NotNil(t, domain)
+
+		// assert org and uuid is set
+		assert.Equal(t, testUUID, domain.DomainUuid)
+		assert.Equal(t, testOrgID, domain.OrgId)
+
+		// changed field is set
+		assert.Equal(t, testTitle, *domain.Title)
+
+		// undefined field are not set
+		assert.Nil(t, domain.AutoEnrollmentEnabled)
+		assert.Nil(t, domain.Description)
+
+		// other model.Domain fields are not st
+		assert.Nil(t, domain.DomainName)
+		assert.Nil(t, domain.Type)
+		assert.Nil(t, domain.IpaDomain)
+	})
 }
 
 func TestList(t *testing.T) {
@@ -579,8 +641,6 @@ func TestList(t *testing.T) {
 	assert.Equal(t, 30, limit)
 }
 
-// --------- Private methods -----------
-
 func TestGuardRegister(t *testing.T) {
 	var err error
 
@@ -602,42 +662,47 @@ func TestGuardRegister(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestGuardUpdate(t *testing.T) {
+func TestGuardXrhidUUID(t *testing.T) {
 	var err error
 
 	i := domainInteractor{}
 
-	err = i.guardUpdate(nil, uuid.Nil, nil)
+	err = i.guardXrhidUUID(nil, uuid.Nil)
 	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
 
 	xrhid := &identity.XRHID{}
-	err = i.guardUpdate(xrhid, uuid.Nil, nil)
+	err = i.guardXrhidUUID(xrhid, uuid.Nil)
 	assert.EqualError(t, err, "'UUID' is invalid")
 
 	UUID := uuid.MustParse("b0264600-005c-11ee-ba48-482ae3863d30")
-	err = i.guardUpdate(xrhid, UUID, nil)
-	assert.EqualError(t, err, "code=500, message='body' cannot be nil")
+	err = i.guardXrhidUUID(xrhid, UUID)
+	assert.NoError(t, err)
+}
 
-	body := &public.Domain{}
-	err = i.guardUpdate(xrhid, UUID, body)
+func TestGuardUserUpdate(t *testing.T) {
+	i := domainInteractor{}
+
+	body := &public.UpdateDomainUserRequest{}
+	err := i.guardUserUpdate(body)
 	assert.NoError(t, err)
 
 	body.Title = pointy.String("")
-	err = i.guardUpdate(xrhid, UUID, body)
+	err = i.guardUserUpdate(body)
 	require.EqualError(t, err, "code=400, message='title' cannot be empty")
 
 	body.Title = pointy.String("Some title")
-	err = i.guardUpdate(xrhid, UUID, body)
+	err = i.guardUserUpdate(body)
 	require.NoError(t, err)
 }
 
-func TestCommonRegisterUpdate(t *testing.T) {
+func TestTranslateDomain(t *testing.T) {
 	testOrgID := "12345"
 	testID := uuid.MustParse("c95c6e74-005c-11ee-82b5-482ae3863d30")
 	testTitle := pointy.String("My Example Domain Title")
 	i := domainInteractor{}
 	assert.Panics(t, func() {
-		i.commonRegisterUpdate("", uuid.Nil, nil)
+		//nolint:errcheck,gosec
+		i.translateDomain("", uuid.Nil, nil)
 	})
 
 	testDescription := "My Example Domain Description"
@@ -670,53 +735,62 @@ func TestCommonRegisterUpdate(t *testing.T) {
 		},
 	}
 
-	domain, err := i.commonRegisterUpdate(testOrgID, testID, &testWrongTypeBody)
+	domain, err := i.translateDomain(testOrgID, testID, &testWrongTypeBody)
 	assert.EqualError(t, err, "Unsupported domain_type='wrongtype'")
 	assert.Nil(t, domain)
 
 	// Success case
-	domain, err = i.commonRegisterUpdate(testOrgID, testID, &testBody)
+	domain, err = i.translateDomain(testOrgID, testID, &testBody)
 	assert.NoError(t, err)
 	assert.NotNil(t, domain)
 }
 
-func TestCommonRegisterUpdateUser(t *testing.T) {
-	testOrgID := test.OrgId
-	testUUID := test.DomainUUID
-	testTitle := "My Example Domain Title"
-	testDescription := "My Example Domain Description"
-	testAutoEnrollment := pointy.Bool(true)
+func TestTranslateUpdateDomainAgent(t *testing.T) {
+	// Given
 	i := domainInteractor{}
-	assert.Panics(t, func() {
-		i.commonRegisterUpdateUser("", uuid.Nil, nil)
-	})
-
-	testBody := public.Domain{
-		AutoEnrollmentEnabled: testAutoEnrollment,
-		Title:                 pointy.String(testTitle),
-		Description:           pointy.String(testDescription),
-		DomainName:            "mydomain.example",
-		DomainId:              &testUUID,
-		DomainType:            api_public.RhelIdm,
-		RhelIdm: &api_public.DomainIpa{
+	testOrgID := "12345"
+	testUUID := uuid.MustParse("c95c6e74-005c-11ee-82b5-482ae3863d30")
+	agentRequest := public.UpdateDomainAgentRequest{
+		DomainName: "mydomain.example",
+		DomainType: api_public.RhelIdm,
+		RhelIdm: public.DomainIpa{
 			RealmName:    "mydomain.example",
 			RealmDomains: []string{"mydomain.example"},
 			CaCerts:      []api_public.Certificate{},
-			Servers:      []api_public.DomainIpaServer{},
+			Servers:      []public.DomainIpaServer{},
 		},
 	}
 
-	domain := i.commonRegisterUpdateUser(testOrgID, testUUID, &testBody)
-	assert.NotNil(t, domain)
-	assert.Nil(t, domain.DomainName)
-	assert.Nil(t, domain.IpaDomain)
-	assert.Nil(t, domain.Type)
-	assert.Equal(t, testOrgID, domain.OrgId)
-	assert.Equal(t, testUUID, domain.DomainUuid)
-	require.NotNil(t, domain.Title)
-	require.NotNil(t, domain.Description)
-	assert.Equal(t, testTitle, *domain.Title)
-	assert.Equal(t, testDescription, *domain.Description)
+	t.Run("Correct input", func(t *testing.T) {
+		// When translateUpdateDomainAgent is called with expected values
+		domain, err := i.translateUpdateDomainAgent(testOrgID, testUUID, &agentRequest)
+
+		// Then it returns the expected domain and no error
+		require.NoError(t, err)
+		require.NotNil(t, domain)
+
+		// Fields are set as expected
+		assert.Equal(t, testOrgID, domain.OrgId)
+		assert.Equal(t, testUUID, domain.DomainUuid)
+		assert.Equal(t, "mydomain.example", *domain.DomainName)
+
+		// The domain type matches input (RhelIdm) and respected domain field is set
+		assert.Equal(t, model.DomainTypeIpa, *domain.Type)
+		assert.NotNil(t, domain.IpaDomain)
+		assert.Equal(t, "mydomain.example", *domain.IpaDomain.RealmName)
+	})
+
+	t.Run("Invalid domain type", func(t *testing.T) {
+		// Given an invalid domain type
+		agentRequest.DomainType = "invalid"
+
+		// When translateUpdateDomainAgent is called
+		domain, err := i.translateUpdateDomainAgent(testOrgID, testUUID, &agentRequest)
+
+		// Then it returns an error
+		require.EqualError(t, err, "Unsupported domain_type='invalid'")
+		assert.Nil(t, domain)
+	})
 }
 
 func TestGetByID(t *testing.T) {
@@ -824,7 +898,7 @@ func TestRegisterOrUpdateRhelIdmLocations(t *testing.T) {
 	for _, item := range testCases {
 		t.Log(item.Name)
 		ipa := &model.Ipa{}
-		i.registerOrUpdateRhelIdmLocations(item.Given, ipa)
+		i.translateIdmLocations(item.Given.RhelIdm, ipa)
 		assert.Equal(t, item.Expected, ipa)
 	}
 }
@@ -944,44 +1018,6 @@ func TestCreateDomainToken(t *testing.T) {
 			assert.NoError(t, err)
 		}
 	}
-}
-
-func TestUpdateUser(t *testing.T) {
-	const (
-		testOrgID = "12345"
-	)
-	var (
-		xrhidUser = test.UserXRHID
-		testID    = test.DomainUUID
-		testBody  = &api_public.Domain{
-			DomainId:              &testID,
-			DomainName:            test.DomainName,
-			Title:                 pointy.String("My Example Domain"),
-			Description:           pointy.String("My Long Example Domain Description"),
-			AutoEnrollmentEnabled: pointy.Bool(true),
-			DomainType:            "",
-			RhelIdm:               nil,
-		}
-		testParams = &api_public.UpdateDomainUserParams{
-			XRhInsightsRequestId: pointy.String("TestUpdateUser"),
-		}
-	)
-
-	// 'xrhid' is nil
-	i := NewDomainInteractor()
-	orgID, domain, err := i.UpdateUser(nil, testID, testParams, testBody)
-	assert.EqualError(t, err, "code=500, message='xrhid' cannot be nil")
-	assert.Equal(t, "", orgID)
-	assert.Nil(t, domain)
-
-	// 'params' is nil
-	orgID, domain, err = i.UpdateUser(&xrhidUser, testID, nil, testBody)
-	assert.EqualError(t, err, "code=500, message='params' cannot be nil")
-	assert.Equal(t, "", orgID)
-	assert.Nil(t, domain)
-
-	//
-	orgID, domain, err = i.UpdateUser(&xrhidUser, testID, testParams, testBody)
 }
 
 func TestDelete(t *testing.T) {
