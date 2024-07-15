@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	aws_session "github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/cloudwatchlogs"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"golang.org/x/exp/slog"
 )
 
 // If you want to learn more about slog visit:

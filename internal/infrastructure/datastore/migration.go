@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"sort"
 	"strconv"
@@ -11,7 +12,6 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"golang.org/x/exp/slog"
 )
 
 const dbMirationScriptPath = "./scripts/db/migrations"

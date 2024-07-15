@@ -1,9 +1,10 @@
 package config
 
 import (
+	"log/slog"
+
 	"github.com/podengo-project/idmsvc-backend/internal/api/event"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
-	"golang.org/x/exp/slog"
 )
 
 // TopicMap is used to map between real and internal topics, this is

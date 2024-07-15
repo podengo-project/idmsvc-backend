@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
 	api_event "github.com/podengo-project/idmsvc-backend/internal/api/event"
@@ -10,7 +11,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event"
 	event_handler "github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

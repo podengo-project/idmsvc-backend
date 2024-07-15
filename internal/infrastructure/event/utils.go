@@ -2,10 +2,10 @@ package event
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"golang.org/x/exp/slog"
 )
 
 func getHeaderString(headers []kafka.Header) string {

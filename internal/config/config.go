@@ -7,6 +7,7 @@
 package config
 
 import (
+	"log/slog"
 	"os"
 	"strings"
 	"time"
@@ -15,7 +16,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/secrets"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/spf13/viper"
-	"golang.org/x/exp/slog"
 	"k8s.io/utils/env"
 )
 

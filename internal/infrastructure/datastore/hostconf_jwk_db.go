@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"log/slog"
 	"time"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
@@ -8,7 +9,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk/model"
 	interface_repository "github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	"github.com/podengo-project/idmsvc-backend/internal/usecase/repository"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

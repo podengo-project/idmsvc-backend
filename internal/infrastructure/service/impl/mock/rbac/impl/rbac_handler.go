@@ -1,12 +1,12 @@
 package impl
 
 import (
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"golang.org/x/exp/slog"
 )
 
 type queryParams struct {

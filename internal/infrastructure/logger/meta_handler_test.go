@@ -3,11 +3,11 @@ package logger
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/slog"
 )
 
 func TestNewSlogMetaHandler(t *testing.T) {

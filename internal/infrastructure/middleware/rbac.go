@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -8,7 +9,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	rbac_data "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware/rbac-data"
 	rbac_client "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
-	slog "golang.org/x/exp/slog"
 )
 
 // RBACConfig hold the skipper, route prefix, the rbac permissions
@@ -76,7 +76,7 @@ func RBACWithConfig(rbacConfig *RBACConfig) echo.MiddlewareFunc {
 				if err != nil {
 					return err
 				}
-				slog.ErrorCtx(c.Request().Context(), "unauthorized", "permission", permission)
+				slog.ErrorContext(c.Request().Context(), "unauthorized", "permission", permission)
 				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 			}
 

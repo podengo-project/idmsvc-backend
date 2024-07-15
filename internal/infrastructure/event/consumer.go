@@ -3,13 +3,13 @@ package event
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	schema "github.com/podengo-project/idmsvc-backend/internal/api/event"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"golang.org/x/exp/slog"
 )
 
 // https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md

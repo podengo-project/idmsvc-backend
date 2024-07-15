@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"log/slog"
 	"testing"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
@@ -11,7 +12,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/event"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/message"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/slog"
 )
 
 func TestLogEventMessageInfo(t *testing.T) {

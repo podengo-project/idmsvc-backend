@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

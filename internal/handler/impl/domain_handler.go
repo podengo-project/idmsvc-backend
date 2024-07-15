@@ -2,6 +2,7 @@ package impl
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -13,7 +14,6 @@ import (
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

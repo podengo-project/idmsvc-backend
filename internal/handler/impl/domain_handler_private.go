@@ -2,6 +2,7 @@ package impl
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -9,7 +10,6 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
-	slog "golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

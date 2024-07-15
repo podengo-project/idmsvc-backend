@@ -5,6 +5,7 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
-	"golang.org/x/exp/slog"
 	"gopkg.in/yaml.v3"
 )
 
