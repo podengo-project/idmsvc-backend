@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
+	app_middleware "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 )
 
@@ -69,6 +70,9 @@ func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 		c.MetricsPath,
 	}
 
+	e.Use(app_middleware.ContextLogConfig(&app_middleware.LogConfig{
+		Skipper: loggerSkipperWithPaths(skipperPaths...),
+	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		// Request logger values for middleware.RequestLoggerValues
 		LogError:  true,
