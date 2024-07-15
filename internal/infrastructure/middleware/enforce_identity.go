@@ -6,11 +6,12 @@ import (
 	"errors"
 	"fmt"
 
+	"log/slog"
+
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
-	slog "golang.org/x/exp/slog"
 )
 
 // FIXME Refactor to use the signature: func(c echo.Context) Error

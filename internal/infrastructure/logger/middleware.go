@@ -1,10 +1,11 @@
 package logger
 
 import (
+	"log/slog"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
-	"golang.org/x/exp/slog"
 )
 
 // This requires the following values to be set in

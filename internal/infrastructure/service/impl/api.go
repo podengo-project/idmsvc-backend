@@ -3,6 +3,7 @@ package impl
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"sync"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
-	"golang.org/x/exp/slog"
 )
 
 type apiService struct {

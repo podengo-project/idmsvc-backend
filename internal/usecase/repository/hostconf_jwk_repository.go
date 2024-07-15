@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
@@ -10,7 +11,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk/model"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 

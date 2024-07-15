@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"log/slog"
+
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"golang.org/x/exp/slog"
 )
 
 // See: https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md
