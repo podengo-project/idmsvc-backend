@@ -116,7 +116,7 @@ objects:
                   mountPath: /dev/shm
 parameters:
   - name: IMAGE_TAG
-    value: ''
+    value: 'idm'
     required: true
   - name: UID
     description: "Unique job name suffix"
