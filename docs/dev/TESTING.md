@@ -65,7 +65,7 @@ podman run -ti \
 
 ```sh
 # IQE plugins are comma separated
-IQE_PLUGINS="idmsvc"
+IQE_PLUGINS="idm"
 ENV_FOR_DYNACONF=clowder_smoke
 bonfire deploy-iqe-cji \
   --plugins "${IQE_PLUGINS}" \
