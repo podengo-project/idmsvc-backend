@@ -106,11 +106,11 @@ objects:
                   value: ${VNC_GEOMETRY}
               resources:
                 limits:
-                  cpu: 500m
-                  memory: 2Gi
+                  cpu: ${SELENIUM_CPU_LIMIT}
+                  memory: ${SELENIUM_MEMORY_LIMIT}
                 requests:
-                  cpu: 100m
-                  memory: 256Mi
+                  cpu: ${SELENIUM_CPU_REQUEST}
+                  memory: ${SELENIUM_MEMORY_REQUEST}
               volumeMounts:
                 - name: sel-shm
                   mountPath: /dev/shm
@@ -160,3 +160,11 @@ parameters:
     value: '1920x1080'
   - name: IQE_PARALLEL_ENABLED
     value: "false"
+  - name: SELENIUM_CPU_LIMIT
+    value: 500m
+  - name: SELENIUM_MEMORY_LIMIT
+    value: 2Gi
+  - name: SELENIUM_CPU_REQUEST
+    value: 100m
+  - name: SELENIUM_MEMORY_REQUEST
+    value: 1Gi
