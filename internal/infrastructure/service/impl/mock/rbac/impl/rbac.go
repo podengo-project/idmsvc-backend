@@ -16,6 +16,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
+	app_middleware "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	"gopkg.in/yaml.v3"
 )
@@ -134,6 +135,7 @@ func NewRbacMock(ctx context.Context, cfg *config.Config) (service.ApplicationSe
 	ctx, cancelFunc = context.WithCancel(ctx)
 	e := echo.New()
 	e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(app_middleware.ContextLogConfig(&app_middleware.LogConfig{}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		// Request logger values for middleware.RequestLoggerValues
 		LogError:  true,
