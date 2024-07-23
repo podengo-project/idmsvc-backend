@@ -3,9 +3,10 @@
 package repository
 
 import (
+	context "context"
+
 	jwk "github.com/lestrrat-go/jwx/v2/jwk"
 	interactor "github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
-	gorm "gorm.io/gorm"
 
 	mock "github.com/stretchr/testify/mock"
 
@@ -17,9 +18,9 @@ type HostRepository struct {
 	mock.Mock
 }
 
-// MatchDomain provides a mock function with given fields: db, options
-func (_m *HostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOptions) (*model.Domain, error) {
-	ret := _m.Called(db, options)
+// MatchDomain provides a mock function with given fields: ctx, options
+func (_m *HostRepository) MatchDomain(ctx context.Context, options *interactor.HostConfOptions) (*model.Domain, error) {
+	ret := _m.Called(ctx, options)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MatchDomain")
@@ -27,19 +28,19 @@ func (_m *HostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfO
 
 	var r0 *model.Domain
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*gorm.DB, *interactor.HostConfOptions) (*model.Domain, error)); ok {
-		return rf(db, options)
+	if rf, ok := ret.Get(0).(func(context.Context, *interactor.HostConfOptions) (*model.Domain, error)); ok {
+		return rf(ctx, options)
 	}
-	if rf, ok := ret.Get(0).(func(*gorm.DB, *interactor.HostConfOptions) *model.Domain); ok {
-		r0 = rf(db, options)
+	if rf, ok := ret.Get(0).(func(context.Context, *interactor.HostConfOptions) *model.Domain); ok {
+		r0 = rf(ctx, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Domain)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*gorm.DB, *interactor.HostConfOptions) error); ok {
-		r1 = rf(db, options)
+	if rf, ok := ret.Get(1).(func(context.Context, *interactor.HostConfOptions) error); ok {
+		r1 = rf(ctx, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -47,9 +48,9 @@ func (_m *HostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfO
 	return r0, r1
 }
 
-// SignHostConfToken provides a mock function with given fields: privs, options, domain
-func (_m *HostRepository) SignHostConfToken(privs []jwk.Key, options *interactor.HostConfOptions, domain *model.Domain) (string, error) {
-	ret := _m.Called(privs, options, domain)
+// SignHostConfToken provides a mock function with given fields: ctx, privs, options, domain
+func (_m *HostRepository) SignHostConfToken(ctx context.Context, privs []jwk.Key, options *interactor.HostConfOptions, domain *model.Domain) (string, error) {
+	ret := _m.Called(ctx, privs, options, domain)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SignHostConfToken")
@@ -57,17 +58,17 @@ func (_m *HostRepository) SignHostConfToken(privs []jwk.Key, options *interactor
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]jwk.Key, *interactor.HostConfOptions, *model.Domain) (string, error)); ok {
-		return rf(privs, options, domain)
+	if rf, ok := ret.Get(0).(func(context.Context, []jwk.Key, *interactor.HostConfOptions, *model.Domain) (string, error)); ok {
+		return rf(ctx, privs, options, domain)
 	}
-	if rf, ok := ret.Get(0).(func([]jwk.Key, *interactor.HostConfOptions, *model.Domain) string); ok {
-		r0 = rf(privs, options, domain)
+	if rf, ok := ret.Get(0).(func(context.Context, []jwk.Key, *interactor.HostConfOptions, *model.Domain) string); ok {
+		r0 = rf(ctx, privs, options, domain)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func([]jwk.Key, *interactor.HostConfOptions, *model.Domain) error); ok {
-		r1 = rf(privs, options, domain)
+	if rf, ok := ret.Get(1).(func(context.Context, []jwk.Key, *interactor.HostConfOptions, *model.Domain) error); ok {
+		r1 = rf(ctx, privs, options, domain)
 	} else {
 		r1 = ret.Error(1)
 	}
