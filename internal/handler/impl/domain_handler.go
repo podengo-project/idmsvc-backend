@@ -12,6 +12,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"gorm.io/gorm"
@@ -44,27 +45,34 @@ func (a *application) ListDomains(
 		tx     *gorm.DB
 		xrhid  *identity.XRHID
 	)
+	log := app_context.LogFromCtx(ctx.Request().Context())
 	if xrhid, err = getXRHID(ctx); err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	// TODO A call to an internal validator could be here to check public.ListTodosParams
 	if orgID, offset, limit, err = a.domain.interactor.List(xrhid, &params); err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	if tx = a.db.Begin(); tx.Error != nil {
+		log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	// https://stackoverflow.com/a/46421989
 	defer tx.Rollback()
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
 	if data, count, err = a.domain.repository.List(
-		tx,
+		c,
 		orgID,
 		offset,
 		limit,
 	); err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	if tx.Commit(); tx.Error != nil {
+		log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	// TODO Read prefix from configuration
@@ -74,6 +82,7 @@ func (a *application) ListDomains(
 		limit,
 		data,
 	); err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)
@@ -113,8 +122,9 @@ func (a *application) ReadDomain(
 		return tx.Error
 	}
 	defer tx.Rollback()
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
 	if data, err = a.domain.repository.FindByID(
-		tx,
+		c,
 		orgID,
 		UUID,
 	); err != nil {
@@ -158,8 +168,9 @@ func (a *application) DeleteDomain(
 		return tx.Error
 	}
 	defer tx.Rollback()
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
 	if err = a.domain.repository.DeleteById(
-		tx,
+		c,
 		orgId,
 		domain_uuid,
 	); err != nil {
@@ -234,7 +245,8 @@ func (a *application) RegisterDomain(
 	}
 	defer tx.Rollback()
 
-	if err = a.domain.repository.Register(tx, orgId, data); err != nil {
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
+	if err = a.domain.repository.Register(c, orgId, data); err != nil {
 		return err
 	}
 
@@ -303,7 +315,8 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 	defer tx.Rollback()
 
 	// Load Domain data
-	if currentData, err = a.findIpaById(tx, orgID, domain_id); err != nil {
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
+	if currentData, err = a.domain.repository.FindByID(c, orgID, domain_id); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return internal_errors.NewHTTPErrorF(
 				http.StatusNotFound,
@@ -343,7 +356,7 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 		return err
 	}
 
-	if err = a.domain.repository.UpdateAgent(tx, orgID, currentData); err != nil {
+	if err = a.domain.repository.UpdateAgent(c, orgID, currentData); err != nil {
 		return err
 	}
 	if err = tx.Commit().Error; err != nil {
@@ -399,7 +412,8 @@ func (a *application) UpdateDomainUser(ctx echo.Context, domain_id uuid.UUID, pa
 	defer tx.Rollback()
 
 	// Load Domain data
-	if currentData, err = a.findIpaById(tx, orgID, domain_id); err != nil {
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
+	if currentData, err = a.domain.repository.FindByID(c, orgID, domain_id); err != nil {
 		// FIXME It is not found it should return a 404 Status
 		return err
 	}
@@ -408,7 +422,7 @@ func (a *application) UpdateDomainUser(ctx echo.Context, domain_id uuid.UUID, pa
 		return err
 	}
 
-	if err = a.domain.repository.UpdateUser(tx, orgID, data); err != nil {
+	if err = a.domain.repository.UpdateUser(c, orgID, data); err != nil {
 		return err
 	}
 	if err = tx.Commit().Error; err != nil {
@@ -451,6 +465,7 @@ func (a *application) CreateDomainToken(ctx echo.Context, params public.CreateDo
 
 	validity := time.Duration(a.config.Application.TokenExpirationTimeSeconds) * time.Second
 	if token, err = a.domain.repository.CreateDomainToken(
+		ctx.Request().Context(),
 		a.config.Secrets.DomainRegKey,
 		validity,
 		orgID,

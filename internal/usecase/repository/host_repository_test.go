@@ -3,7 +3,9 @@ package repository
 // https://pkg.go.dev/github.com/stretchr/testify/suite
 
 import (
+	"context"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 	"testing"
@@ -14,6 +16,7 @@ import (
 	"github.com/openlyinc/pointy"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	builder_model "github.com/podengo-project/idmsvc-backend/internal/test/builder/model"
@@ -143,26 +146,31 @@ func (s *SuiteHost) TestMatchDomain() {
 			Build(),
 	}
 
+	// context is nil
+	assert.Panics(t, func() {
+		_, _ = s.repository.MatchDomain(nil, &interactor.HostConfOptions{})
+	})
+
 	// db is nil
-	domain, err := s.repository.MatchDomain(nil, &interactor.HostConfOptions{})
-	assert.Nil(t, domain)
-	require.EqualError(t, err, "code=500, message='db' cannot be nil")
+	assert.PanicsWithValue(t, "'db' could not be read", func() {
+		_, _ = s.repository.MatchDomain(context.Background(), &interactor.HostConfOptions{})
+	})
 
 	// options is nil
-	domain, err = s.repository.MatchDomain(s.DB, nil)
+	domain, err := s.repository.MatchDomain(s.Ctx, nil)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=500, message='options' cannot be nil")
 
 	// Error at Find
 	s.helperTestMatchDomain(1, options, domains, s.mock, gorm.ErrInvalidTransaction)
-	domain, err = s.repository.MatchDomain(s.DB, options)
+	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "invalid transaction")
 
 	// Domains empty
 	domainsEmpty := []model.Domain{}
 	s.helperTestMatchDomain(1, options, domainsEmpty, s.mock, nil)
-	domain, err = s.repository.MatchDomain(s.DB, options)
+	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=404, message=no matching domains")
 
@@ -172,13 +180,13 @@ func (s *SuiteHost) TestMatchDomain() {
 		domains[0],
 	}
 	s.helperTestMatchDomain(1, options, domainsMoreThan1, s.mock, nil)
-	domain, err = s.repository.MatchDomain(s.DB, options)
+	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=409, message=matched 2 domains, only one expected")
 
 	// Success
 	s.helperTestMatchDomain(2, options, domains, s.mock, nil)
-	domain, err = s.repository.MatchDomain(s.DB, options)
+	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.NotNil(t, domain)
 	require.NoError(t, err)
 }
@@ -228,23 +236,29 @@ func (s *SuiteHost) TestSignHostConfToken() {
 				Build(),
 		).Build()
 
+	// guard ctx is nil
+	require.PanicsWithValue(t, "'ctx' is nil", func() {
+		_, _ = s.repository.SignHostConfToken(nil, nil, nil, nil)
+	})
+
 	// guard options is nil
-	token, err := s.repository.SignHostConfToken(nil, nil, nil)
+	ctx := app_context.CtxWithLog(context.Background(), slog.Default())
+	token, err := s.repository.SignHostConfToken(ctx, nil, nil, nil)
 	assert.Equal(t, "", token)
 	require.EqualError(t, err, "code=500, message='options' cannot be nil")
 
 	// guard domain is nil
-	token, err = s.repository.SignHostConfToken(nil, options, nil)
+	token, err = s.repository.SignHostConfToken(ctx, nil, options, nil)
 	assert.Equal(t, "", token)
 	require.EqualError(t, err, "code=500, message='domain' cannot be nil")
 
 	// no signers available
-	token, err = s.repository.SignHostConfToken(nil, options, &domain)
+	token, err = s.repository.SignHostConfToken(ctx, nil, options, &domain)
 	assert.Equal(t, "", token)
 	require.EqualError(t, err, "jws.Sign: no signers available. Specify an alogirthm and akey using jws.WithKey()")
 
 	// no signers
-	token, err = s.repository.SignHostConfToken(nil, options, &domain)
+	token, err = s.repository.SignHostConfToken(ctx, nil, options, &domain)
 	assert.Equal(t, "", token)
 	require.EqualError(t, err, "jws.Sign: no signers available. Specify an alogirthm and akey using jws.WithKey()")
 }

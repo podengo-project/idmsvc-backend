@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +23,8 @@ func (a *application) GetSigningKeys(ctx echo.Context, params public.GetSigningK
 	}
 	defer tx.Rollback()
 
-	if keys, revokedKids, err = a.hostconfjwk.repository.GetPublicKeyArray(tx); err != nil {
+	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
+	if keys, revokedKids, err = a.hostconfjwk.repository.GetPublicKeyArray(c); err != nil {
 		return err
 	}
 
