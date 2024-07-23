@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -11,9 +13,9 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -29,7 +31,7 @@ func NewDomainRepository() repository.DomainRepository {
 
 // List retrieve the list of domains for the given orgID and
 // the pagination info.
-// db is the gorm database connector.
+// ctx is the current request context with db and slog instances.
 // orgID is the organization id that we belongs.
 // offset is the starting record for the given ordered result.
 // limit is the number of items for the current requested page.
@@ -38,29 +40,14 @@ func NewDomainRepository() repository.DomainRepository {
 // is successful, else it return nil slice, 0 for count and a
 // filled error interface with the details.
 func (r *domainRepository) List(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	offset int,
 	limit int,
 ) (output []model.Domain, count int64, err error) {
-	if db == nil {
-		err = internal_errors.NilArgError("db")
-		slog.Error(err.Error())
-		return nil, 0, err
-	}
-	if orgID == "" {
-		err = fmt.Errorf("'orgID' is empty")
-		slog.Error(err.Error())
-		return nil, 0, err
-	}
-	if offset < 0 {
-		err = fmt.Errorf("'offset' is lower than 0")
-		slog.Error(err.Error())
-		return nil, 0, err
-	}
-	if limit < 0 {
-		err = fmt.Errorf("'limit' is lower than 0")
-		slog.Error(err.Error())
+	log, db, err := r.checkList(ctx, orgID, offset, limit)
+	if err != nil {
+		log.ErrorContext(ctx, err.Error())
 		return nil, 0, err
 	}
 	if err = db.
@@ -71,7 +58,7 @@ func (r *domainRepository) List(
 		Limit(limit).
 		Find(&output).
 		Error; err != nil {
-		slog.Error(err.Error())
+		log.ErrorContext(ctx, err.Error())
 		return nil, 0, err
 	}
 
@@ -80,12 +67,14 @@ func (r *domainRepository) List(
 
 // Register a new domain
 func (r *domainRepository) Register(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	data *model.Domain,
 ) (err error) {
+	db := app_context.DBFromCtx(ctx)
+	log := app_context.LogFromCtx(ctx)
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -94,9 +83,10 @@ func (r *domainRepository) Register(
 		if errors.Is(err, gorm.ErrDuplicatedKey) {
 			msg := fmt.Sprintf("domain id '%s' is already registered.", data.DomainUuid.String())
 			err = echo.NewHTTPError(http.StatusConflict, msg)
+			log.Error(err.Error())
 			return err
 		} else {
-			slog.Error(err.Error())
+			log.Error(err.Error())
 			return err
 		}
 	}
@@ -106,21 +96,22 @@ func (r *domainRepository) Register(
 	case model.DomainTypeIpa:
 		if data.IpaDomain == nil {
 			err = internal_errors.NilArgError("IpaDomain")
-			slog.Error(err.Error())
+			log.Error(err.Error())
 			return err
 		}
 		if err = r.createIpaDomain(
+			log,
 			db,
 			data.ID,
 			data.IpaDomain,
 		); err != nil {
-			slog.Error(err.Error())
+			log.Error(err.Error())
 			return err
 		}
 		return nil
 	default:
 		err = fmt.Errorf("'Type' is invalid")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 }
@@ -143,23 +134,25 @@ func (r *domainRepository) Register(
 // UpdateAgent save the Domain record into the database. It only update
 // data for the current organization.
 func (r *domainRepository) UpdateAgent(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	data *model.Domain,
 ) (err error) {
 	var currentDomain *model.Domain
+	db := app_context.DBFromCtx(ctx)
+	log := app_context.LogFromCtx(ctx)
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	// Check the entity exists
 	if currentDomain, err = r.FindByID(
-		db,
+		ctx,
 		orgID,
 		data.DomainUuid,
 	); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -167,7 +160,7 @@ func (r *domainRepository) UpdateAgent(
 		Where("org_id = ? AND domain_uuid = ?", orgID, currentDomain.DomainUuid).
 		Updates(data).
 		Error; err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -176,14 +169,14 @@ func (r *domainRepository) UpdateAgent(
 	case model.DomainTypeIpa:
 		if data.IpaDomain == nil {
 			err = internal_errors.NilArgError("IpaDomain")
-			slog.Error(err.Error())
+			log.Error(err.Error())
 			return err
 		}
 		data.IpaDomain.ID = data.ID
-		return r.updateIpaDomain(db, data.IpaDomain)
+		return r.updateIpaDomain(log, db, data.IpaDomain)
 	default:
 		err = fmt.Errorf("'Type' is invalid")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 }
@@ -211,23 +204,25 @@ func (r *domainRepository) prepareUpdateUser(data *model.Domain) map[string]inte
 // information for the user update.
 // data for the current organization.
 func (r *domainRepository) UpdateUser(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	data *model.Domain,
 ) (err error) {
 	var currentDomain *model.Domain
+	db := app_context.DBFromCtx(ctx)
+	log := app_context.LogFromCtx(ctx)
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	// Check the entity exists
 	if currentDomain, err = r.FindByID(
-		db,
+		ctx,
 		orgID,
 		data.DomainUuid,
 	); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -238,7 +233,7 @@ func (r *domainRepository) UpdateUser(
 		Where("org_id = ? AND domain_uuid = ?", orgID, currentDomain.DomainUuid).
 		Updates(fields).
 		Error; err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
@@ -255,13 +250,15 @@ func (r *domainRepository) UpdateUser(
 // scenario, else nil reference and an error with details about the
 // situation.
 func (r *domainRepository) FindByID(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	UUID uuid.UUID,
 ) (output *model.Domain, err error) {
 	// See: https://gorm.io/docs/query.html
+	db := app_context.DBFromCtx(ctx)
+	log := app_context.LogFromCtx(ctx)
 	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 	output = &model.Domain{}
@@ -269,11 +266,11 @@ func (r *domainRepository) FindByID(
 		First(output, "org_id = ? AND domain_uuid = ?", orgID, UUID).
 		Error; err != nil {
 		err = r.wrapErrNotFound(err, UUID)
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 	if err = output.FillAndPreload(db); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 	return output, nil
@@ -281,7 +278,7 @@ func (r *domainRepository) FindByID(
 
 // See: https://gorm.io/docs/delete.html
 func (r *domainRepository) DeleteById(
-	db *gorm.DB,
+	ctx context.Context,
 	orgID string,
 	UUID uuid.UUID,
 ) (err error) {
@@ -289,37 +286,41 @@ func (r *domainRepository) DeleteById(
 		data  model.Domain
 		count int64
 	)
+	db := app_context.DBFromCtx(ctx)
+	log := app_context.LogFromCtx(ctx)
 	if err = r.checkCommonAndUUID(db, orgID, UUID); err != nil {
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 	if err = db.First(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Count(&count).Error; err != nil {
 		err = r.wrapErrNotFound(err, UUID)
-		slog.Error(err.Error())
+		log.Error("deleting domain when checking that the record exist")
 		return err
 	}
 	if count == 0 {
 		err = r.wrapErrNotFound(gorm.ErrRecordNotFound, UUID)
-		slog.Error(err.Error())
+		log.Error("deleting domain because no record found to delete")
 		return err
 	}
 	if err = db.Unscoped().Delete(&data, "org_id = ? AND domain_uuid = ?", orgID, UUID).Error; err != nil {
 		err = r.wrapErrNotFound(err, UUID)
-		slog.Error(err.Error())
+		log.Error("deleting domain when removing record")
 		return err
 	}
 	return nil
 }
 
 func (r *domainRepository) CreateDomainToken(
+	ctx context.Context,
 	key []byte,
 	validity time.Duration,
 	orgID string,
 	domainType public.DomainType,
 ) (drt *repository.DomainRegToken, err error) {
+	log := app_context.LogFromCtx(ctx)
 	tok, expireNS, err := domain_token.NewDomainRegistrationToken(key, string(domainType), orgID, validity)
 	if err != nil {
-		slog.Error(err.Error())
+		log.Error("creating ipa domain token")
 		return nil, err
 	}
 	domainId := domain_token.TokenDomainId(tok)
@@ -390,38 +391,39 @@ func (r *domainRepository) checkCommonAndDataAndType(
 }
 
 func (r *domainRepository) createIpaDomain(
+	log *slog.Logger,
 	db *gorm.DB,
 	domainID uint,
 	data *model.Ipa,
 ) (err error) {
 	if data == nil {
 		err = internal_errors.NilArgError("data")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 	data.Model.ID = domainID
 	if err = db.Omit(clause.Associations).Create(data).Error; err != nil {
-		slog.Error(err.Error())
+		log.Error("creating ipa record")
 		return err
 	}
 	for idx := range data.CaCerts {
 		data.CaCerts[idx].IpaID = data.ID
 		if err = db.Create(&data.CaCerts[idx]).Error; err != nil {
-			slog.Error(err.Error())
+			log.Error("creating ipa cert record")
 			return err
 		}
 	}
 	for idx := range data.Servers {
 		data.Servers[idx].IpaID = data.ID
 		if err = db.Create(&data.Servers[idx]).Error; err != nil {
-			slog.Error(err.Error())
+			log.Error("creating ipa server record")
 			return err
 		}
 	}
 	for idx := range data.Locations {
 		data.Locations[idx].IpaID = data.ID
 		if err = db.Create(&data.Locations[idx]).Error; err != nil {
-			slog.Error(err.Error())
+			log.Error("creating ipa location record")
 			return err
 		}
 	}
@@ -429,29 +431,30 @@ func (r *domainRepository) createIpaDomain(
 }
 
 func (r *domainRepository) updateIpaDomain(
+	log *slog.Logger,
 	db *gorm.DB,
 	data *model.Ipa,
 ) (err error) {
 	if db == nil {
 		err = internal_errors.NilArgError("db")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 	if data == nil {
 		err = internal_errors.NilArgError("data")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 	if err = db.Unscoped().
 		Delete(data).Error; err != nil {
-		slog.Error(err.Error())
+		log.Error("updating ipa domain when deleting old record")
 		return err
 	}
 
 	if err = db.Omit(clause.Associations).
 		Create(data).
 		Error; err != nil {
-		slog.Error(err.Error())
+		log.Error("updating ipa domain when creating new ipa record")
 		return err
 	}
 
@@ -459,7 +462,7 @@ func (r *domainRepository) updateIpaDomain(
 	for i := range data.CaCerts {
 		data.CaCerts[i].IpaID = data.ID
 		if err = db.Create(&data.CaCerts[i]).Error; err != nil {
-			slog.Error(err.Error())
+			log.Error("updating ipa domain when creating new ipa certificate record")
 			return err
 		}
 	}
@@ -468,7 +471,7 @@ func (r *domainRepository) updateIpaDomain(
 	for i := range data.Servers {
 		data.Servers[i].IpaID = data.ID
 		if err = db.Create(&data.Servers[i]).Error; err != nil {
-			slog.Error(err.Error())
+			log.Error("updating ipa domain when creating new ipa server record")
 			return err
 		}
 	}
@@ -477,7 +480,7 @@ func (r *domainRepository) updateIpaDomain(
 	for i := range data.Locations {
 		data.Locations[i].IpaID = data.ID
 		if err = db.Create(&data.Locations[i]).Error; err != nil {
-			slog.Error(err.Error())
+			log.Error("updating ipa domain when creating new ipa location record")
 			return err
 		}
 	}
@@ -495,4 +498,24 @@ func (r *domainRepository) wrapErrNotFound(err error, UUID uuid.UUID) error {
 	} else {
 		return err
 	}
+}
+
+func (r *domainRepository) checkList(
+	ctx context.Context,
+	orgID string,
+	offset int,
+	limit int,
+) (*slog.Logger, *gorm.DB, error) {
+	log := app_context.LogFromCtx(ctx)
+	db := app_context.DBFromCtx(ctx)
+	if orgID == "" {
+		return log, db, fmt.Errorf("'orgID' is empty")
+	}
+	if offset < 0 {
+		return log, db, fmt.Errorf("'offset' is lower than 0")
+	}
+	if limit < 0 {
+		return log, db, fmt.Errorf("'limit' is lower than 0")
+	}
+	return log, db, nil
 }

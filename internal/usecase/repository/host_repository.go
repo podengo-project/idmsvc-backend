@@ -1,18 +1,20 @@
 package repository
 
 import (
-	"log/slog"
+	"context"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/repository"
-	"gorm.io/gorm"
 )
 
 type hostRepository struct{}
@@ -26,18 +28,21 @@ func NewHostRepository() repository.HostRepository {
 // domains are matching.
 //
 // Exclude domains with auto_enrollment_enabled = FALSE.
-func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOptions) (output *model.Domain, err error) {
+func (r *hostRepository) MatchDomain(ctx context.Context, options *interactor.HostConfOptions) (output *model.Domain, err error) {
+	db := app_context.DBFromCtx(ctx)
+	log := app_context.LogFromCtx(ctx)
 	if db == nil {
 		err = internal_errors.NilArgError("db")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 	if options == nil {
 		err = internal_errors.NilArgError("options")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return nil, err
 	}
 
+	logCriteria := make([]string, 0, 3)
 	var domains []model.Domain
 	tx := db.Model(&model.Domain{}).
 		Joins("left join ipas on domains.id = ipas.id").
@@ -45,16 +50,19 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 	if options.DomainId != nil {
 		domainUUID := options.DomainId.String()
 		tx = tx.Where("domains.domain_uuid = ?", domainUUID)
+		logCriteria = append(logCriteria, fmt.Sprintf("domains.domain_uuid = %s", domainUUID))
 	}
 	if options.DomainName != nil {
 		tx = tx.Where("domains.domain_name = ?", *options.DomainName)
+		logCriteria = append(logCriteria, fmt.Sprintf("domains.domain_name = %s", *options.DomainName))
 	}
 	if options.DomainType != nil {
 		tx = tx.Where("domains.type = ?", model.DomainTypeUint(string(*options.DomainType)))
+		logCriteria = append(logCriteria, fmt.Sprintf("domains.type = %s", string(*options.DomainType)))
 	}
 	if err = tx.Find(&domains).Error; err != nil {
 		// empty result set is not an error here, but is handled below
-		slog.Error(err.Error())
+		log.Error(fmt.Sprintf("finding a 'rhel-idm' domain which match the criteria: %s", strings.Join(logCriteria, ", ")))
 		return nil, err
 	}
 
@@ -73,7 +81,7 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 			http.StatusNotFound,
 			"no matching domains",
 		)
-		slog.Error(err.Error())
+		log.Error("no matching domains")
 		return nil, err
 	} else if len(matchedDomains) > 1 {
 		err = internal_errors.NewHTTPErrorF(
@@ -81,30 +89,34 @@ func (r *hostRepository) MatchDomain(db *gorm.DB, options *interactor.HostConfOp
 			"matched %d domains, only one expected",
 			len(matchedDomains),
 		)
-		slog.Error(err.Error())
+		log.Error("more than one domain found but only one expected")
 		return nil, err
 	}
 
 	// verify and fill domain object
 	output = &domains[0]
 	if err = output.FillAndPreload(db); err != nil {
-		slog.Error(err.Error())
+		log.Error(fmt.Sprintf("preloading domain data for output.domain_id = %s", output.DomainUuid.String()))
 		return nil, err
 	}
 	return output, nil
 }
 
 func (r *hostRepository) SignHostConfToken(
-	privs []jwk.Key, options *interactor.HostConfOptions, domain *model.Domain,
+	ctx context.Context,
+	privs []jwk.Key,
+	options *interactor.HostConfOptions,
+	domain *model.Domain,
 ) (hctoken public.HostToken, err error) {
+	log := app_context.LogFromCtx(ctx)
 	if options == nil {
 		err = internal_errors.NilArgError("options")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return "", err
 	}
 	if domain == nil {
 		err = internal_errors.NilArgError("domain")
-		slog.Error(err.Error())
+		log.Error(err.Error())
 		return "", err
 	}
 
@@ -118,12 +130,12 @@ func (r *hostRepository) SignHostConfToken(
 		validity,
 	)
 	if err != nil {
-		slog.Error(err.Error())
+		log.Error("error building hostconf token")
 		return "", err
 	}
 	b, err := hostconf_token.SignToken(tok, privs)
 	if err != nil {
-		slog.Error(err.Error())
+		log.Error("error signing hostconf token")
 		return "", err
 	}
 	return public.HostToken(b), nil

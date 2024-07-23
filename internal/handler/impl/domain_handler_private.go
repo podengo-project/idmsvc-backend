@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -10,11 +11,13 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"gorm.io/gorm"
 )
 
 func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (data *model.Domain, err error) {
-	if data, err = a.domain.repository.FindByID(tx, orgId, UUID); err != nil {
+	ctx := app_context.CtxWithDB(context.Background(), tx)
+	if data, err = a.domain.repository.FindByID(ctx, orgId, UUID); err != nil {
 		return nil, err
 	}
 	if *data.Type != model.DomainTypeIpa {

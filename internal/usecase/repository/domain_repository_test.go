@@ -3,9 +3,10 @@ package repository
 // https://pkg.go.dev/github.com/stretchr/testify/suite
 
 import (
-	"bytes"
+	"context"
 	"database/sql/driver"
 	"fmt"
+	"log/slog"
 	"regexp"
 	"strings"
 	"testing"
@@ -18,6 +19,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
@@ -25,7 +27,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/exp/slog"
 	"gorm.io/gorm"
 )
 
@@ -201,37 +202,37 @@ func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 	)
 
 	// Check nil
-	err = s.repository.createIpaDomain(s.DB, 1, nil)
+	err = s.repository.createIpaDomain(s.Log, s.DB, 1, nil)
 	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
 	// Error on INSERT INTO "ipas"
 	expectedError = fmt.Errorf(`error at INSERT INTO "ipas"`)
 	s.helperTestCreateIpaDomain(1, &data, s.mock, expectedError)
-	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_certs"
 	expectedError = fmt.Errorf(`INSERT INTO "ipa_certs"`)
 	s.helperTestCreateIpaDomain(2, &data, s.mock, expectedError)
-	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_servers"
 	expectedError = fmt.Errorf(`INSERT INTO "ipa_servers"`)
 	s.helperTestCreateIpaDomain(3, &data, s.mock, expectedError)
-	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_locations"
 	expectedError = fmt.Errorf(`INSERT INTO "ipa_locations"`)
 	s.helperTestCreateIpaDomain(4, &data, s.mock, expectedError)
-	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Success scenario
 	expectedError = nil
 	s.helperTestCreateIpaDomain(4, &data, s.mock, nil)
-	err = s.repository.createIpaDomain(s.DB, 1, &data)
+	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.NoError(t, err)
 }
 
@@ -244,19 +245,24 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 		err  error
 	)
 
-	err = s.repository.UpdateAgent(nil, "", nil)
-	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
+	assert.Panics(t, func() {
+		_ = s.repository.UpdateAgent(nil, "", nil)
+	})
 
-	err = s.repository.UpdateAgent(s.DB, "", nil)
+	assert.PanicsWithValue(t, "'db' could not be read", func() {
+		_ = s.repository.UpdateAgent(context.Background(), "", nil)
+	})
+
+	err = s.repository.UpdateAgent(s.Ctx, "", nil)
 	assert.EqualError(t, err, "'orgID' is empty")
 
-	err = s.repository.UpdateAgent(s.DB, orgID, nil)
+	err = s.repository.UpdateAgent(s.Ctx, orgID, nil)
 	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
 	s.mock.MatchExpectationsInOrder(true)
 	s.helperTestFindByID(1, data, s.mock, nil)
 	helperTestFindByIDIpa(1, data, s.mock, fmt.Errorf("record not found"))
-	err = s.repository.UpdateAgent(s.DB, orgID, data)
+	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.EqualError(t, err, "record not found")
 
 	s.mock.MatchExpectationsInOrder(true)
@@ -288,7 +294,7 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 		driver.RowsAffected(1),
 	)
 	s.helperTestCreateIpaDomain(4, data.IpaDomain, s.mock, nil)
-	err = s.repository.UpdateAgent(s.DB, orgID, data)
+	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.NoError(t, err)
 }
 
@@ -636,9 +642,9 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 
 		// Run for error or success
 		if testCase.Given.Domain != nil {
-			err = s.repository.updateIpaDomain(testCase.Given.DB, testCase.Given.Domain.IpaDomain)
+			err = s.repository.updateIpaDomain(s.Log, testCase.Given.DB, testCase.Given.Domain.IpaDomain)
 		} else {
-			err = s.repository.updateIpaDomain(testCase.Given.DB, nil)
+			err = s.repository.updateIpaDomain(s.Log, testCase.Given.DB, nil)
 		}
 
 		// Check expectations for error and success scenario
@@ -719,37 +725,22 @@ func (s *DomainRepositorySuite) TestList() {
 		},
 	}
 
-	// db is nil
-	output, count, err := r.List(nil, "", -1, -1)
-	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
-	assert.Equal(t, int64(0), count)
-	assert.Nil(t, output)
-
-	// orgID is empty
-	output, count, err = r.List(s.DB, "", -1, -1)
+	// Fail on checks
+	ctx := context.TODO()
+	ctx = app_context.CtxWithLog(ctx, slog.Default())
+	ctx = app_context.CtxWithDB(ctx, s.DB)
+	output, count, err := r.List(ctx, "", -1, -1)
 	assert.EqualError(t, err, "'orgID' is empty")
 	assert.Equal(t, int64(0), count)
 	assert.Nil(t, output)
 
-	// offset is lower than 0
-	output, count, err = r.List(s.DB, orgID, -1, -1)
-	assert.EqualError(t, err, "'offset' is lower than 0")
-	assert.Equal(t, int64(0), count)
-	assert.Nil(t, output)
-
-	// limit is lower than 0
-	offset := 0
-	output, count, err = r.List(s.DB, orgID, offset, -1)
-	assert.EqualError(t, err, "'limit' is lower than 0")
-	assert.Equal(t, int64(0), count)
-	assert.Nil(t, output)
-
 	// Return error
+	offset := 0
 	limit := 5
 	s.mock.ExpectQuery(regexp.QuoteMeta(`SELECT count(*) FROM "domains" WHERE org_id = $1`)).
 		WithArgs(orgID).
 		WillReturnError(fmt.Errorf("an error happened"))
-	output, count, err = r.List(s.DB, orgID, offset, limit)
+	output, count, err = r.List(ctx, orgID, offset, limit)
 	assert.EqualError(t, err, "an error happened")
 	assert.Equal(t, int64(0), count)
 	assert.Nil(t, output)
@@ -779,7 +770,7 @@ func (s *DomainRepositorySuite) TestList() {
 			data.Type,
 			data.AutoEnrollmentEnabled,
 		))
-	output, count, err = r.List(s.DB, orgID, offset, limit)
+	output, count, err = r.List(ctx, orgID, offset, limit)
 	require.NoError(t, err)
 	assert.Equal(t, int64(1), count)
 	assert.Equal(t, []model.Domain{
@@ -941,14 +932,18 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	s.mock.MatchExpectationsInOrder(true)
 
 	// Check one wrong argument
-	domain, err = r.FindByID(nil, "", uuid.Nil)
-	assert.EqualError(t, err, "code=500, message='db' cannot be nil")
-	assert.Nil(t, domain)
+	assert.Panics(t, func() {
+		_, _ = r.FindByID(nil, "", uuid.Nil)
+	})
+
+	assert.PanicsWithValue(t, "'db' could not be read", func() {
+		_, _ = r.FindByID(context.Background(), "", uuid.Nil)
+	})
 
 	// Check path when an error hapens into the sql statement
 	expectedErr = fmt.Errorf(`error at SELECT * FROM "domains"`)
 	s.helperTestFindByID(1, data, s.mock, expectedErr)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
+	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
 	assert.Nil(t, domain)
@@ -956,7 +951,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	// Check path when a domain type is NULL
 	expectedErr = internal_errors.NilArgError("Type")
 	s.helperTestFindByID(1, dataTypeNil, s.mock, nil)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
+	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
 	assert.Nil(t, domain)
@@ -965,7 +960,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	expectedErr = gorm.ErrRecordNotFound
 	s.helperTestFindByID(1, data, s.mock, nil)
 	helperTestFindByIDIpa(1, data, s.mock, expectedErr)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
+	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
 	assert.Nil(t, domain)
@@ -974,7 +969,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	expectedErr = nil
 	s.helperTestFindByID(1, data, s.mock, nil)
 	helperTestFindByIDIpa(4, data, s.mock, expectedErr)
-	domain, err = r.FindByID(s.DB, data.OrgId, data.DomainUuid)
+	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.NoError(t, err)
 	require.NotNil(t, domain)
@@ -1011,15 +1006,6 @@ func (s *DomainRepositorySuite) TestUpdateUser() {
 
 	testCases := []TestCase{
 		{
-			Name: "Wrong arguments: db is nil",
-			Given: TestCaseGiven{
-				Stage:  0,
-				DB:     nil,
-				Domain: nil,
-			},
-			Expected: internal_errors.NilArgError("db"),
-		},
-		{
 			Name: "database error at FindByID",
 			Given: TestCaseGiven{
 				Stage:  1,
@@ -1055,10 +1041,11 @@ func (s *DomainRepositorySuite) TestUpdateUser() {
 		s.helperTestUpdateUser(testCase.Given.Stage, data, s.mock, testCase.Expected)
 
 		// Run for error or success
+		c := app_context.CtxWithLog(app_context.CtxWithDB(context.Background(), s.DB), slog.Default())
 		if testCase.Given.Domain != nil {
-			err = s.repository.UpdateUser(testCase.Given.DB, test.OrgId, testCase.Given.Domain)
+			err = s.repository.UpdateUser(c, test.OrgId, testCase.Given.Domain)
 		} else {
-			err = s.repository.UpdateUser(testCase.Given.DB, "", nil)
+			err = s.repository.UpdateUser(c, "", nil)
 		}
 
 		// Check expectations for error and success scenario
@@ -1144,7 +1131,7 @@ func (s *DomainRepositorySuite) TestCreateDomainToken() {
 	)
 	t := s.T()
 	r := &domainRepository{}
-	drt, err := r.CreateDomainToken(key, validity, testOrgID, public.RhelIdm)
+	drt, err := r.CreateDomainToken(s.Ctx, key, validity, testOrgID, public.RhelIdm)
 	assert.NoError(t, err)
 	assert.Equal(t, drt.DomainType, public.RhelIdm)
 	assert.NotEmpty(t, drt.DomainId)
@@ -1287,32 +1274,37 @@ func (s *DomainRepositorySuite) TestDeleteById() {
 
 	d := builder_model.NewDomain(builder_model.NewModel().WithID(1).Build()).Build()
 
-	err := r.DeleteById(nil, "", model.NilUUID)
-	require.EqualError(t, err, "code=500, message='db' cannot be nil")
+	require.Panics(t, func() {
+		_ = r.DeleteById(nil, "", model.NilUUID)
+	})
+
+	assert.PanicsWithValue(t, "'db' could not be read", func() {
+		_ = r.DeleteById(context.Background(), "", model.NilUUID)
+	})
 
 	s.helperTestDeleteById(1, d, s.mock, gorm.ErrRecordNotFound)
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err := r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", d.DomainUuid.String()))
 
 	s.helperTestDeleteById(1, d, s.mock, gorm.ErrInvalidTransaction)
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, "invalid transaction")
 
 	s.helperTestDeleteById(2, d, s.mock, gorm.ErrRecordNotFound)
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", d.DomainUuid.String()))
 
 	s.helperTestDeleteById(3, d, s.mock, gorm.ErrRecordNotFound)
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", d.DomainUuid.String()))
 
 	s.helperTestDeleteById(3, d, s.mock, gorm.ErrInvalidTransaction)
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, gorm.ErrInvalidTransaction.Error())
 
 	// Success scenario
 	s.helperTestDeleteById(3, d, s.mock, nil)
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.NoError(t, err)
 }
 
@@ -1369,15 +1361,20 @@ func (s *DomainRepositorySuite) TestRegister() {
 	gormModel := builder_model.NewModel().WithID(id).Build()
 	d := builder_model.NewDomain(gormModel).Build()
 
-	err = r.Register(nil, d.OrgId, d)
-	require.EqualError(t, err, "code=500, message='db' cannot be nil")
+	assert.Panics(t, func() {
+		_ = r.Register(nil, d.OrgId, d)
+	})
+
+	assert.PanicsWithValue(t, "'db' could not be read", func() {
+		_ = r.Register(context.Background(), d.OrgId, d)
+	})
 
 	s.helperTestRegister(1, d, s.mock, gorm.ErrDuplicatedKey)
-	err = r.Register(s.DB, d.OrgId, d)
+	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, fmt.Sprintf("code=409, message=domain id '%s' is already registered.", d.DomainUuid))
 
 	s.helperTestRegister(1, d, s.mock, gorm.ErrInvalidField)
-	err = r.Register(s.DB, d.OrgId, d)
+	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
 
 	d = builder_model.NewDomain(gormModel).
@@ -1406,19 +1403,19 @@ func (s *DomainRepositorySuite) TestRegister() {
 		).Build()
 	s.helperTestRegister(1, d, s.mock, nil)
 	s.helperTestCreateIpaDomain(1, d.IpaDomain, s.mock, gorm.ErrInvalidField)
-	err = r.Register(s.DB, d.OrgId, d)
+	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
 
 	// Success case - FIXME Flaky test
 	s.helperTestRegister(1, d, s.mock, nil)
 	s.helperTestCreateIpaDomain(4, d.IpaDomain, s.mock, nil)
-	err = r.Register(s.DB, d.OrgId, d)
+	err = r.Register(s.Ctx, d.OrgId, d)
 	require.NoError(t, err)
 
 	// IpaDomain is nil
 	s.helperTestRegister(1, d, s.mock, nil)
 	d.IpaDomain = nil
-	err = r.Register(s.DB, d.OrgId, d)
+	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "code=500, message='IpaDomain' cannot be nil")
 }
 
@@ -1548,22 +1545,56 @@ func (s *DomainRepositorySuite) TestDeleteByIdLogError() {
 	t := s.T()
 	r := &domainRepository{}
 
-	var buf bytes.Buffer
-	var err error
-	h := slog.NewTextHandler(&buf, nil)
-	l := slog.New(h)
 	d := builder_model.NewDomain(builder_model.NewModel().WithID(1).Build()).Build()
 
 	s.helperTestDeleteById(1, d, s.mock, gorm.ErrInvalidTransaction)
-	oldLogDefault := slog.Default()
-	slog.SetDefault(l)
-	defer slog.SetDefault(oldLogDefault)
-
-	err = r.DeleteById(s.DB, d.OrgId, d.DomainUuid)
+	err := r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, "invalid transaction")
 
 	// Check the log message
-	assert.Contains(t, buf.String(), `level=ERROR msg="invalid transaction"`)
+	assert.Contains(t, s.LogBuffer.String(), `level=ERROR msg="deleting domain when checking that the record exist"`)
+}
+
+func (s *DomainRepositorySuite) TestCheckList() {
+	t := s.T()
+	r := &domainRepository{}
+
+	var (
+		log *slog.Logger
+		db  *gorm.DB
+		err error
+		ctx context.Context
+	)
+
+	ctx = context.TODO()
+	ctx = app_context.CtxWithLog(ctx, slog.Default())
+	ctx = app_context.CtxWithDB(ctx, s.DB)
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "", -1, -1)
+	})
+	require.NotNil(t, log)
+	require.NotNil(t, db)
+	require.EqualError(t, err, "'orgID' is empty")
+
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "12345", -1, -1)
+	})
+	require.NotNil(t, log)
+	require.NotNil(t, db)
+	require.EqualError(t, err, "'offset' is lower than 0")
+
+	ctx = app_context.CtxWithDB(ctx, s.DB)
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "12345", 0, -1)
+	})
+	require.NotNil(t, log)
+	require.NotNil(t, db)
+	require.EqualError(t, err, "'limit' is lower than 0")
+
+	assert.NotPanics(t, func() {
+		log, db, err = r.checkList(ctx, "12345", 0, 10)
+	})
+	require.NoError(t, err)
 }
 
 func TestDomainRepositorySuite(t *testing.T) {

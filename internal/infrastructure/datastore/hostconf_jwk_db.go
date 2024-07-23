@@ -1,10 +1,12 @@
 package datastore
 
 import (
+	"context"
 	"log/slog"
 	"time"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk/model"
 	interface_repository "github.com/podengo-project/idmsvc-backend/internal/interface/repository"
@@ -15,13 +17,16 @@ import (
 type HostconfJwkDb struct {
 	cfg        *config.Config
 	repository interface_repository.HostconfJwkRepository
+	log        *slog.Logger
 }
 
-// Create new HostconfJwkDb
+// NewHostconfJwkDb Create new HostconfJwkDb
 func NewHostconfJwkDb(cfg *config.Config) *HostconfJwkDb {
+	log := slog.Default()
 	return &HostconfJwkDb{
 		cfg:        cfg,
 		repository: repository.NewHostconfJwkRepository(cfg),
+		log:        log,
 	}
 }
 
@@ -30,7 +35,7 @@ func (r *HostconfJwkDb) timestamps() (renewAfter, expiresAfter time.Time) {
 	utcnow := time.Now().UTC().Truncate(time.Second)
 	renewAfter = utcnow.Add(r.cfg.Application.HostconfJwkRenewalThreshold)
 	expiresAfter = utcnow.Add(r.cfg.Application.HostconfJwkValidity)
-	slog.Info(
+	r.log.Info(
 		"Hostconf JWK configuration",
 		slog.Time("now", utcnow),
 		slog.Time("renewAfter", renewAfter),
@@ -59,7 +64,9 @@ func (r *HostconfJwkDb) Refresh() (err error) {
 	}
 	defer tx.Rollback()
 
-	if hcjwks, err = r.repository.ListJWKs(db); err != nil {
+	ctx := app_context.CtxWithDB(app_context.CtxWithLog(context.Background(), r.log), tx)
+	if hcjwks, err = r.repository.ListJWKs(ctx); err != nil {
+		r.log.Error(err.Error())
 		return err
 	}
 
@@ -74,7 +81,7 @@ func (r *HostconfJwkDb) Refresh() (err error) {
 
 	for _, hcjwk := range hcjwks {
 		privstate, _ := hcjwk.GetPrivateKeyState(r.cfg.Secrets)
-		log := slog.With(
+		logHCJW := r.log.With(
 			slog.String("kid", hcjwk.KeyId),
 			slog.String("privatekey", hostconf_jwk.KeyStateString(privstate)),
 			slog.Time("expires", hcjwk.ExpiresAt),
@@ -85,23 +92,23 @@ func (r *HostconfJwkDb) Refresh() (err error) {
 		case hostconf_jwk.ValidKey:
 			valid += 1
 			if hcjwk.ExpiresAt.Unix() >= renewAfter.Unix() {
-				log.Info("Valid Hostconf JWK")
+				logHCJW.Info("Valid Hostconf JWK")
 				create = false
 			} else {
-				log.Warn("Valid Hostconf JWK is after renewal threshold")
+				logHCJW.Warn("Valid Hostconf JWK is after renewal threshold")
 			}
 		case hostconf_jwk.RevokedKey:
-			log.Info("Hostconf JWK is revoked")
+			logHCJW.Info("Hostconf JWK is revoked")
 			revoked += 1
 		case hostconf_jwk.ExpiredKey:
-			log.Info("Hostconf JWK is expired")
+			logHCJW.Info("Hostconf JWK is expired")
 			expired += 1
 		default:
-			log.Info("Hostconf JWK is invalid")
+			logHCJW.Info("Hostconf JWK is invalid")
 		}
 	}
 
-	slog.Info(
+	r.log.Info(
 		"Current JWKs in database",
 		slog.Int("total", len(hcjwks)),
 		slog.Int("valid", valid),
@@ -113,16 +120,20 @@ func (r *HostconfJwkDb) Refresh() (err error) {
 		var newjwk *model.HostconfJwk
 
 		if valid == 0 {
-			slog.Warn("No valid JWK found in database")
+			r.log.Warn("No valid JWK found in database")
 		} else {
-			slog.Warn("All valid JWKs expire in the renewal threshold period")
+			r.log.Warn("All valid JWKs expire in the renewal threshold period")
 		}
 
 		if newjwk, err = model.NewHostconfJwk(r.cfg.Secrets, expiresAfter); err != nil {
+			r.log.Error(err.Error())
 			return err
 		}
-		r.repository.InsertJWK(db, newjwk)
-		slog.Info(
+		if err = r.repository.InsertJWK(ctx, newjwk); err != nil {
+			r.log.Error(err.Error())
+			return err
+		}
+		r.log.Info(
 			"Created new hostconf JWK",
 			slog.String("kid", newjwk.KeyId),
 			slog.Time("expires", newjwk.ExpiresAt),
@@ -130,6 +141,7 @@ func (r *HostconfJwkDb) Refresh() (err error) {
 	}
 
 	if tx.Commit(); tx.Error != nil {
+		r.log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	return nil
@@ -146,16 +158,20 @@ func (r *HostconfJwkDb) Revoke(kid string) (err error) {
 	defer Close(db)
 
 	if tx = db.Begin(); tx.Error != nil {
+		r.log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	defer tx.Rollback()
 
-	if hcjwk, err = r.repository.RevokeJWK(tx, kid); err != nil {
+	ctx := app_context.CtxWithDB(app_context.CtxWithLog(context.Background(), r.log), tx)
+	if hcjwk, err = r.repository.RevokeJWK(ctx, kid); err != nil {
+		r.log.Error(err.Error())
 		return err
 	}
-	slog.Info("Revoked JWK", slog.String("kid", hcjwk.KeyId))
+	r.log.Info("Revoked JWK", slog.String("kid", hcjwk.KeyId))
 
 	if tx.Commit(); tx.Error != nil {
+		r.log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	return nil
@@ -172,27 +188,31 @@ func (r *HostconfJwkDb) Purge() (err error) {
 	defer Close(db)
 
 	if tx = db.Begin(); tx.Error != nil {
+		r.log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	defer tx.Rollback()
 
-	if hcjwks, err = r.repository.PurgeExpiredJWKs(tx); err != nil {
+	ctx := app_context.CtxWithDB(app_context.CtxWithLog(context.Background(), r.log), tx)
+	if hcjwks, err = r.repository.PurgeExpiredJWKs(ctx); err != nil {
+		r.log.Error(err.Error())
 		return err
 	}
 	if len(hcjwks) > 0 {
-		slog.Info("Purged keys from DB", slog.Int("purged", len(hcjwks)))
+		r.log.Info("Purged keys from DB", slog.Int("purged", len(hcjwks)))
 		for _, hcjwk := range hcjwks {
-			slog.Info(
+			r.log.Info(
 				"Purged key",
 				slog.String("kid", hcjwk.KeyId),
 				slog.Time("expires", hcjwk.ExpiresAt),
 			)
 		}
 	} else {
-		slog.Info("Nothing to purge")
+		r.log.Info("Nothing to purge")
 	}
 
 	if tx.Commit(); tx.Error != nil {
+		r.log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	return nil
@@ -210,20 +230,23 @@ func (r *HostconfJwkDb) ListKeys() (err error) {
 	defer Close(db)
 
 	if tx = db.Begin(); tx.Error != nil {
+		r.log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	defer tx.Rollback()
 
 	renewAfter, expiresAfter := r.timestamps()
 
-	if hcjwks, err = r.repository.ListJWKs(db); err != nil {
+	ctx := app_context.CtxWithDB(app_context.CtxWithLog(context.Background(), r.log), tx)
+	if hcjwks, err = r.repository.ListJWKs(ctx); err != nil {
+		r.log.Error(err.Error())
 		return err
 	}
-	slog.Info("JWKs in database", slog.Int("length", len(hcjwks)))
+	r.log.Info("JWKs in database", slog.Int("length", len(hcjwks)))
 	for _, hcjwk = range hcjwks {
 		pubstate, _ := hcjwk.GetPublicKeyState()
 		privstate, _ := hcjwk.GetPrivateKeyState(r.cfg.Secrets)
-		slog.Info(
+		r.log.Info(
 			"Hostconf JWK",
 			slog.String("kid", hcjwk.KeyId),
 			slog.String("publickey", hostconf_jwk.KeyStateString(pubstate)),

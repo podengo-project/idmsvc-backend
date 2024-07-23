@@ -1,13 +1,13 @@
 package impl
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"gorm.io/gorm"
@@ -30,62 +30,66 @@ func (a *application) HostConf(
 		xrhid   *identity.XRHID
 		keys    []jwk.Key
 	)
+	c := ctx.Request().Context()
+	log := app_context.LogFromCtx(c)
 	if xrhid, err = getXRHID(ctx); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	if err = ctx.Bind(&input); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 	if options, err = a.host.interactor.HostConf(xrhid, inventoryId, fqdn, &params, &input); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	if tx = a.db.Begin(); tx.Error != nil {
-		slog.ErrorContext(ctx.Request().Context(), tx.Error.Error())
+		log.Error(tx.Error.Error())
 		return tx.Error
 	}
 	defer tx.Rollback()
 
+	c = app_context.CtxWithDB(c, tx)
 	if domain, err = a.host.repository.MatchDomain(
-		tx,
+		c,
 		options,
 	); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
-	if keys, err = a.hostconfjwk.repository.GetPrivateSigningKeys(tx); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+	if keys, err = a.hostconfjwk.repository.GetPrivateSigningKeys(c); err != nil {
+		log.Error(err.Error())
 		return err
 	}
 	if len(keys) == 0 {
 		err = echo.NewHTTPError(http.StatusInternalServerError, "no keys available")
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	if hctoken, err = a.host.repository.SignHostConfToken(
+		c,
 		keys,
 		options,
 		domain,
 	); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
 	if tx.Commit(); tx.Error != nil {
-		slog.ErrorContext(ctx.Request().Context(), tx.Error.Error())
+		log.Error(tx.Error.Error())
 		return tx.Error
 	}
 
 	if output, err = a.host.presenter.HostConf(
 		domain, hctoken,
 	); err != nil {
-		slog.ErrorContext(ctx.Request().Context(), err.Error())
+		log.Error(err.Error())
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)
