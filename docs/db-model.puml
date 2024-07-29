@@ -17,6 +17,19 @@ entity "**domains**" {
   *""auto_enrollment_enabled"": //boolean //
 }
 
+entity "**hostconf_jwks**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp without time zone //
+  ""updated_at"": //timestamp without time zone //
+  ""deleted_at"": //timestamp without time zone //
+  *""key_id"": //character varying(16) //
+  *""expires_at"": //timestamp without time zone //
+  *""public_jwk"": //text //
+  *""encryption_id"": //character varying(16) //
+  ""encrypted_jwk"": //bytea //
+}
+
 entity "**ipa_certs**" {
   + ""id"": //serial [PK]//
   --
@@ -33,6 +46,17 @@ entity "**ipa_certs**" {
   *""pem"": //text //
 }
 
+entity "**ipa_locations**" {
+  + ""id"": //serial [PK]//
+  --
+  ""created_at"": //timestamp without time zone //
+  ""updated_at"": //timestamp without time zone //
+  ""deleted_at"": //timestamp without time zone //
+  ""ipa_id"": //integer [FK]//
+  *""name"": //character varying(64) //
+  ""description"": //text //
+}
+
 entity "**ipa_servers**" {
   + ""id"": //serial [PK]//
   --
@@ -41,7 +65,8 @@ entity "**ipa_servers**" {
   ""deleted_at"": //timestamp without time zone //
   ""ipa_id"": //integer [FK]//
   *""fqdn"": //character varying(253) //
-  *""rhsm_id"": //character varying(64) //
+  ""rhsm_id"": //character varying(64) //
+  ""location"": //character varying(63) //
   *""ca_server"": //boolean //
   *""hcc_enrollment_server"": //boolean //
   *""hcc_update_server"": //boolean //
@@ -49,7 +74,7 @@ entity "**ipa_servers**" {
 }
 
 entity "**ipas**" {
-  + ""id"": //serial [PK][FK]//
+  + ""id"": //integer [PK][FK]//
   --
   ""created_at"": //timestamp without time zone //
   ""updated_at"": //timestamp without time zone //
@@ -65,6 +90,8 @@ entity "**schema_migrations**" {
 }
 
 "**ipa_certs**"   }--  "**ipas**"
+
+"**ipa_locations**"   }--  "**ipas**"
 
 "**ipa_servers**"   }--  "**ipas**"
 
