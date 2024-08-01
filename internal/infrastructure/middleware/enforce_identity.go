@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 
-	"log/slog"
-
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
@@ -155,17 +154,19 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				cc       DomainContextInterface
 				ok       bool
 			)
+			ctx := c.Request().Context()
+			logger := app_context.LogFromCtx(ctx)
 			if config.Skipper != nil && config.Skipper(c) {
-				slog.DebugContext(c.Request().Context(), "Skipping EnforceIdentity middleware")
+				logger.Debug("Skipping EnforceIdentity middleware")
 				return next(c)
 			}
 			if cc, ok = c.(DomainContextInterface); !ok {
-				slog.ErrorContext(c.Request().Context(), "'DomainContextInterface' is expected")
+				logger.Error("'DomainContextInterface' is expected")
 				return echo.ErrInternalServerError
 			}
 			xrhidRaw = cc.Request().Header.Get(header.HeaderXRHID)
 			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
-				slog.ErrorContext(c.Request().Context(), err.Error())
+				logger.Error(err.Error())
 				return echo.ErrBadRequest
 			}
 
@@ -175,10 +176,7 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				key := entry.Name
 				predicate := entry.Predicate
 				if err = predicate(xrhid); err != nil {
-					slog.ErrorContext(
-						c.Request().Context(),
-						fmt.Sprintf("'%s' IdentityPredicate failed: %s", key, err.Error()),
-					)
+					logger.Error(fmt.Sprintf("'%s' IdentityPredicate failed: %s", key, err.Error()))
 					return echo.ErrUnauthorized
 				}
 			}

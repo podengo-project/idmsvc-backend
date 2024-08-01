@@ -35,7 +35,7 @@ func ContextLogConfig(cfg *LogConfig) echo.MiddlewareFunc {
 			// Let print the request-id for every call of the
 			// request log
 			logger := slog.Default().With(
-				slog.String("request-id", requestID),
+				slog.String("request_id", requestID),
 			)
 			ctx := c.Request().Context()
 			ctx = app_context.CtxWithLog(ctx, logger)

@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
+	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	rbac_data "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware/rbac-data"
 	rbac_client "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 )
@@ -49,10 +49,11 @@ func RBACWithConfig(rbacConfig *RBACConfig) echo.MiddlewareFunc {
 				xrhid      string
 				isAllowed  bool
 			)
+			logger := app_context.LogFromCtx(c.Request().Context())
 
 			// Process skippers
 			if rbacConfig.Skipper != nil && rbacConfig.Skipper(c) {
-				slog.DebugContext(c.Request().Context(), "Skipping rbac for "+c.Request().RequestURI)
+				logger.Debug("Skipping rbac for " + c.Request().RequestURI)
 				return next(c)
 			}
 
@@ -76,11 +77,11 @@ func RBACWithConfig(rbacConfig *RBACConfig) echo.MiddlewareFunc {
 				if err != nil {
 					return err
 				}
-				slog.ErrorContext(c.Request().Context(), "unauthorized", "permission", permission)
+				logger.Error("unauthorized", "permission", permission)
 				return echo.NewHTTPError(http.StatusUnauthorized, "Unauthorized")
 			}
 
-			slog.Debug("Authorized", "path", c.Request().URL.Path, "method", c.Request().Method)
+			logger.Debug("Authorized", "path", c.Request().URL.Path, "method", c.Request().Method)
 			return next(c)
 		}
 	}
