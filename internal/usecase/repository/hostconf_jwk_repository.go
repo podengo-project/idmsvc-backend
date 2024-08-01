@@ -47,6 +47,9 @@ func (r *hostconfJwkRepository) InsertJWK(ctx context.Context, hcjwk *model.Host
 }
 
 // RevokeJWK revokes a JWK with key identifier `kid`
+// ctx is the current request context with db and slog instances.
+// kid is the key id to revoke.
+// Return
 func (r *hostconfJwkRepository) RevokeJWK(ctx context.Context, kid string) (hcjwk *model.HostconfJwk, err error) {
 	db := app_context.DBFromCtx(ctx)
 	log := app_context.LogFromCtx(ctx)
@@ -78,6 +81,7 @@ func (r *hostconfJwkRepository) RevokeJWK(ctx context.Context, kid string) (hcjw
 }
 
 // ListJWKs all JWKs, including expired and revoked JWKs
+// ctx is the current request context with db and slog instances.
 func (r *hostconfJwkRepository) ListJWKs(ctx context.Context) (hcjwks []model.HostconfJwk, err error) {
 	db := app_context.DBFromCtx(ctx)
 	log := app_context.LogFromCtx(ctx)
@@ -98,6 +102,7 @@ func (r *hostconfJwkRepository) ListJWKs(ctx context.Context) (hcjwks []model.Ho
 }
 
 // PurgeExpiredJWKs find and removes all JWKs that are expired
+// ctx is the current request context with db and slog instances.
 func (r *hostconfJwkRepository) PurgeExpiredJWKs(ctx context.Context) (hcjwks []model.HostconfJwk, err error) {
 	db := app_context.DBFromCtx(ctx)
 	log := app_context.LogFromCtx(ctx)
@@ -131,6 +136,7 @@ func (r *hostconfJwkRepository) PurgeExpiredJWKs(ctx context.Context) (hcjwks []
 
 // GetPublicKeyArray returns an array of string with all valid, non-expired
 // public JWKs as serialized JSON. Expired or invalid keys are ignored
+// ctx is the current request context with db and slog instances.
 func (r *hostconfJwkRepository) GetPublicKeyArray(ctx context.Context) (pubkeys, revokedKids []string, err error) {
 	db := app_context.DBFromCtx(ctx)
 	log := app_context.LogFromCtx(ctx)
@@ -166,6 +172,7 @@ func (r *hostconfJwkRepository) GetPublicKeyArray(ctx context.Context) (pubkeys,
 // private JWKs for signing that can be decrypted with the current main app
 // secret. Expired, invalid keys, and keys encrypted for a different main app
 // secret are ignored.
+// ctx is the current request context with db and slog instances.
 func (r *hostconfJwkRepository) GetPrivateSigningKeys(ctx context.Context) (privkeys []jwk.Key, err error) {
 	db := app_context.DBFromCtx(ctx)
 	log := app_context.LogFromCtx(ctx)

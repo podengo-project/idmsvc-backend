@@ -66,6 +66,10 @@ func (r *domainRepository) List(
 }
 
 // Register a new domain
+// ctx is the current request context with db and slog instances.
+// orgID is the organization id.
+// data is the domain data to store.
+// Return nil on success, else an error instance.
 func (r *domainRepository) Register(
 	ctx context.Context,
 	orgID string,
@@ -133,6 +137,10 @@ func (r *domainRepository) Register(
 
 // UpdateAgent save the Domain record into the database. It only update
 // data for the current organization.
+// ctx is the current request context with db and slog instances.
+// orgID the organization id.
+// data the new domain data to update.
+// Return nil on success, else an error instance.
 func (r *domainRepository) UpdateAgent(
 	ctx context.Context,
 	orgID string,
@@ -202,7 +210,10 @@ func (r *domainRepository) prepareUpdateUser(data *model.Domain) map[string]inte
 
 // UpdateUser save the Domain record, but only the provided
 // information for the user update.
-// data for the current organization.
+// ctx is the current request context with db and slog instances.
+// orgID the organization id.
+// data the new domain data to update.
+// Return nil on success, else an error instance.
 func (r *domainRepository) UpdateUser(
 	ctx context.Context,
 	orgID string,
@@ -242,7 +253,7 @@ func (r *domainRepository) UpdateUser(
 
 // FindByID retrieve the model.Domain specified by its uuid that
 // belongs to the specified organization.
-// db is the gorm database connector.
+// ctx is the current request context with db and slog instances.
 // orgID is the organization id which the statement is executed for.
 // uuid is the uuid that identify the domain record as provided for
 // the API.
@@ -276,6 +287,11 @@ func (r *domainRepository) FindByID(
 	return output, nil
 }
 
+// Delete a domain information from the database.
+// ctx is the current request context with db and slog instances.
+// orgID the organization id.
+// data the new domain data to update.
+// Return nil on success, else an error instance.
 // See: https://gorm.io/docs/delete.html
 func (r *domainRepository) DeleteById(
 	ctx context.Context,
@@ -310,6 +326,14 @@ func (r *domainRepository) DeleteById(
 	return nil
 }
 
+// Delete a domain information from the database.
+// ctx is the current request context with db and slog instances.
+// key
+// validity is the duration of the token.
+// orgID the organization id.
+// domainType the type of the domain that allow the creation, currently
+// only "rhel-idm" is supported.
+// Return nil on success, else an error instance.
 func (r *domainRepository) CreateDomainToken(
 	ctx context.Context,
 	key []byte,
