@@ -28,6 +28,10 @@ func NewHostRepository() repository.HostRepository {
 // domains are matching.
 //
 // Exclude domains with auto_enrollment_enabled = FALSE.
+// ctx is the current request context with db and slog instances.
+// options provide filtering information to select the domain.
+// Return the matched domain and nil on success, else nil and the error
+// instance with additional information.
 func (r *hostRepository) MatchDomain(ctx context.Context, options *interactor.HostConfOptions) (output *model.Domain, err error) {
 	db := app_context.DBFromCtx(ctx)
 	log := app_context.LogFromCtx(ctx)
@@ -102,6 +106,12 @@ func (r *hostRepository) MatchDomain(ctx context.Context, options *interactor.Ho
 	return output, nil
 }
 
+// SignHostConfToken
+// ctx is the current request context with db and slog instances.
+// privs
+// options
+// Return the matched domain and nil on success, else nil and the error
+// instance with additional information.
 func (r *hostRepository) SignHostConfToken(
 	ctx context.Context,
 	privs []jwk.Key,
