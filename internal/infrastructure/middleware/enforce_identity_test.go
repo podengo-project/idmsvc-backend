@@ -53,6 +53,7 @@ func helperNewEchoEnforceIdentity(m echo.MiddlewareFunc) *echo.Echo {
 	h := func(c echo.Context) error {
 		return c.String(http.StatusOK, "Ok")
 	}
+	e.Use(ContextLogConfig(&LogConfig{}))
 	e.Use(CreateContext())
 	e.Use(m)
 	e.Add("GET", testPath, h)
@@ -197,6 +198,7 @@ func TestEnforceIdentityNoDomainContext(t *testing.T) {
 		return c.String(http.StatusOK, "Ok")
 	}
 	e.Use(
+		ContextLogConfig(&LogConfig{}),
 		EnforceIdentityWithConfig(
 			&IdentityConfig{
 				Predicates: []IdentityPredicateEntry{

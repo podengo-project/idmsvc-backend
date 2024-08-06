@@ -18,6 +18,7 @@ import (
 
 func helperRbacSetupEcho(config *RBACConfig, method, path string, status int) *echo.Echo {
 	e := echo.New()
+	e.Use(ContextLogConfig(&LogConfig{}))
 	e.Use(CreateContext())
 	e.Use(EnforceIdentityWithConfig(&IdentityConfig{}))
 	e.Use(RBACWithConfig(config))
