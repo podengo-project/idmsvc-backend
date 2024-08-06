@@ -44,6 +44,8 @@ func newMockInventoryServer(
 		status,
 		body,
 		nil,
+
+		middleware.ContextLogConfig(&middleware.LogConfig{}),
 		middleware.CreateContext(),
 		middleware.EnforceIdentityWithConfig(
 			&middleware.IdentityConfig{}),
@@ -163,7 +165,8 @@ func TestGetHostByCN(t *testing.T) {
 	)
 	defer e.Shutdown(context.Background())
 
-	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(e.Listener.Addr().String()))
+	mockPort := e.Listener.Addr().String()
+	cfg.Clients.InventoryBaseURL = fmt.Sprintf("http://localhost:%s/api/inventory/v1", readPort(mockPort))
 	cli := NewHostInventory(&cfg)
 	host, err := cli.GetHostByCN(api_header.EncodeXRHID(&xrhid), "test", cn)
 	require.NoError(t, err)
