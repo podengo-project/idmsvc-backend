@@ -196,7 +196,7 @@ parameters:
     description: |
       The resource request for the memory per pod
   - name: LOGGING_LEVEL
-    value: warn
+    value: info
     description: |
       The log level for the deployment; valid values
       are "info", "warn", "error", "debug", "trace".
