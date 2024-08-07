@@ -6,4 +6,5 @@ const (
 	HeaderXRequestID              = "X-Rh-Insights-Request-Id"
 	HeaderXRHIDMRegistrationToken = "X-Rh-Idm-Registration-Token"
 	HeaderXRHFakeID               = "X-Rh-Fake-Identity"
+	HeaderXForwardedFor           = "X-Forwarded-For"
 )
