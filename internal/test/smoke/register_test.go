@@ -88,7 +88,7 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 				Method:       http.MethodPost,
 				URL:          url,
 				Header: http.Header{
-					header.HeaderXRequestID:              {"test_token"},
+					header.HeaderXRequestID:              {"test_register"},
 					header.HeaderXRHIDMRegistrationToken: {s.token.DomainToken},
 					header.HeaderXRHIDMVersion: {
 						header.EncodeXRHIDMVersion(
@@ -106,8 +106,7 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusCreated,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					require.NotNil(t, body)

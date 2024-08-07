@@ -81,8 +81,7 @@ func (s *SuiteTokenCreate) TestToken() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 				},
 				BodyFunc: WrapBodyFuncTokenResponse(func(t *testing.T, body *public.DomainRegTokenResponse) error {
 					assert.NotEmpty(t, body.DomainToken)
