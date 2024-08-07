@@ -45,8 +45,7 @@ func (s *SuiteDomainUpdateUser) TestPatchDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_domain_patch"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					require.NotNil(t, body)

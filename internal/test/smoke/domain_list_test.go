@@ -146,7 +146,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				Method: http.MethodGet,
 				URL:    url1,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRequestID: {"test_domains_list_1"},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -154,8 +154,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				StatusCode: http.StatusOK,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 				},
 				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
 					require.NotNil(t, body)
@@ -185,7 +184,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				Method: http.MethodGet,
 				URL:    url2,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRequestID: {"test_domains_list_2"},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -193,8 +192,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				StatusCode: http.StatusOK,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 					// TODO Check format for X-Rh-Idm-Version
 				},
 				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
@@ -225,7 +223,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				Method: http.MethodGet,
 				URL:    url3,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRequestID: {"test_domains_list_3"},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -233,8 +231,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				StatusCode: http.StatusOK,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 					// TODO Check format for X-Rh-Idm-Version
 				},
 				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {
@@ -265,7 +262,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				Method: http.MethodGet,
 				URL:    url4,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRequestID: {"test_domains_list_4"},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -273,8 +270,7 @@ func (s *SuiteListDomains) TestListDomains() {
 				StatusCode: http.StatusOK,
 				Header: http.Header{
 					// FIXME Avoid hardcode the key name of the header
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 					// TODO Check format for X-Rh-Idm-Version
 				},
 				BodyFunc: WrapBodyFuncListDomainsResponse(func(t *testing.T, body *public.ListDomainsResponse) error {

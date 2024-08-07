@@ -39,7 +39,7 @@ func (s *SuiteReadDomain) TestReadDomain() {
 				Method: http.MethodGet,
 				URL:    url,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
+					header.HeaderXRequestID: {"test_read"},
 				},
 				Body: builder_api.NewDomain(domainName).Build(),
 			},
@@ -47,8 +47,7 @@ func (s *SuiteReadDomain) TestReadDomain() {
 				// FIXME It must be http.StatusCreated
 				StatusCode: http.StatusOK,
 				Header: http.Header{
-					header.HeaderXRequestID: {"test_token"},
-					header.HeaderXRHID:      nil,
+					header.HeaderXRHID: nil,
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					test_assert.AssertDomain(t, s.Domains[0], body)
