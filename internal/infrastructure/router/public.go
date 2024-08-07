@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
-	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/openapi"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
@@ -193,11 +192,6 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 			Metrics: c.Metrics,
 		},
 	)
-	requestIDMiddleware := echo_middleware.RequestIDWithConfig(
-		echo_middleware.RequestIDConfig{
-			TargetHeader: header.HeaderXRequestID, // TODO Check this name is the expected
-		},
-	)
 	validateAPI := middleware.DefaultNooperation
 	if c.EnableAPIValidator {
 		middleware.InitOpenAPIFormats()
@@ -223,7 +217,6 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 		echo_middleware.Secure(),
 		// TODO Check if this is made by 3scale
 		// middleware.CORSWithConfig(middleware.CORSConfig{}),
-		requestIDMiddleware,
 		validateAPI,
 	)
 
