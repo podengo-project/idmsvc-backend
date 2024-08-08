@@ -18,6 +18,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/inventory"
+	client_pendo "github.com/podengo-project/idmsvc-backend/internal/usecase/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
@@ -43,7 +44,8 @@ func initRbacWrapper(t *testing.T, cfg *config.Config) rbac.Rbac {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	svcRbac, mockRbac := mock_rbac.NewRbacMock(ctx, cfg)
-	svcRbac.Start()
+	err := svcRbac.Start()
+	require.NoError(t, err)
 	defer svcRbac.Stop()
 	mockRbac.WaitAddress(3 * time.Second)
 	mockRbac.SetPermissions(mock_rbac.Profiles["domain-admin-profile"])
@@ -77,11 +79,13 @@ func TestNewGroupPublicPanics(t *testing.T) {
 	require.NotNil(t, db)
 	rbac := initRbacWrapper(t, cfg)
 	require.NotNil(t, rbac)
+	pendo := client_pendo.NewClient(cfg)
+	require.NotNil(t, pendo)
 
 	// FIXME Refactor and encapsulate routerConfig in a factory function
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
-		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac),
+		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac, pendo),
 		Metrics:    metrics,
 	}
 	routerWrongConfig := RouterConfig{
@@ -175,11 +179,14 @@ func TestNewGroupPublic(t *testing.T) {
 	rbac := initRbacWrapper(t, cfg)
 	require.NotNil(t, rbac)
 
+	pendo := client_pendo.NewClient(cfg)
+	require.NotNil(t, pendo)
+
 	// FIXME Refactor and encapsulate routerConfig in a factory function
 	routerConfig := RouterConfig{
 		PublicPath: appPrefix + appName,
 		Version:    "1.0",
-		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac),
+		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac, pendo),
 		Metrics:    metrics,
 	}
 

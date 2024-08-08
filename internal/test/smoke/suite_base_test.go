@@ -34,6 +34,7 @@ import (
 	"gorm.io/gorm"
 
 	service_impl "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl"
+	client_pendo "github.com/podengo-project/idmsvc-backend/internal/usecase/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 )
 
@@ -134,7 +135,8 @@ func (s *SuiteBase) SetupTest() {
 		panic(err)
 	}
 	rbac := client_rbac.New(s.cfg.Clients.RbacBaseURL, rbacClient)
-	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory, rbac)
+	pendo := client_pendo.NewClient(s.cfg)
+	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory, rbac, pendo)
 	go func() {
 		if e := s.svc.Start(); e != nil {
 			panic(e)
