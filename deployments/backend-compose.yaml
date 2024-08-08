@@ -32,9 +32,11 @@ services:
       - DATABASE_NAME=${DATABASE_NAME:-idmsvc-db}
       - DATABASE_USER=${DATABASE_USER:-idmsvc-user}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD:-idmsvc-secret}
-      - APP_SECRET=${APP_SECRET:-random}
+      - APP_SECRET=${APP_SECRET:-YTEzY2YxNjAtNTU5MzExZWY5NzcxZmExNjNlNzMwZmM1}
       - APP_VALIDATE_API=${APP_VALIDATE_API:-false}
       - APP_TOKEN_EXPIRATION_SECONDS=${APP_TOKEN_EXPIRATION_SECONDS:-3600}
+      - CLIENTS_RBAC_BASE_URL=http://mock-rbac:8020/api/rbac/v1
+      - LOGGING_LEVEL=${LOGGING_LEVEL:-debug}
     depends_on:
       database:
         condition: service_healthy
@@ -52,15 +54,21 @@ services:
 
   mock-rbac:
     image: "${MOCK_RBAC_CONTAINER}"
+    build:
+      dockerfile: build/mock-rbac/Dockerfile
+      context: ../
     environment:
       CLIENTS_RBAC_BASE_URL: http://0.0.0.0:8020/api/rbac/v1
+      APP_CLIENTS_RBAC_PROFILE: ${APP_CLIENTS_RBAC_PROFILE:-domain-admin}
+      CONFIG_PATH: /opt/etc
       # APP_CLIENTS_RBAC_PROFILE: super-admin
-      APP_CLIENTS_RBAC_PROFILE: domain-admin
       # APP_CLIENTS_RBAC_PROFILE: domain-read-only
       # APP_CLIENTS_RBAC_PROFILE: domain-no-perms
       # APP_CLIENTS_RBAC_PROFILE: custom
     ports:
       - 8020:8020
+    volumes:
+      - ../configs/config.yaml:/opt/etc/config.yaml:z
 
 volumes:
   database:
