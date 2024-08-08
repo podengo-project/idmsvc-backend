@@ -158,6 +158,12 @@ type Clients struct {
 	InventoryBaseURL string `mapstructure:"inventory_base_url"`
 	// RbacBaseURL is the base endpoint to launch RBAC requests.
 	RbacBaseURL string `mapstructure:"rbac_base_url"`
+	// PendoBaseURL is the base url to reach out the pendo API.
+	PendoBaseURL string `mapstructure:"pendo_base_url"`
+	// PendoAPIKey indicates the shared key to communicate with the API.
+	PendoAPIKey string `mapstructure:"pendo_api_key" json:"-"`
+	// PendoRequestTimeoutSecs indicates the timeout for every request.
+	PendoRequestTimeoutSecs int `mapstructure:"pendo_request_timeout_secs"`
 }
 
 // Application hold specific application settings
@@ -235,6 +241,10 @@ func setDefaults(v *viper.Viper) {
 
 	// Clients
 	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
+	v.SetDefault("clients.rbac_base_url", "")
+	v.SetDefault("clients.pendo_base_url", "")
+	v.SetDefault("clients.pendo_api_key", "")
+	v.SetDefault("clients.pendo_request_timeout_secs", 0)
 
 	// Application specific
 
