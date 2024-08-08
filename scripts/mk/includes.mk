@@ -29,6 +29,7 @@ include scripts/mk/venv.mk
 # mocks
 include scripts/mk/meta-mock.mk
 include scripts/mk/mock-rbac.mk
+include scripts/mk/mock-pendo.mk
 # commands
 include scripts/mk/meta-general.mk
 include scripts/mk/help.mk

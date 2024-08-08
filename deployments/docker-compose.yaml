@@ -125,7 +125,6 @@ services:
   #       timeout: 3s
   #       start_period: 5s
 
-  # 'make test' will fail with mock-rbac running
   mock-rbac:
     image: "${MOCK_RBAC_CONTAINER}"
     build:
@@ -137,6 +136,21 @@ services:
       CONFIG_PATH: /opt/etc
     ports:
       - 8020:8020
+    volumes:
+      - ../configs/config.yaml:/opt/etc/config.yaml:z
+
+  mock-pendo:
+    image: "${MOCK_PENDO_CONTAINER}"
+    build:
+      dockerfile: build/mock-pendo/Dockerfile
+      context: ../
+    environment:
+      CLIENTS_PENDO_BASE_URL: http://0.0.0.0:8030/api/pendo/v1
+      CLIENTS_PENDO_API_KEY: test-pendo-key
+      CLIENTS_PENDO_REQUEST_TIMEOUT_SECS: 10
+      CONFIG_PATH: /opt/etc
+    ports:
+      - 8030:8030
     volumes:
       - ../configs/config.yaml:/opt/etc/config.yaml:z
 
