@@ -14,6 +14,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/inventory"
+	client_pendo "github.com/podengo-project/idmsvc-backend/internal/usecase/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
@@ -186,8 +187,12 @@ func TestNewRouterWithConfig(t *testing.T) {
 		panic(err)
 	}
 	rbac := client_rbac.New(cfg.Clients.RbacBaseURL, rbacClient)
+	require.NotNil(t, rbac)
+	pendo := client_pendo.NewClient(cfg)
+	require.NotNil(t, pendo)
+
 	// Create application handlers
-	app := handler_impl.NewHandler(cfg, db, metrics, inventory, rbac)
+	app := handler_impl.NewHandler(cfg, db, metrics, inventory, rbac, pendo)
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",
@@ -236,8 +241,9 @@ func TestNewRouterForMetrics(t *testing.T) {
 		panic(err)
 	}
 	rbac := client_rbac.New(cfg.Clients.RbacBaseURL, rbacClient)
+	pendo := client_pendo.NewClient(cfg)
 	// Create application handlers
-	app := handler_impl.NewHandler(cfg, db, metrics, inventory, rbac)
+	app := handler_impl.NewHandler(cfg, db, metrics, inventory, rbac, pendo)
 
 	goodConfig := RouterConfig{
 		Version:     "1.0",

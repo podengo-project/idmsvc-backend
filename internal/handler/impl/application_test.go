@@ -20,14 +20,14 @@ func TestNewHandler(t *testing.T) {
 	require.NotNil(t, sqlMock)
 	require.NotNil(t, gormDB)
 	assert.Panics(t, func() {
-		NewHandler(nil, nil, nil, nil, nil)
+		NewHandler(nil, nil, nil, nil, nil, nil)
 	})
 	assert.Panics(t, func() {
-		NewHandler(&config.Config{}, nil, nil, nil, nil)
+		NewHandler(&config.Config{}, nil, nil, nil, nil, nil)
 	})
 	cfg := test.GetTestConfig()
 	assert.NotPanics(t, func() {
-		NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock, nil)
+		NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock, nil, nil)
 	})
 }
 
@@ -37,7 +37,7 @@ func TestAppSecrets(t *testing.T) {
 	require.NoError(t, err)
 	cfg := test.GetTestConfig()
 
-	handler := NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock, nil)
+	handler := NewHandler(cfg, gormDB, &metrics.Metrics{}, inventoryMock, nil, nil)
 	app := handler.(*application)
 
 	assert.NotEmpty(t, app.config.Secrets.DomainRegKey)
