@@ -4,6 +4,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
+	client_pendo "github.com/podengo-project/idmsvc-backend/internal/interface/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
@@ -41,9 +42,10 @@ type application struct {
 	hostconfjwk hostconfJwkComponent
 	db          *gorm.DB
 	inventory   client_inventory.HostInventory
+	pendo       client_pendo.Pendo
 }
 
-func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client_inventory.HostInventory, rbac client_rbac.Rbac) handler.Application {
+func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventory client_inventory.HostInventory, rbac client_rbac.Rbac, pendo client_pendo.Pendo) handler.Application {
 	if config == nil {
 		panic("config is nil")
 	}
@@ -75,5 +77,6 @@ func NewHandler(config *config.Config, db *gorm.DB, m *metrics.Metrics, inventor
 		host:        hc,
 		hostconfjwk: hcjc,
 		inventory:   inventory,
+		pendo:       pendo,
 	}
 }
