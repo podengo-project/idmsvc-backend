@@ -24,6 +24,9 @@ metrics:
 clients:
   inventory_base_url: http://localhost:8010/api/inventory/v1
   rbac_base_url: http://localhost:8020/api/rbac/v1
+  pendo_base_url: http://localhost:8030/api/pendo/v1
+  pendo_api_key: test-api-key
+  pendo_request_timeout_secs: 10
 
 app:
   name: idmsvc
