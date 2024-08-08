@@ -7,4 +7,5 @@ const (
 	HeaderXRHIDMRegistrationToken = "X-Rh-Idm-Registration-Token"
 	HeaderXRHFakeID               = "X-Rh-Fake-Identity"
 	HeaderXForwardedFor           = "X-Forwarded-For"
+	HeaderXPendoIntegrationKey    = "X-Pendo-Integration-Key"
 )
