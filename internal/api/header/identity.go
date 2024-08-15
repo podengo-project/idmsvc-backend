@@ -8,6 +8,17 @@ import (
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
+// https://github.com/RedHatInsights/identity-schemas/blob/main/3scale/schema.json#L13
+// https://github.com/RedHatInsights/identity-schemas/blob/main/turnpike/schema.json#L7
+const (
+	identityTypeUser           = "User"
+	identityTypeServiceAccount = "ServiceAccount"
+	identityTypeSystem         = "System"
+	identityTypeX509           = "X509"
+	identityTypeAssociate      = "Associate"
+	identityTypeUnknown        = "unknown"
+)
+
 // DecodeXRHID from a base64 representation and return
 // the unmarshaled value.
 // data is the base64 x-rh-identity header representation.
@@ -47,4 +58,26 @@ func EncodeXRHID(data *identity.XRHID) string {
 		return ""
 	}
 	return b64.StdEncoding.EncodeToString(bytes)
+}
+
+// GetPrincipal returns the principal of the identity.
+// A principal is, based on type, User.UserID, ServiceAccount.ClientId,
+// System.CommonName, X509.SubjectDN, Associate.RHatUUID.
+func GetPrincipal(xrhid *identity.XRHID) string {
+	principal := ""
+	switch xrhid.Identity.Type {
+	case identityTypeUser:
+		principal = xrhid.Identity.User.UserID
+	case identityTypeServiceAccount:
+		principal = xrhid.Identity.ServiceAccount.ClientId
+	case identityTypeSystem:
+		principal = xrhid.Identity.System.CommonName
+	case identityTypeX509:
+		principal = xrhid.Identity.X509.SubjectDN
+	case identityTypeAssociate:
+		principal = xrhid.Identity.Associate.RHatUUID
+	default:
+		principal = identityTypeUnknown
+	}
+	return principal
 }

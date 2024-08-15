@@ -14,17 +14,6 @@ import (
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 )
 
-// https://github.com/RedHatInsights/identity-schemas/blob/main/3scale/schema.json#L13
-// https://github.com/RedHatInsights/identity-schemas/blob/main/turnpike/schema.json#L7
-const (
-	identityTypeUser           = "User"
-	identityTypeServiceAccount = "ServiceAccount"
-	identityTypeSystem         = "System"
-	identityTypeX509           = "X509"
-	identityTypeAssociate      = "Associate"
-	identityTypeUnknown        = "unknown"
-)
-
 // FIXME Refactor to use the signature: func(c echo.Context) Error
 //
 //	so that the predicate has information about the http Request
@@ -200,7 +189,7 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 			)
 
 			// Set principal
-			principal := getPrincipal(xrhid)
+			principal := header.GetPrincipal(xrhid)
 			logger = logger.With(slog.String("identity_principal", principal))
 			ctx = app_context.CtxWithLog(ctx, logger)
 			c.SetRequest(c.Request().Clone(ctx))
@@ -225,23 +214,4 @@ func decodeXRHID(b64XRHID string) (*identity.XRHID, error) {
 		return nil, err
 	}
 	return xrhid, nil
-}
-
-func getPrincipal(xrhid *identity.XRHID) string {
-	principal := ""
-	switch xrhid.Identity.Type {
-	case identityTypeUser:
-		principal = xrhid.Identity.User.UserID
-	case identityTypeServiceAccount:
-		principal = xrhid.Identity.ServiceAccount.ClientId
-	case identityTypeSystem:
-		principal = xrhid.Identity.System.CommonName
-	case identityTypeX509:
-		principal = xrhid.Identity.X509.SubjectDN
-	case identityTypeAssociate:
-		principal = xrhid.Identity.Associate.RHatUUID
-	default:
-		principal = identityTypeUnknown
-	}
-	return principal
 }
