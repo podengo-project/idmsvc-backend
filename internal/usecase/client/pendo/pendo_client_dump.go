@@ -2,6 +2,7 @@ package pendo
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
@@ -41,7 +42,7 @@ func (c *pendoClientDump) SetMetadata(ctx context.Context, kind pendo.Kind, grou
 // SendTrackEvent
 func (c *pendoClientDump) SendTrackEvent(ctx context.Context, track *pendo.TrackRequest) error {
 	logger := app_context.LogFromCtx(ctx)
-	logger.Debug("pendo SendTrackEvent called")
+	logger.Debug(fmt.Sprintf("pendo SendTrackEvent called: %s", track.Event))
 	return nil
 }
 
