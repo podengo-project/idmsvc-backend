@@ -7,9 +7,17 @@ import (
 	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/client/pendo"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
+	mock_pendo "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/pendo"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+)
+
+const (
+	pendoHostConfSuccess = "idmsvc-host-conf-success"
+	pendoHostConfFailure = "idmsvc-host-conf-failure"
 )
 
 // SuiteTokenCreate is the suite token for smoke tests at /api/idmsvc/v1/domains/token
@@ -17,6 +25,11 @@ type SuiteSystemEndpoints struct {
 	SuiteBase
 	token  *public.DomainRegTokenResponse
 	domain *public.Domain
+}
+
+func (s *SuiteSystemEndpoints) SetupTest() {
+	s.PendoClient = mock_pendo.NewPendo(s.T())
+	s.SuiteBase.SetupTest()
 }
 
 func (s *SuiteSystemEndpoints) prepareDomainIpaCreate(t *testing.T) {
@@ -83,14 +96,23 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 	require.NotNil(t, s.domain)
 }
 
-func (s *SuiteSystemEndpoints) TestHostConfExecute() {
+func (s *SuiteSystemEndpoints) TestHostConfExecuteSuccess() {
+	// Given
 	t := s.T()
 	s.As(RBACSuperAdmin)
 	s.prepareDomainIpa(t)
-
-	t.Log("Calling SystemHostConfWithResponse")
 	domainType := public.RhelIdm
 	s.As(XRHIDSystem, RBACNoPermis)
+
+	mockPendo, ok := s.PendoClient.(*mock_pendo.Pendo)
+	require.True(t, ok)
+	mockPendo.On("SendTrackEvent", mock.Anything, mock.MatchedBy(func(r *pendo.TrackRequest) bool {
+		return (r.Event == pendoHostConfSuccess &&
+			r.AccountID == s.systemXRHID.Identity.OrgID &&
+			r.VisitorID == s.systemXRHID.Identity.System.CommonName)
+	})).Return(nil)
+
+	// When
 	res, err := s.HostConfWithResponse(
 		s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String(),
 		"client."+s.domain.DomainName,
@@ -98,9 +120,48 @@ func (s *SuiteSystemEndpoints) TestHostConfExecute() {
 			WithDomainName(pointy.String(s.domain.DomainName)).
 			WithDomainType(&domainType).
 			Build())
+
+	// Then
 	require.NoError(t, err)
 	require.NotNil(t, res)
+	err = res.Body.Close()
+	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, res.StatusCode)
+	mockPendo.AssertExpectations(t)
+}
+
+func (s *SuiteSystemEndpoints) TestHostConfExecuteFailure() {
+	// Given
+	t := s.T()
+	s.As(RBACSuperAdmin)
+	s.prepareDomainIpa(t)
+	domainType := public.RhelIdm
+	s.As(XRHIDSystem, RBACNoPermis)
+
+	mockPendo, ok := s.PendoClient.(*mock_pendo.Pendo)
+	require.True(t, ok)
+	mockPendo.On("SendTrackEvent", mock.Anything, mock.MatchedBy(func(r *pendo.TrackRequest) bool {
+		return (r.Event == pendoHostConfFailure &&
+			r.AccountID == s.systemXRHID.Identity.OrgID &&
+			r.VisitorID == s.systemXRHID.Identity.System.CommonName)
+	})).Return(nil)
+
+	// When
+	res, err := s.HostConfWithResponse(
+		s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String(),
+		"client."+s.domain.DomainName,
+		builder_api.NewHostConf().
+			WithDomainName(pointy.String("invaliddomain.test")).
+			WithDomainType(&domainType).
+			Build())
+
+	// Then
+	require.NoError(t, err)
+	require.NotNil(t, res)
+	err = res.Body.Close()
+	require.NoError(t, err)
+	require.Equal(t, http.StatusNotFound, res.StatusCode)
+	mockPendo.AssertExpectations(t)
 }
 
 func (s *SuiteSystemEndpoints) TestReadSigningKeys() {
