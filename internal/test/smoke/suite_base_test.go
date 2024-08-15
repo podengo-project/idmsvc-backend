@@ -24,6 +24,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/client/pendo"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	client_inventory "github.com/podengo-project/idmsvc-backend/internal/usecase/client/inventory"
@@ -102,6 +103,7 @@ type SuiteBase struct {
 	db            *gorm.DB
 	svcRbac       service.ApplicationService
 	RbacMock      mock_rbac.MockRbac
+	PendoClient   pendo.Pendo
 	IpaHccVersion *header.XRHIDMVersion
 }
 
@@ -135,8 +137,10 @@ func (s *SuiteBase) SetupTest() {
 		panic(err)
 	}
 	rbac := client_rbac.New(s.cfg.Clients.RbacBaseURL, rbacClient)
-	pendo := client_pendo.NewClient(s.cfg)
-	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory, rbac, pendo)
+	if s.PendoClient == nil {
+		s.PendoClient = client_pendo.NewClient(s.cfg)
+	}
+	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory, rbac, s.PendoClient)
 	go func() {
 		if e := s.svc.Start(); e != nil {
 			panic(e)

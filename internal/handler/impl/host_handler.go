@@ -13,7 +13,26 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	pendoHostConfSuccess = "idmsvc-host-conf-success"
+	pendoHostConfFailure = "idmsvc-host-conf-failure"
+)
+
 func (a *application) HostConf(
+	ctx echo.Context,
+	inventoryId public.HostId,
+	fqdn string,
+	params public.HostConfParams,
+) error {
+	if err := a.hostConf(ctx, inventoryId, fqdn, params); err != nil {
+		sendPendoTrackEvent(ctx, a.pendo, pendoHostConfFailure)
+		return err
+	}
+	sendPendoTrackEvent(ctx, a.pendo, pendoHostConfSuccess)
+	return nil
+}
+
+func (a *application) hostConf(
 	ctx echo.Context,
 	inventoryId public.HostId,
 	fqdn string,
