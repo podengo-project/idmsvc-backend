@@ -4,6 +4,7 @@ import (
 	b64 "encoding/base64"
 	"testing"
 
+	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -126,4 +127,67 @@ func TestSystemIdentity(t *testing.T) {
 	assert.Equal(t, "12345", result.Identity.Internal.OrgID)
 
 	assert.Equal(t, "system", result.Identity.System.CertType)
+}
+
+func TestGetPrincipal(t *testing.T) {
+	type TestCase struct {
+		Name     string
+		Given    identity.XRHID
+		Expected string
+	}
+	testCases := []TestCase{
+		{
+			Name:     "User identity",
+			Given:    builder_api.NewUserXRHID().WithUserID("user-id").Build(),
+			Expected: "user-id",
+		},
+		{
+			Name:     "System identity",
+			Given:    builder_api.NewSystemXRHID().WithCommonName("system-id").Build(),
+			Expected: "system-id",
+		},
+		{
+			Name:     "Service Account identity",
+			Given:    builder_api.NewServiceAccountXRHID().WithClientID("service-account-id").Build(),
+			Expected: "service-account-id",
+		},
+		{
+			Name: "X509 identity",
+			Given: identity.XRHID{
+				Identity: identity.Identity{
+					Type: identityTypeX509,
+					X509: &identity.X509{
+						SubjectDN: "CN=cert identity, O=domain.test",
+					},
+				},
+			},
+			Expected: "CN=cert identity, O=domain.test",
+		},
+		{
+			Name: "Red Hat UUID",
+			Given: identity.XRHID{
+				Identity: identity.Identity{
+					Type: identityTypeAssociate,
+					Associate: &identity.Associate{
+						RHatUUID: "redhat-id",
+					},
+				},
+			},
+			Expected: "redhat-id",
+		},
+		{
+			Name: "Unknown identity",
+			Given: identity.XRHID{
+				Identity: identity.Identity{
+					Type: identityTypeUnknown,
+				},
+			},
+			Expected: identityTypeUnknown,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Log(testCase.Name)
+		require.Equal(t, testCase.Expected, GetPrincipal(&testCase.Given))
+	}
 }
