@@ -203,6 +203,7 @@ MOCK_DIRS := internal/api/private \
 	internal/interface/event \
 	internal/interface/client/inventory \
 	internal/interface/client/rbac \
+	internal/interface/client/pendo \
 	internal/handler \
 	internal/infrastructure/service \
 	internal/infrastructure/event \
