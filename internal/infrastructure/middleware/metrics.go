@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"errors"
+	"strconv"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,23 +21,6 @@ var defaultConfig MetricsConfig = MetricsConfig{
 	Metrics: metrics.NewMetrics(prometheus.NewRegistry()),
 }
 
-func mapStatus(status int) string {
-	switch {
-	case status >= 100 && status < 200:
-		return "1xx"
-	case status >= 200 && status < 300:
-		return "2xx"
-	case status >= 300 && status < 400:
-		return "3xx"
-	case status >= 400 && status < 500:
-		return "4xx"
-	case status >= 500 && status < 600:
-		return "5xx"
-	default:
-		return ""
-	}
-}
-
 func MetricsMiddlewareWithConfig(config *MetricsConfig) echo.MiddlewareFunc {
 	if config == nil {
 		config = &defaultConfig
@@ -52,13 +37,22 @@ func MetricsMiddlewareWithConfig(config *MetricsConfig) echo.MiddlewareFunc {
 			if config.Skipper(ctx) {
 				return next(ctx)
 			}
+
+			err := next(ctx)
+
 			method := ctx.Request().Method
 			path := MatchedRoute(ctx)
-			err := next(ctx)
-			status := mapStatus(ctx.Response().Status)
-			defer func() {
-				config.Metrics.HttpStatusHistogram.WithLabelValues(status, method, path).Observe(time.Since(start).Seconds())
-			}()
+			status := ctx.Response().Status
+
+			// ctx.Response().Status might not be set yet for errors
+			httpErr := new(echo.HTTPError)
+			if errors.As(err, &httpErr) {
+				status = httpErr.Code
+			}
+			statusStr := strconv.Itoa(status)
+
+			config.Metrics.HTTPRequestDuration.WithLabelValues(statusStr, method, path).Observe(time.Since(start).Seconds())
+
 			return err
 		}
 	}

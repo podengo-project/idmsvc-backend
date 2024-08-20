@@ -208,12 +208,12 @@ func newGroupPublic(e *echo.Group, c RouterConfig) *echo.Group {
 	// Wire the middlewares
 	e.Use(
 		middleware.CreateContext(),
+		metricsMiddleware,
 		fakeIdentityMiddleware,
 		mixedIdentityMiddleware,
 		systemIdentityMiddleware,
 		userAndSAIdentityMiddleware,
 		rbacMiddleware,
-		metricsMiddleware,
 		echo_middleware.Secure(),
 		// TODO Check if this is made by 3scale
 		// middleware.CORSWithConfig(middleware.CORSConfig{}),
