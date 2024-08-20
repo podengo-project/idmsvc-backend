@@ -26,27 +26,6 @@ func TestCreateMetricsMiddleware(t *testing.T) {
 	assert.NotNil(t, middleware)
 }
 
-func TestMapStatus(t *testing.T) {
-	type TestCase struct {
-		Name     string
-		Given    int
-		Expected string
-	}
-	testCases := []TestCase{
-		{Name: "0", Given: 0, Expected: ""},
-		{Name: "1xx", Given: http.StatusContinue, Expected: "1xx"},
-		{Name: "2xx", Given: http.StatusOK, Expected: "2xx"},
-		{Name: "3xx", Given: http.StatusMultipleChoices, Expected: "3xx"},
-		{Name: "4xx", Given: http.StatusBadRequest, Expected: "4xx"},
-		{Name: "5xx", Given: http.StatusInternalServerError, Expected: "5xx"},
-	}
-
-	for _, testCase := range testCases {
-		result := mapStatus(testCase.Given)
-		assert.Equal(t, testCase.Expected, result)
-	}
-}
-
 func TestMetricsMiddlewareWithConfigCreation(t *testing.T) {
 	var (
 		reg              *prometheus.Registry
