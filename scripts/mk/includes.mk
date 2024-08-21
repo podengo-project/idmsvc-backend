@@ -24,6 +24,8 @@ include scripts/mk/variables.mk
 # tools
 include scripts/mk/meta-prometheus.mk
 include scripts/mk/prometheus.mk
+include scripts/mk/meta-grafana.mk
+include scripts/mk/grafana.mk
 include scripts/mk/plantuml.mk
 include scripts/mk/venv.mk
 # mocks
