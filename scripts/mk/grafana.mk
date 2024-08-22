@@ -41,6 +41,7 @@ grafana-up: ## Start grafana service (local access at http://localhost:9090)
 	  --network idmsvc_backend \
 	  --publish $(GRAFANA_UI_PORT):3000 \
 	  docker.io/grafana/grafana:$(GRAFANA_VERSION)
+	./scripts/init_grafana.py
 	@@echo "Grafana is running at http://localhost:$(GRAFANA_UI_PORT)"
 	@@echo "Default user+password: admin/admin"
 
