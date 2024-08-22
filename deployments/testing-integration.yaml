@@ -104,6 +104,8 @@ objects:
                   value: ${SELENIUM_JAVA_OPTS}
                 - name: VNC_GEOMETRY
                   value: ${VNC_GEOMETRY}
+                - name: SE_NODE_SESSION_TIMEOUT
+                  value: ${SE_NODE_SESSION_TIMEOUT}
               resources:
                 limits:
                   cpu: ${SELENIUM_CPU_LIMIT}
@@ -168,3 +170,5 @@ parameters:
     value: 100m
   - name: SELENIUM_MEMORY_REQUEST
     value: 1Gi
+  - name: SE_NODE_SESSION_TIMEOUT
+    value: "600"
