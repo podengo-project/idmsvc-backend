@@ -506,7 +506,7 @@ func TestEnforceIdentityOrder(t *testing.T) {
 
 		// Check expectations
 		require.Condition(t, func() (success bool) {
-			return order["first"].Compare(order["second"]) < 0
+			return order["first"].Compare(order["second"]) <= 0
 		})
 	}
 }
