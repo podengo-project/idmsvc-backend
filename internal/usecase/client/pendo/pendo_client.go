@@ -158,7 +158,7 @@ func newClient(cfg *config.Config) *pendoClient {
 		cfg.Clients.PendoRequestTimeoutSecs = 3
 	}
 	client := &http.Client{
-		Timeout: time.Duration(cfg.Clients.PendoRequestTimeoutSecs),
+		Timeout: time.Duration(cfg.Clients.PendoRequestTimeoutSecs) * time.Second,
 	}
 	return &pendoClient{
 		Config: cfg,
