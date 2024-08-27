@@ -308,7 +308,7 @@ func TestGuardSetTrack(t *testing.T) {
 	require.EqualError(t, client.guardSendTrackEvent(&track), "'track.VisitorID' is an empty string")
 	track.VisitorID = "my-visitor-id"
 	require.EqualError(t, client.guardSendTrackEvent(&track), "'track.Timestamp' is invalid")
-	track.Timestamp = time.Now().UTC().Unix()
+	track.Timestamp = time.Now().UTC().UnixMilli()
 	require.NoError(t, client.guardSendTrackEvent(&track))
 }
 
@@ -333,7 +333,7 @@ func TestSetTrackEvent(t *testing.T) {
 		Type:      "track",
 		Event:     "my-event",
 		VisitorID: "my-visitor-id",
-		Timestamp: time.Now().UTC().Unix(),
+		Timestamp: time.Now().UTC().UnixMilli(),
 	}
 	require.NoError(t, client.SendTrackEvent(ctx, &track))
 }
@@ -358,7 +358,7 @@ func TestSetTrackEventErrorHttpStatus(t *testing.T) {
 		Type:      "track",
 		Event:     "my-event",
 		VisitorID: "my-visitor-id",
-		Timestamp: time.Now().UTC().Unix(),
+		Timestamp: time.Now().UTC().UnixMilli(),
 	}
 	err := client.SendTrackEvent(ctx, &track)
 	require.EqualError(t, err, "unexpected StatusCode on SendTrackEvent response")
