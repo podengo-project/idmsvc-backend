@@ -18,7 +18,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const baseURL = "http://localhost:8031/pendo/v1"
+const (
+	baseURL           = "http://localhost:8031"
+	testAPIKey        = "test-api-key"
+	testTrackEventKey = "test-track-event-key"
+)
 
 // RoundTripFunc .
 type RoundTripFunc func(req *http.Request) *http.Response
@@ -35,7 +39,8 @@ func helperPendoConfig() *config.Config {
 	return &config.Config{
 		Clients: config.Clients{
 			PendoBaseURL:            baseURL,
-			PendoAPIKey:             "test-api-key",
+			PendoAPIKey:             testAPIKey,
+			PendoTrackEventKey:      testTrackEventKey,
 			PendoRequestTimeoutSecs: 1,
 		},
 	}
@@ -72,10 +77,22 @@ func TestNewPendo(t *testing.T) {
 		})
 	})
 
+	assert.PanicsWithValue(t, "'PendoTrackEventKey' is empty", func() {
+		newClient(&config.Config{
+			Clients: config.Clients{
+				PendoBaseURL:            baseURL,
+				PendoAPIKey:             testAPIKey,
+				PendoTrackEventKey:      "",
+				PendoRequestTimeoutSecs: 0,
+			},
+		})
+	})
+
 	client := newClient(&config.Config{
 		Clients: config.Clients{
 			PendoBaseURL:            baseURL,
-			PendoAPIKey:             "kiudsahfq84radihfa",
+			PendoAPIKey:             testAPIKey,
+			PendoTrackEventKey:      testTrackEventKey,
 			PendoRequestTimeoutSecs: 0,
 		},
 	})
@@ -102,7 +119,7 @@ func TestGuardSetMetadata(t *testing.T) {
 func helperSetMetadataPrepareRequest(t *testing.T, req *http.Request, kind pendo.Kind, group pendo.Group) pendo.SetMetadataRequest {
 	metrics := make(pendo.SetMetadataRequest, 0, 10)
 	// Check request
-	assert.Equal(t, baseURL+"/metadata/"+string(kind)+"/"+string(group)+"/value", req.URL.String())
+	assert.Equal(t, baseURL+"/api/v1/metadata/"+string(kind)+"/"+string(group)+"/value", req.URL.String())
 	reqBytes, err := io.ReadAll(req.Body)
 	require.NoError(t, err)
 	require.NotNil(t, reqBytes)
@@ -236,7 +253,7 @@ func TestSetMetadataForceFailureOnDoingRequestToPendo(t *testing.T) {
 		VisitorID: "thisVisitorDoesNotExist",
 	})
 	resp, err := client.SetMetadata(ctx, kind, group, metrics)
-	require.EqualError(t, err, "Post \"http://localhost:8031/pendo/v1/metadata/account/custom/value\": http: RoundTripper implementation (pendo.RoundTripFunc) returned a nil *Response with a nil error")
+	require.EqualError(t, err, "Post \"http://localhost:8031/api/v1/metadata/account/custom/value\": http: RoundTripper implementation (pendo.RoundTripFunc) returned a nil *Response with a nil error")
 	require.Nil(t, resp)
 }
 
@@ -315,7 +332,7 @@ func TestGuardSetTrack(t *testing.T) {
 func TestSetTrackEvent(t *testing.T) {
 	cfg := helperPendoConfig()
 	client := helperNewPendo(cfg, func(req *http.Request) *http.Response {
-		assert.Equal(t, baseURL+"/track", req.URL.String())
+		assert.Equal(t, baseURL+"/data/track", req.URL.String())
 		return &http.Response{
 			StatusCode: http.StatusOK,
 			Body:       io.NopCloser(bytes.NewBufferString(`OK`)),
@@ -341,7 +358,7 @@ func TestSetTrackEvent(t *testing.T) {
 func TestSetTrackEventErrorHttpStatus(t *testing.T) {
 	cfg := helperPendoConfig()
 	client := helperNewPendo(cfg, func(req *http.Request) *http.Response {
-		assert.Equal(t, baseURL+"/track", req.URL.String())
+		assert.Equal(t, baseURL+"/data/track", req.URL.String())
 		return &http.Response{
 			StatusCode: http.StatusBadGateway,
 			Body:       http.NoBody,

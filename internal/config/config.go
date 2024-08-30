@@ -162,6 +162,9 @@ type Clients struct {
 	PendoBaseURL string `mapstructure:"pendo_base_url"`
 	// PendoAPIKey indicates the shared key to communicate with the API.
 	PendoAPIKey string `mapstructure:"pendo_api_key" json:"-"`
+	// PendoTrackEventKey indicates the shared key to communicate with the API
+	// for track events.
+	PendoTrackEventKey string `mapstructure:"pendo_track_event_key" json:"-"`
 	// PendoRequestTimeoutSecs indicates the timeout for every request.
 	PendoRequestTimeoutSecs int `mapstructure:"pendo_request_timeout_secs"`
 }
@@ -244,6 +247,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("clients.rbac_base_url", "")
 	v.SetDefault("clients.pendo_base_url", "")
 	v.SetDefault("clients.pendo_api_key", "")
+	v.SetDefault("clients.pendo_track_event_key", "")
 	v.SetDefault("clients.pendo_request_timeout_secs", 0)
 
 	// Application specific
