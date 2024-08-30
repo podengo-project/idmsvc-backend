@@ -5,6 +5,7 @@ stages:
   - check
   - test
   - build
+  - sonarqube-check
 
 check missed commits:
   stage: check
@@ -62,3 +63,28 @@ compile project:
     - shared
   script:
     - make build
+
+sonarqube-check:
+  stage: sonarqube-check
+  tags:
+    - shared
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_BRANCH == 'main'
+    - if: $CI_COMMIT_BRANCH == 'sq-test'
+  image:
+    name: images.paas.redhat.com/alm/sonar-scanner-alpine:latest
+    entrypoint: [""]
+  variables:
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+    GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
+  dependencies:
+    - compile project
+  cache:
+    policy: pull
+    key: "${CI_COMMIT_SHORT_SHA}"
+    paths:
+      - sonar-scanner/
+  script:
+    - sonar-scanner
+  allow_failure: true
