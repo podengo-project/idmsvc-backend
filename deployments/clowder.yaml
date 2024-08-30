@@ -102,6 +102,20 @@ objects:
                     name: app-secret
               - name: CLIENTS_RBAC_BASE_URL
                 value: "${CLIENTS_RBAC_BASE_URL}"
+              - name: CLIENTS_PENDO_BASE_URL
+                value: "${CLIENTS_PENDO_BASE_URL}"
+              - name: CLIENTS_PENDO_API_KEY
+                valueFrom:
+                  secretKeyRef:
+                    key: integration-key
+                    name: pendo-creds
+                    optional: true
+              - name: CLIENTS_PENDO_TRACK_EVENT_KEY
+                valueFrom:
+                  secretKeyRef:
+                    key: track-event-secret
+                    name: pendo-creds
+                    optional: true
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -239,3 +253,8 @@ parameters:
     required: true
     description: |
       Point out to the rbac service base url
+  - name: CLIENTS_PENDO_BASE_URL
+    value: "https://api.pendo.io"
+    required: false
+    description: |
+      Point out to the pendo service base url
