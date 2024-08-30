@@ -50,7 +50,7 @@ func (c *pendoClient) SetMetadata(ctx context.Context, kind pendo.Kind, group pe
 	}
 
 	// Prepare the request
-	url := c.Config.Clients.PendoBaseURL + "/metadata/" + url.PathEscape(string(kind)) + "/" + url.PathEscape(string(group)) + "/value"
+	url := c.Config.Clients.PendoBaseURL + "/api/v1/metadata/" + url.PathEscape(string(kind)) + "/" + url.PathEscape(string(group)) + "/value"
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		logger.Error(err.Error())
@@ -112,9 +112,8 @@ func (c *pendoClient) SendTrackEvent(ctx context.Context, track *pendo.TrackRequ
 		return fmt.Errorf("error generating request body for SendTrackEvent")
 	}
 
-	// TODO Check by experimenting if the endpoint is correct
 	// Prepare the request
-	url := c.Config.Clients.PendoBaseURL + "/track"
+	url := c.Config.Clients.PendoBaseURL + "/data/track"
 	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBody))
 	if err != nil {
 		logger.Error(err.Error())
@@ -123,7 +122,7 @@ func (c *pendoClient) SendTrackEvent(ctx context.Context, track *pendo.TrackRequ
 
 	// Add headers to the request
 	req.Header.Set("content-type", "application/json")
-	req.Header.Set(header.HeaderXPendoIntegrationKey, c.Config.Clients.PendoAPIKey)
+	req.Header.Set(header.HeaderXPendoIntegrationKey, c.Config.Clients.PendoTrackEventKey)
 
 	// Launch request
 	resp, err := c.Client.Do(req)
@@ -153,6 +152,9 @@ func newClient(cfg *config.Config) *pendoClient {
 	}
 	if cfg.Clients.PendoAPIKey == "" {
 		panic("'PendoAPIKey' is empty")
+	}
+	if cfg.Clients.PendoTrackEventKey == "" {
+		panic("'PendoTrackEventKey' is empty")
 	}
 	if cfg.Clients.PendoRequestTimeoutSecs == 0 {
 		cfg.Clients.PendoRequestTimeoutSecs = 3
