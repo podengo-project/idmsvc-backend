@@ -1,18 +1,16 @@
 # Architecture and design
 
-![Architecture diagram](architecture.png)
+The components in this repository provide our service API
+`/api/idmsvc/v1...`, servicing requests from clients including:
 
-TODO Create PlantUML diagram
+- Web frontend (registration workflow)
+- IPA servers (registration workflow, domain data updates and JWK
+  refresh)
+- VM (enrollment workflow, where VM asks for domain info and join
+  authority)
 
-The components on this repository provides entrypoint through
-api service at /api/idmsvc/v1/todos (TODO with your service) and
-consuming kafka topics (todo-created) (TODO update list for your service).
-
-(not added yet) The components on this repository make requests to `/api/rbac/v1`
-services (TODO update with your own list) and produce messages into
-kafka topics (todo-created) (TODO update list for your service).
-
-The persistency is stored in postgresql database.
+Data persistence of domain information and join authority signing
+keys is stored in PostgreSQL database.
 
 ## Design blocks
 
@@ -20,21 +18,15 @@ The persistency is stored in postgresql database.
 
 ![Application blocks](application_parts.png)
 
-TODO Create a PlantUML diagram
+The first level of the application is the Go echo HTTP 
+framework which is used to provide several HTTP APIs:
 
-The first level break down the application components in
-`ApplicationService` components which could be:
+- The public service API.
+- Metrics API for Prometheus metrics publication.
+- Liveness and readiness probes.
 
-- Some echo framework API implementing public and private API
-  endpoints.
-- TODO An echo framework exposing the metrics.
-- A kafka consumer which is running into the background and
-  processing the events received.
-- Any other backgroun go routine that is executed by our
-  application.
-
-Here the scope is delimited to start and gracefully stop
-the application block, no more, no less.
+Here the scope is delimited to start and gracefully stop the
+application block, no more, no less.
 
 > It is important the graceful shutdown when the
 > `SIGTERM` signal is received; this could happens
@@ -74,47 +66,12 @@ The service API blocks are break down into the below:
   model, and it uses to define the CRUD operations on the
   database. For interacting with the database is used `gorm`
   framework.
-- TODO (below a declaration of intentions) **Clients**: It represents
-  the connection with a third party service that could need our
-  application. The advice is to define a package per client, which
-  could make easier to export later in a golang package.
-- **Kafka Producer**: Represent a producer for a specific kafka
-  topic. It abstracts the communication with it.
-  TODO it is provided a generic kafka producer, but make sense
-  to have a specific instance per message or group all the
-  messages to produce in an interface, to group the responsibility
-  of this component, for providing specific producer logic per
-  message, to provide an interface that can be mocked
-  for the unit tests, making them easier to create, and it allows
-  to depends on interfaces. TODO Check if the general producer
-  function is validating the outgoing event messages against the
-  event schema that represent (check the contract).
 - **Presenter**: This is the oposite to the interactor and translate
   from the data model to the API response.
+- **Clients**: It represents the connection with a third party
+  service that our application depends on.  Examples include
+  ConsoleDot RBAC and Pendo.
 
 All the above components are decoupled in small and well defined
 responsibilities into the code, letting to create easily unit
 tests, and mock components.
-
-### Kafka blocks
-
-![Kafka blocks](kafka_parts.png)
-
-The Kafka blocks are break down into the below:
-
-- **Kafka Consumer**: it represents the consumer run loop
-  and the kafka client library.
-- **Router Handler**: it represents the kafka consumer routing
-  which dispatch the received message from the subscribed
-  topics to the specific handler.
-- **Topic Handler - Schema**: it represents a handler for a
-  specific topic message.
-
-The Kafka messages received are validated with its schema definition.
-
-- 1 topic has 1 message schema associated.
-- 1 topic has 1 consumer handler associated that process the event.
-- Every event received has the headers below:
-  - x-rh-identity: The same as the x-rh-identity http header.
-  - x-rh-insight-request-id: The same as the x-rh-insights-request-id
-    and it is used for distributed tracing of the logs.
