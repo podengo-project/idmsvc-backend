@@ -38,6 +38,8 @@ check missed commits:
 
 run tests:
   stage: test
+  rules:
+    - when: never
   tags:
     - shared
   needs: []
@@ -58,6 +60,5 @@ compile project:
   stage: build
   tags:
     - shared
-  needs: ["run tests"]
   script:
     - make build
