@@ -9,6 +9,7 @@ package config
 import (
 	"log/slog"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,6 +48,10 @@ const (
 	DefaultAcceptXRHFakeIdentity = false
 	// DefaultValidateAPI is true
 	DefaultValidateAPI = true
+
+	// EnvSSLCertDirectory environment variable that provides
+	// the paths for the CA certificates
+	EnvSSLCertDirectory = "SSL_CERT_DIR"
 )
 
 type Config struct {
@@ -314,6 +319,129 @@ func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
 	// Metrics configuration
 	v.Set("metrics.path", clowderConfig.MetricsPath)
 	v.Set("metrics.port", clowderConfig.MetricsPort)
+
+	// Override client base url configuration from clowder when available
+	updateServiceBasePath("rbac", "v1", v, clowderConfig)
+}
+
+// guardUpdateServiceBasePath raise a panic when some of the arguments for
+// updateServiceBasePath is not provided.
+func guardUpdateServiceBasePath(serviceName, version string, target *viper.Viper, clowderConfig *clowder.AppConfig) {
+	if serviceName == "" {
+		panic("'serviceName' is an empty string")
+	}
+	if version == "" {
+		panic("'version' is an empty string")
+	}
+	if target == nil {
+		panic("'target' is nil")
+	}
+	if clowderConfig == nil {
+		panic("'clowderConfig' is nil")
+	}
+}
+
+// updateServiceBasePath overrides the client base url when an endpoint is
+// found for the serviceName, then try to build the base url, and if success
+// overrides the base url with the value from clowder configuration.
+// serviceName is the service we want to update the endpoint (it should exists
+// in the dependencies field of clowderApp).
+// target is the viper instance where the new base url calculated will be written
+// if the endpoint exists in the configuration.
+// clowderConfig represent the configuration injected for clowder which is the
+// source of information to update the base url.
+func updateServiceBasePath(serviceName, version string, target *viper.Viper, clowderConfig *clowder.AppConfig) {
+	guardUpdateServiceBasePath(serviceName, version, target, clowderConfig)
+	paramPath := "clients." + serviceName + "_base_url"
+	if serviceEndpoint := getEndpoint(serviceName, clowderConfig); serviceEndpoint != nil {
+		if serviceBaseURLString := buildClientBaseURL(serviceEndpoint, version); serviceBaseURLString != "" {
+			slog.Debug("override base url for '" + serviceName + "' service to '" + serviceBaseURLString + "' from clowder endpoints")
+			target.Set(paramPath, serviceBaseURLString)
+			return
+		}
+	}
+	slog.Debug("base url for '" + serviceName + "' service to '" + target.GetString(paramPath) + "'")
+}
+
+// getEndpoint search for the serviceName in the slice of Endpoints.
+// Return nil when not found, else the reference to the clowder.DependencyEndpoint
+// which match the serviceName criteria.
+func getEndpoint(serviceName string, clowderConfig *clowder.AppConfig) *clowder.DependencyEndpoint {
+	for _, ep := range clowderConfig.Endpoints {
+		if ep.App == serviceName {
+			return &ep
+		}
+	}
+	return nil
+}
+
+// buildClientBaseURL construct a string to be used as base url for the service
+// represented by serviceEndpoint and the specific version.
+// serviceEndpoint is a structure retrieved from clowder.AppConfig.Endpoints
+// that match with the 3rd party service that this one depends on. See getEndpoint
+// version is the string for the 3rd party service api version to use; it adds the final
+// suffix to the returned base URL
+// Return the base
+func buildClientBaseURL(serviceEndpoint *clowder.DependencyEndpoint, version string) string {
+	// No checks on arguments as it is expected to be called from higher level where
+	// the checks have been actually made.
+
+	serviceBaseURLString := buildClientBaseURLSchemaHostPort(serviceEndpoint)
+	if serviceBaseURLString == "" {
+		return ""
+	}
+
+	serviceBaseURLPath := buildClientBaseURLPath(serviceEndpoint, version)
+	if serviceBaseURLPath == "" {
+		return ""
+	}
+
+	return serviceBaseURLString + serviceBaseURLPath
+}
+
+// buildClientBaseURLSchemaHostPort build the schema, hostname and port
+// to reach out for the given serviceEndpoint. If TLS port is defined,
+// then the schema 'https' and the referenced port are used; if no TLS
+// port is indicated 'http' port and the no TLS port are used.
+// Return the first base url part '[http|https]://{hostname}:[TlsPort|Port]
+func buildClientBaseURLSchemaHostPort(serviceEndpoint *clowder.DependencyEndpoint) string {
+	// Add schema, hostname and port
+	if hasEndpointTLSPort(serviceEndpoint) {
+		return "https://" + serviceEndpoint.Hostname +
+			":" + strconv.Itoa(*serviceEndpoint.TlsPort)
+	} else if hasEndpointPort(serviceEndpoint) {
+		return "http://" + serviceEndpoint.Hostname +
+			":" + strconv.Itoa(serviceEndpoint.Port)
+	}
+	slog.Warn("No Port nor TLSPort found for the service endpoint",
+		slog.String("service", serviceEndpoint.App))
+	return ""
+}
+
+// buildClientBaseURLPath build the second part 'api path + version'
+// If ApiPaths has some item, the first item is used, else if the deprecated
+// ApiPath is set, it is used, else return ""
+func buildClientBaseURLPath(serviceEndpoint *clowder.DependencyEndpoint, version string) string {
+	if len(serviceEndpoint.ApiPaths) > 0 {
+		// Use the first path in the slice
+		return strings.TrimSuffix(serviceEndpoint.ApiPaths[0], "/") +
+			"/" + version
+	}
+	return ""
+}
+
+// hasEndpointTLSPort return if the DependencyEndpoint has a valid TlsPort field
+// that can be used.
+// Return true if TlsPort can be used, else false.
+func hasEndpointTLSPort(serviceEndpoint *clowder.DependencyEndpoint) bool {
+	return serviceEndpoint != nil && serviceEndpoint.TlsPort != nil && *serviceEndpoint.TlsPort > 0
+}
+
+// hasEndpointPort return if the DependencyEndpoint has a valid Port field
+// that can be used.
+// Return true if Port can be used, else false.
+func hasEndpointPort(serviceEndpoint *clowder.DependencyEndpoint) bool {
+	return serviceEndpoint != nil && serviceEndpoint.Port > 0
 }
 
 func Load(cfg *Config) *viper.Viper {
@@ -332,7 +460,10 @@ func Load(cfg *Config) *viper.Viper {
 
 	setDefaults(v)
 	if clowder.IsClowderEnabled() {
+		slog.Debug("clowder is enabled")
 		setClowderConfiguration(v, clowder.LoadedConfig)
+	} else {
+		slog.Debug("clowder not enabled")
 	}
 
 	if err = v.ReadInConfig(); err != nil {
@@ -460,4 +591,60 @@ func readEnv(key string, def string) string {
 		value = def
 	}
 	return value
+}
+
+// initSSLCertDir update SSL_CERT_DIR to add TLSCAPath if not found
+// in the list of directories.
+// clowderConfig
+func initSSLCertDir(clowderConfig *clowder.AppConfig) {
+	envSSLCertDir := os.Getenv(EnvSSLCertDirectory)
+	if hasTLSCAPath(clowderConfig) {
+		if !checkPathInList(*clowderConfig.TlsCAPath, envSSLCertDir) {
+			if envSSLCertDir == "" {
+				envSSLCertDir = *clowderConfig.TlsCAPath
+			} else {
+				envSSLCertDir = envSSLCertDir + ":" + *clowderConfig.TlsCAPath
+			}
+			if err := os.Setenv(EnvSSLCertDirectory, envSSLCertDir); err != nil {
+				panic(err.Error())
+			}
+			slog.Info(EnvSSLCertDirectory + " was updated")
+			return
+		}
+	}
+	slog.Info(EnvSSLCertDirectory + " not updated")
+}
+
+// hasTLSCAPath check the condition when TlsCAPath has
+// some content to use.
+func hasTLSCAPath(clowderConfig *clowder.AppConfig) bool {
+	return clowderConfig != nil && clowderConfig.TlsCAPath != nil && *clowderConfig.TlsCAPath != ""
+}
+
+func checkPathInList(path, pathList string) bool {
+	if path == "" {
+		// Nothing to check
+		return true
+	}
+	path = strings.TrimSuffix(path, "/")
+	pathListItems := strings.Split(pathList, ":")
+	for _, item := range pathListItems {
+		if strings.TrimSuffix(item, "/") == path {
+			return true
+		}
+	}
+	return false
+}
+
+//nolint:all
+func init() {
+	// NOTE
+	//
+	// Linter disabled to allow this exception
+	// I do not recommend the leverage of func init
+	// because provide "black magic" that could evoke
+	// not expected behaviors difficult to debug. Be
+	// aware their execution happens before the
+	// first line of the `main` function is reached out.
+	initSSLCertDir(clowder.LoadedConfig)
 }
