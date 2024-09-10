@@ -116,6 +116,11 @@ test-smoke:  ## Run smoke tests
 	CLIENTS_RBAC_BASE_URL="http://localhost:8021/api/rbac/v1" \
 	go test -parallel 1 ./internal/test/smoke/... -test.failfast -test.v
 
+.PHONY: test-perf
+test-perf:  ## Run smoke tests
+	CLIENTS_RBAC_BASE_URL="http://localhost:8021/api/rbac/v1" \
+	go test -parallel 1 ./internal/test/perf/... -test.failfast -test.v -timeout 30m
+
 # Add dependencies from binaries to all the the sources
 # so any change is detected for the build rule
 $(patsubst cmd/%,$(BIN)/%,$(wildcard cmd/*)): $(shell find $(PROJECT_DIR)/cmd -type f -name '*.go') $(shell find $(PROJECT_DIR)/pkg -type f -name '*.go' 2>/dev/null) $(shell find $(PROJECT_DIR)/internal -type f -name '*.go' 2>/dev/null)
