@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
+	echo_error "github.com/podengo-project/idmsvc-backend/internal/errors/http/echo"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
@@ -52,6 +53,7 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 		routerConfig,
 	)
 	result.echo.HideBanner = true
+	result.echo.HTTPErrorHandler = echo_error.DefaultErrorHandler
 	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		result.echo.Debug = true
 		routes := result.echo.Routes()
