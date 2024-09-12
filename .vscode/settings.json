@@ -13,5 +13,4 @@
         "--fast"
     ],
     "go.coverageOptions": "showUncoveredCodeOnly",
-    "go.coverOnSave": true
 }
