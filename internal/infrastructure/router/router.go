@@ -80,9 +80,11 @@ func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 		LogStatus: true,
 		LogURI:    true,
 
-		// Forwards error to the global error handler, so it can decide
-		// appropriate status code.
-		HandleError: true,
+		// We need to set HandleError to false, to avoid double execution, first by the
+		// logger middleware, second by the echo framework internals.
+		// - https://github.com/labstack/echo/blob/v4.12.0/middleware/request_logger.go#L287
+		// - https://github.com/labstack/echo/blob/v4.12.0/echo.go#L674
+		HandleError: false,
 
 		Skipper: loggerSkipperWithPaths(skipperPaths...),
 
