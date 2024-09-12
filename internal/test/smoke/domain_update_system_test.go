@@ -102,8 +102,12 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 			},
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusBadRequest,
-				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *ErrorResponse) error {
-					assert.Equal(t, "'domain_name' may not be changed", body.Message)
+				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
+					assert.Equal(t, builder_api.NewErrorResponse().
+						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
+							WithTitle("'domain_name' may not be changed").
+							Build()).
+						Build(), body)
 					return nil
 				}),
 			},
@@ -119,8 +123,12 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 			},
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusBadRequest,
-				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *ErrorResponse) error {
-					assert.Equal(t, "'realm_name' may not be changed", body.Message)
+				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
+					assert.Equal(t, builder_api.NewErrorResponse().
+						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
+							WithTitle("'realm_name' may not be changed").
+							Build()).
+						Build(), body)
 					return nil
 				}),
 			},
