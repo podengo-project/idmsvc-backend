@@ -116,6 +116,8 @@ objects:
                     key: track-event-secret
                     name: pendo-creds
                     optional: true
+              - name: DATABASE_MAX_OPEN_CONNS
+                value: "${DATABASE_MAX_OPEN_CONNS}"
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -168,6 +170,8 @@ objects:
                     name: app-secret
               - name: CLIENTS_RBAC_BASE_URL
                 value: "${CLIENTS_RBAC_BASE_URL}"
+              - name: DATABASE_MAX_OPEN_CONNS
+                value: "${DATABASE_MAX_OPEN_CONNS}"
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -258,3 +262,7 @@ parameters:
     required: false
     description: |
       Point out to the pendo service base url
+  - name: DATABASE_MAX_OPEN_CONNS
+    required: false
+    description: |
+      The maximum number of open connections to the database

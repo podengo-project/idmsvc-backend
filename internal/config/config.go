@@ -37,6 +37,9 @@ const (
 	// DefaultEnableRBAC is true
 	DefaultEnableRBAC = true
 
+	// DefaultDatabaseMaxOpenConn is the default for max open database connections
+	DefaultDatabaseMaxOpenConn = 30
+
 	// https://github.com/project-koku/koku/blob/main/koku/api/common/pagination.py
 
 	// PaginationDefaultLimit is the default limit for the pagination
@@ -78,7 +81,8 @@ type Database struct {
 	Password string `json:"-"`
 	Name     string
 	// https://stackoverflow.com/questions/54844546/how-to-unmarshal-golang-viper-snake-case-values
-	CACertPath string `mapstructure:"ca_cert_path"`
+	CACertPath   string `mapstructure:"ca_cert_path"`
+	MaxOpenConns int    `mapstructure:"max_open_conns"`
 }
 
 type Cloudwatch struct {
@@ -229,6 +233,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.password", "")
 	v.SetDefault("database.name", "")
 	v.SetDefault("database.ca_cert_path", "")
+	v.SetDefault("database.max_open_conns", DefaultDatabaseMaxOpenConn)
 
 	// Kafka
 	addEventConfigDefaults(v)
