@@ -48,6 +48,12 @@ func NewDB(cfg *config.Config) (db *gorm.DB) {
 		slog.Error("Error creating database connector", slog.Any("error", err))
 		return nil
 	}
+	sqlDb, err := db.DB()
+	if err != nil {
+		slog.Error("Error getting sql driver", slog.String("error", err.Error()))
+		return nil
+	}
+	sqlDb.SetMaxOpenConns(cfg.Database.MaxOpenConns)
 	return db
 }
 
@@ -58,6 +64,7 @@ func NewDbMigration(config *config.Config) (db *gorm.DB, m *migrate.Migrate, err
 	if err != nil {
 		return nil, nil, fmt.Errorf("could not connect to database: %w", err)
 	}
+	sqlDb.SetMaxOpenConns(config.Database.MaxOpenConns)
 
 	driver, err := postgres.WithInstance(sqlDb, &postgres.Config{})
 	if err != nil {
