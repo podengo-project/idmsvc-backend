@@ -63,17 +63,17 @@ func (c *pendoClient) SetMetadata(ctx context.Context, kind pendo.Kind, group pe
 
 	// Launch request
 	resp, err := c.Client.Do(req)
-	switch {
-	case err != nil:
+	if err != nil {
 		logger.Error("doing request to pendo service")
 		return nil, err
-	case resp.StatusCode != http.StatusOK:
+	}
+	defer resp.Body.Close() // nolint:errcheck
+	if resp.StatusCode != http.StatusOK {
 		logger.Error("expected StatusCode=" + http.StatusText(http.StatusOK) + " but received StatusCode=" + http.StatusText(resp.StatusCode))
 		return nil, fmt.Errorf("unexpected StatusCode on SetMetadata response")
 	}
 
 	// Maybe we don't need the body, but adding general approach
-	defer resp.Body.Close()
 	respBytes, err := io.ReadAll(io.Reader(resp.Body))
 	if err != nil {
 		logger.Error(err.Error())
@@ -126,11 +126,12 @@ func (c *pendoClient) SendTrackEvent(ctx context.Context, track *pendo.TrackRequ
 
 	// Launch request
 	resp, err := c.Client.Do(req)
-	switch {
-	case err != nil:
-		logger.Error(err.Error())
-		return fmt.Errorf("error on requesting for SendTrackEvent")
-	case resp.StatusCode != http.StatusOK:
+	if err != nil {
+		logger.Error("doing request to pendo service")
+		return err
+	}
+	defer resp.Body.Close() // nolint:errcheck
+	if resp.StatusCode != http.StatusOK {
 		logger.Error("expected StatusCode=" + http.StatusText(http.StatusOK) + " but received StatusCode=" + http.StatusText(resp.StatusCode))
 		return fmt.Errorf("unexpected StatusCode on SendTrackEvent response")
 	}
