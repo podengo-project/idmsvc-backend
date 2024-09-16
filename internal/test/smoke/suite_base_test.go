@@ -168,6 +168,14 @@ func (s *SuiteBase) TearDownTest() {
 	s.wg.Wait()
 }
 
+// As is a helper function that makes it easy to select
+// the XRHID and RBAC profiles to be used with the
+// following requests.
+// profiles could be:
+//
+//   - for rbac: RBACSuperAdmin, RBACAdmin, RBACReadOnly, RBACNoPermis
+//   - for XRHID: XRHIDNothing, XRHIDNone, XRHIDUser, XRHIDSystem,
+//     XRHIDServiceAccount
 func (s *SuiteBase) As(profiles ...any) {
 	for i := range profiles {
 		switch t := profiles[i].(type) {
