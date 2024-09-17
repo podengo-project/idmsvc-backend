@@ -40,6 +40,13 @@ const (
 	// DefaultDatabaseMaxOpenConn is the default for max open database connections
 	DefaultDatabaseMaxOpenConn = 30
 
+	// DefaultIdleTimeout 5 mins by default
+	DefaultIdleTimeout = time.Duration(5 * time.Minute)
+	// DefaultReadTimeout 3 seconds by default
+	DefaultReadTimeout = time.Duration(3 * time.Second)
+	// DefaultWriteTimeout 3 seconds by default
+	DefaultWriteTimeout = time.Duration(3 * time.Second)
+
 	// https://github.com/project-koku/koku/blob/main/koku/api/common/pagination.py
 
 	// PaginationDefaultLimit is the default limit for the pagination
@@ -55,6 +62,13 @@ const (
 	// EnvSSLCertDirectory environment variable that provides
 	// the paths for the CA certificates
 	EnvSSLCertDirectory = "SSL_CERT_DIR"
+)
+
+var (
+	// DefaultSizeLimitRequestHeader in bytes. Default 32KB
+	DefaultSizeLimitRequestHeader = (32 * 1024)
+	// DefaultSizeLimitRequestBody in bytes. Default 128KB
+	DefaultSizeLimitRequestBody = (128 * 1024)
 )
 
 type Config struct {
@@ -205,6 +219,16 @@ type Application struct {
 	MainSecret string `mapstructure:"secret" validate:"required,base64rawurl" json:"-"`
 	// Flag to enable/disable rbac
 	EnableRBAC bool `mapstructure:"enable_rbac"`
+	// IdleTimeout for the API endpoints.
+	IdleTimeout time.Duration `mapstructure:"idle_timeout" validate:"gte=1ms,lte=5m"`
+	// ReadTimeout for the API endpoints.
+	ReadTimeout time.Duration `mapstructure:"read_timeout" validate:"gte=1ms,lte=10s"`
+	// WriteTimeout for the API endpoints.
+	WriteTimeout time.Duration `mapstructure:"write_timeout" validate:"gte=1ms,lte=10s"`
+	// SizeLimitRequestHeader for the API endpoints.
+	SizeLimitRequestHeader int `mapstructure:"size_limit_request_header"`
+	// SizeLimitRequestBody for the API endpoints.
+	SizeLimitRequestBody int `mapstructure:"size_limit_request_body"`
 }
 
 var config *Config = nil
@@ -272,6 +296,13 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("app.url_path_prefix", DefaultPathPrefix)
 	v.SetDefault("app.secret", "")
 	v.SetDefault("app.debug", false)
+
+	// Timeouts and limits
+	v.SetDefault("app.idle_timeout", DefaultIdleTimeout)
+	v.SetDefault("app.read_timeout", DefaultReadTimeout)
+	v.SetDefault("app.write_timeout", DefaultWriteTimeout)
+	v.SetDefault("app.size_limit_request_header", DefaultSizeLimitRequestHeader)
+	v.SetDefault("app.size_limit_request_body", DefaultSizeLimitRequestBody)
 }
 
 func setClowderConfiguration(v *viper.Viper, clowderConfig *clowder.AppConfig) {
