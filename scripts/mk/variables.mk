@@ -46,7 +46,7 @@ TOOLS := \
 TOOLS_DEPS := tools/go.mod tools/go.sum tools/tools.go | $(TOOLS_BIN)
 
 #
-# Kafka configuration variables
+# Database configuration variables
 #
 
 LOAD_DB_CFG_WITH_YQ := n
@@ -130,3 +130,11 @@ CLIENTS_RBAC_BASE_URL ?= http://localhost:8020/api/rbac/v1
 export CLIENTS_RBAC_BASE_URL
 APP_CLIENTS_RBAC_PROFILE ?= domain-admin
 export APP_CLIENTS_RBAC_PROFILE
+
+# Pendo configuration variables - using mock server
+CLIENTS_PENDO_BASE_URL ?= http://localhost:8010
+export CLIENTS_PENDO_BASE_URL
+CLIENTS_PENDO_API_KEY ?= pendo-api-key
+export CLIENTS_PENDO_API_KEY
+CLIENTS_PENDO_TRACK_EVENT_KEY ?= track-event-key
+export CLIENTS_PENDO_TRACK_EVENT_KEY
