@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -198,6 +199,7 @@ func newGroupPublic(e *echo.Group, cfg *config.Config, app handler.Application, 
 
 	// FIXME Refactor to inject the config.Config dependency
 	rbacMiddleware := initRbacMiddleware(cfg)
+	bodyLimit := echo_middleware.BodyLimit(strconv.Itoa(cfg.Application.SizeLimitRequestBody))
 
 	metricsMiddleware := middleware.MetricsMiddlewareWithConfig(
 		&middleware.MetricsConfig{
@@ -229,6 +231,10 @@ func newGroupPublic(e *echo.Group, cfg *config.Config, app handler.Application, 
 		echo_middleware.Secure(),
 		// TODO Check if this is made by 3scale
 		// middleware.CORSWithConfig(middleware.CORSConfig{}),
+
+		// bodyLimit should be before validateAPI, because validateAPI
+		// will read the whole request body to validate the input.
+		bodyLimit,
 		validateAPI,
 	)
 

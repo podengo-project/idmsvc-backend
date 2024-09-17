@@ -45,6 +45,10 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	)
 	result.echo.HideBanner = true
 	result.echo.HTTPErrorHandler = echo_error.DefaultErrorHandler
+	result.echo.Server.IdleTimeout = cfg.Application.IdleTimeout
+	result.echo.Server.ReadTimeout = cfg.Application.ReadTimeout
+	result.echo.Server.WriteTimeout = cfg.Application.WriteTimeout
+	result.echo.Server.MaxHeaderBytes = cfg.Application.SizeLimitRequestHeader
 	if result.config.Logging.Level == "debug" || result.config.Logging.Level == "trace" {
 		result.echo.Debug = true
 		routes := result.echo.Routes()

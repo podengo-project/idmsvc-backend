@@ -162,6 +162,9 @@ func TestValidateConfig(t *testing.T) {
 			TokenExpirationTimeSeconds:  0,
 			HostconfJwkValidity:         DefaultHostconfJwkValidity,
 			HostconfJwkRenewalThreshold: DefaultHostconfJwkRenewalThreshold,
+			IdleTimeout:                 DefaultIdleTimeout,
+			ReadTimeout:                 DefaultReadTimeout,
+			WriteTimeout:                DefaultWriteTimeout,
 		},
 	}
 	err := Validate(&cfg)
