@@ -13,11 +13,11 @@ services:
       MOCKSERVER_LOG_LEVEL: DEBUG
       MOCKSERVER_MAX_EXPECTATIONS: 100
       MOCKSERVER_MAX_HEADER_SIZE: 16384
-      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/expectationInitialiser.json
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/*expectations.json
     ports:
       - 8010:8010
-    # volumes:
-    #   - ../test/mock/inventory/config:/config:ro,z
+    volumes:
+      - ../test/mockserver:/config:ro,z
 
   database:
     image: quay.io/cloudservices/postgresql-rds:15

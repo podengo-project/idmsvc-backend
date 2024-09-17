@@ -1,0 +1,50 @@
+[
+    {
+      "id": "PendoTrackMissingKey",
+      "httpRequest": {
+        "method": "POST",
+        "path": "/data/track",
+        "headers": {
+          "!x-pendo-integration-key": [ ".*" ]
+        }
+      },
+      "httpResponse": {
+        "statusCode": 401,
+        "body": "Missing x-pendo-integration-key"
+      }
+    },
+
+    {
+      "id": "PendoTrackBadContentType",
+      "httpRequest": {
+        "method": "POST",
+        "path": "/data/track",
+        "headers": {
+          "Content-Type": [ "!application/json" ]
+        }
+      },
+      "httpResponse": {
+        "statusCode": 400,
+        "body": "Bad Content-Type"
+      }
+    },
+
+    {
+      "id": "PendoTrack",
+      "httpRequest": {
+        "method": "POST",
+        "path": "/data/track",
+        "body": {
+          "type": "JSON",
+          "json": {
+              "type": "track"
+          },
+          "matchType": "ONLY_MATCHING_FIELDS"
+        }
+      },
+      "httpResponse": {
+        "statusCode": 200,
+        "body": ""
+      }
+    }
+]
