@@ -118,6 +118,16 @@ objects:
                     optional: true
               - name: DATABASE_MAX_OPEN_CONNS
                 value: "${DATABASE_MAX_OPEN_CONNS}"
+              - name: APP_IDLE_TIMEOUT
+                value: "${APP_IDLE_TIMEOUT}"
+              - name: APP_READ_TIMEOUT
+                value: "${APP_READ_TIMEOUT}"
+              - name: APP_WRITE_TIMEOUT
+                value: "${APP_WRITE_TIMEOUT}"
+              - name: APP_SIZE_LIMIT_REQUEST_HEADER
+                value: "${APP_SIZE_LIMIT_REQUEST_HEADER}"
+              - name: APP_SIZE_LIMIT_REQUEST_BODY
+                value: "${APP_SIZE_LIMIT_REQUEST_BODY}"
             resources:
               limits:
                 cpu: ${CPU_LIMIT}
@@ -266,3 +276,34 @@ parameters:
     required: false
     description: |
       The maximum number of open connections to the database
+  - name: APP_IDLE_TIMEOUT
+    value: "5m"
+    required: false
+    description: |
+      The idle timeout for the public API endpoints. Default 5m.
+  - name: APP_READ_TIMEOUT
+    value: "3s"
+    required: false
+    description: |
+      The read timeout for the public API endpoints, which
+      is the maximum time to read the request headers and
+      body. Default 3s.
+  - name: APP_WRITE_TIMEOUT
+    value: "3s"
+    required: false
+    description: |
+      The write timeout for the public API endpoints, which
+      is the maximum time to write the response headers and
+      body for a given request. Default 3s.
+  - name: APP_SIZE_LIMIT_REQUEST_HEADER
+    value: "32768"
+    required: false
+    description: |
+      The maximum size for the request headers that receives
+      the public API endpoints. Default 32KB.
+  - name: APP_SIZE_LIMIT_REQUEST_BODY
+    value: "131072"
+    required: false
+    description: |
+      The maximum size for the request body that receives the
+      public API endpoints. Default 128KB.
