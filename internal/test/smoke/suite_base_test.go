@@ -89,7 +89,7 @@ const (
 // would provide data partition between the tests.
 type SuiteBase struct {
 	suite.Suite
-	cfg                 *config.Config
+	Config              *config.Config
 	OrgID               string
 	userXRHID           identity.XRHID
 	systemXRHID         identity.XRHID
@@ -111,33 +111,39 @@ type SuiteBase struct {
 func (s *SuiteBase) SetupTest() {
 	t := s.T()
 	t.Log("SetupTest")
-	s.cfg = config.Get()
-	require.NotNil(t, s.cfg)
-	s.cfg.Application.EnableRBAC = true
+
+	// This let us to use custom configuration using decorator
+	// pattern for new suite tests, and let the existing tests
+	// behave with no alterations and changes.
+	if s.Config == nil {
+		s.Config = config.Get()
+	}
+	require.NotNil(t, s.Config)
+	s.Config.Application.EnableRBAC = true
 	s.wg = &sync.WaitGroup{}
-	logger.InitLogger(s.cfg)
-	s.db = datastore.NewDB(s.cfg)
+	logger.InitLogger(s.Config)
+	s.db = datastore.NewDB(s.Config)
 	require.NotNil(t, s.db)
 
 	ctx, cancel := StartSignalHandler(context.Background())
 	require.NotNil(t, ctx)
 	require.NotNil(t, cancel)
 	s.cancel = cancel
-	s.svcRbac, s.RbacMock = mock_rbac.NewRbacMock(ctx, s.cfg)
+	s.svcRbac, s.RbacMock = mock_rbac.NewRbacMock(ctx, s.Config)
 	require.NotNil(t, s.svcRbac)
 	require.NotNil(t, s.RbacMock)
 	require.NoError(t, s.svcRbac.Start())
 	require.NoError(t, s.RbacMock.WaitAddress(3*time.Second))
 	s.As(RBACSuperAdmin)
-	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(s.cfg.Clients.RbacBaseURL))
+	rbacClient, err := client_rbac.NewClient("idmsvc", client_rbac.WithBaseURL(s.Config.Clients.RbacBaseURL))
 	if err != nil {
 		panic(err)
 	}
-	rbac := client_rbac.New(s.cfg.Clients.RbacBaseURL, rbacClient)
+	rbac := client_rbac.New(s.Config.Clients.RbacBaseURL, rbacClient)
 	if s.PendoClient == nil {
-		s.PendoClient = client_pendo.NewClient(s.cfg)
+		s.PendoClient = client_pendo.NewClient(s.Config)
 	}
-	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, rbac, s.PendoClient)
+	s.svc = service_impl.NewApplication(ctx, s.wg, s.Config, s.db, rbac, s.PendoClient)
 	go func() {
 		if e := s.svc.Start(); e != nil {
 			panic(e)
@@ -149,7 +155,7 @@ func (s *SuiteBase) SetupTest() {
 	s.serviceAccountXRHID = builder_api.NewServiceAccountXRHID().WithOrgID(s.OrgID).Build()
 	s.currentXRHID = nil
 	s.IpaHccVersion = header.NewXRHIDMVersion("1.0.0", "4.19.0", "9.3", "redhat-9.3")
-	s.WaitReady(s.cfg)
+	s.WaitReady(s.Config)
 }
 
 // TearDownTest Stop the services in an ordered way before every
@@ -715,13 +721,13 @@ func (s *SuiteBase) RunTestCases(testCases []TestCase) {
 // DefaultPublicBaseURL retrieve the public base endpoint URL.
 // Return for the URL for the current configuration.
 func (s *SuiteBase) DefaultPublicBaseURL() string {
-	return fmt.Sprintf("http://localhost:%d/api/idmsvc/v1", s.cfg.Web.Port)
+	return fmt.Sprintf("http://localhost:%d/api/idmsvc/v1", s.Config.Web.Port)
 }
 
 // DefaultPrivateBaseURL retrieve the private base endpoint URL.
 // Return for the URL for the current configuration.
 func (s *SuiteBase) DefaultPrivateBaseURL() string {
-	return fmt.Sprintf("http://localhost:%d/private", s.cfg.Web.Port)
+	return fmt.Sprintf("http://localhost:%d/private", s.Config.Web.Port)
 }
 
 // DoRequest execute a http request against a url using headers and the body specified.
@@ -854,19 +860,6 @@ func TearDownSignalHandler() {
 	signal.Reset(syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 }
 
-func TestSuite(t *testing.T) {
-	// TODO Add here your test suites
-	suite.Run(t, new(SuiteTokenCreate))
-	suite.Run(t, new(SuiteRegisterDomain))
-	suite.Run(t, new(SuiteReadDomain))
-	suite.Run(t, new(SuiteDomainUpdateUser))
-	suite.Run(t, new(SuiteDomainUpdateAgent))
-	suite.Run(t, new(SuiteListDomains))
-	suite.Run(t, new(SuiteDeleteDomain))
-	suite.Run(t, new(SuiteRbacPermission))
-	suite.Run(t, new(SuiteSystemEndpoints))
-}
-
 type BodyFuncErrorResponse func(t *testing.T, body *public.ErrorResponse) error
 
 func WrapBodyFuncErrorResponse(predicate BodyFuncErrorResponse) BodyFunc {
@@ -889,4 +882,17 @@ func WrapBodyFuncErrorResponse(predicate BodyFuncErrorResponse) BodyFunc {
 
 		return true
 	}
+}
+
+func TestSuite(t *testing.T) {
+	// TODO Add here your test suites
+	suite.Run(t, new(SuiteTokenCreate))
+	suite.Run(t, new(SuiteRegisterDomain))
+	suite.Run(t, new(SuiteReadDomain))
+	suite.Run(t, new(SuiteDomainUpdateUser))
+	suite.Run(t, new(SuiteDomainUpdateAgent))
+	suite.Run(t, new(SuiteListDomains))
+	suite.Run(t, new(SuiteDeleteDomain))
+	suite.Run(t, new(SuiteRbacPermission))
+	suite.Run(t, new(SuiteSystemEndpoints))
 }

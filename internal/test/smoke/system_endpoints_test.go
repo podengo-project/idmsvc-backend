@@ -46,7 +46,7 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 
 	// Add key to the database
 	t.Log("Adding key")
-	hcdb := datastore.NewHostconfJwkDb(s.cfg)
+	hcdb := datastore.NewHostconfJwkDb(s.Config)
 	hcdb.ListKeys()
 	hcdb.Purge()
 	hcdb.Refresh()
