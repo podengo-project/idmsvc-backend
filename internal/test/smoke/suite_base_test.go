@@ -27,7 +27,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/pendo"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
-	client_inventory "github.com/podengo-project/idmsvc-backend/internal/usecase/client/inventory"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -124,8 +123,6 @@ func (s *SuiteBase) SetupTest() {
 	require.NotNil(t, ctx)
 	require.NotNil(t, cancel)
 	s.cancel = cancel
-	inventory := client_inventory.NewHostInventory(s.cfg)
-	require.NotNil(t, inventory)
 	s.svcRbac, s.RbacMock = mock_rbac.NewRbacMock(ctx, s.cfg)
 	require.NotNil(t, s.svcRbac)
 	require.NotNil(t, s.RbacMock)
@@ -140,7 +137,7 @@ func (s *SuiteBase) SetupTest() {
 	if s.PendoClient == nil {
 		s.PendoClient = client_pendo.NewClient(s.cfg)
 	}
-	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, inventory, rbac, s.PendoClient)
+	s.svc = service_impl.NewApplication(ctx, s.wg, s.cfg, s.db, rbac, s.PendoClient)
 	go func() {
 		if e := s.svc.Start(); e != nil {
 			panic(e)
