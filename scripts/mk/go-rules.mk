@@ -202,6 +202,7 @@ $(EVENT_SCHEMA_DIR)/%.event.json: $(EVENT_MESSAGE_DIR)/%.event.yaml
 MOCK_DIRS := internal/api/private \
 	internal/api/public \
 	internal/api/openapi \
+	internal/api/metrics \
 	internal/interface/repository \
 	internal/interface/interactor \
 	internal/interface/presenter \

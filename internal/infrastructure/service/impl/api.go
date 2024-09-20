@@ -37,20 +37,11 @@ func NewApi(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app han
 	result.context, result.cancel = context.WithCancel(ctx)
 	result.waitGroup = wg
 	result.config = cfg
-	routerConfig := router.RouterConfig{
-		Version:            "1.0",
-		PublicPath:         "/api/idmsvc",
-		PrivatePath:        "/private",
-		Handlers:           app,
-		Metrics:            metrics,
-		EnableAPIValidator: cfg.Application.ValidateAPI,
-	}
-	if cfg.Application.AcceptXRHFakeIdentity {
-		routerConfig.IsFakeEnabled = true
-	}
 	result.echo = router.NewRouterWithConfig(
 		echo.New(),
-		routerConfig,
+		cfg,
+		app,
+		metrics,
 	)
 	result.echo.HideBanner = true
 	result.echo.HTTPErrorHandler = echo_error.DefaultErrorHandler
