@@ -12,18 +12,15 @@ import (
 	"github.com/labstack/echo/v4"
 	echo_middleware "github.com/labstack/echo/v4/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/podengo-project/idmsvc-backend/internal/handler/impl"
 	mock_rbac "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
-	client_inventory "github.com/podengo-project/idmsvc-backend/internal/test/mock/interface/client/inventory"
-	client_pendo "github.com/podengo-project/idmsvc-backend/internal/usecase/client/pendo"
+	"github.com/podengo-project/idmsvc-backend/internal/test/mock/handler"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/gorm"
 )
 
 func helperNewContextForSkipper(route string, method string, path string, headers map[string]string) echo.Context {
@@ -56,61 +53,29 @@ func initRbacWrapper(t *testing.T, cfg *config.Config) rbac.Rbac {
 	return rbac
 }
 
-func TestNewGroupPublicPanics(t *testing.T) {
-	var (
-		err error
-		db  *gorm.DB
-	)
-
+func TestNewGroupPublicNotPanic(t *testing.T) {
 	cfg := test.GetTestConfig()
-
-	// FIXME Refactor in the future; it is too complex
-	const appPrefix = "/api"
-	const appName = "/idmsvc"
+	require.NotNil(t, cfg)
 
 	reg := prometheus.NewRegistry()
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
-	inventory := client_inventory.NewHostInventory(t)
 
-	_, db, err = test.NewSqlMock(&gorm.Session{})
-	require.NoError(t, err)
-	require.NotNil(t, db)
-	rbac := initRbacWrapper(t, cfg)
-	require.NotNil(t, rbac)
-	pendo := client_pendo.NewClient(cfg)
-	require.NotNil(t, pendo)
-
-	// FIXME Refactor and encapsulate routerConfig in a factory function
-	routerConfig := RouterConfig{
-		PublicPath: appPrefix + appName,
-		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac, pendo),
-		Metrics:    metrics,
-	}
-	routerWrongConfig := RouterConfig{
-		PublicPath: appPrefix + appName,
-		Handlers:   nil,
-	}
+	appPrefix := trimVersionFromPathPrefix(cfg.Application.PathPrefix)
+	version := "1.0"
+	app := handler.NewApplication(t)
+	require.NotNil(t, app)
 	e := echo.New()
 	require.NotNil(t, e)
 
-	assert.Panics(t, func() {
-		newGroupPublic(nil, routerConfig)
-	})
-	assert.Panics(t, func() {
-		newGroupPublic(e.Group(routerConfig.PublicPath+"/"+routerConfig.Version), routerWrongConfig)
-	})
 	assert.NotPanics(t, func() {
-		newGroupPublic(e.Group(routerConfig.PublicPath+"/"+routerConfig.Version), routerConfig)
+		newGroupPublic(e.Group(appPrefix+"/"+version), cfg, app, metrics)
 	})
+	app.AssertExpectations(t)
 }
 
 func TestNewGroupPublic(t *testing.T) {
-	var (
-		err error
-		db  *gorm.DB
-	)
 	const (
 		appPrefix   = "/api"
 		appName     = "/idmsvc"
@@ -168,31 +133,15 @@ func TestNewGroupPublic(t *testing.T) {
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
-	inventory := client_inventory.NewHostInventory(t)
-	require.NotNil(t, inventory)
-
 	cfg := test.GetTestConfig()
-	_, db, err = test.NewSqlMock(&gorm.Session{})
-	require.NoError(t, err)
-	require.NotNil(t, db)
-
-	rbac := initRbacWrapper(t, cfg)
-	require.NotNil(t, rbac)
-
-	pendo := client_pendo.NewClient(cfg)
-	require.NotNil(t, pendo)
-
-	// FIXME Refactor and encapsulate routerConfig in a factory function
-	routerConfig := RouterConfig{
-		PublicPath: appPrefix + appName,
-		Version:    "1.0",
-		Handlers:   impl.NewHandler(cfg, db, metrics, inventory, rbac, pendo),
-		Metrics:    metrics,
-	}
-
+	require.NotNil(t, cfg)
+	app := handler.NewApplication(t)
+	require.NotNil(t, app)
 	e := echo.New()
 	require.NotNil(t, e)
-	group := newGroupPublic(e.Group(routerConfig.PublicPath+"/v"+routerConfig.Version), routerConfig)
+	version := "1.0"
+	pathPrefix := trimVersionFromPathPrefix(cfg.Application.PathPrefix)
+	group := newGroupPublic(e.Group(pathPrefix+"/v"+version), cfg, app, metrics)
 	require.NotNil(t, group)
 
 	// Match Routes in expected
@@ -207,14 +156,16 @@ func TestNewGroupPublic(t *testing.T) {
 			assert.Equalf(t, name, route.Name, "handler for path=%s method=%s does not match: expected=%s current=%s", route.Path, route.Method, name, route.Name)
 		}
 	}
+	app.AssertExpectations(t)
 
 	// Same result when IsFakeEnabled
 	e = echo.New()
 	require.NotNil(t, e)
-	routerConfig.IsFakeEnabled = true
 	group = newGroupPublic(
-		e.Group(routerConfig.PublicPath+"/v"+routerConfig.Version),
-		routerConfig)
+		e.Group(pathPrefix+"/v"+version),
+		cfg,
+		app,
+		metrics)
 	require.NotNil(t, group)
 	for _, route := range e.Routes() {
 		t.Logf("Method=%s Path=%s Name=%s", route.Method, route.Path, route.Name)
@@ -313,21 +264,17 @@ func TestSkipperSystem(t *testing.T) {
 }
 
 func TestGetOpenapiPaths(t *testing.T) {
-	assert.PanicsWithError(t, "'c' is empty", func() {
-		getOpenapiPaths(RouterConfig{})
+
+	assert.PanicsWithValue(t, "'cfg' is nil", func() {
+		getOpenapiPaths(nil, "")
 	})
 
-	assert.PanicsWithError(t, "'c.Version' is empty", func() {
-		getOpenapiPaths(RouterConfig{
-			Version:    "",
-			PublicPath: "/api/idmsvc",
-		})
+	cfg := test.GetTestConfig()
+	assert.PanicsWithValue(t, "'version' is an empty string", func() {
+		getOpenapiPaths(cfg, "")
 	})
 
-	cachedPaths := getOpenapiPaths(RouterConfig{
-		Version:    "1.4",
-		PublicPath: "/api/idmsvc",
-	})
+	cachedPaths := getOpenapiPaths(cfg, "1.4")
 	assert.NotNil(t, cachedPaths)
 	assert.Equal(t,
 		[]string{
@@ -339,24 +286,27 @@ func TestGetOpenapiPaths(t *testing.T) {
 }
 
 func TestNewSkipperOpenapi(t *testing.T) {
-	assert.PanicsWithError(t, "'c' is empty", func() {
-		newSkipperOpenapi(RouterConfig{})
+	assert.PanicsWithValue(t, "'cfg' is nil", func() {
+		newSkipperOpenapi(nil, "")
 	})
 
-	c := RouterConfig{
-		PublicPath: "/api/idmsvc",
-		Version:    "1.4",
-	}
-	skipper := newSkipperOpenapi(c)
+	cfg := test.GetTestConfig()
+	assert.PanicsWithValue(t, "'version' is an empty string", func() {
+		newSkipperOpenapi(cfg, "")
+	})
+
+	version := "1.4"
+	skipper := newSkipperOpenapi(cfg, version)
 	assert.NotNil(t, skipper)
 
-	path := fmt.Sprintf("%s/v%s/openapi.json", c.PublicPath, c.Version)
+	prefixPath := trimVersionFromPathPrefix(cfg.Application.PathPrefix)
+	path := fmt.Sprintf("%s/v%s/openapi.json", prefixPath, version)
 	ctx := helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
 	assert.True(t, skipper(ctx))
-	path = fmt.Sprintf("%s/v%s/openapi.json", c.PublicPath, strings.Split(c.Version, ".")[0])
+	path = fmt.Sprintf("%s/v%s/openapi.json", prefixPath, strings.Split(version, ".")[0])
 	ctx = helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
 	assert.True(t, skipper(ctx))
-	path = fmt.Sprintf("%s/v%s/openapi2.json", c.PublicPath, strings.Split(c.Version, ".")[0])
+	path = fmt.Sprintf("%s/v%s/openapi2.json", prefixPath, strings.Split(version, ".")[0])
 	ctx = helperNewContextForSkipper(path, echo.GET, path, map[string]string{})
 	assert.False(t, skipper(ctx))
 }
@@ -436,4 +386,40 @@ func TestSkipperMixedPredicate(t *testing.T) {
 		result := skipperMixedPredicate(ctx)
 		assert.Equal(t, testCase.Expected, result)
 	}
+}
+
+func TestGuardNewGroupPublic(t *testing.T) {
+	cfg := test.GetTestConfig()
+	require.NotNil(t, cfg)
+	pathPrefix := trimVersionFromPathPrefix(cfg.Application.PathPrefix)
+	version := "1.0"
+
+	assert.PanicsWithValue(t, "'e' is nil", func() {
+		guardNewGroupPublic(nil, nil, nil, nil)
+	})
+
+	e := echo.New()
+	require.NotNil(t, e)
+	assert.PanicsWithValue(t, "'cfg' is nil", func() {
+		guardNewGroupPublic(e.Group(pathPrefix+"/"+version), nil, nil, nil)
+	})
+
+	assert.PanicsWithValue(t, "'app' is nil", func() {
+		guardNewGroupPublic(e.Group(pathPrefix+"/"+version), cfg, nil, nil)
+	})
+
+	app := handler.NewApplication(t)
+	require.NotNil(t, app)
+	assert.PanicsWithValue(t, "'metrics' is nil", func() {
+		guardNewGroupPublic(e.Group(pathPrefix+"/"+version), cfg, app, nil)
+	})
+
+	reg := prometheus.NewRegistry()
+	require.NotNil(t, reg)
+	metrics := metrics.NewMetrics(reg)
+	require.NotNil(t, metrics)
+	assert.NotPanics(t, func() {
+		guardNewGroupPublic(e.Group(pathPrefix+"/"+version), cfg, app, metrics)
+	})
+	app.AssertExpectations(t)
 }

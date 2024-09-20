@@ -8,8 +8,8 @@ import (
 	"sync"
 
 	"github.com/labstack/echo/v4"
+	"github.com/podengo-project/idmsvc-backend/internal/api/metrics"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
-	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/router"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
 )
@@ -23,29 +23,23 @@ type metricsService struct {
 	echo *echo.Echo
 }
 
-func NewMetrics(ctx context.Context, wg *sync.WaitGroup, config *config.Config, app handler.Application) service.ApplicationService {
-	if config == nil {
+func NewMetrics(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, app metrics.ServerInterface) service.ApplicationService {
+	if cfg == nil {
 		panic("config is nil")
 	}
 	if wg == nil {
 		panic("wg is nil")
 	}
 
-	routerConfig := router.RouterConfig{
-		Version:     "v1.0",
-		MetricsPath: config.Metrics.Path,
-		PrivatePath: "/private",
-		Handlers:    app,
-	}
-
 	result := &metricsService{}
 	result.context, result.cancel = context.WithCancel(ctx)
 	result.waitGroup = wg
-	result.config = config
+	result.config = cfg
 
 	result.echo = router.NewRouterForMetrics(
 		echo.New(),
-		routerConfig,
+		cfg,
+		app,
 	)
 	result.echo.HideBanner = true
 

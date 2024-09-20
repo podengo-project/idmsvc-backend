@@ -1,52 +1,23 @@
 package router
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	api_metrics "github.com/podengo-project/idmsvc-backend/internal/api/metrics"
+	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/handler"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	app_middleware "github.com/podengo-project/idmsvc-backend/internal/infrastructure/middleware"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
 )
 
-type RouterConfig struct {
-	Handlers           handler.Application
-	PublicPath         string
-	PrivatePath        string
-	Version            string
-	MetricsPath        string
-	IsFakeEnabled      bool
-	EnableAPIValidator bool
-	Metrics            *metrics.Metrics
-}
-
 func getMajorVersion(version string) string {
 	if version == "" {
 		return ""
 	}
 	return strings.Split(version, ".")[0]
-}
-
-func checkRouterConfig(c RouterConfig) error {
-	if c.PublicPath == "" {
-		return fmt.Errorf("PublicPath cannot be empty")
-	}
-	if c.PrivatePath == "" {
-		return fmt.Errorf("PrivatePath cannot be empty")
-	}
-	if c.PublicPath == c.PrivatePath {
-		return fmt.Errorf("PublicPath and PrivatePath cannot be equal")
-	}
-	if c.Version == "" {
-		return fmt.Errorf("Version cannot be empty")
-	}
-	if c.Metrics == nil {
-		return fmt.Errorf("Metrics is nil")
-	}
-	return nil
 }
 
 func loggerSkipperWithPaths(paths ...string) middleware.Skipper {
@@ -61,13 +32,15 @@ func loggerSkipperWithPaths(paths ...string) middleware.Skipper {
 	}
 }
 
-func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
+func configCommonMiddlewares(e *echo.Echo, cfg *config.Config) {
+	privatePath := "/private"
+	metricsPath := cfg.Metrics.Path
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	skipperPaths := []string{
-		c.PrivatePath + "/readyz",
-		c.PrivatePath + "/livez",
-		c.MetricsPath,
+		privatePath + "/readyz",
+		privatePath + "/livez",
+		metricsPath,
 	}
 
 	e.Use(app_middleware.ContextLogConfig(&app_middleware.LogConfig{
@@ -101,37 +74,76 @@ func configCommonMiddlewares(e *echo.Echo, c RouterConfig) {
 // c is the router configuration.
 // metrics is the reference to the metrics storage.
 // Return the echo instance set up; is something fails it panics.
-func NewRouterWithConfig(e *echo.Echo, c RouterConfig) *echo.Echo {
+func NewRouterWithConfig(e *echo.Echo, cfg *config.Config, app handler.Application, metrics *metrics.Metrics) *echo.Echo {
+	guardNewRouterWithConfig(e, cfg, app, metrics)
+	// TODO Add version to the configuration, an set it from config.example.yaml
+	// or clowder.yaml deployment descriptor
+	version := "1.0"
+	privatePath := "/private"
+	publicPath := trimVersionFromPathPrefix(cfg.Application.PathPrefix)
+
+	configCommonMiddlewares(e, cfg)
+
+	newGroupPrivate(e.Group(privatePath), app)
+	newGroupPublic(e.Group(publicPath+"/v"+version), cfg, app, metrics)
+	newGroupPublic(e.Group(publicPath+"/v"+getMajorVersion(version)), cfg, app, metrics)
+	return e
+}
+
+func guardNewRouterWithConfig(e *echo.Echo, cfg *config.Config, app handler.Application, metrics *metrics.Metrics) {
 	if e == nil {
 		panic("'e' is nil")
 	}
-	if err := checkRouterConfig(c); err != nil {
-		panic(err.Error())
+	if cfg == nil {
+		panic("'cfg' is nil")
 	}
+	if app == nil {
+		panic("'app' is nil")
+	}
+	if metrics == nil {
+		panic("'metrics' is nil")
+	}
+}
 
-	configCommonMiddlewares(e, c)
+func trimVersionFromPathPrefix(pathPrefix string) string {
+	if pathPrefix == "" {
+		return pathPrefix
+	}
+	pathPrefix = strings.TrimSuffix(pathPrefix, "/")
+	pathPrefixItems := strings.Split(pathPrefix, "/")
+	lenItems := len(pathPrefixItems)
+	if len(pathPrefixItems) > 0 {
+		item := pathPrefixItems[lenItems-1]
+		if item[0] == 'v' {
+			pathPrefix = strings.Join(pathPrefixItems[:lenItems-1], "/")
+			return pathPrefix
+		}
+	}
+	return pathPrefix
+}
 
-	newGroupPrivate(e.Group(c.PrivatePath), c)
-	newGroupPublic(e.Group(c.PublicPath+"/v"+c.Version), c)
-	newGroupPublic(e.Group(c.PublicPath+"/v"+getMajorVersion(c.Version)), c)
-	return e
+func guardNewRouterForMetrics(e *echo.Echo, cfg *config.Config, apiMetrics api_metrics.ServerInterface) {
+	if e == nil {
+		panic("'e' is nil")
+	}
+	if cfg == nil {
+		panic("'cfg' is nil")
+	}
+	if cfg.Metrics.Path == "" {
+		panic("'MetricsPath' cannot be an empty string")
+	}
+	if apiMetrics == nil {
+		panic("'apiMetrics' is nil")
+	}
 }
 
 // NewRouterForMetrics fill the routing information for /metrics endpoint.
 // e is the echo instance
-// c is the router configuration
+// cfg is the router configuration
 // Return the echo instance configured for the metrics for success execution,
 // else raise any panic.
-func NewRouterForMetrics(e *echo.Echo, c RouterConfig) *echo.Echo {
-	if e == nil {
-		panic("'e' is nil")
-	}
-	if c.MetricsPath == "" {
-		panic(fmt.Errorf("MetricsPath cannot be an empty string"))
-	}
-
-	configCommonMiddlewares(e, c)
-
-	// Register handlers
-	return newGroupMetrics(e, c)
+func NewRouterForMetrics(e *echo.Echo, cfg *config.Config, app api_metrics.ServerInterface) *echo.Echo {
+	guardNewRouterForMetrics(e, cfg, app)
+	configCommonMiddlewares(e, cfg)
+	return newGroupMetrics(e, cfg, app)
 }
