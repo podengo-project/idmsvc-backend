@@ -163,8 +163,6 @@ type Metrics struct {
 // Clients gather all the configuration to properly setup
 // the third party services that idmsvc need to interact with.
 type Clients struct {
-	// InventoryBaseURL is the base endpoint to launch inventory requests.
-	InventoryBaseURL string `mapstructure:"inventory_base_url"`
 	// RbacBaseURL is the base endpoint to launch RBAC requests.
 	RbacBaseURL string `mapstructure:"rbac_base_url"`
 	// PendoBaseURL is the base url to reach out the pendo API.
@@ -253,7 +251,6 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("logging.cloudwatch.session", "")
 
 	// Clients
-	v.SetDefault("clients.host_inventory_base_url", "http://localhost:8010/api/inventory/v1")
 	v.SetDefault("clients.rbac_base_url", "")
 	v.SetDefault("clients.pendo_base_url", "")
 	v.SetDefault("clients.pendo_api_key", "")

@@ -26,7 +26,6 @@ func TestSetDefaults(t *testing.T) {
 	// TODO HMS-3609 There are many more properties to check; complete the test
 	assert.Equal(t, DefaultWebPort, v.Get("web.port"))
 	assert.Equal(t, "info", v.Get("logging.level"))
-	assert.Equal(t, "http://localhost:8010/api/inventory/v1", v.Get("clients.host_inventory_base_url"))
 	assert.Equal(t, DefaultTokenExpirationTimeSeconds, v.Get("app.token_expiration_seconds"))
 	assert.Equal(t, PaginationDefaultLimit, v.Get("app.pagination_default_limit"))
 	assert.Equal(t, PaginationMaxLimit, v.Get("app.pagination_max_limit"))

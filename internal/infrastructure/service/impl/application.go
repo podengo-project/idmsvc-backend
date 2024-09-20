@@ -7,7 +7,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	handler_impl "github.com/podengo-project/idmsvc-backend/internal/handler/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/service"
-	client_inventory "github.com/podengo-project/idmsvc-backend/internal/interface/client/inventory"
 	client_pendo "github.com/podengo-project/idmsvc-backend/internal/interface/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
 	"github.com/podengo-project/idmsvc-backend/internal/metrics"
@@ -27,29 +26,29 @@ type svcApplication struct {
 	// AdditionalService service.ApplicationService
 }
 
-func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB, inventory client_inventory.HostInventory, rbac client_rbac.Rbac, pendo client_pendo.Pendo) service.ApplicationService {
+func guardNewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB, rbac client_rbac.Rbac, pendo client_pendo.Pendo) {
 	if ctx == nil {
-		panic("ctx is nil")
+		panic("'ctx' is nil")
 	}
 	if wg == nil {
-		panic("wg is nil")
+		panic("'wg' is nil")
 	}
 	if cfg == nil {
-		panic("cfg is nil")
+		panic("'cfg' is nil")
 	}
 	if db == nil {
-		panic("db is nil")
-	}
-	if inventory == nil {
-		panic("inventory is nil")
+		panic("'db' is nil")
 	}
 	if rbac == nil {
-		panic("rbac is nil")
+		panic("'rbac' is nil")
 	}
 	if pendo == nil {
-		panic("pendo is nil")
+		panic("'pendo' is nil")
 	}
+}
 
+func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config, db *gorm.DB, rbac client_rbac.Rbac, pendo client_pendo.Pendo) service.ApplicationService {
+	guardNewApplication(ctx, wg, cfg, db, rbac, pendo)
 	s := &svcApplication{}
 	s.Config = cfg
 	s.Context, s.Cancel = context.WithCancel(ctx)
@@ -59,7 +58,7 @@ func NewApplication(ctx context.Context, wg *sync.WaitGroup, cfg *config.Config,
 	metrics := metrics.NewMetrics(reg)
 
 	// Create application handlers
-	handler := handler_impl.NewHandler(s.Config, db, metrics, inventory, rbac, pendo)
+	handler := handler_impl.NewHandler(s.Config, db, metrics, rbac, pendo)
 
 	// Create Metrics service
 	s.Metrics = NewMetrics(s.Context, s.WaitGroup, s.Config, handler)

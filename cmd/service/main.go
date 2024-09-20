@@ -12,7 +12,6 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	impl_service "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/rbac"
-	client_inventory "github.com/podengo-project/idmsvc-backend/internal/usecase/client/inventory"
 	client_pendo "github.com/podengo-project/idmsvc-backend/internal/usecase/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 )
@@ -52,10 +51,9 @@ func main() {
 	defer datastore.Close(db)
 
 	ctx, cancel := startSignalHandler(context.Background())
-	inventory := client_inventory.NewHostInventory(cfg)
 	rbac := initRbacWrapper(ctx, cfg)
 	pendo := client_pendo.NewClient(cfg)
-	s := impl_service.NewApplication(ctx, wg, cfg, db, inventory, rbac, pendo)
+	s := impl_service.NewApplication(ctx, wg, cfg, db, rbac, pendo)
 	if e := s.Start(); e != nil {
 		panic(e)
 	}

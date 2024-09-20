@@ -375,12 +375,6 @@ To make life easier, some code has been created
 at: `./internal/test/client/server.go` which prepare
 an echo instance for it.
 
-For the inventory host client component has been
-created some helper which wrap the above to use
-only the arguments we need. See the tests for
-inventory client component at:
-`./internal/usecase/client/host_inventory_test.go`.
-
 ## TODO Unit test for a handler
 
 FIXME It was seen that could be complicated to

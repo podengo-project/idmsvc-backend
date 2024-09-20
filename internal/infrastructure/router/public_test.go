@@ -61,7 +61,6 @@ func TestNewGroupPublicNotPanic(t *testing.T) {
 	require.NotNil(t, reg)
 	metrics := metrics.NewMetrics(reg)
 	require.NotNil(t, metrics)
-
 	appPrefix := trimVersionFromPathPrefix(cfg.Application.PathPrefix)
 	version := "1.0"
 	app := handler.NewApplication(t)
