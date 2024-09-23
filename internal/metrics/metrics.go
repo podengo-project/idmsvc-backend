@@ -13,8 +13,12 @@ const (
 
 // Metrics holds all the Prometheus metrics for the application
 type Metrics struct {
-	// HTTPRequestDuration is a histogram that measures the duration of HTTP requests
+	// HTTPRequestDuration is a histogram that measures the duration of the HTTP requests
 	HTTPRequestDuration *prometheus.HistogramVec
+	// HTTPRequestHeaderSize is a histogram that measures the size of the HTTP request headers.
+	HTTPRequestHeaderSize *prometheus.HistogramVec
+	// HTTPRequestBodySize is a histogram that measures the size of the HTTP request bodys.
+	HTTPRequestBodySize *prometheus.HistogramVec
 
 	reg *prometheus.Registry
 }
@@ -36,6 +40,20 @@ func NewMetrics(reg *prometheus.Registry) *Metrics {
 			Name:      "http_request_duration_seconds",
 			Help:      "Duration of HTTP requests",
 			Buckets:   prometheus.ExponentialBuckets(0.0005, 2, 20),
+		}, []string{"status", "method", "path"}),
+		HTTPRequestHeaderSize: promauto.With(reg).NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: NameSpace,
+			Name:      "http_request_header_size",
+			Help:      "Size of the HTTP request headers",
+			// Bucket limited to 32KB
+			Buckets: []float64{1024, 2 * 1024, 4 * 1024, 8 * 1024, 16 * 1024, 32 * 1024},
+		}, []string{"status", "method", "path"}),
+		HTTPRequestBodySize: promauto.With(reg).NewHistogramVec(prometheus.HistogramOpts{
+			Namespace: NameSpace,
+			Name:      "http_request_body_size",
+			Help:      "Size of the HTTP request bodies",
+			// Bucket limited to 128KB
+			Buckets: []float64{1024, 2 * 1024, 4 * 1024, 8 * 1024, 16 * 1024, 32 * 1024, 64 * 1024, 128 * 1024},
 		}, []string{"status", "method", "path"}),
 	}
 
