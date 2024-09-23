@@ -69,6 +69,7 @@ func TestMetricsMiddlewareWithConfigCreation(t *testing.T) {
 	}
 
 	e := echo.New()
+	e.Use(ContextLogConfig(&LogConfig{}))
 	m := MetricsMiddlewareWithConfig(config)
 	e.Use(m)
 	path := "/api/idmsvc/v1/domains"
