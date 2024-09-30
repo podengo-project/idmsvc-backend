@@ -51,7 +51,7 @@ type ServerInterfaceWrapper struct {
 func (w *ServerInterfaceWrapper) ListDomains(ctx echo.Context) error {
 	var err error
 
-	ctx.Set(X_rh_identityScopes, []string{"Type:User"})
+	ctx.Set(X_rh_identityScopes, []string{"Type:User", "Type:ServiceAccount"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ListDomainsParams
@@ -162,7 +162,7 @@ func (w *ServerInterfaceWrapper) RegisterDomain(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) CreateDomainToken(ctx echo.Context) error {
 	var err error
 
-	ctx.Set(X_rh_identityScopes, []string{"Type:User"})
+	ctx.Set(X_rh_identityScopes, []string{"Type:User", "Type:ServiceAccount"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params CreateDomainTokenParams
@@ -200,7 +200,7 @@ func (w *ServerInterfaceWrapper) DeleteDomain(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
-	ctx.Set(X_rh_identityScopes, []string{"Type:User"})
+	ctx.Set(X_rh_identityScopes, []string{"Type:User", "Type:ServiceAccount"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params DeleteDomainParams
@@ -238,7 +238,7 @@ func (w *ServerInterfaceWrapper) ReadDomain(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
-	ctx.Set(X_rh_identityScopes, []string{"Type:User"})
+	ctx.Set(X_rh_identityScopes, []string{"Type:User", "Type:ServiceAccount"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ReadDomainParams
@@ -276,7 +276,7 @@ func (w *ServerInterfaceWrapper) UpdateDomainUser(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Invalid format for parameter uuid: %s", err))
 	}
 
-	ctx.Set(X_rh_identityScopes, []string{"Type:User"})
+	ctx.Set(X_rh_identityScopes, []string{"Type:User", "Type:ServiceAccount"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params UpdateDomainUserParams
@@ -408,7 +408,7 @@ func (w *ServerInterfaceWrapper) HostConf(ctx echo.Context) error {
 func (w *ServerInterfaceWrapper) GetSigningKeys(ctx echo.Context) error {
 	var err error
 
-	ctx.Set(X_rh_identityScopes, []string{"Type:System", "Type:User"})
+	ctx.Set(X_rh_identityScopes, []string{"Type:System", "Type:User", "Type:ServiceAccount"})
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params GetSigningKeysParams
