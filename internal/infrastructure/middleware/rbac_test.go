@@ -20,6 +20,7 @@ func helperRbacSetupEcho(config *RBACConfig, method, path string, status int) *e
 	e := echo.New()
 	e.Use(ContextLogConfig(&LogConfig{}))
 	e.Use(CreateContext())
+	e.Use(ParseXRHIDMiddlewareWithConfig(&ParseXRHIDMiddlewareConfig{}))
 	e.Use(EnforceIdentityWithConfig(&IdentityConfig{}))
 	e.Use(RBACWithConfig(config))
 	e.Add(method, path, func(c echo.Context) error {
