@@ -72,7 +72,10 @@ func (s *SuiteListDomains) SetupTest() {
 			s.FailNow("error creating token")
 		}
 		s.As(XRHIDSystem)
-		domain, err = s.RegisterIpaDomain(token.DomainToken, builder_api.NewDomain(domainName).Build())
+		domainRequest := builder_api.NewDomain(domainName).Build()
+		setFirstAsUpdateServer(domainRequest)
+		setFirstServerRHSMId(s.T(), domainRequest, s.systemXRHID)
+		domain, err = s.RegisterIpaDomain(token.DomainToken, domainRequest)
 		if err != nil {
 			s.FailNow("error registering domain")
 		}

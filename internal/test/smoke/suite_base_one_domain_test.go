@@ -34,6 +34,8 @@ func (s *SuiteBaseWithDomain) SetupTest() {
 	}
 	domainName = fmt.Sprintf("domain%d.test", i)
 	domainRequest := builder_api.NewDomain(domainName).Build()
+	setFirstServerRHSMId(s.T(), domainRequest, s.systemXRHID)
+	setFirstAsUpdateServer(domainRequest)
 	s.As(XRHIDSystem)
 	if domain, err = s.RegisterIpaDomain(token.DomainToken, domainRequest); err != nil {
 		s.FailNow("error creating rhel-idm domain")

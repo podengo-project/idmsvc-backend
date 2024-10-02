@@ -32,6 +32,8 @@ func (s *SuiteDeleteDomain) TestDeleteDomain() {
 
 		domainName := fmt.Sprintf("domain%d.test", i)
 		domainRequest := builder_api.NewDomain(domainName).Build()
+		setFirstAsUpdateServer(domainRequest)
+		setFirstServerRHSMId(s.T(), domainRequest, s.systemXRHID)
 
 		s.As(RBACAdmin, XRHIDSystem)
 		domain, err = s.RegisterIpaDomain(token.DomainToken, domainRequest)

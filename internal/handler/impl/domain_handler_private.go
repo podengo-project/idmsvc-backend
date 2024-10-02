@@ -29,17 +29,17 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (da
 	return data, nil
 }
 
-func ensureSubscriptionManagerIDAuthorizedToUpdate(
+func subscriptionManagerIDIncluded(
 	subscriptionManagerID string,
 	servers []model.IpaServer,
-) error {
+) (bool, error) {
 	if subscriptionManagerID == "" {
 		slog.Error("'subscriptionManagerID' is an empty string")
-		return fmt.Errorf("'subscriptionManagerID' is empty")
+		return false, fmt.Errorf("'subscriptionManagerID' is empty")
 	}
 	if servers == nil {
 		slog.Error("'servers' is nil")
-		return internal_errors.NilArgError("servers")
+		return false, internal_errors.NilArgError("servers")
 	}
 	for i := range servers {
 		rhsmid := "nil"
@@ -55,12 +55,49 @@ func ensureSubscriptionManagerIDAuthorizedToUpdate(
 		if servers[i].HCCUpdateServer &&
 			servers[i].RHSMId != nil &&
 			*servers[i].RHSMId == subscriptionManagerID {
-			return nil
+			return true, nil
 		}
+	}
+	return false, nil
+}
+
+// ensureSubscriptionManagerIDAuthorizedToUpdate checks if a server with
+// the subscription manager ID is authorized to update the domain.
+// Returns a Forbidden error if it is not.
+func ensureSubscriptionManagerIDAuthorizedToUpdate(
+	subscriptionManagerID string,
+	servers []model.IpaServer,
+) error {
+	included, err := subscriptionManagerIDIncluded(subscriptionManagerID, servers)
+	if err != nil {
+		return err
+	}
+	if included {
+		return nil
 	}
 	return internal_errors.NewHTTPErrorF(
 		http.StatusForbidden,
-		"'subscriptionManagerID' not found into the authorized list of rhel-idm servers",
+		"update server is not authorized to update the domain",
+	)
+}
+
+// ensureUpdateServerEnabledForUpdates checks if the update server with the subscription
+// manager ID is included in the list of servers and is enabled for updates.
+// Returns a BadRequest error if it is not.
+func ensureUpdateServerEnabledForUpdates(
+	subscriptionManagerID string,
+	servers []model.IpaServer,
+) error {
+	included, err := subscriptionManagerIDIncluded(subscriptionManagerID, servers)
+	if err != nil {
+		return err
+	}
+	if included {
+		return nil
+	}
+	return internal_errors.NewHTTPErrorF(
+		http.StatusBadRequest,
+		"update server's 'Subscription Manager ID' not found in the authorized list of rhel-idm servers",
 	)
 }
 

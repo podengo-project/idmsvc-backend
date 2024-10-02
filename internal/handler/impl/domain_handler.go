@@ -240,6 +240,15 @@ func (a *application) RegisterDomain(
 			slog.String("os-release-version", clientVersion.OSReleaseVersionID),
 		),
 	)
+
+	updateServerRSHMId := xrhid.Identity.System.CommonName
+	if err = ensureUpdateServerEnabledForUpdates(
+		updateServerRSHMId,
+		data.IpaDomain.Servers,
+	); err != nil {
+		return err
+	}
+
 	if tx = a.db.Begin(); tx.Error != nil {
 		return tx.Error
 	}
@@ -314,6 +323,15 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 	}
 	defer tx.Rollback()
 
+	// Check that the update server is included in the request
+	updateServerRSHMId := xrhid.Identity.System.CommonName
+	if err = ensureUpdateServerEnabledForUpdates(
+		updateServerRSHMId,
+		data.IpaDomain.Servers,
+	); err != nil {
+		return err
+	}
+
 	// Load Domain data
 	c := app_context.CtxWithDB(ctx.Request().Context(), tx)
 	if currentData, err = a.domain.repository.FindByID(c, orgID, domain_id); err != nil {
@@ -326,9 +344,8 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 		return err
 	}
 
-	subscriptionManagerID := xrhid.Identity.System.CommonName
 	if err = ensureSubscriptionManagerIDAuthorizedToUpdate(
-		subscriptionManagerID,
+		updateServerRSHMId,
 		currentData.IpaDomain.Servers,
 	); err != nil {
 		return err
