@@ -57,7 +57,10 @@ func (s *SuiteDomainUpdateAgent) TearDownTest() {
 }
 
 func (s *SuiteDomainUpdateAgent) buildUpdateAgentRequest(domainName string) *public.UpdateDomainAgentRequest {
-	return builder_api.NewUpdateDomainAgent(domainName).WithSubscriptionManagerID(s.systemXRHID.Identity.System.CommonName).Build()
+	return builder_api.NewUpdateDomainAgent(domainName).
+		WithSubscriptionManagerID(s.systemXRHID.Identity.System.CommonName).
+		WithHCCUpdate(true).
+		Build()
 }
 
 func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
@@ -69,6 +72,8 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 
 	requestWithChangedRealm := s.buildUpdateAgentRequest(domainName)
 	requestWithChangedRealm.RhelIdm.RealmName = "DIFFERENT.REALM"
+
+	requestWithBadSubscriptionManagerID := builder_api.NewUpdateDomainAgent(domainName).Build()
 
 	okRequest := s.buildUpdateAgentRequest(domainName)
 
@@ -127,6 +132,27 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 					assert.Equal(t, builder_api.NewErrorResponse().
 						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
 							WithTitle("'realm_name' may not be changed").
+							Build()).
+						Build(), body)
+					return nil
+				}),
+			},
+		},
+		{
+			Name: "TestPutDomainWithBadSubscriptionManagerID",
+			Given: TestCaseGiven{
+				XRHIDProfile: XRHIDSystem,
+				Method:       http.MethodPut,
+				URL:          url,
+				Header:       test_header,
+				Body:         requestWithBadSubscriptionManagerID,
+			},
+			Expected: TestCaseExpect{
+				StatusCode: http.StatusBadRequest,
+				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
+					assert.Equal(t, builder_api.NewErrorResponse().
+						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
+							WithTitle("update server's 'Subscription Manager ID' not found in the authorized list of rhel-idm servers").
 							Build()).
 						Build(), body)
 					return nil

@@ -75,12 +75,53 @@ func (s *SuiteRegisterDomain) TearDownTest() {
 func (s *SuiteRegisterDomain) TestRegisterDomain() {
 	url := s.DefaultPublicBaseURL() + "/domains"
 	domainName := builder_helper.GenRandDomainName(2)
-	bodyRequest := builder_api.
+
+	updateServerNotPresentRequest := builder_api.
 		NewDomain(domainName).
 		Build()
 
+	bodyRequest := builder_api.
+		NewDomain(domainName).
+		Build()
+	setFirstServerRHSMId(s.T(), bodyRequest, s.systemXRHID)
+	setFirstAsUpdateServer(bodyRequest)
+
+	versionHeader := header.EncodeXRHIDMVersion(
+		header.NewXRHIDMVersion(
+			"v1.0.0",
+			"4.19.0",
+			"redhat-9.3",
+			"9.3",
+		),
+	)
+
 	// Prepare the tests
 	testCases := []TestCase{
+		{
+			Name: "TestRegisterDomainNoUpdateServer",
+			Given: TestCaseGiven{
+				XRHIDProfile: XRHIDSystem,
+				Method:       http.MethodPost,
+				URL:          url,
+				Header: http.Header{
+					header.HeaderXRequestID:              {"test_register"},
+					header.HeaderXRHIDMRegistrationToken: {s.token.DomainToken},
+					header.HeaderXRHIDMVersion:           {versionHeader},
+				},
+				Body: updateServerNotPresentRequest,
+			},
+			Expected: TestCaseExpect{
+				StatusCode: http.StatusBadRequest,
+				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
+					assert.Equal(t, builder_api.NewErrorResponse().
+						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
+							WithTitle("update server's 'Subscription Manager ID' not found in the authorized list of rhel-idm servers").
+							Build()).
+						Build(), body)
+					return nil
+				}),
+			},
+		},
 		{
 			Name: "TestRegisterDomain rhel-idm",
 			Given: TestCaseGiven{
@@ -90,16 +131,7 @@ func (s *SuiteRegisterDomain) TestRegisterDomain() {
 				Header: http.Header{
 					header.HeaderXRequestID:              {"test_register"},
 					header.HeaderXRHIDMRegistrationToken: {s.token.DomainToken},
-					header.HeaderXRHIDMVersion: {
-						header.EncodeXRHIDMVersion(
-							header.NewXRHIDMVersion(
-								"v1.0.0",
-								"4.19.0",
-								"redhat-9.3",
-								"9.3",
-							),
-						),
-					},
+					header.HeaderXRHIDMVersion:           {versionHeader},
 				},
 				Body: bodyRequest,
 			},

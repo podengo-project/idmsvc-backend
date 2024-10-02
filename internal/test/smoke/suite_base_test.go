@@ -855,6 +855,20 @@ func StartSignalHandler(c context.Context) (context.Context, context.CancelFunc)
 	return ctx, cancel
 }
 
+func setFirstServerRHSMId(t *testing.T, domain *public.Domain, xrhid identity.XRHID) {
+	require.NotNil(t, domain, "Domain is nil")
+	require.NotNil(t, domain.RhelIdm, "Domain is not a rhel-idm domain")
+	require.NotNil(t, domain.RhelIdm.Servers, "RhelIdm domain has no servers")
+	require.NotNil(t, xrhid.Identity.System, "XRHID is not a system identity")
+	serverUUID, err := uuid.Parse(xrhid.Identity.System.CommonName)
+	require.NoError(t, err, "Error parsing the server UUID")
+	domain.RhelIdm.Servers[0].SubscriptionManagerId = &serverUUID
+}
+
+func setFirstAsUpdateServer(domain *public.Domain) {
+	domain.RhelIdm.Servers[0].HccUpdateServer = true
+}
+
 // TearDownSignalHandler reset the signal handlers
 func TearDownSignalHandler() {
 	signal.Reset(syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
