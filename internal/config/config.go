@@ -509,6 +509,75 @@ func Load(cfg *Config) *viper.Viper {
 	return v
 }
 
+// Log logs the configuration
+func (c *Config) Log(logger *slog.Logger) {
+	logger.Info(
+		"Configuration",
+		slog.Group("Web",
+			slog.Int("Port", int(c.Web.Port)),
+		),
+		slog.Group("Database",
+			slog.String("Host", c.Database.Host),
+			slog.Int("Port", c.Database.Port),
+			slog.String("User", c.Database.User),
+			slog.String("Password", obfuscateSecret(c.Database.Password)),
+			slog.String("Name", c.Database.Name),
+			slog.String("CACertPath", c.Database.CACertPath),
+			slog.Int("MaxOpenConns", c.Database.MaxOpenConns),
+		),
+		slog.Group("Logging",
+			slog.String("Level", c.Logging.Level),
+			slog.Bool("Console", c.Logging.Console),
+			slog.Bool("Location", c.Logging.Location),
+			slog.String("Type", c.Logging.Type),
+			slog.Group("Cloudwatch",
+				slog.String("Region", c.Logging.Cloudwatch.Region),
+				slog.String("Key", c.Logging.Cloudwatch.Key),
+				slog.String("Secret", obfuscateSecret(c.Logging.Cloudwatch.Secret)),
+				slog.String("Session", c.Logging.Cloudwatch.Session),
+				slog.String("Group", c.Logging.Cloudwatch.Group),
+				slog.String("Stream", c.Logging.Cloudwatch.Stream),
+			),
+		),
+		slog.Group("Metrics",
+			slog.String("Path", c.Metrics.Path),
+			slog.Int("Port", c.Metrics.Port),
+		),
+		slog.Group("Clients",
+			slog.String("RbacBaseURL", c.Clients.RbacBaseURL),
+			slog.String("PendoBaseURL", c.Clients.PendoBaseURL),
+			slog.String("PendoAPIKey", obfuscateSecret(c.Clients.PendoAPIKey)),
+			slog.String("PendoTrackEventKey", obfuscateSecret(c.Clients.PendoTrackEventKey)),
+			slog.Int("PendoRequestTimeoutSecs", c.Clients.PendoRequestTimeoutSecs),
+		),
+		slog.Group("Application",
+			slog.String("Name", c.Application.Name),
+			slog.String("PathPrefix", c.Application.PathPrefix),
+			slog.Int("TokenExpirationTimeSeconds", c.Application.TokenExpirationTimeSeconds),
+			slog.Duration("HostconfJwkValidity", c.Application.HostconfJwkValidity),
+			slog.Duration("HostconfJwkRenewalThreshold", c.Application.HostconfJwkRenewalThreshold),
+			slog.Int("PaginationDefaultLimit", c.Application.PaginationDefaultLimit),
+			slog.Int("PaginationMaxLimit", c.Application.PaginationMaxLimit),
+			slog.Bool("AcceptXRHFakeIdentity", c.Application.AcceptXRHFakeIdentity),
+			slog.Bool("ValidateAPI", c.Application.ValidateAPI),
+			slog.String("MainSecret", obfuscateSecret(c.Application.MainSecret)),
+			slog.Bool("EnableRBAC", c.Application.EnableRBAC),
+			slog.Duration("IdleTimeout", c.Application.IdleTimeout),
+			slog.Duration("ReadTimeout", c.Application.ReadTimeout),
+			slog.Duration("WriteTimeout", c.Application.WriteTimeout),
+			slog.Int("SizeLimitRequestHeader", c.Application.SizeLimitRequestHeader),
+			slog.Int("SizeLimitRequestBody", c.Application.SizeLimitRequestBody),
+		),
+	)
+}
+
+func obfuscateSecret(value string) string {
+	if value == "" {
+		return ""
+	}
+	return "***"
+}
+
 func reportError(err error) {
 	for _, err := range err.(validator.ValidationErrors) {
 		slog.Error(
