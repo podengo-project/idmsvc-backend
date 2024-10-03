@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -166,7 +164,7 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				return echo.ErrInternalServerError
 			}
 			xrhidRaw = cc.Request().Header.Get(header.HeaderXRHID)
-			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
+			if xrhid, err = header.DecodeXRHID(xrhidRaw); err != nil {
 				logger.Error(err.Error())
 				return echo.ErrBadRequest
 			}
@@ -199,19 +197,4 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 			return next(c)
 		}
 	}
-}
-
-func decodeXRHID(b64XRHID string) (*identity.XRHID, error) {
-	if b64XRHID == "" {
-		return nil, fmt.Errorf("%s not present", header.HeaderXRHID)
-	}
-	stringXRHID, err := base64.StdEncoding.DecodeString(b64XRHID)
-	if err != nil {
-		return nil, err
-	}
-	xrhid := &identity.XRHID{}
-	if err := json.Unmarshal([]byte(stringXRHID), xrhid); err != nil {
-		return nil, err
-	}
-	return xrhid, nil
 }
