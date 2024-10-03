@@ -65,6 +65,7 @@ func configCommonMiddlewares(e *echo.Echo, cfg *config.Config) {
 	}))
 
 	e.Use(middleware.Recover())
+	e.Use(app_middleware.NotFound())
 }
 
 // NewRouterWithConfig fill the router configuration for the given echo instance,
