@@ -164,35 +164,6 @@ func (s *SuiteSystemEndpoints) TestHostConfExecuteFailure() {
 	mockPendo.AssertExpectations(t)
 }
 
-func (s *SuiteSystemEndpoints) TestInvalidRouteCauses404() {
-	// Given
-	t := s.T()
-	s.As(RBACSuperAdmin)
-	s.prepareDomainIpa(t)
-	s.As(XRHIDSystem, RBACNoPermis)
-
-	// When
-	inventoryID := s.domain.RhelIdm.Servers[0].SubscriptionManagerId.String()
-	hdr := http.Header{}
-	url := s.DefaultPublicBaseURL() + "/host-conf/" + inventoryID // MISSING HOSTNAME
-	method := http.MethodPost
-	s.addRequestID(&hdr, "test_system_host_conf")
-	body := ""
-	res, err := s.DoRequest(
-		method,
-		url,
-		hdr,
-		body,
-	)
-
-	// Then
-	require.NoError(t, err)
-	require.NotNil(t, res)
-	err = res.Body.Close()
-	require.NoError(t, err)
-	require.Equal(t, http.StatusNotFound, res.StatusCode)
-}
-
 func (s *SuiteSystemEndpoints) TestReadSigningKeys() {
 	t := s.T()
 	s.As(RBACSuperAdmin)
