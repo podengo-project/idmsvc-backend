@@ -149,9 +149,11 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			var (
-				err error
-				cc  DomainContextInterface
-				ok  bool
+				xrhid    *identity.XRHID
+				xrhidRaw string
+				err      error
+				cc       DomainContextInterface
+				ok       bool
 			)
 			ctx := c.Request().Context()
 			logger := app_context.LogFromCtx(ctx)
@@ -163,8 +165,11 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				logger.Error("'DomainContextInterface' is expected")
 				return echo.ErrInternalServerError
 			}
-
-			xrhid := cc.XRHID()
+			xrhidRaw = cc.Request().Header.Get(header.HeaderXRHID)
+			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
+				logger.Error(err.Error())
+				return echo.ErrBadRequest
+			}
 
 			// The predicate must return no error, otherwise
 			// the request is not authorised.
@@ -177,6 +182,20 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 				}
 			}
 
+			// Aggregate additional information to the logs
+			logger = logger.With(
+				slog.String("org_id", xrhid.Identity.OrgID),
+				slog.String("identity_type", xrhid.Identity.Type),
+			)
+
+			// Set principal
+			principal := header.GetPrincipal(xrhid)
+			logger = logger.With(slog.String("identity_principal", principal))
+			ctx = app_context.CtxWithLog(ctx, logger)
+			c.SetRequest(c.Request().Clone(ctx))
+
+			// Set the unserialized Identity into the request context
+			cc.SetXRHID(xrhid)
 			return next(c)
 		}
 	}
@@ -195,63 +214,4 @@ func decodeXRHID(b64XRHID string) (*identity.XRHID, error) {
 		return nil, err
 	}
 	return xrhid, nil
-}
-
-type ParseXRHIDMiddlewareConfig struct {
-	// Skipper function to skip for some request if necessary
-	Skipper echo_middleware.Skipper
-}
-
-// Parse the X-RH-Identity header and set it into the request context.
-// This must be called AFTER the "Fake Identity" middleware (if used),
-// but BEFORE the EnforceIdentity middlewares.
-func ParseXRHIDMiddlewareWithConfig(config *ParseXRHIDMiddlewareConfig) func(echo.HandlerFunc) echo.HandlerFunc {
-	if config == nil {
-		panic("'config' is nil")
-	}
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
-			var (
-				xrhid *identity.XRHID
-				err   error
-				cc    DomainContextInterface
-				ok    bool
-			)
-
-			ctx := c.Request().Context()
-			logger := app_context.LogFromCtx(ctx)
-
-			if config.Skipper != nil && config.Skipper(c) {
-				return next(c)
-			}
-
-			if cc, ok = c.(DomainContextInterface); !ok {
-				logger.Error("'DomainContextInterface' is expected")
-				return echo.ErrInternalServerError
-			}
-
-			xrhidRaw := cc.Request().Header.Get(header.HeaderXRHID)
-			if xrhidRaw == "" {
-				return echo.ErrUnauthorized
-			}
-			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
-				logger.Error(err.Error())
-				return echo.ErrBadRequest
-			}
-
-			// Aggregate additional information to the logs
-			principal := header.GetPrincipal(xrhid)
-			logger = logger.With(
-				slog.String("org_id", xrhid.Identity.OrgID),
-				slog.String("identity_type", xrhid.Identity.Type),
-				slog.String("identity_principal", principal),
-			)
-			ctx = app_context.CtxWithLog(ctx, logger)
-			c.SetRequest(c.Request().Clone(ctx))
-
-			// Set the unserialized Identity into the request context
-			cc.SetXRHID(xrhid)
-			return next(c)
-		}
-	}
 }

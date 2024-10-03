@@ -55,7 +55,6 @@ func helperNewEchoEnforceIdentity(m echo.MiddlewareFunc) *echo.Echo {
 	}
 	e.Use(ContextLogConfig(&LogConfig{}))
 	e.Use(CreateContext())
-	e.Use(ParseXRHIDMiddlewareWithConfig(&ParseXRHIDMiddlewareConfig{}))
 	e.Use(m)
 	e.Add("GET", testPath, h)
 
@@ -106,8 +105,8 @@ func TestEnforceIdentity(t *testing.T) {
 			Name:  header.HeaderXRHID + " header not present",
 			Given: nil,
 			Expected: TestCaseExpected{
-				Code: http.StatusUnauthorized,
-				Body: "{\"message\":\"Unauthorized\"}\n",
+				Code: http.StatusBadRequest,
+				Body: "{\"message\":\"Bad Request\"}\n",
 			},
 		},
 		{
@@ -241,52 +240,33 @@ func TestEnforceIdentitySkipper(t *testing.T) {
 		err  error
 	)
 
-	userXRHID := api.NewUserXRHID().
-		WithOrgID("12345").
-		WithUsername("test-fail-predicate").
-		Build()
-
-	// When skipper return false, return 403 Unauthorized fail due to failed predicate
+	// When skipper return false, as no x-rh-identity provided, will return unauthorized
 	e = helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
 			&IdentityConfig{
 				Skipper: helperSkipper(false),
-				Predicates: []IdentityPredicateEntry{
-					{
-						Name:      "test-fail-predicate",
-						Predicate: helperCreatePredicate("test-fail-predicate"),
-					},
-				},
 			},
 		),
 	)
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Add(header.HeaderXRHID, header.EncodeXRHID(&userXRHID))
 	e.ServeHTTP(res, req)
 	// Check expectations
 	data, err = io.ReadAll(res.Body)
 	require.NoError(t, err)
-	assert.Equal(t, http.StatusUnauthorized, res.Code)
-	assert.Equal(t, "{\"message\":\"Unauthorized\"}\n", string(data))
+	assert.Equal(t, http.StatusBadRequest, res.Code)
+	assert.Equal(t, "{\"message\":\"Bad Request\"}\n", string(data))
 
-	// When skipper return true, the predicate is not run and request is authorised
+	// When skipper return true the middleware does not process the header or the predicates
 	e = helperNewEchoEnforceIdentity(
 		EnforceIdentityWithConfig(
 			&IdentityConfig{
 				Skipper: helperSkipper(true),
-				Predicates: []IdentityPredicateEntry{
-					{
-						Name:      "test-fail-predicate",
-						Predicate: helperCreatePredicate("test-fail-predicate"),
-					},
-				},
 			},
 		),
 	)
 	res = httptest.NewRecorder()
 	req = httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Add(header.HeaderXRHID, header.EncodeXRHID(&userXRHID))
 	e.ServeHTTP(res, req)
 	// Check expectations
 	data, err = io.ReadAll(res.Body)

@@ -156,10 +156,6 @@ func newGroupPublic(e *echo.Group, cfg *config.Config, app handler.Application, 
 		)
 	}
 
-	parseXRHIDMiddleware := middleware.ParseXRHIDMiddlewareWithConfig(
-		&middleware.ParseXRHIDMiddlewareConfig{},
-	)
-
 	mixedIdentityMiddleware := middleware.EnforceIdentityWithConfig(
 		&middleware.IdentityConfig{
 			Skipper: skipperMixedPredicate,
@@ -228,7 +224,6 @@ func newGroupPublic(e *echo.Group, cfg *config.Config, app handler.Application, 
 		middleware.CreateContext(),
 		metricsMiddleware,
 		fakeIdentityMiddleware,
-		parseXRHIDMiddleware,
 		mixedIdentityMiddleware,
 		systemIdentityMiddleware,
 		userAndSAIdentityMiddleware,
