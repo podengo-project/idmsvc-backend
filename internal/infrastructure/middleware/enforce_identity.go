@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -182,21 +180,6 @@ func EnforceIdentityWithConfig(config *IdentityConfig) func(echo.HandlerFunc) ec
 	}
 }
 
-func decodeXRHID(b64XRHID string) (*identity.XRHID, error) {
-	if b64XRHID == "" {
-		return nil, fmt.Errorf("%s not present", header.HeaderXRHID)
-	}
-	stringXRHID, err := base64.StdEncoding.DecodeString(b64XRHID)
-	if err != nil {
-		return nil, err
-	}
-	xrhid := &identity.XRHID{}
-	if err := json.Unmarshal([]byte(stringXRHID), xrhid); err != nil {
-		return nil, err
-	}
-	return xrhid, nil
-}
-
 type ParseXRHIDMiddlewareConfig struct {
 	// Skipper function to skip for some request if necessary
 	Skipper echo_middleware.Skipper
@@ -234,7 +217,7 @@ func ParseXRHIDMiddlewareWithConfig(config *ParseXRHIDMiddlewareConfig) func(ech
 			if xrhidRaw == "" {
 				return echo.ErrUnauthorized
 			}
-			if xrhid, err = decodeXRHID(xrhidRaw); err != nil {
+			if xrhid, err = header.DecodeXRHID(xrhidRaw); err != nil {
 				logger.Error(err.Error())
 				return echo.ErrBadRequest
 			}
