@@ -1,6 +1,8 @@
 package config
 
 import (
+	"bytes"
+	"log/slog"
 	"os"
 	"strconv"
 	"testing"
@@ -151,6 +153,64 @@ func TestLoad(t *testing.T) {
 	assert.NotPanics(t, func() {
 		Load(&cfg)
 	})
+}
+
+func TestLog(t *testing.T) {
+	// Given
+	buf := &bytes.Buffer{}
+	logger := slog.New(slog.NewTextHandler(buf, nil))
+
+	cfg := Config{
+		Web: Web{
+			Port: 8080,
+		},
+		Database: Database{
+			User:     "testdbuser",
+			Password: "testdbpassword",
+		},
+		Logging: Logging{
+			Level: "debug",
+			Cloudwatch: Cloudwatch{
+				Secret: "testcloudwatchsecret",
+			},
+		},
+		Metrics: Metrics{
+			Path: "/metrics",
+		},
+		Clients: Clients{
+			RbacBaseURL:        "http://localhost:8080/api/rbac/v1",
+			PendoAPIKey:        "testpendoapikey",
+			PendoTrackEventKey: "testpendotrackeventkey",
+		},
+		Application: Application{
+			Name:       "appname",
+			MainSecret: "testmainsecret",
+		},
+	}
+
+	// When
+	cfg.Log(logger)
+	loggedStr := buf.String()
+
+	// Then
+	assert.Contains(t, loggedStr, "Web.Port=8080")
+	assert.Contains(t, loggedStr, "Database.User=testdbuser")
+	assert.Contains(t, loggedStr, "Database.Password=***")
+	assert.Contains(t, loggedStr, "Logging.Level=debug")
+	assert.Contains(t, loggedStr, "Logging.Cloudwatch.Secret=***")
+	assert.Contains(t, loggedStr, "Metrics.Path=/metrics")
+	assert.Contains(t, loggedStr, "Clients.RbacBaseURL=http://localhost:8080/api/rbac/v1")
+	assert.Contains(t, loggedStr, "Clients.PendoAPIKey=***")
+	assert.Contains(t, loggedStr, "Clients.PendoTrackEventKey=***")
+	assert.Contains(t, loggedStr, "Application.Name=appname")
+	assert.Contains(t, loggedStr, "Application.MainSecret=***")
+
+	// No password in the log
+	assert.NotContains(t, loggedStr, "testdbpassword")
+	assert.NotContains(t, loggedStr, "testcloudwatchsecret")
+	assert.NotContains(t, loggedStr, "testpendoapikey")
+	assert.NotContains(t, loggedStr, "testpendotrackeventkey")
+	assert.NotContains(t, loggedStr, "testmainsecret")
 }
 
 func TestValidateConfig(t *testing.T) {
