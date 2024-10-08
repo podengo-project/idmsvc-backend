@@ -34,7 +34,6 @@ apps:
           APP_VALIDATE_API: "true"
           APP_TOKEN_EXPIRATION_SECONDS: "7200"
           # APP_ENABLE_RBAC: "true"
-          CLIENTS_RBAC_BASE_URL: "http://rbac-service:8000/api/rbac/v1"
 
       - name: frontend
         host: github
