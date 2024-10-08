@@ -17,7 +17,7 @@ func helperConfig() *config.Config {
 	// Override config values
 	cfg.Application.EnableRBAC = true
 	if cfg.Clients.RbacBaseURL == "" {
-		panic("when rbac is enabled, set your 'clients.rbac_base_url' at your 'congis/config.yaml' file or CLIENTS_RBAC_BASE_URL variable to override")
+		panic("when rbac is enabled, set your 'clients.rbac_base_url' at your 'configs/config.yaml' file or CLIENTS_RBAC_BASE_URL variable to override")
 	}
 	return cfg
 }

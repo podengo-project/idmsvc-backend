@@ -264,7 +264,7 @@ parameters:
     description: |
       It allows to enable / disable RBAC middleware.
   - name: CLIENTS_RBAC_BASE_URL
-    required: true
+    required: false
     description: |
       Point out to the rbac service base url
   - name: CLIENTS_PENDO_BASE_URL
