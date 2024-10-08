@@ -153,6 +153,11 @@ func (r *domainRepository) UpdateAgent(
 		log.Error(err.Error())
 		return err
 	}
+	if data.Model.ID == 0 {
+		err := fmt.Errorf("data.Model.ID cannot be 0")
+		log.Error(err.Error())
+		return err
+	}
 
 	// Check the entity exists
 	if currentDomain, err = r.FindByID(
@@ -181,7 +186,7 @@ func (r *domainRepository) UpdateAgent(
 			return err
 		}
 		data.IpaDomain.ID = data.ID
-		return r.updateIpaDomain(log, db, data.IpaDomain)
+		return r.updateIpaDomain(log, db, orgID, data.IpaDomain)
 	default:
 		err = fmt.Errorf("'Type' is invalid")
 		log.Error(err.Error())
@@ -431,21 +436,24 @@ func (r *domainRepository) createIpaDomain(
 		return err
 	}
 	for idx := range data.CaCerts {
-		data.CaCerts[idx].IpaID = data.ID
+		data.CaCerts[idx].Model.ID = 0
+		data.CaCerts[idx].IpaID = domainID
 		if err = db.Create(&data.CaCerts[idx]).Error; err != nil {
 			log.Error("creating ipa cert record")
 			return err
 		}
 	}
 	for idx := range data.Servers {
-		data.Servers[idx].IpaID = data.ID
+		data.Servers[idx].Model.ID = 0
+		data.Servers[idx].IpaID = domainID
 		if err = db.Create(&data.Servers[idx]).Error; err != nil {
 			log.Error("creating ipa server record")
 			return err
 		}
 	}
 	for idx := range data.Locations {
-		data.Locations[idx].IpaID = data.ID
+		data.Locations[idx].Model.ID = 0
+		data.Locations[idx].IpaID = domainID
 		if err = db.Create(&data.Locations[idx]).Error; err != nil {
 			log.Error("creating ipa location record")
 			return err
@@ -457,53 +465,73 @@ func (r *domainRepository) createIpaDomain(
 func (r *domainRepository) updateIpaDomain(
 	log *slog.Logger,
 	db *gorm.DB,
-	data *model.Ipa,
+	orgID string,
+	dataIPA *model.Ipa,
 ) (err error) {
+	if log == nil {
+		err = internal_errors.NilArgError("log")
+		slog.Default().Error(err.Error())
+		return err
+	}
 	if db == nil {
 		err = internal_errors.NilArgError("db")
 		log.Error(err.Error())
 		return err
 	}
-	if data == nil {
+	if orgID == "" {
+		err = internal_errors.EmptyArgError("orgID")
+		log.Error(err.Error())
+		return err
+	}
+	if dataIPA == nil {
 		err = internal_errors.NilArgError("data")
 		log.Error(err.Error())
 		return err
 	}
+	// Make sure ID is not 0 to avoid delete all the records
+	if dataIPA.Model.ID == 0 {
+		err = internal_errors.EmptyArgError("data.Model.ID")
+		log.Error(err.Error())
+		return err
+	}
 	if err = db.Unscoped().
-		Delete(data).Error; err != nil {
+		Delete(dataIPA).Error; err != nil {
 		log.Error("updating ipa domain when deleting old record")
 		return err
 	}
 
 	if err = db.Omit(clause.Associations).
-		Create(data).
+		Create(dataIPA).
 		Error; err != nil {
 		log.Error("updating ipa domain when creating new ipa record")
 		return err
 	}
 
 	// CaCerts
-	for i := range data.CaCerts {
-		data.CaCerts[i].IpaID = data.ID
-		if err = db.Create(&data.CaCerts[i]).Error; err != nil {
+	for i := range dataIPA.CaCerts {
+		dataIPA.CaCerts[i].Model.ID = 0
+		dataIPA.CaCerts[i].IpaID = dataIPA.ID
+		if err = db.Create(&dataIPA.CaCerts[i]).Error; err != nil {
 			log.Error("updating ipa domain when creating new ipa certificate record")
 			return err
 		}
 	}
 
 	// Servers
-	for i := range data.Servers {
-		data.Servers[i].IpaID = data.ID
-		if err = db.Create(&data.Servers[i]).Error; err != nil {
+	for i := range dataIPA.Servers {
+		dataIPA.Servers[i].Model.ID = 0
+		dataIPA.Servers[i].IpaID = dataIPA.ID
+		if err = db.Create(&dataIPA.Servers[i]).Error; err != nil {
 			log.Error("updating ipa domain when creating new ipa server record")
 			return err
 		}
 	}
 
 	// Locations
-	for i := range data.Locations {
-		data.Locations[i].IpaID = data.ID
-		if err = db.Create(&data.Locations[i]).Error; err != nil {
+	for i := range dataIPA.Locations {
+		dataIPA.Locations[i].Model.ID = 0
+		dataIPA.Locations[i].IpaID = dataIPA.ID
+		if err = db.Create(&dataIPA.Locations[i]).Error; err != nil {
 			log.Error("updating ipa domain when creating new ipa location record")
 			return err
 		}
