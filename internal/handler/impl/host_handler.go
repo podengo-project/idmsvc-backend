@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -49,24 +50,25 @@ func (a *application) hostConf(
 		xrhid   *identity.XRHID
 		keys    []jwk.Key
 	)
+	handlerName := "HostConf"
+	logger := app_context.LogFromCtx(ctx.Request().Context())
 	c := ctx.Request().Context()
-	log := app_context.LogFromCtx(c)
 	if xrhid, err = getXRHID(ctx); err != nil {
-		log.Error(err.Error())
+		logger.Error(errXRHIDIsNil, slog.String("handler", handlerName))
 		return err
 	}
 
 	if err = ctx.Bind(&input); err != nil {
-		log.Error(err.Error())
+		logger.Error(errUnserializing, slog.String("handler", handlerName))
 		return err
 	}
 	if options, err = a.host.interactor.HostConf(xrhid, inventoryId, fqdn, &params, &input); err != nil {
-		log.Error(err.Error())
+		logger.Error(errInputAdapter, slog.String("handler", handlerName))
 		return err
 	}
 
 	if tx = a.db.Begin(); tx.Error != nil {
-		log.Error(tx.Error.Error())
+		logger.Error(errDBTXBegin, slog.String("handler", handlerName))
 		return tx.Error
 	}
 	defer tx.Rollback()
@@ -76,17 +78,20 @@ func (a *application) hostConf(
 		c,
 		options,
 	); err != nil {
-		log.Error(err.Error())
+		logger.Error("error matching domain",
+			slog.String("handler", handlerName),
+			slog.String("detail", err.Error()),
+		)
 		return err
 	}
 
 	if keys, err = a.hostconfjwk.repository.GetPrivateSigningKeys(c); err != nil {
-		log.Error(err.Error())
+		logger.Error("error reading private signing keys", slog.String("handler", handlerName))
 		return err
 	}
 	if len(keys) == 0 {
+		logger.Error("no keys available", slog.String("handler", handlerName))
 		err = echo.NewHTTPError(http.StatusInternalServerError, "no keys available")
-		log.Error(err.Error())
 		return err
 	}
 
@@ -96,19 +101,19 @@ func (a *application) hostConf(
 		options,
 		domain,
 	); err != nil {
-		log.Error(err.Error())
+		logger.Error("error signing host-conf token", slog.String("handler", handlerName))
 		return err
 	}
 
 	if tx.Commit(); tx.Error != nil {
-		log.Error(tx.Error.Error())
+		logger.Error(errDBTXCommit, slog.String("handler", handlerName))
 		return tx.Error
 	}
 
 	if output, err = a.host.presenter.HostConf(
 		domain, hctoken,
 	); err != nil {
-		log.Error(err.Error())
+		logger.Error(errOutputAdapter, slog.String("handler", handlerName))
 		return err
 	}
 	return ctx.JSON(http.StatusOK, *output)

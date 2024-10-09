@@ -15,6 +15,17 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	errXRHIDIsNil     = "XRHID is nil"
+	errUnserializing  = "error unserializing http api data"
+	errInputAdapter   = "error at input adapter"
+	errDBTXBegin      = "error starting database transaction"
+	errDBNotFound     = "record not found in the database"
+	errDBGeneralError = "error on database operation"
+	errDBTXCommit     = "error on commit database"
+	errOutputAdapter  = "error on output adapter"
+)
+
 type domainComponent struct {
 	interactor interactor.DomainInteractor
 	repository repository.DomainRepository
