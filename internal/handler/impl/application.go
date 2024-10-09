@@ -15,6 +15,17 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	errXRHIDIsNil     = "failed because XRHID is nil"
+	errUnserializing  = "failed to unserialize http api data"
+	errInputAdapter   = "failed to translate the API request to business objects"
+	errDBTXBegin      = "failed to begin database transaction"
+	errDBNotFound     = "failed because a record not found in the database"
+	errDBGeneralError = "failed on database operation"
+	errDBTXCommit     = "failed to commit database transaction"
+	errOutputAdapter  = "failed to translate the business object to the API response"
+)
+
 type domainComponent struct {
 	interactor interactor.DomainInteractor
 	repository repository.DomainRepository
