@@ -30,15 +30,17 @@ func (a *application) findIpaById(tx *gorm.DB, orgId string, UUID uuid.UUID) (da
 }
 
 func subscriptionManagerIDIncluded(
+	ctx context.Context,
 	subscriptionManagerID string,
 	servers []model.IpaServer,
 ) (bool, error) {
+	logger := app_context.LogFromCtx(ctx)
 	if subscriptionManagerID == "" {
-		slog.Error("'subscriptionManagerID' is an empty string")
+		logger.Error("'subscriptionManagerID' is an empty string")
 		return false, fmt.Errorf("'subscriptionManagerID' is empty")
 	}
 	if servers == nil {
-		slog.Error("'servers' is nil")
+		logger.Error("'servers' is nil")
 		return false, internal_errors.NilArgError("servers")
 	}
 	for i := range servers {
@@ -47,7 +49,7 @@ func subscriptionManagerIDIncluded(
 			rhsmid = *servers[i].RHSMId
 		}
 
-		slog.Debug("Checking server",
+		logger.Debug("Checking server",
 			slog.Bool("HCCUpdateServer", servers[i].HCCUpdateServer),
 			slog.String("RHSMId", rhsmid),
 			slog.String("subscriptionManagerID", subscriptionManagerID),
@@ -55,9 +57,16 @@ func subscriptionManagerIDIncluded(
 		if servers[i].HCCUpdateServer &&
 			servers[i].RHSMId != nil &&
 			*servers[i].RHSMId == subscriptionManagerID {
+			logger.Debug("server found in the list of enabled servers",
+				slog.String("subscriptionManagerID", subscriptionManagerID),
+				slog.Bool("HCCUpdateServer", true),
+			)
 			return true, nil
 		}
 	}
+	logger.Debug("server not found in the list of enabled servers",
+		slog.String("subscriptionManagerID", subscriptionManagerID),
+	)
 	return false, nil
 }
 
@@ -65,10 +74,11 @@ func subscriptionManagerIDIncluded(
 // the subscription manager ID is authorized to update the domain.
 // Returns a Forbidden error if it is not.
 func ensureSubscriptionManagerIDAuthorizedToUpdate(
+	ctx context.Context,
 	subscriptionManagerID string,
 	servers []model.IpaServer,
 ) error {
-	included, err := subscriptionManagerIDIncluded(subscriptionManagerID, servers)
+	included, err := subscriptionManagerIDIncluded(ctx, subscriptionManagerID, servers)
 	if err != nil {
 		return err
 	}
@@ -85,20 +95,21 @@ func ensureSubscriptionManagerIDAuthorizedToUpdate(
 // manager ID is included in the list of servers and is enabled for updates.
 // Returns a BadRequest error if it is not.
 func ensureUpdateServerEnabledForUpdates(
+	ctx context.Context,
 	subscriptionManagerID string,
 	servers []model.IpaServer,
 ) error {
-	included, err := subscriptionManagerIDIncluded(subscriptionManagerID, servers)
+	included, err := subscriptionManagerIDIncluded(ctx, subscriptionManagerID, servers)
 	if err != nil {
 		return err
 	}
-	if included {
-		return nil
+	if !included {
+		return internal_errors.NewHTTPErrorF(
+			http.StatusBadRequest,
+			"update server's 'Subscription Manager ID' not found in the authorized list of rhel-idm servers",
+		)
 	}
-	return internal_errors.NewHTTPErrorF(
-		http.StatusBadRequest,
-		"update server's 'Subscription Manager ID' not found in the authorized list of rhel-idm servers",
-	)
+	return nil
 }
 
 // fillDomain is a helper function to copy Ipa domain
