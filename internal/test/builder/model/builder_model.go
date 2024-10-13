@@ -29,12 +29,13 @@ type gormModel struct {
 // NewModel generate a gorm.Model with random information
 // overrided by the customized options.
 func NewModel() GormModel {
-	var genCreatedAt = builder_helper.GenPastNearTime(time.Hour * 24 * 10)
-	var genUpdatedAt = builder_helper.GenBetweenTimeUTC(genCreatedAt, time.Now())
+	genCreatedAt := builder_helper.GenPastNearTime(time.Hour * 24 * 10)
+	genUpdatedAt := builder_helper.GenBetweenTimeUTC(genCreatedAt, time.Now())
+	modelID := uint(builder_helper.GenRandNum(0, 2^63))
 
 	return &gormModel{
 		Model: gorm.Model{
-			ID:        uint(builder_helper.GenRandNum(0, 2^63)),
+			ID:        modelID,
 			CreatedAt: genCreatedAt,
 			UpdatedAt: genUpdatedAt,
 		},
