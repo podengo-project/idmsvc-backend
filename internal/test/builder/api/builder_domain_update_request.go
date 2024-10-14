@@ -29,14 +29,17 @@ func (b *updateDomainAgentRequest) Build() *public.UpdateDomainAgentJSONRequestB
 }
 
 func (b *updateDomainAgentRequest) WithDomainName(value string) UpdateDomainAgent {
+	b.DomainName = value
 	return b
 }
 
 func (b *updateDomainAgentRequest) WithDomainType(value public.DomainType) UpdateDomainAgent {
+	b.DomainType = value
 	return b
 }
 
 func (b *updateDomainAgentRequest) WithDomainRhelIdm(value public.DomainIpa) UpdateDomainAgent {
+	b.RhelIdm = value
 	return b
 }
 
