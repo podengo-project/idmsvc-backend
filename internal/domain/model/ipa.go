@@ -36,5 +36,10 @@ func (i *Ipa) AfterCreate(tx *gorm.DB) (err error) {
 			i.Servers[idx].IpaID = i.ID
 		}
 	}
+	if i.Locations != nil {
+		for idx := range i.Locations {
+			i.Locations[idx].IpaID = i.ID
+		}
+	}
 	return nil
 }
