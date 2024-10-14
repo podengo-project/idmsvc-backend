@@ -33,7 +33,7 @@ var (
 
 type Domain struct {
 	gorm.Model
-	OrgId                 string
+	OrgId                 string    `gorm:"index:idx_domains_org_id"`
 	DomainUuid            uuid.UUID `gorm:"unique"`
 	DomainName            *string
 	Title                 *string
