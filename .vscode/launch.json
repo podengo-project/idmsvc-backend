@@ -77,7 +77,7 @@
             "mode": "debug",
             "program": "${workspaceFolder}/cmd/db-tool",
             "cwd": "${workspaceFolder}",
-            "args": ["migrate", "down", "0"],
+            "args": ["migrate", "down", "1"],
             "env": {
                 "CONFIG_PATH": "${workspaceFolder}/configs",
             }
