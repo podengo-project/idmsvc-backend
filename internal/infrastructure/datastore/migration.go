@@ -58,7 +58,7 @@ COMMIT;
 	return nil
 }
 
-func MigrateDb(config *config.Config, direction string, steps ...int) error {
+func MigrateDb(config *config.Config, direction string, steps int) error {
 	if config == nil {
 		return fmt.Errorf("'config' cannot be nil")
 	}
@@ -79,19 +79,17 @@ func MigrateDb(config *config.Config, direction string, steps ...int) error {
 		slog.Info("No database version")
 	}
 
-	var step int
-
 	switch direction {
 	case "up":
-		if step > 0 {
-			err = m.Steps(step)
+		if steps > 0 {
+			err = m.Steps(steps)
 		} else {
 			err = m.Up()
 		}
 	case "down":
-		if step > 0 {
-			step *= -1
-			err = m.Steps(step)
+		if steps > 0 {
+			steps *= -1
+			err = m.Steps(steps)
 		} else {
 			err = m.Down()
 		}
@@ -103,6 +101,7 @@ func MigrateDb(config *config.Config, direction string, steps ...int) error {
 		slog.Info("No new migrations")
 		return nil
 	} else if err != nil {
+		slog.Error("Error running migration", slog.String("error", err.Error()))
 		// Force back to previous migration version. If errors running version 1,
 		// drop everything (which would just be the schema_migrations table).
 		// This is safe if migrations are wrapped in transaction.
@@ -159,10 +158,11 @@ func getPreviousMigrationVersion(m *migrate.Migrate) (int, error) {
 		return datetimes[previousMigrationIndex], err
 	}
 }
-func MigrateUp(config *config.Config, steps ...int) error {
-	return MigrateDb(config, "up", steps...)
+
+func MigrateUp(config *config.Config, steps int) error {
+	return MigrateDb(config, "up", steps)
 }
 
-func MigrateDown(config *config.Config, steps ...int) error {
-	return MigrateDb(config, "down", steps...)
+func MigrateDown(config *config.Config, steps int) error {
+	return MigrateDb(config, "down", steps)
 }

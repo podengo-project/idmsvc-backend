@@ -10,6 +10,9 @@ db-migrate-up: $(BIN)/db-tool  ## Migrate the database upto the current state an
 	$(BIN)/db-tool migrate up 0
 	$(BIN)/db-tool jwk refresh
 
+db-migrate-down: $(BIN)/db-tool  ## Migrate the database down by one step
+	$(BIN)/db-tool migrate down 1
+
 .PHONY: db-cli
 db-cli:  ## Open a cli shell inside the databse container
 	$(CONTAINER_COMPOSE) \
