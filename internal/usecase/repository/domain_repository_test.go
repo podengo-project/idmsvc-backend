@@ -423,51 +423,6 @@ func (s *DomainRepositorySuite) helperTestUpdateIpaDomain(stage int, data *model
 	}
 }
 
-func (s *DomainRepositorySuite) helperTestUpdateUser(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	if stage == 0 {
-		return
-	}
-	if stage < 0 {
-		panic("'stage' cannot be lower than 0")
-	}
-	if stage > 2 {
-		panic("'stage' cannot be greater than 3")
-	}
-	domainID := uint(1)
-
-	s.mock.MatchExpectationsInOrder(true)
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			if i == stage && expectedErr != nil {
-				test_sql.FindByID(1, mock, expectedErr, domainID, data)
-			} else {
-				test_sql.FindByID(1, mock, nil, domainID, data)
-				test_sql.FindIpaByID(4, mock, nil, domainID, data)
-			}
-		case 2: // Update
-			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
-				WithArgs(
-					data.AutoEnrollmentEnabled,
-					data.Description,
-					data.Title,
-
-					data.OrgId,
-					data.DomainUuid,
-					domainID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnResult(
-					driver.RowsAffected(1))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
 func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 	var (
 		err error
@@ -997,7 +952,7 @@ func (s *DomainRepositorySuite) TestUpdateUser() {
 		t.Log(testCase.Name)
 
 		// Prepare the db mock
-		s.helperTestUpdateUser(testCase.Given.Stage, data, s.mock, testCase.Expected)
+		test_sql.UpdateUser(testCase.Given.Stage, s.mock, testCase.Expected, data)
 
 		// Run for error or success
 		c := app_context.CtxWithLog(app_context.CtxWithDB(context.Background(), s.DB), slog.Default())
