@@ -211,128 +211,6 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 	require.NoError(t, err)
 }
 
-func (s *DomainRepositorySuite) helperTestUpdateIpaDomain(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	if stage == 0 {
-		return
-	}
-	if stage < 0 {
-		panic("'stage' cannot be lower than 0")
-	}
-	if stage > 5 {
-		panic("'stage' cannot be greater than 5")
-	}
-
-	s.mock.MatchExpectationsInOrder(true)
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectExec := s.mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
-				WithArgs(
-					data.Model.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnResult(
-					driver.RowsAffected(1),
-				)
-			}
-		case 2:
-			expectExec := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
-				WithArgs(
-					data.Model.CreatedAt,
-					data.Model.UpdatedAt,
-					data.Model.DeletedAt,
-
-					data.IpaDomain.RealmName,
-					data.IpaDomain.RealmDomains,
-					data.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectExec.WillReturnError(expectedErr)
-			} else {
-				expectExec.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.ID))
-			}
-		case 3:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-				WithArgs(
-					data.IpaDomain.CaCerts[0].Model.CreatedAt,
-					data.IpaDomain.CaCerts[0].Model.UpdatedAt,
-					data.IpaDomain.CaCerts[0].Model.DeletedAt,
-
-					data.IpaDomain.CaCerts[0].IpaID,
-
-					data.IpaDomain.CaCerts[0].Issuer,
-					data.IpaDomain.CaCerts[0].Nickname,
-					data.IpaDomain.CaCerts[0].NotAfter,
-					data.IpaDomain.CaCerts[0].NotBefore,
-					data.IpaDomain.CaCerts[0].Pem,
-					data.IpaDomain.CaCerts[0].SerialNumber,
-					data.IpaDomain.CaCerts[0].Subject,
-
-					data.IpaDomain.CaCerts[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.CaCerts[0].ID))
-			}
-		case 4:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-				WithArgs(
-					data.IpaDomain.Servers[0].Model.CreatedAt,
-					data.IpaDomain.Servers[0].Model.UpdatedAt,
-					data.IpaDomain.Servers[0].Model.DeletedAt,
-
-					data.IpaDomain.Servers[0].IpaID,
-
-					data.IpaDomain.Servers[0].FQDN,
-					data.IpaDomain.Servers[0].RHSMId,
-					data.IpaDomain.Servers[0].Location,
-					data.IpaDomain.Servers[0].CaServer,
-					data.IpaDomain.Servers[0].HCCEnrollmentServer,
-					data.IpaDomain.Servers[0].HCCUpdateServer,
-					data.IpaDomain.Servers[0].PKInitServer,
-
-					data.IpaDomain.Servers[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.Servers[0].ID))
-			}
-		case 5:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`)).
-				WithArgs(
-					data.IpaDomain.Locations[0].Model.CreatedAt,
-					data.IpaDomain.Locations[0].Model.UpdatedAt,
-					data.IpaDomain.Locations[0].Model.DeletedAt,
-
-					data.IpaDomain.Locations[0].IpaID,
-					data.IpaDomain.Locations[0].Name,
-					data.IpaDomain.Locations[0].Description,
-
-					data.IpaDomain.Locations[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(
-					sqlmock.NewRows([]string{"id"}).
-						AddRow(data.IpaDomain.Locations[0].ID))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
 func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 	var (
 		err error
@@ -507,7 +385,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 		t.Log(testCase.Name)
 
 		// Prepare the db mock
-		s.helperTestUpdateIpaDomain(testCase.Given.Stage, &data, s.mock, testCase.Expected)
+		test_sql.UpdateIpaDomain(testCase.Given.Stage, s.mock, testCase.Expected, &data)
 
 		// Run for error or success
 		if testCase.Given.Domain != nil {
