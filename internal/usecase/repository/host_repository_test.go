@@ -20,6 +20,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	builder_model "github.com/podengo-project/idmsvc-backend/internal/test/builder/model"
+	test_sql "github.com/podengo-project/idmsvc-backend/internal/test/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -85,9 +86,9 @@ func (s *SuiteHost) helperTestMatchDomain(stage int, options *interactor.HostCon
 			}
 		case 2:
 			if len(domains) == 0 {
-				helperTestFindByIDIpa(1, &domains[0], mock, expectedErr)
+				test_sql.FindIpaByID(1, mock, expectedErr, domains[0].ID, &domains[0])
 			}
-			helperTestFindByIDIpa(4, &domains[0], mock, expectedErr)
+			test_sql.FindIpaByID(4, mock, expectedErr, domains[0].ID, &domains[0])
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
