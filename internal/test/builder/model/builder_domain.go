@@ -23,6 +23,7 @@ type Domain interface {
 	Build() *model.Domain
 	WithModel(value gorm.Model) Domain
 	WithOrgID(value string) Domain
+	WithDomainName(value string) Domain
 	WithDomainUUID(value uuid.UUID) Domain
 	WithTitle(value *string) Domain
 	WithDescription(value *string) Domain
@@ -122,5 +123,10 @@ func (b *domain) WithDescription(value *string) Domain {
 func (b *domain) WithIpaDomain(value *model.Ipa) Domain {
 	b.Type = pointy.Uint(model.DomainTypeIpa)
 	b.IpaDomain = value
+	return b
+}
+
+func (b *domain) WithDomainName(value string) Domain {
+	b.DomainName = pointy.String(value)
 	return b
 }
