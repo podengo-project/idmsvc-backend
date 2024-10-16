@@ -1167,39 +1167,11 @@ func (s *DomainRepositorySuite) TestWrapErrNotFound() {
 	require.EqualError(t, err, fmt.Sprintf("code=404, message=unknown domain '%s'", UUID.String()))
 }
 
-func (s *DomainRepositorySuite) helperTestRegister(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
-				WithArgs(
-					data.Model.CreatedAt,
-					data.Model.UpdatedAt,
-					data.Model.DeletedAt,
-
-					data.OrgId,
-					data.DomainUuid,
-					data.DomainName,
-					data.Title,
-					data.Description,
-					data.Type,
-					data.AutoEnrollmentEnabled,
-
-					data.Model.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(data.Model.ID))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
 func (s *DomainRepositorySuite) TestRegister() {
-	var err error
+	var (
+		err         error
+		expectedErr error
+	)
 	t := s.T()
 	r := &domainRepository{}
 	realm := strings.ToUpper(helper.GenRandDomainName(3))
@@ -1215,11 +1187,13 @@ func (s *DomainRepositorySuite) TestRegister() {
 		_ = r.Register(context.Background(), d.OrgId, d)
 	})
 
-	s.helperTestRegister(1, d, s.mock, gorm.ErrDuplicatedKey)
+	expectedErr = gorm.ErrDuplicatedKey
+	test_sql.Register(1, d, s.mock, expectedErr)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, fmt.Sprintf("code=409, message=domain id '%s' is already registered.", d.DomainUuid))
 
-	s.helperTestRegister(1, d, s.mock, gorm.ErrInvalidField)
+	expectedErr = gorm.ErrInvalidField
+	test_sql.Register(1, d, s.mock, expectedErr)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
 
@@ -1247,19 +1221,19 @@ func (s *DomainRepositorySuite) TestRegister() {
 				}).
 				Build(),
 		).Build()
-	s.helperTestRegister(1, d, s.mock, nil)
+	test_sql.Register(1, d, s.mock, nil)
 	s.helperTestCreateIpaDomain(1, d.IpaDomain, s.mock, gorm.ErrInvalidField)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
 
 	// Success case - FIXME Flaky test
-	s.helperTestRegister(1, d, s.mock, nil)
+	test_sql.Register(1, d, s.mock, nil)
 	s.helperTestCreateIpaDomain(4, d.IpaDomain, s.mock, nil)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.NoError(t, err)
 
 	// IpaDomain is nil
-	s.helperTestRegister(1, d, s.mock, nil)
+	test_sql.Register(1, d, s.mock, nil)
 	d.IpaDomain = nil
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "code=500, message='IpaDomain' cannot be nil")
