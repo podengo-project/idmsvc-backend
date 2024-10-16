@@ -156,3 +156,38 @@ func UpdateUser(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.
 		}
 	}
 }
+
+func PrepSqlInsertIntoDomains(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Domain) {
+	expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "domains" ("created_at","updated_at","deleted_at","org_id","domain_uuid","domain_name","title","description","type","auto_enrollment_enabled","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
+		WithArgs(
+			data.Model.CreatedAt,
+			data.Model.UpdatedAt,
+			data.Model.DeletedAt,
+
+			data.OrgId,
+			data.DomainUuid,
+			data.DomainName,
+			data.Title,
+			data.Description,
+			data.Type,
+			data.AutoEnrollmentEnabled,
+
+			data.Model.ID,
+		)
+	if withError {
+		expectQuery.WillReturnError(expectedErr)
+	} else {
+		expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(data.Model.ID))
+	}
+}
+
+func Register(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			PrepSqlInsertIntoDomains(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, uint(1), data)
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
