@@ -263,13 +263,13 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 
 	expectedErr := fmt.Errorf("record not found")
 	s.mock.MatchExpectationsInOrder(true)
-	s.helperTestFindByID(1, data, s.mock, nil)
+	test_sql.FindByID(1, s.mock, nil, domainID, data)
 	test_sql.FindIpaByID(1, s.mock, expectedErr, domainID, data)
 	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.EqualError(t, err, "record not found")
 
 	s.mock.MatchExpectationsInOrder(true)
-	s.helperTestFindByID(1, data, s.mock, nil)
+	test_sql.FindByID(1, s.mock, nil, domainID, data)
 	test_sql.FindIpaByID(4, s.mock, nil, domainID, data)
 	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
 		WithArgs(
@@ -440,9 +440,9 @@ func (s *DomainRepositorySuite) helperTestUpdateUser(stage int, data *model.Doma
 		switch i {
 		case 1:
 			if i == stage && expectedErr != nil {
-				s.helperTestFindByID(1, data, mock, expectedErr)
+				test_sql.FindByID(1, mock, expectedErr, domainID, data)
 			} else {
-				s.helperTestFindByID(1, data, mock, nil)
+				test_sql.FindByID(1, mock, nil, domainID, data)
 				test_sql.FindIpaByID(4, mock, nil, domainID, data)
 			}
 		case 2: // Update
@@ -795,51 +795,6 @@ func (s *DomainRepositorySuite) TestList() {
 	}, output)
 }
 
-func (s *DomainRepositorySuite) helperTestFindByID(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "domains" WHERE (org_id = $1 AND domain_uuid = $2) AND "domains"."deleted_at" IS NULL ORDER BY "domains"."id" LIMIT $3`)).
-				WithArgs(
-					data.OrgId,
-					data.DomainUuid,
-					1,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				autoenrollment := false
-				if data.AutoEnrollmentEnabled != nil {
-					autoenrollment = *data.AutoEnrollmentEnabled
-				}
-				expectQuery.WillReturnRows(sqlmock.NewRows([]string{
-					"id", "created_at", "updated_at", "deletet_at",
-
-					"org_id", "domain_uuid", "domain_name",
-					"title", "description", "type",
-					"auto_enrollment_enabled",
-				}).
-					AddRow(
-						data.ID,
-						data.CreatedAt,
-						data.UpdatedAt,
-						nil,
-
-						data.OrgId,
-						data.DomainUuid,
-						data.DomainName,
-						data.Title,
-						data.Description,
-						data.Type,
-						autoenrollment,
-					))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
 func (s *DomainRepositorySuite) TestFindByID() {
 	t := s.T()
 	r := &domainRepository{}
@@ -851,6 +806,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	domainUUID := uuid.MustParse("c5d2c9d0-2b2f-11ee-8ec5-482ae3863d30")
 	domainID := uint(1)
 
+	// TODO Use the builder_model.NewDomain(...)
 	data := &model.Domain{
 		Model: gorm.Model{
 			ID:        domainID,
@@ -875,7 +831,6 @@ func (s *DomainRepositorySuite) TestFindByID() {
 			CaCerts: []model.IpaCert{
 				{
 					Model: gorm.Model{
-						ID:        2,
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 					},
@@ -892,7 +847,6 @@ func (s *DomainRepositorySuite) TestFindByID() {
 			Servers: []model.IpaServer{
 				{
 					Model: gorm.Model{
-						ID:        3,
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 					},
@@ -909,7 +863,6 @@ func (s *DomainRepositorySuite) TestFindByID() {
 			Locations: []model.IpaLocation{
 				{
 					Model: gorm.Model{
-						ID:        4,
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 					},
@@ -948,7 +901,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 
 	// Check path when an error hapens into the sql statement
 	expectedErr = fmt.Errorf(`error at SELECT * FROM "domains"`)
-	s.helperTestFindByID(1, data, s.mock, expectedErr)
+	test_sql.FindByID(1, s.mock, expectedErr, domainID, data)
 	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
@@ -956,7 +909,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 
 	// Check path when a domain type is NULL
 	expectedErr = internal_errors.NilArgError("Type")
-	s.helperTestFindByID(1, dataTypeNil, s.mock, nil)
+	test_sql.FindByID(1, s.mock, nil, domainID, dataTypeNil)
 	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
@@ -964,7 +917,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 
 	// Check for 'ipas' record not found
 	expectedErr = gorm.ErrRecordNotFound
-	s.helperTestFindByID(1, data, s.mock, nil)
+	test_sql.FindByID(1, s.mock, nil, domainID, data)
 	test_sql.FindIpaByID(1, s.mock, expectedErr, domainID, data)
 	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
@@ -973,7 +926,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 
 	// Successful scenario
 	expectedErr = nil
-	s.helperTestFindByID(1, data, s.mock, nil)
+	test_sql.FindByID(1, s.mock, nil, domainID, data)
 	test_sql.FindIpaByID(4, s.mock, expectedErr, domainID, data)
 	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
