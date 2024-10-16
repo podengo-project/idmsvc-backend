@@ -4,13 +4,10 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
-	"regexp"
 	"strings"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
 	"github.com/openlyinc/pointy"
@@ -43,56 +40,6 @@ func (s *SuiteHost) TestNewHostRepository() {
 	assert.NotPanics(t, func() {
 		_ = NewHostRepository()
 	})
-}
-
-func (s *SuiteHost) helperTestMatchDomain(stage int, options *interactor.HostConfOptions, domains []model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT "domains"."id","domains"."created_at","domains"."updated_at","domains"."deleted_at","domains"."org_id","domains"."domain_uuid","domains"."domain_name","domains"."title","domains"."description","domains"."type","domains"."auto_enrollment_enabled" FROM "domains" left join ipas on domains.id = ipas.id WHERE domains.org_id = $1 AND domains.domain_uuid = $2 AND domains.domain_name = $3 AND domains.type = $4 AND "domains"."deleted_at" IS NULL`)).
-				WithArgs(
-					options.OrgId,
-					options.DomainId,
-					options.DomainName,
-					model.DomainTypeUint((string)(*options.DomainType)),
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				rows := sqlmock.NewRows([]string{
-					"id", "created_at", "updated_at", "deletet_at",
-
-					"org_id", "domain_uuid", "domain_name",
-					"title", "description", "type",
-					"auto_enrollment_enabled",
-				})
-				for j := range domains {
-					rows.AddRow(
-						domains[j].ID,
-						domains[j].CreatedAt,
-						domains[j].UpdatedAt,
-						domains[j].DeletedAt,
-
-						domains[j].OrgId,
-						domains[j].DomainUuid,
-						domains[j].DomainName,
-						domains[j].Title,
-						domains[j].Description,
-						domains[j].Type,
-						domains[j].AutoEnrollmentEnabled,
-					)
-				}
-				expectQuery = expectQuery.WillReturnRows(rows)
-			}
-		case 2:
-			if len(domains) == 0 {
-				test_sql.FindIpaByID(1, mock, expectedErr, domains[0].ID, &domains[0])
-			}
-			test_sql.FindIpaByID(4, mock, expectedErr, domains[0].ID, &domains[0])
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
 }
 
 func (s *SuiteHost) TestMatchDomain() {
@@ -163,14 +110,14 @@ func (s *SuiteHost) TestMatchDomain() {
 	require.EqualError(t, err, "code=500, message='options' cannot be nil")
 
 	// Error at Find
-	s.helperTestMatchDomain(1, options, domains, s.mock, gorm.ErrInvalidTransaction)
+	test_sql.MatchDomain(1, s.mock, gorm.ErrInvalidTransaction, options, domains)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "invalid transaction")
 
 	// Domains empty
 	domainsEmpty := []model.Domain{}
-	s.helperTestMatchDomain(1, options, domainsEmpty, s.mock, nil)
+	test_sql.MatchDomain(1, s.mock, nil, options, domainsEmpty)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=404, message=no matching domains")
@@ -180,13 +127,13 @@ func (s *SuiteHost) TestMatchDomain() {
 		domains[0],
 		domains[0],
 	}
-	s.helperTestMatchDomain(1, options, domainsMoreThan1, s.mock, nil)
+	test_sql.MatchDomain(1, s.mock, nil, options, domainsMoreThan1)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=409, message=matched 2 domains, only one expected")
 
 	// Success
-	s.helperTestMatchDomain(2, options, domains, s.mock, nil)
+	test_sql.MatchDomain(2, s.mock, nil, options, domains)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.NotNil(t, domain)
 	require.NoError(t, err)
