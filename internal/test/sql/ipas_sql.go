@@ -1,6 +1,7 @@
 package sql
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"regexp"
 
@@ -246,6 +247,50 @@ func CreateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, data *m
 			PrepSqlInsertIntoIpaServers(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data)
 		case 4:
 			PrepSqlInsertIntoIpaLocations(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data)
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func PrepSqlDeleteFromIpas(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
+	expectExec := mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
+		WithArgs(
+			data.Model.ID,
+		)
+	if withError {
+		expectExec.WillReturnError(expectedErr)
+	} else {
+		expectExec.WillReturnResult(
+			driver.RowsAffected(1),
+		)
+	}
+}
+
+func UpdateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.Domain) {
+	if stage == 0 {
+		return
+	}
+	if stage < 0 {
+		panic("'stage' cannot be lower than 0")
+	}
+	if stage > 5 {
+		panic("'stage' cannot be greater than 5")
+	}
+
+	mock.MatchExpectationsInOrder(true)
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			PrepSqlDeleteFromIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+		case 2:
+			PrepSqlInsertIntoIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+		case 3:
+			PrepSqlInsertIntoIpaCerts(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+		case 4:
+			PrepSqlInsertIntoIpaServers(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+		case 5:
+			PrepSqlInsertIntoIpaLocations(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
