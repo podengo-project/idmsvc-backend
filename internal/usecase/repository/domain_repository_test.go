@@ -49,96 +49,6 @@ func (s *DomainRepositorySuite) TestNewDomainRepository() {
 	})
 }
 
-func (s *DomainRepositorySuite) helperTestCreateIpaDomain(stage int, data *model.Ipa, mock sqlmock.Sqlmock, expectedErr error) {
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
-				WithArgs(
-					data.Model.CreatedAt,
-					data.Model.UpdatedAt,
-					nil,
-
-					data.RealmName,
-					data.RealmDomains,
-					data.ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-					AddRow(data.ID))
-			}
-		case 2:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-				WithArgs(
-					data.CaCerts[0].CreatedAt,
-					data.CaCerts[0].UpdatedAt,
-					nil,
-
-					data.CaCerts[0].IpaID,
-					data.CaCerts[0].Issuer,
-					data.CaCerts[0].Nickname,
-					data.CaCerts[0].NotAfter,
-					data.CaCerts[0].NotBefore,
-					data.CaCerts[0].Pem,
-					data.CaCerts[0].SerialNumber,
-					data.CaCerts[0].Subject,
-					data.CaCerts[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-					AddRow(data.CaCerts[0].ID))
-			}
-		case 3:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-				WithArgs(
-					data.Servers[0].CreatedAt,
-					data.Servers[0].UpdatedAt,
-					nil,
-
-					data.Servers[0].IpaID,
-					data.Servers[0].FQDN,
-					data.Servers[0].RHSMId,
-					data.Servers[0].Location,
-					data.Servers[0].CaServer,
-					data.Servers[0].HCCEnrollmentServer,
-					data.Servers[0].HCCUpdateServer,
-					data.Servers[0].PKInitServer,
-					data.Servers[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-					AddRow(data.Servers[0].ID))
-			}
-		case 4:
-			expectQuery := s.mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`)).
-				WithArgs(
-					data.Locations[0].CreatedAt,
-					data.Locations[0].UpdatedAt,
-					nil,
-
-					data.Locations[0].IpaID,
-					data.Locations[0].Name,
-					data.Locations[0].Description,
-					data.Locations[0].ID,
-				)
-			if i == stage && expectedErr != nil {
-				expectQuery.WillReturnError(expectedErr)
-			} else {
-				expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-					AddRow(data.Locations[0].ID))
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
-}
-
 func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 	t := s.Suite.T()
 	// testUuid := uuid.New()
@@ -208,31 +118,31 @@ func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 
 	// Error on INSERT INTO "ipas"
 	expectedError = fmt.Errorf(`error at INSERT INTO "ipas"`)
-	s.helperTestCreateIpaDomain(1, &data, s.mock, expectedError)
+	test_sql.CreateIpaDomain(1, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_certs"
 	expectedError = fmt.Errorf(`INSERT INTO "ipa_certs"`)
-	s.helperTestCreateIpaDomain(2, &data, s.mock, expectedError)
+	test_sql.CreateIpaDomain(2, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_servers"
 	expectedError = fmt.Errorf(`INSERT INTO "ipa_servers"`)
-	s.helperTestCreateIpaDomain(3, &data, s.mock, expectedError)
+	test_sql.CreateIpaDomain(3, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_locations"
 	expectedError = fmt.Errorf(`INSERT INTO "ipa_locations"`)
-	s.helperTestCreateIpaDomain(4, &data, s.mock, expectedError)
+	test_sql.CreateIpaDomain(4, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Success scenario
 	expectedError = nil
-	s.helperTestCreateIpaDomain(4, &data, s.mock, nil)
+	test_sql.CreateIpaDomain(4, s.mock, nil, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.NoError(t, err)
 }
@@ -296,7 +206,7 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 		).WillReturnResult(
 		driver.RowsAffected(1),
 	)
-	s.helperTestCreateIpaDomain(4, data.IpaDomain, s.mock, nil)
+	test_sql.CreateIpaDomain(4, s.mock, nil, data.IpaDomain)
 	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.NoError(t, err)
 }
@@ -1222,13 +1132,13 @@ func (s *DomainRepositorySuite) TestRegister() {
 				Build(),
 		).Build()
 	test_sql.Register(1, d, s.mock, nil)
-	s.helperTestCreateIpaDomain(1, d.IpaDomain, s.mock, gorm.ErrInvalidField)
+	test_sql.CreateIpaDomain(1, s.mock, gorm.ErrInvalidField, d.IpaDomain)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
 
 	// Success case - FIXME Flaky test
 	test_sql.Register(1, d, s.mock, nil)
-	s.helperTestCreateIpaDomain(4, d.IpaDomain, s.mock, nil)
+	test_sql.CreateIpaDomain(4, s.mock, nil, d.IpaDomain)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.NoError(t, err)
 
