@@ -7,6 +7,7 @@ import (
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
+	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"gorm.io/gorm"
 )
 
@@ -186,6 +187,60 @@ func Register(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr e
 		switch i {
 		case 1:
 			PrepSqlInsertIntoDomains(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, uint(1), data)
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func PrepSqlSelectFromDomainsFilterMatchDomain(mock sqlmock.Sqlmock, withError bool, expectedErr error, options *interactor.HostConfOptions, domains []model.Domain) {
+	expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT "domains"."id","domains"."created_at","domains"."updated_at","domains"."deleted_at","domains"."org_id","domains"."domain_uuid","domains"."domain_name","domains"."title","domains"."description","domains"."type","domains"."auto_enrollment_enabled" FROM "domains" left join ipas on domains.id = ipas.id WHERE domains.org_id = $1 AND domains.domain_uuid = $2 AND domains.domain_name = $3 AND domains.type = $4 AND "domains"."deleted_at" IS NULL`)).
+		WithArgs(
+			options.OrgId,
+			options.DomainId,
+			options.DomainName,
+			model.DomainTypeUint((string)(*options.DomainType)),
+		)
+	if withError {
+		expectQuery.WillReturnError(expectedErr)
+	} else {
+		rows := sqlmock.NewRows([]string{
+			"id", "created_at", "updated_at", "deletet_at",
+
+			"org_id", "domain_uuid", "domain_name",
+			"title", "description", "type",
+			"auto_enrollment_enabled",
+		})
+		for j := range domains {
+			rows.AddRow(
+				domains[j].ID,
+				domains[j].CreatedAt,
+				domains[j].UpdatedAt,
+				domains[j].DeletedAt,
+
+				domains[j].OrgId,
+				domains[j].DomainUuid,
+				domains[j].DomainName,
+				domains[j].Title,
+				domains[j].Description,
+				domains[j].Type,
+				domains[j].AutoEnrollmentEnabled,
+			)
+		}
+		expectQuery = expectQuery.WillReturnRows(rows)
+	}
+}
+
+func MatchDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, options *interactor.HostConfOptions, domains []model.Domain) {
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			PrepSqlSelectFromDomainsFilterMatchDomain(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, options, domains)
+		case 2:
+			if len(domains) == 0 {
+				FindIpaByID(1, mock, expectedErr, domains[0].ID, &domains[0])
+			}
+			FindIpaByID(4, mock, expectedErr, domains[0].ID, &domains[0])
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
