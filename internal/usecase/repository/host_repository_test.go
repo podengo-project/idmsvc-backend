@@ -44,7 +44,7 @@ func (s *SuiteHost) TestNewHostRepository() {
 	})
 }
 
-func (s *SuiteHost) helperTestMatchDomain(stage int, options *interactor.HostConfOptions, domains []model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func (s *SuiteHost) helperTestMatchDomain(stage int, options *interactor.HostConfOptions, domainID uint, domains []model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
@@ -84,10 +84,11 @@ func (s *SuiteHost) helperTestMatchDomain(stage int, options *interactor.HostCon
 				expectQuery = expectQuery.WillReturnRows(rows)
 			}
 		case 2:
+			stg := 4
 			if len(domains) == 0 {
-				helperTestFindByIDIpa(1, &domains[0], mock, expectedErr)
+				stg = 1
 			}
-			helperTestFindByIDIpa(4, &domains[0], mock, expectedErr)
+			helperTestFindIpaByID(stg, domainID, &domains[0], mock, expectedErr)
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
@@ -108,7 +109,7 @@ func (s *SuiteHost) TestMatchDomain() {
 		DomainName:  &domainName,
 		DomainType:  (*api_public.DomainType)(pointy.String(model.DomainTypeIpaString)),
 	}
-	id := uint(helper.GenRandNum(0, 2^63))
+	id := uint(helper.GenRandNum(1, 2^63))
 	realm := strings.ToUpper(domainName)
 	domains := []model.Domain{
 		*builder_model.NewDomain(builder_model.NewModel().WithID(id).Build()).
@@ -162,14 +163,14 @@ func (s *SuiteHost) TestMatchDomain() {
 	require.EqualError(t, err, "code=500, message='options' cannot be nil")
 
 	// Error at Find
-	s.helperTestMatchDomain(1, options, domains, s.mock, gorm.ErrInvalidTransaction)
+	s.helperTestMatchDomain(1, options, id, domains, s.mock, gorm.ErrInvalidTransaction)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "invalid transaction")
 
 	// Domains empty
 	domainsEmpty := []model.Domain{}
-	s.helperTestMatchDomain(1, options, domainsEmpty, s.mock, nil)
+	s.helperTestMatchDomain(1, options, id, domainsEmpty, s.mock, nil)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=404, message=no matching domains")
@@ -179,13 +180,13 @@ func (s *SuiteHost) TestMatchDomain() {
 		domains[0],
 		domains[0],
 	}
-	s.helperTestMatchDomain(1, options, domainsMoreThan1, s.mock, nil)
+	s.helperTestMatchDomain(1, options, id, domainsMoreThan1, s.mock, nil)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.Nil(t, domain)
 	require.EqualError(t, err, "code=409, message=matched 2 domains, only one expected")
 
 	// Success
-	s.helperTestMatchDomain(2, options, domains, s.mock, nil)
+	s.helperTestMatchDomain(2, options, id, domains, s.mock, nil)
 	domain, err = s.repository.MatchDomain(s.Ctx, options)
 	assert.NotNil(t, domain)
 	require.NoError(t, err)

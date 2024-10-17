@@ -10,7 +10,8 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	test_assert "github.com/podengo-project/idmsvc-backend/internal/test/assert"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 // SuiteDomainUpdateAgent is the suite to validate the smoke test when read domain endpoint at PUT /api/idmsvc/v1/domains/:domain_id
@@ -56,26 +57,34 @@ func (s *SuiteDomainUpdateAgent) TearDownTest() {
 	s.SuiteBase.TearDownTest()
 }
 
-func (s *SuiteDomainUpdateAgent) buildUpdateAgentRequest(domainName string) *public.UpdateDomainAgentRequest {
-	return builder_api.NewUpdateDomainAgent(domainName).
-		WithSubscriptionManagerID(s.systemXRHID.Identity.System.CommonName).
-		WithHCCUpdate(true).
-		Build()
-}
-
 func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 	url := fmt.Sprintf("%s/%s/%s", s.DefaultPublicBaseURL(), "domains", s.Domains[0].DomainId)
 
 	domainName := s.Domains[0].DomainName
-	requestWithChangedDomainName := s.buildUpdateAgentRequest(domainName)
-	requestWithChangedDomainName.DomainName = "other.domain.test"
+	subscriptionManagerID := s.systemXRHID.Identity.System.CommonName
+	requestWithChangedDomainName := builder_api.NewUpdateDomainAgent(domainName).
+		WithSubscriptionManagerID(subscriptionManagerID).
+		WithDomainName("other.domain.test").
+		WithHCCUpdate(true).
+		Build()
 
-	requestWithChangedRealm := s.buildUpdateAgentRequest(domainName)
+	requestWithChangedRealm := builder_api.NewUpdateDomainAgent(domainName).
+		WithSubscriptionManagerID(subscriptionManagerID).
+		WithHCCUpdate(true).
+		Build()
 	requestWithChangedRealm.RhelIdm.RealmName = "DIFFERENT.REALM"
 
-	requestWithBadSubscriptionManagerID := builder_api.NewUpdateDomainAgent(domainName).Build()
+	requestWithBadSubscriptionManagerID := builder_api.NewUpdateDomainAgent(domainName).
+		WithSubscriptionManagerID(uuid.NewString()).
+		WithHCCUpdate(true).
+		Build()
 
-	okRequest := s.buildUpdateAgentRequest(domainName)
+	okRequest := builder_api.NewUpdateDomainAgent(domainName).
+		WithSubscriptionManagerID(subscriptionManagerID).
+		WithDomainName(domainName).
+		WithDomainType(public.RhelIdm).
+		WithHCCUpdate(true).
+		Build()
 
 	expectedResponse := s.Domains[0]
 	expectedResponse.RhelIdm = &okRequest.RhelIdm
@@ -108,7 +117,7 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusBadRequest,
 				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
-					assert.Equal(t, builder_api.NewErrorResponse().
+					require.Equal(t, builder_api.NewErrorResponse().
 						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
 							WithTitle("'domain_name' may not be changed").
 							Build()).
@@ -129,7 +138,7 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusBadRequest,
 				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
-					assert.Equal(t, builder_api.NewErrorResponse().
+					require.Equal(t, builder_api.NewErrorResponse().
 						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
 							WithTitle("'realm_name' may not be changed").
 							Build()).
@@ -150,7 +159,7 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 			Expected: TestCaseExpect{
 				StatusCode: http.StatusBadRequest,
 				BodyFunc: WrapBodyFuncErrorResponse(func(t *testing.T, body *public.ErrorResponse) error {
-					assert.Equal(t, builder_api.NewErrorResponse().
+					require.Equal(t, builder_api.NewErrorResponse().
 						Add(*builder_api.NewErrorInfo(http.StatusBadRequest).
 							WithTitle("update server's 'Subscription Manager ID' not found in the authorized list of rhel-idm servers").
 							Build()).
@@ -175,7 +184,7 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 				},
 				BodyFunc: WrapBodyFuncDomainResponse(func(t *testing.T, body *public.Domain) error {
 					test_assert.AssertDomain(t, expectedResponse, body)
-					assert.Equal(t, s.Domains[0].DomainId, body.DomainId)
+					require.Equal(t, s.Domains[0].DomainId, body.DomainId)
 					return nil
 				}),
 			},
@@ -184,4 +193,8 @@ func (s *SuiteDomainUpdateAgent) TestUpdateDomain() {
 
 	// Execute the test cases
 	s.RunTestCases(testCases)
+}
+
+func TestSuiteDomainUpdateAgent(t *testing.T) {
+	suite.Run(t, new(SuiteDomainUpdateAgent))
 }
