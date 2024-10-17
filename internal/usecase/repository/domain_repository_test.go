@@ -24,6 +24,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	builder_model "github.com/podengo-project/idmsvc-backend/internal/test/builder/model"
+	test_sql "github.com/podengo-project/idmsvc-backend/internal/test/sql"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -240,6 +241,7 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 	t := s.Suite.T()
 	orgID := test.OrgId
 	testUUID := test.DomainUUID
+	domainID := uint(1)
 	var (
 		data *model.Domain = test.BuildDomainModel(test.OrgId)
 		err  error
@@ -259,15 +261,16 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 	err = s.repository.UpdateAgent(s.Ctx, orgID, nil)
 	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 
+	expectedErr := fmt.Errorf("record not found")
 	s.mock.MatchExpectationsInOrder(true)
 	s.helperTestFindByID(1, data, s.mock, nil)
-	helperTestFindByIDIpa(1, data, s.mock, fmt.Errorf("record not found"))
+	test_sql.FindIpaByID(1, s.mock, expectedErr, domainID, data)
 	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.EqualError(t, err, "record not found")
 
 	s.mock.MatchExpectationsInOrder(true)
 	s.helperTestFindByID(1, data, s.mock, nil)
-	helperTestFindByIDIpa(4, data, s.mock, nil)
+	test_sql.FindIpaByID(4, s.mock, nil, domainID, data)
 	s.mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
 		WithArgs(
 			sqlmock.AnyArg(),
@@ -430,6 +433,7 @@ func (s *DomainRepositorySuite) helperTestUpdateUser(stage int, data *model.Doma
 	if stage > 2 {
 		panic("'stage' cannot be greater than 3")
 	}
+	domainID := uint(1)
 
 	s.mock.MatchExpectationsInOrder(true)
 	for i := 1; i <= stage; i++ {
@@ -439,7 +443,7 @@ func (s *DomainRepositorySuite) helperTestUpdateUser(stage int, data *model.Doma
 				s.helperTestFindByID(1, data, mock, expectedErr)
 			} else {
 				s.helperTestFindByID(1, data, mock, nil)
-				helperTestFindByIDIpa(4, data, mock, nil)
+				test_sql.FindIpaByID(4, mock, nil, domainID, data)
 			}
 		case 2: // Update
 			expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
@@ -450,7 +454,7 @@ func (s *DomainRepositorySuite) helperTestUpdateUser(stage int, data *model.Doma
 
 					data.OrgId,
 					data.DomainUuid,
-					data.ID,
+					domainID,
 				)
 			if i == stage && expectedErr != nil {
 				expectExec.WillReturnError(expectedErr)
@@ -844,15 +848,17 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	currentTime := time.Now()
 	notBefore := currentTime
 	notAfter := currentTime.Add(356 * 24 * time.Hour)
-	domainID := uuid.MustParse("c5d2c9d0-2b2f-11ee-8ec5-482ae3863d30")
+	domainUUID := uuid.MustParse("c5d2c9d0-2b2f-11ee-8ec5-482ae3863d30")
+	domainID := uint(1)
+
 	data := &model.Domain{
 		Model: gorm.Model{
-			ID:        1,
+			ID:        domainID,
 			CreatedAt: currentTime,
 			UpdatedAt: currentTime,
 		},
 		OrgId:                 "12345",
-		DomainUuid:            domainID,
+		DomainUuid:            domainUUID,
 		DomainName:            pointy.String("mydomain.example"),
 		Title:                 pointy.String("My Example Domain"),
 		Description:           pointy.String("My long description for my example domain"),
@@ -860,7 +866,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 		Type:                  pointy.Uint(model.DomainTypeIpa),
 		IpaDomain: &model.Ipa{
 			Model: gorm.Model{
-				ID:        1,
+				ID:        domainID,
 				CreatedAt: currentTime,
 				UpdatedAt: currentTime,
 			},
@@ -873,7 +879,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 					},
-					IpaID:        1,
+					IpaID:        domainID,
 					Issuer:       "issuer",
 					Subject:      "subject",
 					Nickname:     "nickname",
@@ -890,7 +896,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 					},
-					IpaID:               1,
+					IpaID:               domainID,
 					FQDN:                "server1.mydomain.example",
 					RHSMId:              pointy.String("17a151b6-2b2e-11ee-97d9-482ae3863d30"),
 					Location:            pointy.String("boston"),
@@ -907,7 +913,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 					},
-					IpaID:       1,
+					IpaID:       domainID,
 					Name:        "boston",
 					Description: pointy.String("Boston data center"),
 				},
@@ -959,7 +965,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	// Check for 'ipas' record not found
 	expectedErr = gorm.ErrRecordNotFound
 	s.helperTestFindByID(1, data, s.mock, nil)
-	helperTestFindByIDIpa(1, data, s.mock, expectedErr)
+	test_sql.FindIpaByID(1, s.mock, expectedErr, domainID, data)
 	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.EqualError(t, err, expectedErr.Error())
@@ -968,7 +974,7 @@ func (s *DomainRepositorySuite) TestFindByID() {
 	// Successful scenario
 	expectedErr = nil
 	s.helperTestFindByID(1, data, s.mock, nil)
-	helperTestFindByIDIpa(4, data, s.mock, expectedErr)
+	test_sql.FindIpaByID(4, s.mock, expectedErr, domainID, data)
 	domain, err = r.FindByID(s.Ctx, data.OrgId, data.DomainUuid)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 	assert.NoError(t, err)
@@ -1417,128 +1423,6 @@ func (s *DomainRepositorySuite) TestRegister() {
 	d.IpaDomain = nil
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "code=500, message='IpaDomain' cannot be nil")
-}
-
-func helperTestFindByIDIpa(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
-	for i := 1; i <= stage; i++ {
-		switch i {
-		case 1:
-			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipas" WHERE id = $1 AND "ipas"."deleted_at" IS NULL ORDER BY "ipas"."id" LIMIT $2`)).
-				WithArgs(
-					data.Model.ID,
-					1,
-				)
-			if i == stage && expectedErr != nil {
-				expectedQuery.WillReturnError(expectedErr)
-			} else {
-				expectedQuery.WillReturnRows(sqlmock.NewRows([]string{
-					"id", "created_at", "updated_at", "deletet_at",
-
-					"realm_name", "realm_domains",
-				}).AddRow(
-					data.Model.ID,
-					data.Model.CreatedAt,
-					data.Model.UpdatedAt,
-					data.Model.DeletedAt,
-
-					data.IpaDomain.RealmName,
-					data.IpaDomain.RealmDomains,
-				))
-			}
-		case 2:
-			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_certs" WHERE "ipa_certs"."ipa_id" = $1 AND "ipa_certs"."deleted_at" IS NULL`)).
-				WithArgs(data.IpaDomain.ID)
-			if i == stage && expectedErr != nil {
-				expectedQuery.WillReturnError(expectedErr)
-			} else {
-				rows := sqlmock.NewRows([]string{
-					"id", "created_at", "updated_at", "deletet_at",
-
-					"ipa_id", "issuer", "nickname",
-					"not_after", "not_before", "serial_number",
-					"subject", "pem",
-				})
-				for j := range data.IpaDomain.CaCerts {
-					rows.AddRow(
-						data.IpaDomain.CaCerts[j].Model.ID,
-						data.IpaDomain.CaCerts[j].Model.CreatedAt,
-						data.IpaDomain.CaCerts[j].Model.UpdatedAt,
-						data.IpaDomain.CaCerts[j].Model.DeletedAt,
-
-						data.IpaDomain.CaCerts[j].IpaID,
-						data.IpaDomain.CaCerts[j].Issuer,
-						data.IpaDomain.CaCerts[j].Nickname,
-						data.IpaDomain.CaCerts[j].NotAfter,
-						data.IpaDomain.CaCerts[j].NotBefore,
-						data.IpaDomain.CaCerts[j].SerialNumber,
-						data.IpaDomain.CaCerts[j].Subject,
-						data.IpaDomain.CaCerts[j].Pem,
-					)
-				}
-				expectedQuery.WillReturnRows(rows)
-			}
-		case 3:
-			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_locations" WHERE "ipa_locations"."ipa_id" = $1 AND "ipa_locations"."deleted_at" IS NULL`)).
-				WithArgs(data.IpaDomain.ID)
-			if i == stage && expectedErr != nil {
-				expectedQuery.WillReturnError(expectedErr)
-			} else {
-				rows := sqlmock.NewRows([]string{
-					"id", "created_at", "updated_at", "deletet_at",
-
-					"ipa_id",
-					"name", "description",
-				})
-				for j := range data.IpaDomain.Locations {
-					rows.AddRow(
-						data.IpaDomain.Locations[j].Model.ID,
-						data.IpaDomain.Locations[j].Model.CreatedAt,
-						data.IpaDomain.Locations[j].Model.UpdatedAt,
-						data.IpaDomain.Locations[j].Model.DeletedAt,
-
-						data.IpaDomain.Locations[j].IpaID,
-						data.IpaDomain.Locations[j].Name,
-						data.IpaDomain.Locations[j].Description,
-					)
-				}
-				expectedQuery.WillReturnRows(rows)
-			}
-		case 4:
-			expectedQuery := mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "ipa_servers" WHERE "ipa_servers"."ipa_id" = $1 AND "ipa_servers"."deleted_at" IS NULL`)).
-				WithArgs(data.IpaDomain.ID)
-			if i == stage && expectedErr != nil {
-				expectedQuery.WillReturnError(expectedErr)
-			} else {
-				rows := sqlmock.NewRows([]string{
-					"id", "created_at", "updated_at", "deletet_at",
-
-					"ipa_id", "fqdn", "rhsm_id", "location",
-					"ca_server", "hcc_enrollment_server", "hcc_update_server",
-					"pk_init_server",
-				})
-				for j := range data.IpaDomain.Servers {
-					rows.AddRow(
-						data.IpaDomain.Servers[j].Model.ID,
-						data.IpaDomain.Servers[j].Model.CreatedAt,
-						data.IpaDomain.Servers[j].Model.UpdatedAt,
-						data.IpaDomain.Servers[j].Model.DeletedAt,
-
-						data.IpaDomain.Servers[j].IpaID,
-						data.IpaDomain.Servers[j].FQDN,
-						data.IpaDomain.Servers[j].RHSMId,
-						data.IpaDomain.Servers[j].Location,
-						data.IpaDomain.Servers[j].CaServer,
-						data.IpaDomain.Servers[j].HCCEnrollmentServer,
-						data.IpaDomain.Servers[j].HCCUpdateServer,
-						data.IpaDomain.Servers[j].PKInitServer,
-					)
-				}
-				expectedQuery.WillReturnRows(rows)
-			}
-		default:
-			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
-		}
-	}
 }
 
 func (s *DomainRepositorySuite) TestDeleteByIdLogError() {
