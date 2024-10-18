@@ -167,72 +167,78 @@ func PrepSqlInsertIntoIpas(mock sqlmock.Sqlmock, withError bool, expectedErr err
 }
 
 func PrepSqlInsertIntoIpaCerts(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
-	expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-		WithArgs(
-			data.CaCerts[0].CreatedAt,
-			data.CaCerts[0].UpdatedAt,
-			nil,
+	for j := range data.CaCerts {
+		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+			WithArgs(
+				data.CaCerts[j].CreatedAt,
+				data.CaCerts[j].UpdatedAt,
+				nil,
 
-			data.CaCerts[0].IpaID,
-			data.CaCerts[0].Issuer,
-			data.CaCerts[0].Nickname,
-			data.CaCerts[0].NotAfter,
-			data.CaCerts[0].NotBefore,
-			data.CaCerts[0].Pem,
-			data.CaCerts[0].SerialNumber,
-			data.CaCerts[0].Subject,
-			data.CaCerts[0].ID,
-		)
-	if withError {
-		expectQuery.WillReturnError(expectedErr)
-	} else {
+				data.CaCerts[j].IpaID,
+				data.CaCerts[j].Issuer,
+				data.CaCerts[j].Nickname,
+				data.CaCerts[j].NotAfter,
+				data.CaCerts[j].NotBefore,
+				data.CaCerts[j].Pem,
+				data.CaCerts[j].SerialNumber,
+				data.CaCerts[j].Subject,
+				data.CaCerts[j].ID,
+			)
+		if withError {
+			expectQuery.WillReturnError(expectedErr)
+			return
+		}
 		expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow(data.CaCerts[0].ID))
+			AddRow(100*data.CaCerts[0].ID + uint(j)))
 	}
 }
 
 func PrepSqlInsertIntoIpaServers(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
-	expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
-		WithArgs(
-			data.Servers[0].CreatedAt,
-			data.Servers[0].UpdatedAt,
-			nil,
+	for j := range data.Servers {
+		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+			WithArgs(
+				data.Servers[j].CreatedAt,
+				data.Servers[j].UpdatedAt,
+				nil,
 
-			data.Servers[0].IpaID,
-			data.Servers[0].FQDN,
-			data.Servers[0].RHSMId,
-			data.Servers[0].Location,
-			data.Servers[0].CaServer,
-			data.Servers[0].HCCEnrollmentServer,
-			data.Servers[0].HCCUpdateServer,
-			data.Servers[0].PKInitServer,
-			data.Servers[0].ID,
-		)
-	if withError {
-		expectQuery.WillReturnError(expectedErr)
-	} else {
+				data.Servers[j].IpaID,
+				data.Servers[j].FQDN,
+				data.Servers[j].RHSMId,
+				data.Servers[j].Location,
+				data.Servers[j].CaServer,
+				data.Servers[j].HCCEnrollmentServer,
+				data.Servers[j].HCCUpdateServer,
+				data.Servers[j].PKInitServer,
+				data.Servers[j].ID,
+			)
+		if withError {
+			expectQuery.WillReturnError(expectedErr)
+			return
+		}
 		expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow(data.Servers[0].ID))
+			AddRow(200*data.Servers[0].ID + uint(j)))
 	}
 }
 
 func PrepSqlInsertIntoIpaLocations(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
-	expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`)).
-		WithArgs(
-			data.Locations[0].CreatedAt,
-			data.Locations[0].UpdatedAt,
-			nil,
+	for j := range data.Locations {
+		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`)).
+			WithArgs(
+				data.Locations[j].CreatedAt,
+				data.Locations[j].UpdatedAt,
+				nil,
 
-			data.Locations[0].IpaID,
-			data.Locations[0].Name,
-			data.Locations[0].Description,
-			data.Locations[0].ID,
-		)
-	if withError {
-		expectQuery.WillReturnError(expectedErr)
-	} else {
+				data.Locations[j].IpaID,
+				data.Locations[j].Name,
+				data.Locations[j].Description,
+				data.Locations[j].ID,
+			)
+		if withError {
+			expectQuery.WillReturnError(expectedErr)
+			return
+		}
 		expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow(data.Locations[0].ID))
+			AddRow(300*data.Locations[0].ID + uint(j)))
 	}
 }
 
