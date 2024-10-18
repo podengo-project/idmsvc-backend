@@ -467,7 +467,7 @@ func (r *domainRepository) createIpaDomain(
 func (r *domainRepository) updateIpaDomain(
 	log *slog.Logger,
 	db *gorm.DB,
-	data *model.Ipa,
+	dataIPA *model.Ipa,
 ) (err error) {
 	if log == nil {
 		err = internal_errors.NilArgError("log")
@@ -479,51 +479,51 @@ func (r *domainRepository) updateIpaDomain(
 		log.Error(err.Error())
 		return err
 	}
-	if data == nil {
+	if dataIPA == nil {
 		err = internal_errors.NilArgError("data")
 		log.Error(err.Error())
 		return err
 	}
-	if data.Model.ID == 0 {
+	if dataIPA.Model.ID == 0 {
 		err = fmt.Errorf("Domain.Model.ID cannot be 0")
 		log.Error(err.Error())
 		return err
 	}
 	if err = db.Unscoped().
-		Delete(data).Error; err != nil {
+		Delete(dataIPA).Error; err != nil {
 		log.Error("updating ipa domain when deleting old record")
 		return err
 	}
 
 	if err = db.Omit(clause.Associations).
-		Create(data).
+		Create(dataIPA).
 		Error; err != nil {
 		log.Error("updating ipa domain when creating new ipa record")
 		return err
 	}
 
 	// CaCerts
-	for i := range data.CaCerts {
-		data.CaCerts[i].IpaID = data.ID
-		if err = db.Create(&data.CaCerts[i]).Error; err != nil {
+	for i := range dataIPA.CaCerts {
+		dataIPA.CaCerts[i].IpaID = dataIPA.ID
+		if err = db.Create(&dataIPA.CaCerts[i]).Error; err != nil {
 			log.Error("updating ipa domain when creating new ipa certificate record")
 			return err
 		}
 	}
 
 	// Servers
-	for i := range data.Servers {
-		data.Servers[i].IpaID = data.ID
-		if err = db.Create(&data.Servers[i]).Error; err != nil {
+	for i := range dataIPA.Servers {
+		dataIPA.Servers[i].IpaID = dataIPA.ID
+		if err = db.Create(&dataIPA.Servers[i]).Error; err != nil {
 			log.Error("updating ipa domain when creating new ipa server record")
 			return err
 		}
 	}
 
 	// Locations
-	for i := range data.Locations {
-		data.Locations[i].IpaID = data.ID
-		if err = db.Create(&data.Locations[i]).Error; err != nil {
+	for i := range dataIPA.Locations {
+		dataIPA.Locations[i].IpaID = dataIPA.ID
+		if err = db.Create(&dataIPA.Locations[i]).Error; err != nil {
 			log.Error("updating ipa domain when creating new ipa location record")
 			return err
 		}

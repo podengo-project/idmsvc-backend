@@ -123,19 +123,19 @@ func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_certs"
-	expectedError = fmt.Errorf(`INSERT INTO "ipa_certs"`)
+	expectedError = fmt.Errorf(`error at INSERT INTO "ipa_certs"`)
 	test_sql.CreateIpaDomain(2, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_servers"
-	expectedError = fmt.Errorf(`INSERT INTO "ipa_servers"`)
+	expectedError = fmt.Errorf(`error at INSERT INTO "ipa_servers"`)
 	test_sql.CreateIpaDomain(3, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
 
 	// Error on INSERT INTO "ipa_locations"
-	expectedError = fmt.Errorf(`INSERT INTO "ipa_locations"`)
+	expectedError = fmt.Errorf(`error at INSERT INTO "ipa_locations"`)
 	test_sql.CreateIpaDomain(4, s.mock, expectedError, &data)
 	err = s.repository.createIpaDomain(s.Log, s.DB, 1, &data)
 	assert.EqualError(t, err, expectedError.Error())
@@ -231,88 +231,13 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 		expectedErr error
 	)
 	t := s.Suite.T()
-	currentTime := time.Now()
 	orgID := "11111"
 	domainID := uint(1)
-	domainUUID := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
-	subscriptionManagerID := pointy.String("fe106208-dd32-11ed-aa87-482ae3863d30")
-	data := model.Domain{
-		Model: gorm.Model{
-			ID:        domainID,
-			CreatedAt: currentTime,
-			UpdatedAt: currentTime,
-		},
-		OrgId:                 orgID,
-		DomainUuid:            domainUUID,
-		DomainName:            pointy.String("mydomain.example"),
-		Title:                 pointy.String("My Domain Example"),
-		Description:           pointy.String("Description of My Domain Example"),
-		AutoEnrollmentEnabled: pointy.Bool(true),
-		Type:                  pointy.Uint(model.DomainTypeIpa),
-		IpaDomain: &model.Ipa{
-			Model: gorm.Model{
-				ID:        domainID,
-				CreatedAt: currentTime,
-				UpdatedAt: currentTime,
-				DeletedAt: gorm.DeletedAt{},
-			},
-			RealmName: pointy.String("MYDOMAIN.EXAMPLE"),
-			CaCerts: []model.IpaCert{
-				{
-					Model: gorm.Model{
-						ID:        2,
-						CreatedAt: currentTime,
-						UpdatedAt: currentTime,
-						DeletedAt: gorm.DeletedAt{},
-					},
-					IpaID:        domainID,
-					Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-					Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
-					NotAfter:     currentTime.Add(24 * time.Hour),
-					NotBefore:    currentTime,
-					SerialNumber: "1",
-					Subject:      "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
-					Pem:          "-----BEGIN CERTIFICATE-----\nMII...\n-----END CERTIFICATE-----",
-				},
-			},
-			Servers: []model.IpaServer{
-				{
-					Model: gorm.Model{
-						ID:        3,
-						CreatedAt: currentTime,
-						UpdatedAt: currentTime,
-						DeletedAt: gorm.DeletedAt{},
-					},
-					IpaID:               domainID,
-					FQDN:                "server1.mydomain.example",
-					RHSMId:              subscriptionManagerID,
-					Location:            pointy.String("europe"),
-					CaServer:            true,
-					HCCEnrollmentServer: true,
-					HCCUpdateServer:     true,
-					PKInitServer:        true,
-				},
-			},
-			Locations: []model.IpaLocation{
-				{
-					Model: gorm.Model{
-						ID:        4,
-						CreatedAt: currentTime,
-						UpdatedAt: currentTime,
-						DeletedAt: gorm.DeletedAt{},
-					},
-					IpaID:       domainID,
-					Name:        "boston",
-					Description: pointy.String("Boston data center"),
-				},
-			},
-			RealmDomains: pq.StringArray{"mydomain.example"},
-		},
-	}
+	data := test.BuildDomainModel(orgID)
 
 	// database error at INSERT INTO 'ipas'
 	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipas'")
-	test_sql.UpdateIpaDomain(2, s.mock, expectedErr, &data)
+	test_sql.UpdateIpaDomain(2, s.mock, expectedErr, data)
 	data.IpaDomain.Model.ID = domainID
 	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
 	require.EqualError(t, err, expectedErr.Error())
@@ -320,7 +245,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 
 	// database error at INSERT INTO 'ipa_certs'
 	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_certs'")
-	test_sql.UpdateIpaDomain(3, s.mock, expectedErr, &data)
+	test_sql.UpdateIpaDomain(3, s.mock, expectedErr, data)
 	data.IpaDomain.Model.ID = domainID
 	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
 	require.EqualError(t, err, expectedErr.Error())
@@ -328,7 +253,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 
 	// database error at INSERT INTO 'ipa_servers'
 	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_servers'")
-	test_sql.UpdateIpaDomain(4, s.mock, expectedErr, &data)
+	test_sql.UpdateIpaDomain(4, s.mock, expectedErr, data)
 	data.IpaDomain.Model.ID = domainID
 	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
 	require.EqualError(t, err, expectedErr.Error())
@@ -336,7 +261,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 
 	// database error at INSERT INTO 'ipa_locations'
 	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_locations'")
-	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, &data)
+	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, data)
 	data.IpaDomain.Model.ID = domainID
 	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
 	require.EqualError(t, err, expectedErr.Error())
@@ -344,7 +269,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 
 	// Success scenario
 	expectedErr = nil
-	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, &data)
+	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, data)
 	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
 	require.NoError(t, err)
 	require.NoError(t, s.mock.ExpectationsWereMet())
