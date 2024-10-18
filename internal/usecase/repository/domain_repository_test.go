@@ -157,7 +157,7 @@ func (s *DomainRepositorySuite) TestUpdateAgent() {
 		err  error
 	)
 
-	assert.Panics(t, func() {
+	assert.PanicsWithValue(t, "'ctx' is nil", func() {
 		_ = s.repository.UpdateAgent(nil, "", nil)
 	})
 	require.NoError(t, s.mock.ExpectationsWereMet())
@@ -175,12 +175,20 @@ func (s *DomainRepositorySuite) TestUpdateAgent() {
 	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	expectedErr := fmt.Errorf("record not found")
+	expectedErr := fmt.Errorf("Domain.Model.ID cannot be 0")
 	s.mock.MatchExpectationsInOrder(true)
+	data.Model.ID = 0
+	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
+
+	expectedErr = fmt.Errorf("record not found")
+	s.mock.MatchExpectationsInOrder(true)
+	data.Model.ID = domainID
 	test_sql.FindByID(1, s.mock, nil, domainID, data)
 	test_sql.FindIpaByID(1, s.mock, expectedErr, domainID, data)
 	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
-	require.EqualError(t, err, "record not found")
+	require.EqualError(t, err, expectedErr.Error())
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	s.mock.MatchExpectationsInOrder(true)
@@ -326,7 +334,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 	require.EqualError(t, err, expectedErr.Error())
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	// database error at INSERT INTO 'ipa_servers'
+	// database error at INSERT INTO 'ipa_locations'
 	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_locations'")
 	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, &data)
 	data.IpaDomain.Model.ID = domainID
@@ -634,30 +642,57 @@ func (s *DomainRepositorySuite) TestUpdateUser() {
 		expectedErr error
 	)
 	t := s.Suite.T()
-	data := test.BuildDomainModel(test.OrgId)
+	orgID := test.OrgId
+	data := test.BuildDomainModel(orgID)
 	domainID := uint(1)
 	data.Model.ID = domainID
 	data.IpaDomain.Model.ID = domainID
 	c := app_context.CtxWithLog(app_context.CtxWithDB(context.Background(), s.DB), slog.Default())
 
+	// ctx is nil
+	expectedErr = fmt.Errorf("code=500, message='ctx' cannot be nil")
+	err = s.repository.UpdateUser(nil, "", nil)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
+
+	// orgID is empty
+	expectedErr = fmt.Errorf("'orgID' is empty")
+	err = s.repository.UpdateUser(c, "", nil)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
+
+	// data is nil
+	expectedErr = fmt.Errorf("code=500, message='data' cannot be nil")
+	err = s.repository.UpdateUser(c, orgID, nil)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
+
+	// Domain.Model.ID is 0
+	expectedErr = fmt.Errorf("'Domain.Model.ID' cannot be 0")
+	data.Model.ID = 0
+	err = s.repository.UpdateUser(c, orgID, data)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
+
 	// error at FindByID
 	expectedErr = fmt.Errorf("error at FindByID")
+	data.Model.ID = domainID
 	test_sql.UpdateUser(1, s.mock, expectedErr, domainID, data)
-	err = s.repository.UpdateUser(c, test.OrgId, data)
+	err = s.repository.UpdateUser(c, orgID, data)
 	require.EqualError(t, err, expectedErr.Error())
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	// error at UPDATE INTO 'domains'
 	expectedErr = fmt.Errorf("error at UPDATE INTO 'domains'")
 	test_sql.UpdateUser(2, s.mock, expectedErr, domainID, data)
-	err = s.repository.UpdateUser(c, test.OrgId, data)
+	err = s.repository.UpdateUser(c, orgID, data)
 	require.EqualError(t, err, expectedErr.Error())
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	// successful scenario
 	expectedErr = nil
 	test_sql.UpdateUser(2, s.mock, expectedErr, domainID, data)
-	err = s.repository.UpdateUser(c, test.OrgId, data)
+	err = s.repository.UpdateUser(c, orgID, data)
 	require.NoError(t, err)
 	require.NoError(t, s.mock.ExpectationsWereMet())
 }

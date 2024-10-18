@@ -153,6 +153,11 @@ func (r *domainRepository) UpdateAgent(
 		log.Error(err.Error())
 		return err
 	}
+	if data.Model.ID == 0 {
+		err = fmt.Errorf("Domain.Model.ID cannot be 0")
+		log.Error(err.Error())
+		return err
+	}
 
 	// Check the entity exists
 	if currentDomain, err = r.FindByID(
@@ -220,9 +225,19 @@ func (r *domainRepository) UpdateUser(
 	data *model.Domain,
 ) (err error) {
 	var currentDomain *model.Domain
-	db := app_context.DBFromCtx(ctx)
+	if ctx == nil {
+		err = internal_errors.NilArgError("ctx")
+		slog.Default().Error(err.Error())
+		return err
+	}
 	log := app_context.LogFromCtx(ctx)
+	db := app_context.DBFromCtx(ctx)
 	if err = r.checkCommonAndData(db, orgID, data); err != nil {
+		log.Error(err.Error())
+		return err
+	}
+	if data.Model.ID == 0 {
+		err = fmt.Errorf("'Domain.Model.ID' cannot be 0")
 		log.Error(err.Error())
 		return err
 	}
@@ -459,6 +474,11 @@ func (r *domainRepository) updateIpaDomain(
 	db *gorm.DB,
 	data *model.Ipa,
 ) (err error) {
+	if log == nil {
+		err = internal_errors.NilArgError("log")
+		slog.Default().Error(err.Error())
+		return err
+	}
 	if db == nil {
 		err = internal_errors.NilArgError("db")
 		log.Error(err.Error())
@@ -466,6 +486,11 @@ func (r *domainRepository) updateIpaDomain(
 	}
 	if data == nil {
 		err = internal_errors.NilArgError("data")
+		log.Error(err.Error())
+		return err
+	}
+	if data.Model.ID == 0 {
+		err = fmt.Errorf("Domain.Model.ID cannot be 0")
 		log.Error(err.Error())
 		return err
 	}
