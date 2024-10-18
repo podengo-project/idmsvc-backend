@@ -147,7 +147,7 @@ func (s *DomainRepositorySuite) TestCreateIpaDomain() {
 	assert.NoError(t, err)
 }
 
-func (s *DomainRepositorySuite) TestUpdateErrors() {
+func (s *DomainRepositorySuite) TestUpdateAgent() {
 	t := s.Suite.T()
 	orgID := test.OrgId
 	testUUID := test.DomainUUID
@@ -160,16 +160,20 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 	assert.Panics(t, func() {
 		_ = s.repository.UpdateAgent(nil, "", nil)
 	})
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	assert.PanicsWithValue(t, "'db' could not be read", func() {
 		_ = s.repository.UpdateAgent(context.Background(), "", nil)
 	})
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	err = s.repository.UpdateAgent(s.Ctx, "", nil)
 	assert.EqualError(t, err, "'orgID' is empty")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	err = s.repository.UpdateAgent(s.Ctx, orgID, nil)
 	assert.EqualError(t, err, "code=500, message='data' cannot be nil")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr := fmt.Errorf("record not found")
 	s.mock.MatchExpectationsInOrder(true)
@@ -177,6 +181,7 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 	test_sql.FindIpaByID(1, s.mock, expectedErr, domainID, data)
 	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.EqualError(t, err, "record not found")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	s.mock.MatchExpectationsInOrder(true)
 	test_sql.FindByID(1, s.mock, nil, domainID, data)
@@ -209,6 +214,7 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 	test_sql.CreateIpaDomain(4, s.mock, nil, data.IpaDomain)
 	err = s.repository.UpdateAgent(s.Ctx, orgID, data)
 	require.NoError(t, err)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 }
 
 func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
