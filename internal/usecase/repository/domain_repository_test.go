@@ -926,27 +926,31 @@ func (s *DomainRepositorySuite) TestRegister() {
 	t := s.T()
 	r := &domainRepository{}
 	realm := strings.ToUpper(helper.GenRandDomainName(3))
-	id := uint(helper.GenRandNum(1, 2^63))
-	gormModel := builder_model.NewModel().WithID(id).Build()
+	domainID := uint(helper.GenRandNum(1, 2^63))
+	gormModel := builder_model.NewModel().WithID(domainID).Build()
 	d := builder_model.NewDomain(gormModel).Build()
 
 	assert.Panics(t, func() {
 		_ = r.Register(nil, d.OrgId, d)
 	})
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	assert.PanicsWithValue(t, "'db' could not be read", func() {
 		_ = r.Register(context.Background(), d.OrgId, d)
 	})
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = gorm.ErrDuplicatedKey
-	test_sql.Register(1, d, s.mock, expectedErr)
+	test_sql.Register(1, s.mock, expectedErr, d)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, fmt.Sprintf("code=409, message=domain id '%s' is already registered.", d.DomainUuid))
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = gorm.ErrInvalidField
-	test_sql.Register(1, d, s.mock, expectedErr)
+	test_sql.Register(1, s.mock, expectedErr, d)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	d = builder_model.NewDomain(gormModel).
 		WithIpaDomain(
@@ -957,37 +961,40 @@ func (s *DomainRepositorySuite) TestRegister() {
 				WithServers([]model.IpaServer{
 					builder_model.NewIpaServer(
 						builder_model.NewModel().Build(),
-					).WithIpaID(id).Build(),
+					).WithIpaID(domainID).Build(),
 				}).
 				WithLocations([]model.IpaLocation{
 					builder_model.NewIpaLocation(
 						builder_model.NewModel().Build(),
-					).WithIpaID(id).Build(),
+					).WithIpaID(domainID).Build(),
 				}).
 				WithCaCerts([]model.IpaCert{
 					builder_model.NewIpaCert(
 						builder_model.NewModel().Build(),
 						realm,
-					).WithIpaID(id).Build(),
+					).WithIpaID(domainID).Build(),
 				}).
 				Build(),
 		).Build()
-	test_sql.Register(1, d, s.mock, nil)
+	test_sql.Register(1, s.mock, nil, d)
 	test_sql.CreateIpaDomain(1, s.mock, gorm.ErrInvalidField, d.IpaDomain)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "invalid field")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	// Success case - FIXME Flaky test
-	test_sql.Register(1, d, s.mock, nil)
+	test_sql.Register(1, s.mock, nil, d)
 	test_sql.CreateIpaDomain(4, s.mock, nil, d.IpaDomain)
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.NoError(t, err)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	// IpaDomain is nil
-	test_sql.Register(1, d, s.mock, nil)
+	test_sql.Register(1, s.mock, nil, d)
 	d.IpaDomain = nil
 	err = r.Register(s.Ctx, d.OrgId, d)
 	require.EqualError(t, err, "code=500, message='IpaDomain' cannot be nil")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 }
 
 func (s *DomainRepositorySuite) TestDeleteByIdLogError() {
