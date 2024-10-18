@@ -128,7 +128,7 @@ func PrepSqlUpdateDomainsForUser(mock sqlmock.Sqlmock, withError bool, expectedE
 	}
 }
 
-func UpdateUser(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.Domain) {
+func UpdateUser(stage int, mock sqlmock.Sqlmock, expectedErr error, domainID uint, data *model.Domain) {
 	if stage == 0 {
 		return
 	}
@@ -138,7 +138,6 @@ func UpdateUser(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.
 	if stage > 2 {
 		panic("'stage' cannot be greater than 3")
 	}
-	domainID := uint(1)
 
 	mock.MatchExpectationsInOrder(true)
 	for i := 1; i <= stage; i++ {
