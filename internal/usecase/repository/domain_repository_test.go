@@ -994,11 +994,13 @@ func (s *DomainRepositorySuite) TestDeleteByIdLogError() {
 	t := s.T()
 	r := &domainRepository{}
 
-	d := builder_model.NewDomain(builder_model.NewModel().WithID(1).Build()).Build()
+	domainID := uint(1)
+	d := builder_model.NewDomain(builder_model.NewModel().WithID(domainID).Build()).Build()
 
 	test_sql.DeleteByID(1, s.mock, gorm.ErrInvalidTransaction, d)
 	err := r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, "invalid transaction")
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	// Check the log message
 	assert.Contains(t, s.LogBuffer.String(), `level=ERROR msg="deleting domain when checking that the record exist"`)
