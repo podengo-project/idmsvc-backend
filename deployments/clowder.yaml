@@ -27,8 +27,8 @@ objects:
           # than the ephemeral environment. When both values exist, replicas has
           # priority over minReplicas
           # https://github.com/RedHatInsights/clowder/commit/aaf5643a7b1e769b53768e7c1a446d348d0a71f4
-          minReplicas: 3  # DEPRECATED
-          replicas: 3
+          minReplicas: ${{SERVICE_REPLICAS}}  # DEPRECATED
+          replicas: ${{SERVICE_REPLICAS}}
 
           # https://consoledot.pages.redhat.com/clowder/dev/providers/web.html
           webServices:
@@ -207,6 +207,10 @@ parameters:
     value: quay.io/cloudservices/idmsvc-backend
   - name: IMAGE_TAG
     required: true
+  - name: SERVICE_REPLICAS
+    required: true
+    description: |
+      Minimum number of replicas to deploy for the API service component
   - name: CPU_LIMIT
     value: 500m
     description: |
