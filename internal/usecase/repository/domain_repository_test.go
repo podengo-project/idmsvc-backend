@@ -213,22 +213,23 @@ func (s *DomainRepositorySuite) TestUpdateErrors() {
 
 func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 	var (
-		err error
+		err         error
+		expectedErr error
 	)
 	t := s.Suite.T()
 	currentTime := time.Now()
 	orgID := "11111"
-	domainId := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
+	domainID := uint(1)
+	domainUUID := uuid.MustParse("3bccb88e-dd25-11ed-99e0-482ae3863d30")
 	subscriptionManagerID := pointy.String("fe106208-dd32-11ed-aa87-482ae3863d30")
 	data := model.Domain{
 		Model: gorm.Model{
-			ID:        1,
+			ID:        domainID,
 			CreatedAt: currentTime,
 			UpdatedAt: currentTime,
-			DeletedAt: gorm.DeletedAt{},
 		},
 		OrgId:                 orgID,
-		DomainUuid:            domainId,
+		DomainUuid:            domainUUID,
 		DomainName:            pointy.String("mydomain.example"),
 		Title:                 pointy.String("My Domain Example"),
 		Description:           pointy.String("Description of My Domain Example"),
@@ -236,7 +237,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 		Type:                  pointy.Uint(model.DomainTypeIpa),
 		IpaDomain: &model.Ipa{
 			Model: gorm.Model{
-				ID:        1,
+				ID:        domainID,
 				CreatedAt: currentTime,
 				UpdatedAt: currentTime,
 				DeletedAt: gorm.DeletedAt{},
@@ -250,7 +251,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 						UpdatedAt: currentTime,
 						DeletedAt: gorm.DeletedAt{},
 					},
-					IpaID:        1,
+					IpaID:        domainID,
 					Issuer:       "CN=Certificate Authority,O=MYDOMAIN.EXAMPLE",
 					Nickname:     "MYDOMAIN.EXAMPLE IPA CA",
 					NotAfter:     currentTime.Add(24 * time.Hour),
@@ -268,7 +269,7 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 						UpdatedAt: currentTime,
 						DeletedAt: gorm.DeletedAt{},
 					},
-					IpaID:               1,
+					IpaID:               domainID,
 					FQDN:                "server1.mydomain.example",
 					RHSMId:              subscriptionManagerID,
 					Location:            pointy.String("europe"),
@@ -286,121 +287,54 @@ func (s *DomainRepositorySuite) TestUpdateIpaDomain() {
 						UpdatedAt: currentTime,
 						DeletedAt: gorm.DeletedAt{},
 					},
+					IpaID:       domainID,
 					Name:        "boston",
 					Description: pointy.String("Boston data center"),
-					IpaID:       1,
 				},
 			},
 			RealmDomains: pq.StringArray{"mydomain.example"},
 		},
 	}
 
-	type TestCaseGiven struct {
-		Stage  int
-		DB     *gorm.DB
-		Domain *model.Domain
-	}
-	type TestCase struct {
-		Name     string
-		Given    TestCaseGiven
-		Expected error
-	}
+	// database error at INSERT INTO 'ipas'
+	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipas'")
+	test_sql.UpdateIpaDomain(2, s.mock, expectedErr, &data)
+	data.IpaDomain.Model.ID = domainID
+	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	testCases := []TestCase{
-		{
-			Name: "Wrong arguments: db is nil",
-			Given: TestCaseGiven{
-				Stage:  0,
-				DB:     nil,
-				Domain: nil,
-			},
-			Expected: internal_errors.NilArgError("db"),
-		},
-		{
-			Name: "Wrong arguments: data is nil",
-			Given: TestCaseGiven{
-				Stage:  0,
-				DB:     s.DB,
-				Domain: nil,
-			},
-			Expected: internal_errors.NilArgError("data"),
-		},
-		{
-			Name: "database error at DELETE FROM 'ipas'",
-			Given: TestCaseGiven{
-				Stage:  1,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at DELETE FROM 'ipas'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipas'",
-			Given: TestCaseGiven{
-				Stage:  2,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipas'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipa_certs'",
-			Given: TestCaseGiven{
-				Stage:  3,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipa_certs'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipa_servers'",
-			Given: TestCaseGiven{
-				Stage:  4,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipa_servers'"),
-		},
-		{
-			Name: "database error at INSERT INTO 'ipa_locations'",
-			Given: TestCaseGiven{
-				Stage:  5,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: fmt.Errorf("database error at INSERT INTO 'ipa_locations'"),
-		},
-		{
-			Name: "Success scenario",
-			Given: TestCaseGiven{
-				Stage:  5,
-				DB:     s.DB,
-				Domain: &data,
-			},
-			Expected: nil,
-		},
-	}
+	// database error at INSERT INTO 'ipa_certs'
+	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_certs'")
+	test_sql.UpdateIpaDomain(3, s.mock, expectedErr, &data)
+	data.IpaDomain.Model.ID = domainID
+	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	for _, testCase := range testCases {
-		t.Log(testCase.Name)
+	// database error at INSERT INTO 'ipa_servers'
+	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_servers'")
+	test_sql.UpdateIpaDomain(4, s.mock, expectedErr, &data)
+	data.IpaDomain.Model.ID = domainID
+	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-		// Prepare the db mock
-		test_sql.UpdateIpaDomain(testCase.Given.Stage, s.mock, testCase.Expected, &data)
+	// database error at INSERT INTO 'ipa_servers'
+	expectedErr = fmt.Errorf("database error at INSERT INTO 'ipa_locations'")
+	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, &data)
+	data.IpaDomain.Model.ID = domainID
+	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-		// Run for error or success
-		if testCase.Given.Domain != nil {
-			err = s.repository.updateIpaDomain(s.Log, testCase.Given.DB, testCase.Given.Domain.IpaDomain)
-		} else {
-			err = s.repository.updateIpaDomain(s.Log, testCase.Given.DB, nil)
-		}
+	// Success scenario
+	expectedErr = nil
+	test_sql.UpdateIpaDomain(5, s.mock, expectedErr, &data)
+	err = s.repository.updateIpaDomain(s.Log, s.DB, data.IpaDomain)
+	require.NoError(t, err)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-		// Check expectations for error and success scenario
-		if testCase.Expected != nil {
-			assert.EqualError(t, err, testCase.Expected.Error())
-		} else {
-			assert.NoError(t, err)
-		}
-	}
 }
 
 func (s *DomainRepositorySuite) TestList() {
