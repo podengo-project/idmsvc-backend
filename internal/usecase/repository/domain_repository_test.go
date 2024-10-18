@@ -868,41 +868,49 @@ func (s *DomainRepositorySuite) TestDeleteById() {
 	require.Panics(t, func() {
 		_ = r.DeleteById(nil, "", model.NilUUID)
 	})
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	assert.PanicsWithValue(t, "'db' could not be read", func() {
 		_ = r.DeleteById(context.Background(), "", model.NilUUID)
 	})
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = fmt.Errorf("code=404, message=unknown domain '%s'", d.DomainUuid.String())
 	test_sql.DeleteByID(1, s.mock, gorm.ErrRecordNotFound, d)
 	err := r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = fmt.Errorf("invalid transaction")
 	test_sql.DeleteByID(1, s.mock, gorm.ErrInvalidTransaction, d)
 	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = fmt.Errorf("code=404, message=unknown domain '%s'", d.DomainUuid.String())
 	test_sql.DeleteByID(2, s.mock, gorm.ErrRecordNotFound, d)
 	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = fmt.Errorf("code=404, message=unknown domain '%s'", d.DomainUuid.String())
 	test_sql.DeleteByID(3, s.mock, gorm.ErrRecordNotFound, d)
 	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	expectedErr = gorm.ErrInvalidTransaction
 	test_sql.DeleteByID(3, s.mock, gorm.ErrInvalidTransaction, d)
 	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
 	// Success scenario
 	expectedErr = nil
 	test_sql.DeleteByID(3, s.mock, expectedErr, d)
 	err = r.DeleteById(s.Ctx, d.OrgId, d.DomainUuid)
 	require.NoError(t, err)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 }
 
 func (s *DomainRepositorySuite) TestWrapErrNotFound() {
