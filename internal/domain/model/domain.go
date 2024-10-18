@@ -86,7 +86,7 @@ func (d *Domain) FillAndPreload(db *gorm.DB) (err error) {
 	switch *d.Type {
 	case DomainTypeIpa:
 		d.IpaDomain = &Ipa{}
-		if err := db.Debug().
+		if err := db.
 			Model(&Ipa{}).
 			Preload("CaCerts").
 			Preload("Servers").
