@@ -690,73 +690,36 @@ func (s *DomainRepositorySuite) TestFindByID() {
 
 func (s *DomainRepositorySuite) TestUpdateUser() {
 	var (
-		err error
+		err         error
+		expectedErr error
 	)
 	t := s.Suite.T()
 	data := test.BuildDomainModel(test.OrgId)
+	domainID := uint(1)
+	data.Model.ID = domainID
+	data.IpaDomain.Model.ID = domainID
+	c := app_context.CtxWithLog(app_context.CtxWithDB(context.Background(), s.DB), slog.Default())
 
-	type TestCaseGiven struct {
-		Stage  int
-		DB     *gorm.DB
-		Domain *model.Domain
-	}
-	type TestCase struct {
-		Name     string
-		Given    TestCaseGiven
-		Expected error
-	}
+	// error at FindByID
+	expectedErr = fmt.Errorf("error at FindByID")
+	test_sql.UpdateUser(1, s.mock, expectedErr, domainID, data)
+	err = s.repository.UpdateUser(c, test.OrgId, data)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	testCases := []TestCase{
-		{
-			Name: "database error at FindByID",
-			Given: TestCaseGiven{
-				Stage:  1,
-				DB:     s.DB,
-				Domain: data,
-			},
-			Expected: fmt.Errorf("database error at FindByID"),
-		},
-		{
-			Name: "database error at UPDATE INTO 'domains'",
-			Given: TestCaseGiven{
-				Stage:  2,
-				DB:     s.DB,
-				Domain: data,
-			},
-			Expected: fmt.Errorf("database error at UPDATE INTO 'domains'"),
-		},
-		{
-			Name: "successful scenario",
-			Given: TestCaseGiven{
-				Stage:  2,
-				DB:     s.DB,
-				Domain: data,
-			},
-			Expected: nil,
-		},
-	}
+	// error at UPDATE INTO 'domains'
+	expectedErr = fmt.Errorf("error at UPDATE INTO 'domains'")
+	test_sql.UpdateUser(2, s.mock, expectedErr, domainID, data)
+	err = s.repository.UpdateUser(c, test.OrgId, data)
+	require.EqualError(t, err, expectedErr.Error())
+	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	for _, testCase := range testCases {
-		t.Log(testCase.Name)
-
-		// Prepare the db mock
-		test_sql.UpdateUser(testCase.Given.Stage, s.mock, testCase.Expected, data)
-
-		// Run for error or success
-		c := app_context.CtxWithLog(app_context.CtxWithDB(context.Background(), s.DB), slog.Default())
-		if testCase.Given.Domain != nil {
-			err = s.repository.UpdateUser(c, test.OrgId, testCase.Given.Domain)
-		} else {
-			err = s.repository.UpdateUser(c, "", nil)
-		}
-
-		// Check expectations for error and success scenario
-		if testCase.Expected != nil {
-			assert.EqualError(t, err, testCase.Expected.Error())
-		} else {
-			assert.NoError(t, err)
-		}
-	}
+	// successful scenario
+	expectedErr = nil
+	test_sql.UpdateUser(2, s.mock, expectedErr, domainID, data)
+	err = s.repository.UpdateUser(c, test.OrgId, data)
+	require.NoError(t, err)
+	require.NoError(t, s.mock.ExpectationsWereMet())
 }
 
 // ---------------- Test for private methods ---------------------
