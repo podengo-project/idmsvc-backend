@@ -109,6 +109,33 @@ func DeleteByID(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.
 	}
 }
 
+func PrepSqlUpdateDomainsForAgent(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Domain) {
+	expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "created_at"=$1,"updated_at"=$2,"org_id"=$3,"domain_uuid"=$4,"domain_name"=$5,"title"=$6,"description"=$7,"type"=$8,"auto_enrollment_enabled"=$9 WHERE (org_id = $10 AND domain_uuid = $11) AND "domains"."deleted_at" IS NULL AND "id" = $12`)).
+		WithArgs(
+			sqlmock.AnyArg(),
+			sqlmock.AnyArg(),
+
+			data.OrgId,
+			data.DomainUuid,
+			data.DomainName,
+
+			data.Title,
+			data.Description,
+			data.Type,
+			data.AutoEnrollmentEnabled,
+
+			data.OrgId,
+			data.DomainUuid,
+			data.ID,
+		)
+	if withError {
+		expectExec.WillReturnError(expectedErr)
+	} else {
+		expectExec.WillReturnResult(
+			driver.RowsAffected(1))
+	}
+}
+
 func PrepSqlUpdateDomainsForUser(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Domain) {
 	expectExec := mock.ExpectExec(regexp.QuoteMeta(`UPDATE "domains" SET "auto_enrollment_enabled"=$1,"description"=$2,"title"=$3 WHERE (org_id = $4 AND domain_uuid = $5) AND "domains"."deleted_at" IS NULL AND "id" = $6`)).
 		WithArgs(
@@ -240,6 +267,28 @@ func MatchDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, options *in
 				FindIpaByID(1, mock, expectedErr, domains[0].ID, &domains[0])
 			}
 			FindIpaByID(4, mock, expectedErr, domains[0].ID, &domains[0])
+		default:
+			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
+		}
+	}
+}
+
+func UpdateAgent(stage int, mock sqlmock.Sqlmock, expectedErr error, domainID uint, data *model.Domain) {
+	for i := 1; i <= stage; i++ {
+		switch i {
+		case 1:
+			if WithPredicateExpectedError(i, stage, expectedErr) {
+				FindByID(1, mock, expectedErr, domainID, data)
+			} else {
+				FindByID(1, mock, nil, domainID, data)
+				FindIpaByID(4, mock, nil, domainID, data)
+			}
+		case 2:
+			PrepSqlUpdateDomainsForAgent(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data)
+		case 3:
+			PrepSqlDeleteFromIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+		case 4:
+			CreateIpaDomain(4, mock, expectedErr, data.IpaDomain)
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
