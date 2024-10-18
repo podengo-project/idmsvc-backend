@@ -181,7 +181,7 @@ func PrepSqlInsertIntoDomains(mock sqlmock.Sqlmock, withError bool, expectedErr 
 	}
 }
 
-func Register(stage int, data *model.Domain, mock sqlmock.Sqlmock, expectedErr error) {
+func Register(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.Domain) {
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
