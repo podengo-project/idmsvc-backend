@@ -236,11 +236,6 @@ func (r *domainRepository) UpdateUser(
 		log.Error(err.Error())
 		return err
 	}
-	if data.Model.ID == 0 {
-		err = fmt.Errorf("'Domain.Model.ID' cannot be 0")
-		log.Error(err.Error())
-		return err
-	}
 
 	// Check the entity exists
 	if currentDomain, err = r.FindByID(

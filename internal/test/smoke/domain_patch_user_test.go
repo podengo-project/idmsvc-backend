@@ -10,6 +10,7 @@ import (
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/suite"
 )
 
 // SuiteDomainUpdateUser is the suite to validate the smoke test when a user update the domain endpoint at PATCH /api/idmsvc/v1/domains/:domain_id
@@ -71,4 +72,8 @@ func (s *SuiteDomainUpdateUser) TestPatchDomain() {
 		}
 		s.RunTestCases(testCases)
 	}
+}
+
+func TestSuiteDomainUpdateUser(t *testing.T) {
+	suite.Run(t, new(SuiteDomainUpdateUser))
 }

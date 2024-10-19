@@ -667,13 +667,6 @@ func (s *DomainRepositorySuite) TestUpdateUser() {
 	require.EqualError(t, err, expectedErr.Error())
 	require.NoError(t, s.mock.ExpectationsWereMet())
 
-	// Domain.Model.ID is 0
-	expectedErr = fmt.Errorf("'Domain.Model.ID' cannot be 0")
-	data.Model.ID = 0
-	err = s.repository.UpdateUser(c, orgID, data)
-	require.EqualError(t, err, expectedErr.Error())
-	require.NoError(t, s.mock.ExpectationsWereMet())
-
 	// error at FindByID
 	expectedErr = fmt.Errorf("error at FindByID")
 	data.Model.ID = domainID
