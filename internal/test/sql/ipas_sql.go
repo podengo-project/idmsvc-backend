@@ -147,7 +147,7 @@ func FindIpaByID(stage int, mock sqlmock.Sqlmock, expectedErr error, domainID ui
 	}
 }
 
-func PrepSqlInsertIntoIpas(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
+func PrepSqlInsertIntoIpas(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Ipa) {
 	expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipas" ("created_at","updated_at","deleted_at","realm_name","realm_domains","id") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
 		WithArgs(
 			data.Model.CreatedAt,
@@ -156,25 +156,25 @@ func PrepSqlInsertIntoIpas(mock sqlmock.Sqlmock, withError bool, expectedErr err
 
 			data.RealmName,
 			data.RealmDomains,
-			data.ID,
+			domainID,
 		)
 	if withError {
 		expectQuery.WillReturnError(expectedErr)
 	} else {
 		expectQuery.WillReturnRows(sqlmock.NewRows([]string{"id"}).
-			AddRow(data.ID))
+			AddRow(domainID))
 	}
 }
 
-func PrepSqlInsertIntoIpaCerts(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
+func PrepSqlInsertIntoIpaCerts(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Ipa) {
 	for j := range data.CaCerts {
-		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_certs" ("created_at","updated_at","deleted_at","ipa_id","issuer","nickname","not_after","not_before","pem","serial_number","subject") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
 			WithArgs(
 				data.CaCerts[j].CreatedAt,
 				data.CaCerts[j].UpdatedAt,
 				nil,
 
-				data.CaCerts[j].IpaID,
+				domainID,
 				data.CaCerts[j].Issuer,
 				data.CaCerts[j].Nickname,
 				data.CaCerts[j].NotAfter,
@@ -182,7 +182,6 @@ func PrepSqlInsertIntoIpaCerts(mock sqlmock.Sqlmock, withError bool, expectedErr
 				data.CaCerts[j].Pem,
 				data.CaCerts[j].SerialNumber,
 				data.CaCerts[j].Subject,
-				data.CaCerts[j].ID,
 			)
 		if withError {
 			expectQuery.WillReturnError(expectedErr)
@@ -193,15 +192,15 @@ func PrepSqlInsertIntoIpaCerts(mock sqlmock.Sqlmock, withError bool, expectedErr
 	}
 }
 
-func PrepSqlInsertIntoIpaServers(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
+func PrepSqlInsertIntoIpaServers(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Ipa) {
 	for j := range data.Servers {
-		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server","id") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING "id"`)).
+		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_servers" ("created_at","updated_at","deleted_at","ipa_id","fqdn","rhsm_id","location","ca_server","hcc_enrollment_server","hcc_update_server","pk_init_server") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING "id"`)).
 			WithArgs(
 				data.Servers[j].CreatedAt,
 				data.Servers[j].UpdatedAt,
 				nil,
 
-				data.Servers[j].IpaID,
+				domainID,
 				data.Servers[j].FQDN,
 				data.Servers[j].RHSMId,
 				data.Servers[j].Location,
@@ -209,7 +208,6 @@ func PrepSqlInsertIntoIpaServers(mock sqlmock.Sqlmock, withError bool, expectedE
 				data.Servers[j].HCCEnrollmentServer,
 				data.Servers[j].HCCUpdateServer,
 				data.Servers[j].PKInitServer,
-				data.Servers[j].ID,
 			)
 		if withError {
 			expectQuery.WillReturnError(expectedErr)
@@ -220,18 +218,17 @@ func PrepSqlInsertIntoIpaServers(mock sqlmock.Sqlmock, withError bool, expectedE
 	}
 }
 
-func PrepSqlInsertIntoIpaLocations(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
+func PrepSqlInsertIntoIpaLocations(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint, data *model.Ipa) {
 	for j := range data.Locations {
-		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description","id") VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING "id"`)).
+		expectQuery := mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "ipa_locations" ("created_at","updated_at","deleted_at","ipa_id","name","description") VALUES ($1,$2,$3,$4,$5,$6) RETURNING "id"`)).
 			WithArgs(
 				data.Locations[j].CreatedAt,
 				data.Locations[j].UpdatedAt,
 				nil,
 
-				data.Locations[j].IpaID,
+				domainID,
 				data.Locations[j].Name,
 				data.Locations[j].Description,
-				data.Locations[j].ID,
 			)
 		if withError {
 			expectQuery.WillReturnError(expectedErr)
@@ -242,27 +239,27 @@ func PrepSqlInsertIntoIpaLocations(mock sqlmock.Sqlmock, withError bool, expecte
 	}
 }
 
-func CreateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.Ipa) {
+func CreateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, domainID uint, data *model.Ipa) {
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			PrepSqlInsertIntoIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data)
+			PrepSqlInsertIntoIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data)
 		case 2:
-			PrepSqlInsertIntoIpaCerts(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data)
+			PrepSqlInsertIntoIpaCerts(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data)
 		case 3:
-			PrepSqlInsertIntoIpaServers(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data)
+			PrepSqlInsertIntoIpaServers(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data)
 		case 4:
-			PrepSqlInsertIntoIpaLocations(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data)
+			PrepSqlInsertIntoIpaLocations(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data)
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
 	}
 }
 
-func PrepSqlDeleteFromIpas(mock sqlmock.Sqlmock, withError bool, expectedErr error, data *model.Ipa) {
+func PrepSqlDeleteFromIpas(mock sqlmock.Sqlmock, withError bool, expectedErr error, domainID uint) {
 	expectExec := mock.ExpectExec(regexp.QuoteMeta(`DELETE FROM "ipas" WHERE "ipas"."id" = $1`)).
 		WithArgs(
-			data.Model.ID,
+			domainID,
 		)
 	if withError {
 		expectExec.WillReturnError(expectedErr)
@@ -273,7 +270,7 @@ func PrepSqlDeleteFromIpas(mock sqlmock.Sqlmock, withError bool, expectedErr err
 	}
 }
 
-func UpdateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, data *model.Domain) {
+func UpdateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, domainID uint, data *model.Domain) {
 	if stage == 0 {
 		return
 	}
@@ -288,15 +285,15 @@ func UpdateIpaDomain(stage int, mock sqlmock.Sqlmock, expectedErr error, data *m
 	for i := 1; i <= stage; i++ {
 		switch i {
 		case 1:
-			PrepSqlDeleteFromIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+			PrepSqlDeleteFromIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID)
 		case 2:
-			PrepSqlInsertIntoIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+			PrepSqlInsertIntoIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data.IpaDomain)
 		case 3:
-			PrepSqlInsertIntoIpaCerts(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+			PrepSqlInsertIntoIpaCerts(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data.IpaDomain)
 		case 4:
-			PrepSqlInsertIntoIpaServers(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+			PrepSqlInsertIntoIpaServers(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data.IpaDomain)
 		case 5:
-			PrepSqlInsertIntoIpaLocations(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+			PrepSqlInsertIntoIpaLocations(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data.IpaDomain)
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}

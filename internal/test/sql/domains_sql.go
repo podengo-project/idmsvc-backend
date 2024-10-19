@@ -286,9 +286,9 @@ func UpdateAgent(stage int, mock sqlmock.Sqlmock, expectedErr error, domainID ui
 		case 2:
 			PrepSqlUpdateDomainsForAgent(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID, data)
 		case 3:
-			PrepSqlDeleteFromIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, data.IpaDomain)
+			PrepSqlDeleteFromIpas(mock, WithPredicateExpectedError(i, stage, expectedErr), expectedErr, domainID)
 		case 4:
-			CreateIpaDomain(4, mock, expectedErr, data.IpaDomain)
+			CreateIpaDomain(4, mock, expectedErr, domainID, data.IpaDomain)
 		default:
 			panic(fmt.Sprintf("scenario %d/%d is not supported", i, stage))
 		}
