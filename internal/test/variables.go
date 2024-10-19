@@ -145,19 +145,17 @@ func GetSystemXRHID(orgId string, commonName string, acountNumber string) identi
 
 }
 
-func BuildDomainModel(orgID string) *model.Domain {
+func BuildDomainModel(orgID string, domainID uint) *model.Domain {
 	currentTime := time.Now()
-	domainID := DomainUUID
 
 	return &model.Domain{
 		Model: gorm.Model{
-			ID:        1,
 			CreatedAt: currentTime,
 			UpdatedAt: currentTime,
 			DeletedAt: gorm.DeletedAt{},
 		},
 		OrgId:                 orgID,
-		DomainUuid:            domainID,
+		DomainUuid:            DomainUUID,
 		DomainName:            pointy.String(DomainName),
 		Title:                 pointy.String("My Domain Example"),
 		Description:           pointy.String("Description of My Domain Example"),
@@ -165,7 +163,6 @@ func BuildDomainModel(orgID string) *model.Domain {
 		Type:                  pointy.Uint(model.DomainTypeIpa),
 		IpaDomain: &model.Ipa{
 			Model: gorm.Model{
-				ID:        1,
 				CreatedAt: currentTime,
 				UpdatedAt: currentTime,
 				DeletedAt: gorm.DeletedAt{},
@@ -174,7 +171,6 @@ func BuildDomainModel(orgID string) *model.Domain {
 			CaCerts: []model.IpaCert{
 				{
 					Model: gorm.Model{
-						ID:        2,
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 						DeletedAt: gorm.DeletedAt{},
@@ -192,7 +188,6 @@ func BuildDomainModel(orgID string) *model.Domain {
 			Servers: []model.IpaServer{
 				{
 					Model: gorm.Model{
-						ID:        3,
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 						DeletedAt: gorm.DeletedAt{},
@@ -210,7 +205,6 @@ func BuildDomainModel(orgID string) *model.Domain {
 			Locations: []model.IpaLocation{
 				{
 					Model: gorm.Model{
-						ID:        4,
 						CreatedAt: currentTime,
 						UpdatedAt: currentTime,
 						DeletedAt: gorm.DeletedAt{},
