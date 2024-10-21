@@ -1,6 +1,7 @@
 package smoke
 
 import (
+	"log/slog"
 	"net/http"
 	"testing"
 
@@ -46,7 +47,7 @@ func (s *SuiteSystemEndpoints) prepareDomainIpa(t *testing.T) {
 
 	// Add key to the database
 	t.Log("Adding key")
-	hcdb := datastore.NewHostconfJwkDb(s.Config)
+	hcdb := datastore.NewHostconfJwkDb(s.Config, slog.Default())
 	hcdb.ListKeys()
 	hcdb.Purge()
 	hcdb.Refresh()

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,25 +34,38 @@ COMMIT;
 
 	f, err := os.Create(filenameUp)
 	if err != nil {
+		slog.Error("failed to create/truncate migration upgrade file",
+			slog.String("filename", filenameUp))
 		return err
 	}
 	_, err = f.WriteString(migrationTemplate)
 	if err != nil {
+		slog.Error("failed to write the template content for migration upgrade file",
+			slog.String("filename", filenameUp))
 		return err
 	}
 	if err = f.Close(); err != nil {
+		slog.Error("failed to close migration upgrade file",
+			slog.String("filename", filenameUp))
 		return err
 	}
 
-	f, _ = os.Create(filenameDown)
+	filenameDown = filepath.Clean(filenameDown)
+	f, err = os.Create(filenameDown)
 	if err != nil {
+		slog.Error("field to create/truncate migration downgrade file",
+			slog.String("filename", filenameDown))
 		return err
 	}
 	_, err = f.WriteString(migrationTemplate)
 	if err != nil {
+		slog.Error("failed to write the template content for migration downgrade file",
+			slog.String("filename", filenameUp))
 		return err
 	}
 	if err = f.Close(); err != nil {
+		slog.Error("failed to close migration downgrade file",
+			slog.String("filename", filenameUp))
 		return err
 	}
 
@@ -60,10 +74,12 @@ COMMIT;
 
 func MigrateDb(config *config.Config, direction string, steps int) error {
 	if config == nil {
+		slog.Error("'config' cannot be nil")
 		return fmt.Errorf("'config' cannot be nil")
 	}
 	_, m, err := NewDbMigration(config)
 	if err != nil {
+		slog.Error("failed to create a new migration by NewDbMigration")
 		return err
 	}
 
@@ -94,7 +110,9 @@ func MigrateDb(config *config.Config, direction string, steps int) error {
 			err = m.Down()
 		}
 	default:
-		return fmt.Errorf("'direction' should be 'up' or 'down' but was found '%s'", direction)
+		err = fmt.Errorf("'direction' should be 'up' or 'down' but was found '%s'", direction)
+		slog.Error(err.Error())
+		return err
 	}
 
 	if err != nil && err == migrate.ErrNoChange {
@@ -107,14 +125,17 @@ func MigrateDb(config *config.Config, direction string, steps int) error {
 		// This is safe if migrations are wrapped in transaction.
 		previousMigrationVersion, err := getPreviousMigrationVersion(m)
 		if err != nil {
+			slog.Error("failed to retrieve the previous database version")
 			return err
 		}
 		if previousMigrationVersion == 0 {
 			if err = m.Drop(); err != nil {
+				slog.Error("failed to drop everything from the database")
 				return err
 			}
 		} else {
 			if err = m.Force(previousMigrationVersion); err != nil {
+				slog.Error("failed to force a migration version", slog.Int("version", previousMigrationVersion))
 				return err
 			}
 		}
@@ -137,6 +158,7 @@ func getPreviousMigrationVersion(m *migrate.Migrate) (int, error) {
 	var f *os.File
 	f, err := os.Open(dbMirationScriptPath)
 	if err != nil {
+		slog.Error("failed to open directory", slog.String("directory", DbMigrationPath))
 		return 0, fmt.Errorf("failed to open file: %v", err)
 	}
 	defer f.Close()
@@ -153,16 +175,22 @@ func getPreviousMigrationVersion(m *migrate.Migrate) (int, error) {
 	}
 	previousMigrationIndex = sort.IntSlice(datetimes).Search(int(version)) - 1
 	if previousMigrationIndex == -1 {
+		slog.Info("no previous version matched for the one indicated", slog.Int("version", int(version))) //nolint
 		return 0, err
 	} else {
-		return datetimes[previousMigrationIndex], err
+		slog.Debug("found a previous version",
+			slog.Int("version", int(version)), //nolint
+			slog.Int("previous-version", int(datetimes[previousMigrationIndex])))
+		return datetimes[previousMigrationIndex], nil
 	}
 }
 
 func MigrateUp(config *config.Config, steps int) error {
+	slog.Info("executing MigrateUp", slog.Int("steps", steps))
 	return MigrateDb(config, "up", steps)
 }
 
 func MigrateDown(config *config.Config, steps int) error {
+	slog.Info("executing MigrateDown", slog.Int("steps", steps))
 	return MigrateDb(config, "down", steps)
 }
