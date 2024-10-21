@@ -21,8 +21,7 @@ type HostconfJwkDb struct {
 }
 
 // NewHostconfJwkDb Create new HostconfJwkDb
-func NewHostconfJwkDb(cfg *config.Config) *HostconfJwkDb {
-	log := slog.Default()
+func NewHostconfJwkDb(cfg *config.Config, log *slog.Logger) *HostconfJwkDb {
 	return &HostconfJwkDb{
 		cfg:        cfg,
 		repository: repository.NewHostconfJwkRepository(cfg),

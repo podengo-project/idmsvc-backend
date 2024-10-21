@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 
@@ -18,12 +18,13 @@ var upCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		steps, err := strconv.Atoi(args[0])
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "step %s is not an integer", args[0])
+			slog.Error("step is not an integer", slog.String("step", args[0]))
 			os.Exit(2)
 		}
 		config := config.Get()
 		err = datastore.MigrateUp(config, steps)
 		if err != nil {
+			slog.Error(err.Error())
 			panic(err)
 		}
 	},

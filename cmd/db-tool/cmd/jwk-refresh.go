@@ -1,13 +1,11 @@
 package cmd
 
 import (
+	"log/slog"
 	"os"
-
-	"golang.org/x/exp/slog"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -18,10 +16,8 @@ var jwkRefreshCmd = &cobra.Command{
 	Long:  `The refresh command ensures that the database contains valid JWKs.`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.LogBuildInfo("db-tool")
 		cfg := config.Get()
-		logger.InitLogger(cfg)
-		r := datastore.NewHostconfJwkDb(cfg)
+		r := datastore.NewHostconfJwkDb(cfg, slog.Default())
 		err := r.Refresh()
 		if err != nil {
 			slog.Error("Refresh failed", slog.String("error", err.Error()))

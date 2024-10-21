@@ -176,7 +176,7 @@ Tech stack:
 
 - Echo Framework: https://echo.labstack.com
 - Logs:
-  - https://pkg.go.dev/golang.org/x/exp/slog
+  - https://pkg.go.dev/log/slog
 - Database: https://gorm.io/docs/index.html
 - Kafka Client Library: https://github.com/confluentinc/confluent-kafka-go
 - Testing:

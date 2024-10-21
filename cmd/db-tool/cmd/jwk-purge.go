@@ -1,13 +1,11 @@
 package cmd
 
 import (
+	"log/slog"
 	"os"
-
-	"golang.org/x/exp/slog"
 
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
-	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/logger"
 	"github.com/spf13/cobra"
 )
 
@@ -18,10 +16,8 @@ var jwkPurgeCmd = &cobra.Command{
 	Long:  `The purge command removes all expired JWK from the database.`,
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		logger.LogBuildInfo("db-tool")
 		cfg := config.Get()
-		logger.InitLogger(cfg)
-		r := datastore.NewHostconfJwkDb(cfg)
+		r := datastore.NewHostconfJwkDb(cfg, slog.Default())
 		err := r.Purge()
 		if err != nil {
 			slog.Error("Purge failed", slog.String("error", err.Error()))
