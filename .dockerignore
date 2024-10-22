@@ -17,6 +17,3 @@ configs
 
 # File generated when running unit tests
 coverage.out
-
-# NOTE: .git directory is not listed here. `go build` needs the full `.git`
-# directory to include VCS information in go binaries.
