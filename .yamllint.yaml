@@ -4,6 +4,7 @@ extends: default
 ignore:
   - ".venv"
   - "secrets"
+  - ".tekton"
 
 rules:
   line-length: disable
