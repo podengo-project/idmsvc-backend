@@ -54,6 +54,12 @@ func NewDB(cfg *config.Config) (db *gorm.DB) {
 		return nil
 	}
 	sqlDb.SetMaxOpenConns(cfg.Database.MaxOpenConns)
+
+	rows := sqlDb.QueryRow("SELECT version();")
+	var version string
+	rows.Scan(&version)
+	slog.Info("Connected to database", "version", version)
+
 	return db
 }
 
