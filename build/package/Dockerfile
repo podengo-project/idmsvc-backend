@@ -10,7 +10,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=1
 WORKDIR /go/src/app
 COPY . .
 USER 0
-RUN git log -1
 RUN make get-deps build
 
 
