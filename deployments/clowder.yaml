@@ -272,7 +272,7 @@ parameters:
     description: |
       Point out to the rbac service base url
   - name: CLIENTS_PENDO_BASE_URL
-    value: "https://api.pendo.io"
+    value: "https://app.pendo.io"
     required: false
     description: |
       Point out to the pendo service base url
