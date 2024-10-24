@@ -58,7 +58,7 @@ podman run -ti \
   -e ENV_FOR_DYNACONF=ephemeral \
   -e NAMESPACE="$( oc project -q )" \
   --entrypoint=/bin/bash \
-  quay.io/cloudservices/iqe-core:latest
+  quay.io/cloudservices/iqe-tests:idmsvc
 ```
 
 ## Launching integration tests on ephemeral

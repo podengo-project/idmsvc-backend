@@ -41,5 +41,5 @@ apps:
         ref: main
         path: /deploy/frontend.yaml
         parameters:
-          IMAGE: "quay.io/cloudservices/idmsvc-frontend"
+          IMAGE: "quay.io/redhat-services-prod/insights-management-tenant/insights-idmsvc/idmsvc-frontend"
           # IMAGE_TAG: "b82077d"
