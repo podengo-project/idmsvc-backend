@@ -40,7 +40,7 @@
   "metadata": {
     "deployments": [
       {
-        "image": "quay.io/cloudservices/idmsvc-backend:latest",
+        "image": "quay.io/redhat-services-prod/insights-management-tenant/insights-idmsvc/idmsvc-backend",
         "name": "service"
       }
     ],
