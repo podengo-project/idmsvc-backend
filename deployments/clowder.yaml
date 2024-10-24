@@ -204,7 +204,7 @@ parameters:
       The internal application name that is used to
       compose the API path for its routes.
   - name: IMAGE
-    value: redhat-services-prod/insights-management-tenant/insights-idmsvc/idmsvc-backend
+    value: quay.io/redhat-services-prod/insights-management-tenant/insights-idmsvc/idmsvc-backend
   - name: IMAGE_TAG
     required: true
   - name: SERVICE_REPLICAS
