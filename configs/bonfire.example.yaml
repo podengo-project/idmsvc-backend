@@ -1,4 +1,12 @@
 ---
+# NOTE
+#
+# The configuration for this file, only take effect when deploying
+# in a cluster by using bonfire. If you are trying to customize
+# values for running the service locally (for instance, when debugging),
+# maybe you want to customize values at configs/config.yaml file, if using
+# vscode or makefile rules.
+
 # Bonfire deployment configuration
 # https://github.com/RedHatInsights/bonfire#app-config-overrides
 
@@ -26,14 +34,63 @@ apps:
         repo: ./
         path: deployments/clowder.yaml
         parameters:
+          # The image to use; it is set by bonfire, and when using the
+          # make rules, they override this value to use a container image
+          # with the current changes.
           IMAGE: ""
+
+          # The tag of the image to use; it is set by bonfire, and when
+          # using the make rules, they override this value to use a
+          # custom container image tag with the current changes.
           IMAGE_TAG: ""
+
+          # The potential values for this are:
+          # - "debug"
+          # - "warning"
+          # - "info"
+          # - "error"
           LOGGING_LEVEL: "debug"
+
+          # Set when to write the file and file number where the
+          # logging function is called in the code.
           LOGGING_LOCATION: "true"
+
+          # Only used for development purpose and it needs to be
+          # override specifically.
           APP_ACCEPT_X_RH_FAKE_IDENTITY: "true"
+
+          # When it is "true", any request is verified that accomplish
+          # the openapi specification contract.
           APP_VALIDATE_API: "true"
+
+          # When will expire tokens since the moment they are generated.
           APP_TOKEN_EXPIRATION_SECONDS: "7200"
-          # APP_ENABLE_RBAC: "true"
+
+          # clowder.yaml descriptor specify this parameter as no required,
+          # and no default value is provided at cloder.yaml descriptor.
+          # internal/configs.go set a default value of "30" when not set
+          # or it is empty.
+          # You can uncomment and set a different value for
+          # your development as you need.
+          # DATABASE_MAX_OPEN_CONNS: "20"
+
+          # clowder.yaml descriptor specify this parameter as required,
+          # and This parameter is not optional; the default value, and
+          # it should be an integer that represent how many replicas
+          # will be deployed for the 'service' component (API endpoints).
+          # When we deploy in dev cluster, the value is set to 1
+          # and bonfire retrieve the value for the dev cluster (we do not
+          # need to specify when launching bonfire).
+          # If bonfire is executed with --single-replica, this value will
+          # not take effect for the dev-cluster, else we can override the
+          # value for the dev-cluster by setting the perameter below.
+          SERVICE_REPLICAS: 1
+
+          # This parameter is optional, and the default value for the
+          # deployment is "true", and when running locally, this value
+          # could be override to be "false"
+          # APP_RBAC_ENABLED: "true"
+          # CLIENTS_RBAC_BASE_URL: "http://rbac-service:8000/api/rbac/v1"
 
       - name: frontend
         host: github
@@ -42,4 +99,4 @@ apps:
         path: /deploy/frontend.yaml
         parameters:
           IMAGE: "quay.io/redhat-services-prod/insights-management-tenant/insights-idmsvc/idmsvc-frontend"
-          # IMAGE_TAG: "b82077d"
+          IMAGE_TAG: "latest"
