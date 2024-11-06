@@ -10,7 +10,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=1
 WORKDIR /go/src/app
 COPY . .
 USER 0
-RUN git log -1
 RUN make bin/mock-rbac
 
 # https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5
