@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log/slog"
 	"os"
 	"os/signal"
 	"sync"
@@ -16,6 +15,8 @@ import (
 	client_pendo "github.com/podengo-project/idmsvc-backend/internal/usecase/client/pendo"
 	client_rbac "github.com/podengo-project/idmsvc-backend/internal/usecase/client/rbac"
 )
+
+const component = "service"
 
 func startSignalHandler(c context.Context) (context.Context, context.CancelFunc) {
 	if c == nil {
@@ -45,10 +46,9 @@ func initRbacWrapper(ctx context.Context, cfg *config.Config) rbac.Rbac {
 
 func main() {
 	wg := &sync.WaitGroup{}
-	logger.LogBuildInfo("idmscv-backend")
+	logger.LogBuildInfo(component)
 	cfg := config.Get()
-	logger.InitLogger(cfg)
-	cfg.Log(slog.Default())
+	logger.InitLogger(cfg, component)
 	db := datastore.NewDB(cfg)
 	defer datastore.Close(db)
 

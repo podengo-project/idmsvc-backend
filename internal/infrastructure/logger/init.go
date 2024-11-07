@@ -44,7 +44,7 @@ func init() {
 	slog.SetDefault(slog.New(h))
 }
 
-func InitLogger(cfg *config.Config) {
+func InitLogger(cfg *config.Config, componentName string) {
 	if cfg == nil {
 		panic("'cfg' cannot be nil")
 	}
@@ -158,6 +158,8 @@ func InitLogger(cfg *config.Config) {
 		globalLevel.Set(LevelWarn)
 	}
 
+	slog.SetDefault(slog.Default().With(slog.String("component", componentName)))
+	cfg.Log(slog.Default())
 	slog.Log(
 		context.Background(),
 		LevelNotice,

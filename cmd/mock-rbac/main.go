@@ -12,6 +12,8 @@ import (
 	mock_rbac_impl "github.com/podengo-project/idmsvc-backend/internal/infrastructure/service/impl/mock/rbac/impl"
 )
 
+const component = "mock-rbac"
+
 func startSignalHandler(c context.Context) (context.Context, context.CancelFunc) {
 	if c == nil {
 		c = context.Background()
@@ -31,7 +33,7 @@ func main() {
 	defer cancel()
 
 	cfg := config.Get()
-	logger.InitLogger(cfg)
+	logger.InitLogger(cfg, component)
 	if cfg.Clients.RbacBaseURL == "" {
 		panic("'RbacBaseURL' is empty")
 	}

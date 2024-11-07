@@ -15,12 +15,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const component = "pendo-client"
+
 func initPendo() (cfg *config.Config, ctx context.Context, pendoClient pendo.Pendo) {
 	// Initialize dependencies
-	logger.LogBuildInfo("pendo-client")
+	logger.LogBuildInfo(component)
 	cfg = config.Get()
 	cfg.Logging.Level = "debug"
-	logger.InitLogger(cfg)
+	logger.InitLogger(cfg, component)
 
 	ctx = context.Background()
 	ctx = app_context.CtxWithLog(ctx, slog.Default())
