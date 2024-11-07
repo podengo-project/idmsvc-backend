@@ -53,7 +53,7 @@ COMMIT;
 	filenameDown = filepath.Clean(filenameDown)
 	f, err = os.Create(filenameDown)
 	if err != nil {
-		slog.Error("field to create/truncate migration downgrade file",
+		slog.Error("failed to create/truncate migration downgrade file",
 			slog.String("filename", filenameDown))
 		return err
 	}
