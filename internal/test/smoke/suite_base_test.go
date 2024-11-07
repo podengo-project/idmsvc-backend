@@ -121,7 +121,7 @@ func (s *SuiteBase) SetupTest() {
 	require.NotNil(t, s.Config)
 	s.Config.Application.EnableRBAC = true
 	s.wg = &sync.WaitGroup{}
-	logger.InitLogger(s.Config)
+	logger.InitLogger(s.Config, "test-suite")
 	s.db = datastore.NewDB(s.Config)
 	require.NotNil(t, s.db)
 
