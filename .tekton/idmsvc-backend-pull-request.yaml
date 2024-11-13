@@ -216,9 +216,9 @@ spec:
         workspace: netrc
     - name: run-unit-tests
       description: Execute the unit tests for idmsvc-backend
-      params:
-        - name: SOURCE_ARTIFACT
-          value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
+      # params:
+      #   - name: SOURCE_ARTIFACT
+      #     value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       runAfter:
         - prefetch-dependencies
       workspaces:
@@ -227,19 +227,21 @@ spec:
         - name: source
           workspace: workspace
       taskSpec:
-        params:
-          - description: The Trusted Artifact URI pointing to the artifact with the application source code.
-            name: SOURCE_ARTIFACT
-            type: string
+        # params:
+        #   - description: The Trusted Artifact URI pointing to the artifact with the application source code.
+        #     name: SOURCE_ARTIFACT
+        #     type: string
         volumes:
           # New volume to store a copy
           - name: workdir
             emptyDir: {}
         stepTemplates:
           volumeMounts:
-            - mountPath: /var/workdir
-              name: workdir
+            - name: workdir
+              mountPath: /var/workdir
               readOnly: false
+            # - name: go-deps
+            #   mountPath: /var/workdir/
         sidecars:
         steps:
           # - name: use-trusted-artifact
@@ -257,7 +259,7 @@ spec:
               limits:
                 memory: 14Gi
                 cpu: 2000m
-            # seucurityContest:
+            # securityContext:
             #   runAsUser: 0
             scripts: |
               #!/bin/bash
@@ -560,4 +562,14 @@ spec:
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
+  - name: go-deps
+    volumeClaimTemplate:
+      metadata:
+        creationTimestamp: null
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1Gi
 status: {}
