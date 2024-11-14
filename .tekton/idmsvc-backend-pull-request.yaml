@@ -240,9 +240,6 @@ spec:
             - name: workdir
               mountPath: /var/workdir
               readOnly: false
-            # - name: go-deps
-            #   mountPath: /var/workdir/
-        sidecars:
         steps:
           # - name: use-trusted-artifact
           #   image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:81c4864dae6bb11595f657be887e205262e70086a05ed16ada827fd6391926ac
@@ -266,12 +263,15 @@ spec:
               set -ex
 
               make test-unit
-        # taskRef: {}
-        # when:
-        #   - input: $(params.prefetch-dependencies)
-        #     operator: notin
-        #     values:
-        #       - ""
+      # taskRef:
+      #   params:
+      #     - name: name
+      #       value: run-test-unit
+      #     - name: bundle
+      #       value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2@sha256:11b7f08ddaa281fcf40494a2a2f79e0aebcaa3e7da93790fecad4d46983648d2
+      #     - name: kind
+      #       value: task
+      #   resolver: bundles
     - name: build-container
       params:
       - name: IMAGE
@@ -294,7 +294,7 @@ spec:
       - name: BUILD_ARGS_FILE
         value: $(params.build-args-file)
       runAfter:
-      - prefetch-dependencies
+      - run-unit-tests
       taskRef:
         params:
         - name: name
