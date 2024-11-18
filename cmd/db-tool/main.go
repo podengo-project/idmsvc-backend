@@ -12,5 +12,7 @@ func main() {
 	logger.LogBuildInfo(component)
 	cfg := config.Get()
 	logger.InitLogger(cfg, component)
+	defer logger.DoneLogger()
+
 	cmd.Execute()
 }

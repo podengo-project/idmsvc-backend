@@ -93,6 +93,8 @@ func initCLI() *cobra.Command {
 
 func main() {
 	rootCmd := initCLI()
+	defer logger.DoneLogger()
+
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 	}

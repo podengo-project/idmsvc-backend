@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"os"
 	"runtime/debug"
@@ -36,6 +37,11 @@ type Clonable interface {
 	Clone() interface{}
 }
 
+var (
+	cloudwatchCloser io.Closer    = nil
+	oldSlog          *slog.Logger = nil
+)
+
 // Early logging setup so we can use slog, this will just log to stderr.
 // This will change once the configuration has been parsed and we setup the
 // logger accordingly.
@@ -45,6 +51,8 @@ func init() {
 }
 
 func InitLogger(cfg *config.Config, componentName string) {
+	var ok bool
+
 	if cfg == nil {
 		panic("'cfg' cannot be nil")
 	}
@@ -122,6 +130,9 @@ func InitLogger(cfg *config.Config, componentName string) {
 			w,
 			&opts,
 		)
+		if cloudwatchCloser, ok = w.(io.Closer); !ok {
+			slog.Warn("cloudwatchCloser is nil, this could evoke loosing log traces on cloudwatch")
+		}
 		metaHandler.Add(cloudwatch_handler)
 	} else if cfg.Logging.Console {
 		h := slog.NewTextHandler(
@@ -135,6 +146,11 @@ func InitLogger(cfg *config.Config, componentName string) {
 			&opts,
 		)
 		metaHandler.Add(h)
+	}
+	if oldSlog == nil {
+		oldSlog = slog.Default()
+	} else {
+		slog.Warn("InitLogger called twice")
 	}
 	slog.SetDefault(slog.New(metaHandler))
 
@@ -203,4 +219,15 @@ func LogBuildInfo(msg string) {
 		slog.String("CommitTime", commitTime),
 		slog.Bool("Dirty", dirty),
 	)
+}
+
+// DoneLogger should be called before exit any process that
+// invoke InitLogger.
+func DoneLogger() {
+	slog.SetDefault(oldSlog)
+	if cloudwatchCloser != nil {
+		if err := cloudwatchCloser.Close(); err != nil {
+			slog.Error(err.Error())
+		}
+	}
 }
