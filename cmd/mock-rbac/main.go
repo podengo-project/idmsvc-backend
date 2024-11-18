@@ -34,6 +34,8 @@ func main() {
 
 	cfg := config.Get()
 	logger.InitLogger(cfg, component)
+	defer logger.DoneLogger()
+
 	if cfg.Clients.RbacBaseURL == "" {
 		panic("'RbacBaseURL' is empty")
 	}

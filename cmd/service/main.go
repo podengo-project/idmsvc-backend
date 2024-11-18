@@ -49,6 +49,8 @@ func main() {
 	logger.LogBuildInfo(component)
 	cfg := config.Get()
 	logger.InitLogger(cfg, component)
+	defer logger.DoneLogger()
+
 	db := datastore.NewDB(cfg)
 	defer datastore.Close(db)
 

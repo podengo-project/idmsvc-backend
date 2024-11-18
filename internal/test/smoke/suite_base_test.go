@@ -169,6 +169,7 @@ func (s *SuiteBase) TearDownTest() {
 	s.svcRbac.Stop()
 	s.svc.Stop()
 	s.wg.Wait()
+	logger.DoneLogger()
 }
 
 // As is a helper function that makes it easy to select
