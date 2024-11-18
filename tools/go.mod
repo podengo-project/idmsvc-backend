@@ -3,8 +3,7 @@ module github.com/podengo-project/idmsvc-backend/tools
 // See: https://go.dev/ref/mod#go-mod-edit
 
 go 1.21
-
-toolchain go1.22.5
+toolchain go1.23.3
 
 require (
 	github.com/achiku/planter v0.0.0-20230118102009-4847a8211e35
@@ -15,7 +14,7 @@ require (
 	github.com/mikefarah/yq/v4 v4.44.3
 	github.com/spf13/cobra-cli v1.3.0
 	github.com/subpop/xrhidgen v0.1.0
-	github.com/vektra/mockery/v2 v2.40.3
+	github.com/vektra/mockery/v2 v2.47.0
 )
 
 require (
