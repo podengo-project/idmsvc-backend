@@ -89,7 +89,7 @@ $(GO_OUTPUT/get-token.py):
 ephemeral-build:  ## Build and push the image using 'build_deploy.sh' scripts; It creates $(CONTAINER_IMAGE_BASE):$(CONTAINER_IMAGE_TAG) container image
 	IMAGE="$(CONTAINER_IMAGE_BASE)" IMAGE_TAG="$(CONTAINER_IMAGE_TAG)" \
 		set -o pipefail; \
-		./.rhcicd/build_deploy.sh 2>&1 | tee build_deploy.log | grep -v "login -u"
+		./.rhcicd/build_deploy.sh 2>&1 | grep -v "login -u" | tee build_deploy.log
 
 # NOTE Changes to config/bonfire.yaml could impact to this rule
 .PHONY: ephemeral-deploy
