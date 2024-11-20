@@ -14,7 +14,7 @@ Packages for fedora 39:
 
 ```sh
 $ sudo dnf upgrade
-$ sudo dnf install git golang podman podman-compose
+$ sudo dnf install git golang podman podman-compose delve
 $ sudo dnf remove gcc-go
 ```
 
@@ -44,7 +44,11 @@ Once tasks:
 
 - Install used tools: `make install-tools`
 - Create your `configs/config.yaml` file: `cp -vf configs/config.example.yaml configs/config.yaml`
-- Create your `secrets/private.mk` file: `cp -vf scripts/mk/private.example.mk secrets/private.mk`
+- Create your `secrets/private.mk` file:
+  ```sh
+  $ mkdir secrets
+  $ cp -vf scripts/mk/private.example.mk secrets/private.mk
+  ```
 - Follow the instructions in `secrets/private.mk` to set up Quay repository
   and Red Hat Repository access.
 - Create your `configs/bonfire.yaml` file: `cp -vf configs/bonfire.example.yaml configs/bonfire.yaml`
@@ -57,12 +61,12 @@ Once tasks:
 
 - Build by: `make build`
 - Lint code by: `make lint`
-- Start local infrastructure by: `make compose-up`
+- Start local infrastructure by: `make compose-up mock-rbac-up`
 - Launch tests by: `make test`
 - Run by: `make run`
 - Try locally by running scripts at: `./test/scripts/local-*.sh`
   You can override the used xrhid by: `XRHID_AS="service-account" ./test/scripts/local-*.sh`
-- Stop local infrastructure by: `make compose-down`
+- Stop local infrastructure by: `make compose-down mock-rbac-down`
 - Clean local infrastructure by: `make compose-clean`
 - Print out useful rules by: `make help`
 
@@ -71,9 +75,10 @@ Once tasks:
 - Run with specific rbac profile and use local rbac mock:
 
   ```sh
-  $ make compose-clean clean build compose-up run APP_CLIENTS_RBAC_PROFILE=domain-read-only
-  $ curl "http://localhost:8020/api/rbac/v1/authorize?application=idmsvc"
-  $ ./test/scripts/local-domains-list.sh
+  $ make compose-clean clean build compose-up mock-rbac-up run APP_CLIENTS_RBAC_PROFILE=domain-readonly
+  $ curl "http://localhost:8020/api/rbac/v1/access?application=idmsvc"
+  $ ./test/scripts/local-domains-list.sh   # Will success
+  $ ./test/scripts/local-domains-token.sh  # Will fail as unauthorized
   ```
 
 > - Bear in mind the rbac mock is started with the local infra.
