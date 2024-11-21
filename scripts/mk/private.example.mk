@@ -24,7 +24,12 @@ export QUAY_LOGIN := $(firstword $(subst +, ,$(QUAY_USER)))
 # QUAY_REPOSITORY is used to compose the base image name when deploying into ephemeral
 # TODO Set your QUAY_REPOSITORY ; you have to create it and grant
 #      write permissions to the above robot account
-export QUAY_REPOSITORY := 7d
+export QUAY_REPOSITORY := 
+# QUAY_EXPIRATION is the time the container image is retained in your
+# container registry; see scripts/mk/container.mk the 'container-build'
+# rule and this link: 
+# https://docs.redhat.com/en/documentation/red_hat_quay/3.10/html/about_quay_io/working-with-tags#tag-expiration
+export QUAY_EXPIRATION := 1d
 
 # TODO Update CONTAINER_IMAGE_BASE accoddingly to point out to your repository
 # This should point out to your repository
