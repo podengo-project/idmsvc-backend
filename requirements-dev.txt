@@ -5,4 +5,4 @@ crc-bonfire>=5.11.1,<5.12.0
 json2yaml>=1.2.0,<1.3.0
 requests>=2.32.0,<2.33.0
 yamlfix>=1.16.0,<1.17.0
-grafana_client>=4.1.0,<4.2.0
+grafana_client>=4.2.0,<4.3.0
