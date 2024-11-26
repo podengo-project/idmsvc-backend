@@ -20,7 +20,7 @@ require (
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/confluentinc/confluent-kafka-go v1.9.2
 	github.com/getkin/kin-openapi v0.128.0
-	github.com/go-playground/validator/v10 v10.22.1
+	github.com/go-playground/validator/v10 v10.23.0
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.12.0
