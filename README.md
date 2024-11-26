@@ -4,7 +4,7 @@
 
 **Pre-requisites**:
 
-- golang 1.21 (not `gcc-go`)
+- golang 1.22 (not `gcc-go`)
 - docker or podman (>4.0.0)
 - docker-compose or podman-compose
 - python3
