@@ -21,7 +21,7 @@ jobs:
         ports:
           - 5432:5432
     runs-on: "ubuntu-latest"
-    container: golang:1.21
+    container: golang:1.22
     env:
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
