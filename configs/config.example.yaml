@@ -1,4 +1,9 @@
 ---
+
+# This file should have settings that are safe and appropriate
+# for PRODUCTION environments.  Use make variables or other
+# mechanisms to override values for dev/test contexts.
+
 logging:
   # level: warn should be the level in production
   # level: trace - Will display the sql statements, usefult for development
@@ -40,7 +45,7 @@ app:
   # The pagination max limit to avoid bigger values and long requests
   pagination_max_limit: 100
   # Allow to inject a system identity for development propose
-  accept_x_rh_fake_identity: true
+  accept_x_rh_fake_identity: false  # be secure by default!
   # Validate API requests and response against the openapi specification
   validate_api: true
   # TODO Adapt this to ACG_CONFIG
