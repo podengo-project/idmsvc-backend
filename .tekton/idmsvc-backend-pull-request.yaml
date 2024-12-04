@@ -187,7 +187,7 @@ spec:
         workspace: workspace
       - name: basic-auth
         workspace: git-auth
-      - name: clone-repository-oci-ta
+      - name: clone-repository
         params:
         - name: url
           value: $(params.git-url)
@@ -244,12 +244,10 @@ spec:
     - name: run-unit-tests
       description: Execute the unit tests for idmsvc-backend
       params:
-        # - name: SOURCE_ARTIFACT
-        #   value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
         - name: SOURCE_ARTIFACT
-          value: $(tasks.clone-repository-oci-ta.results.SOURCE_ARTIFACT)
+          value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
       runAfter:
-        - clone-repository-oci-ta
+        - clone-repository
       workspaces:
         - name: git-basic-auth
           workspace: git-auth
