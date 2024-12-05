@@ -11,6 +11,8 @@ WORKDIR /go/src/app
 COPY . .
 USER 0
 RUN make get-deps build
+RUN mkdir /licenses \
+    && cp -vf LICENSE /licenses/LICENSE
 
 
 # https://catalog.redhat.com/software/containers/ubi9-minimal/61832888c0d15aff4912fe0d
@@ -22,6 +24,7 @@ RUN mkdir -p /opt/bin /opt/bin/scripts/db /opt/bin/configs
 WORKDIR /opt/bin
 RUN microdnf update -y && microdnf clean all
 COPY --from=builder /go/src/app/bin/* ./
+COPY --from=builder /licenses /licenses
 COPY scripts/db/migrations /opt/bin/scripts/db/migrations
 COPY configs/config.example.yaml /opt/bin/configs/config.yaml
 USER 1001
