@@ -2,6 +2,7 @@
 **/*
 
 # Add only what we need to build
+!LICENSE
 !Makefile
 !go.mod
 !go.sum
