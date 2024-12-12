@@ -278,9 +278,9 @@ spec:
               #!/bin/bash
               set -ex
 
-              pwd
+              pwd >&2
               
-              ls -1
+              ls -1 >&2
 
               cp -vf configs/config.example.yaml configs/config.yaml
 
