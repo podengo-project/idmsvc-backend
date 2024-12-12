@@ -278,6 +278,10 @@ spec:
               #!/bin/bash
               set -ex
 
+              ls -1
+
+              cp -vf configs/config.example.yml configs/config.yml
+
               make test-unit
     - name: build-images
       matrix:
