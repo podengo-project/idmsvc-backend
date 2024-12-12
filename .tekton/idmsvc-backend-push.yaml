@@ -163,6 +163,8 @@ spec:
         value: $(params.git-url)
       - name: revision
         value: $(params.revision)
+      - name: ociStorage
+        value: $(params.output-image).git
       runAfter:
       - init
       taskRef:
