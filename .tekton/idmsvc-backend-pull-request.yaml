@@ -240,22 +240,22 @@ spec:
       workspaces:
         - name: git-basic-auth
           workspace: git-auth
-        - name: source
-          workspace: workspace
+        # - name: source
+        #   workspace: workspace
       taskSpec:
         params:
           - description: The Trusted Artifact URI pointing to the artifact with the application source code.
             name: SOURCE_ARTIFACT
             type: string
-        volumes:
-          # New volume to store a copy of the source code accessible only to this Task.
-          - name: workdir
-            emptyDir: {}
-        stepTemplates:
-          volumeMounts:
-            - name: workdir
-              mountPath: /var/workdir
-              readOnly: false
+        # volumes:
+        #   # New volume to store a copy of the source code accessible only to this Task.
+        #   - name: workdir
+        #     emptyDir: {}
+        # stepTemplates:
+        #   volumeMounts:
+        #     - name: workdir
+        #       mountPath: /var/workdir
+        #       readOnly: false
         steps:
           - name: use-trusted-artifact
             image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:81c4864dae6bb11595f657be887e205262e70086a05ed16ada827fd6391926ac
