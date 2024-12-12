@@ -278,9 +278,11 @@ spec:
               #!/bin/bash
               set -ex
 
+              pwd
+              
               ls -1
 
-              cp -vf configs/config.example.yml configs/config.yml
+              cp -vf configs/config.example.yaml configs/config.yaml
 
               make test-unit
     - name: build-images
