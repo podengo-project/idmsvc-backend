@@ -458,20 +458,19 @@ spec:
         value: $(params.dockerfile)
       - name: CONTEXT
         value: $(params.path-context)
+      - name: SOURCE_ARTIFACT
+        value: $(tasks.prefetch-dependencies.results.SOURCE_ARTIFACT)
       runAfter:
       - build-image-index
       taskRef:
         params:
         - name: name
-          value: push-dockerfile
+          value: push-dockerfile-oci-ta
         - name: bundle
-          value: quay.io/konflux-ci/tekton-catalog/task-push-dockerfile:0.1@sha256:48bb2ee92ea528b28c0814c9cc126021e499a081b69431987a774561e9ac8047
+          value: quay.io/konflux-ci/tekton-catalog/task-push-dockerfile-oci-ta:0.1@sha256:80d48a1b9d2707490309941ec9f79338533938f959ca9a207b481b0e8a5e7a93
         - name: kind
           value: task
         resolver: bundles
-      workspaces:
-      - name: workspace
-        workspace: workspace
     - name: rpms-signature-scan
       params:
       - name: image-url
