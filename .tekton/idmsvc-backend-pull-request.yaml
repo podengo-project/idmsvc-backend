@@ -274,11 +274,11 @@ spec:
               #!/bin/bash
               set -ex
 
-              pwd >&2
+              # pwd >&2
               
-              ls -1 >&2
+              # ls -1 >&2
 
-              cp -vf configs/config.example.yaml configs/config.yaml
+              # cp -vf configs/config.example.yaml configs/config.yaml
 
               make test-unit
         volumes:
