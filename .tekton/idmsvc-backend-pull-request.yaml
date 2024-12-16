@@ -247,10 +247,10 @@ spec:
           - description: The Trusted Artifact URI pointing to the artifact with the application source code.
             name: SOURCE_ARTIFACT
             type: string
-        # volumes:
-        #   # New volume to store a copy of the source code accessible only to this Task.
-        #   - name: workdir
-        #     emptyDir: {}
+        volumes:
+          # New volume to store a copy of the source code accessible only to this Task.
+          - name: workdir
+            emptyDir: {}
         # stepTemplates:
         #   volumeMounts:
         #     - name: workdir
@@ -261,10 +261,10 @@ spec:
             image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:81c4864dae6bb11595f657be887e205262e70086a05ed16ada827fd6391926ac
             args:
               - use
-              - $(params.SOURCE_ARTIFACT)=/var/workdir
+              - $(params.SOURCE_ARTIFACT)=/var/workdir/source
           - name: unit-tests
             image: registry.access.redhat.com/ubi9/go-toolset:1.21.11-9.1726696856@sha256:2fead14be2734020f98c731fef30cc54e99fe889a53cac97e80f6f043778b567
-            workingDir: /var/workdir
+            workingDir: /var/workdir/source
             computeResources:
               requests:
                 memory: 7Gi
