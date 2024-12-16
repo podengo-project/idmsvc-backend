@@ -259,7 +259,7 @@ spec:
               - use
               - $(params.SOURCE_ARTIFACT)=/var/workdir/source
           - name: unit-tests
-            image: registry.access.redhat.com/ubi9/go-toolset:1.21.11-9.1726696856@sha256:2fead14be2734020f98c731fef30cc54e99fe889a53cac97e80f6f043778b567
+            image: registry.access.redhat.com/ubi9/go-toolset:1.22.7-1733160835@sha256:c9c0129bff8e94b9e23e9e4a1ebb5b932cccc24e064940a792bdc002da512d2a
             workingDir: /var/workdir/source
             computeResources:
               requests:
