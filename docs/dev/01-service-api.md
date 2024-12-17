@@ -6,11 +6,11 @@ All the configuration is centralized at `internal/config/` package.
 
 - Keep in mind that for using environment variables, you need to
   add the field into the set defaults function, otherwise it won't
-  be mapped. This is important because the EE will use the values
-  in form of environment variables, however the local environment
-  will map form `configs/config.yaml` file.
+  be mapped. This is important because the deployment will use the
+  values in form of environment variables, however the local environment
+  will map them from `configs/config.yaml` file.
 - The mapping between the Config structure and the environment variables
-  is made automatically by viper.
+  is made automatically by [viper](https://github.com/spf13/viper.git).
 
 ## How it is implemented into the POC
 
@@ -47,37 +47,29 @@ All the configuration is centralized at `internal/config/` package.
 
 API Groups:
 
-- The API groups are splited on **public** and **private** ones
-  (and **metrics** when they will be integrated, in a separate service
-  and additional echo framework instance).
-- Each API group has its own openapi specification yaml file.
+- The API groups are splited on **public**, **private** and  **metrics**.
+- Each API group has its own openapi specification yaml file, but **metrics**
+  which was extracted from the definition of them.
 
-  - **Internal** group hold the private api that is not part of our
+  - **Private** group hold the private api that is not part of our
     service api, and it is not exposed on the API gateway.
     - `/private/healthz` and `/private/livez` are used for the kubernetes
       pod lifecycle; defined at `api/internal.openapi.yaml` file (probably
-      `private.openapi.yaml` is a better name for this).
-    - `/metrics` will be used for exposing the metrics endpoint, it
+      `private.openapi.yaml` is a better name for this). TODO in the future
+      this would be better to have their custom plaze as the `/metrics`
+      endpoint, and leave this place only for inter-cluster communication
+      API.
+  - **Metrics** `/metrics` will be used for exposing the metrics endpoint, it
       will be defined at `api/metrics.openapi.yaml`.
-    - `/api/idmsvc/vX/todo` is defined at `api/public.openapi.yaml`; this will
-      define our service API.
-
-The code generated from the openapi specification:
-
-- It is generated one directory per file at `internal/api` directory.
-- `server.gen.go`
-- `spec.gen.go`: Contains a compressed binary copy of the openapi
-   spefecification. It will help on the `/api/idmsvc/v1/openapi.json`
-   endpoint, which is required.
-- `type.gen.go`: Contains the data structures matching the schemas
-  defined into the openapi specification file.
+  - **Public** group hold the public API exposed at `/api/idmsvc/vX` and
+      it is defined at `api/public.openapi.yaml`.
 
 For each resource we will find the following different components:
 
 - **Interactor**: the responsibility of this component is to translate
   from API types to model types.
 - **Repository**: the responsibility of this component is to deal with
-  the data modle stored into the database (using gorm for the databse abstraction).
+  the data model stored into the database (using gorm for the databse abstraction).
   This basically implements the CRUD operations related with a resource.
   - Every repository method has as first argument the database connecter, the
     decision to pass this as a parameter and not store as a field for the
@@ -93,7 +85,18 @@ For each resource we will find the following different components:
 > so that if we had `/api/idmsvc/v1/domains`, we will repeat the above 3 components
 > for the `/domains` resource.
 
-> it is missed to add common presenters for the error responses.
+> TODO Potential refactor in the future to correct the above to be aligned
+> with what could be seen at https://github.com/avisiedo/go-microservice-1
+> - Presenter is an input/output adapter that depends on the http
+>   framework (what we see now as the handler).
+> - Interactor represent the business logic which have a free form package.
+> - Repositories represent any input/output to/from 3rd party systems,
+>   such as database, s3 storage, asynchronous even producer, distributed
+>   cache.
+>
+> The middlewares would be split on presenter and business logic, letting
+> the code being reused on different frameworks, by just only changing the
+> presenter.
 
 Said the above, we need a `handler` that combines to define the business logic
 of the operations; the `handler` component will govern the interaction with the
@@ -124,13 +127,15 @@ above components and interactions with third parties as it could be.
 
 ### Let's come back to our `<Resource>Service`
 
-- oapi-generator generate a ServerInterface interface per openapi specification.
+- oapi-generator generate a ServerInterface interface per openapi 
+  specification.
 - Our `ServerInterface` specific implementation is hold at
   `internal/handler/impl` directory.
 - We create a file per openapi specification.
-- We compose an application interface which is composed by all the ServiceInterface
-  interfaces.
-- The code at `internal/handler/impl` currently implements this `big` interface.
+- We compose an application interface which is composed by all the 
+  ServiceInterface interfaces.
+- The code at `internal/handler/impl` currently implements this `big` 
+  interface.
   > Having a look to it today, I am not happy with the initial implementation that
   > I did here; a better approach would be:
   > - Define the application interface as it is.
@@ -138,9 +143,9 @@ above components and interactions with third parties as it could be.
   > - Implement the `big application interface` as a wrapper
   >   on the specific handlers.
 
-- For ServiceInterface interfaces, split in several files the implementation
-  for the main application service api, so that each resource has its own
-  file.
+- For ServiceInterface interfaces, split in several files the
+  implementation for the main application service api, so that each
+  resource has its own file.
   - This will reduce the size of the specific implementation file and
     allow to reduce the conflicts when committing to the repository.
 
@@ -162,24 +167,49 @@ the body, which basically do (for this poc, but not limited to the below):
   When we have to implement the unit test, if it get too complex
   to implement, that use to be an indicator that we are violating
   this principle.
-<!-- - **O**pen **C**lose **P**rinciple: Our components are open for extension
-  and close for modifications; in golang this means, I can create a new version
-  of a component by encapsulating the old one, overriding the updated methods,
-  and calling the wrapped old component. Once we have created the new component
-  version, we flag the old one as deprecated to inform the user it has to update
-  the references. We are leaving the old component with no changes. -->
-- **L**eviskov **S**ubstitution **P**rinciple: Given two components that
+<!-- - **O**pen **C**lose **P**rinciple: Our components are open for
+  extension and close for modifications; in golang this means, I can
+  create a new version of a component by encapsulating the old one,
+  overriding the updated methods, and calling the wrapped old component. 
+  Once we have created the new component version, we flag the old one as 
+  deprecated to inform the user it has to update the references. We are 
+  leaving the old component with no changes. -->
+- **L**iskov **S**ubstitution **P**rinciple: Given two components that
   implement the same interface, they can be exchanged with no impact.
   I see this aligned with the OCP, so when we have to create and updated
   version of a component, the new version can substitute the old version
   with no impact at all (in theory).
-- **I**nterface **S**egregation **P**rinciple: We split the functionality per
-  interfaces, and we try to create small interface implementations so that
-  we do not push to implement interfaces that we don't need into the specific
-  components. If a component need to combine several interfaces, we can create a new interface which
-  compose several interfaces if it were necessary.
-- **D**ependency **I**nversion **P**rinciple: 
-
+- **I**nterface **S**egregation **P**rinciple: We split the functionality 
+  per interfaces, and we try to create small interface implementations so 
+  that we do not push to implement interfaces that we don't need into the 
+  specific components. If a component need to combine several interfaces, 
+  we can create a new interface which compose several interfaces if it 
+  were necessary; in the practice this allow to break down more complex
+  interfaces in smaller ones; this is specifally useful when creating
+  the unit tests, allowing to test more isolated the SUT (Source Under
+  Test).
+- **D**ependency **I**nversion **P**rinciple: We depends on interfaces,
+  instead of specific implementations. This allow to define the boundaries
+  between the components, allow to mock the dependencies so unit tests
+  are more isolated, and go do all this by injecting the specific
+  components that implements the required interface of the caller. On the
+  constructor functions it means we fill a specific structure, but we
+  return the interface that implement the data. For testing use to be
+  necessary the private methods, to increase the coverage, to avoid
+  duplications, we would do something like the below:
+  ```golang
+  type myType struct {}
+  type MyInterface interface {}
+  func NewMyInterface() MyInterface {
+    return newMyType()
+  }
+  func newMyInterface() *MyType {
+    return &MyType{}
+  }
+  ```
+  This allow us the interface is always accomplished and detected in early
+  stage; at the same time allow the private methods to be available
+  for the unit tests, and the divergency is minimal.
 
 ## I need to add a new middleware
 
@@ -194,7 +224,8 @@ the body, which basically do (for this poc, but not limited to the below):
   the middlewares, and call the Register function that was generated
   by the `oapi-generator` tool for us.
 - Implement the Service interface at: `internal/service/impl/`.
-- Instantiate the service above at: `internal/infrastructure/service/impl/application.go`.
+- Instantiate the service above at:
+  `internal/infrastructure/service/impl/application.go`.
 - The current implementations into the PoC could be a guidelines
   to add more endpoints.
 
@@ -205,7 +236,6 @@ the body, which basically do (for this poc, but not limited to the below):
 > and it must not be added any other signal handler thant that one,
 > because only one handler will receive the signal, which could evoke
 > not wished situations when SIGTERM signal is sent by kuberneste to the pod.
-
 
 ### Interface and dependencies
 
@@ -298,7 +328,7 @@ for the interface, it seems logic to add the implementations at:
 ## I need to communicate with third party services
 
 - Retrieve the openapi specification.
-- Add a new directory at `internal/client/<service>/`.
+- Add a new directory at `internal/usecase/client/<service>/`.
 - Generate the client proxy from the openapi specification.
 - Now just use the proxy client to communicate with the third party service.
 - We will need to pass through the following headers:
@@ -311,11 +341,12 @@ for the interface, it seems logic to add the implementations at:
 
 ## I need to add a new data model or update it
 
-**NOTE** before arrive to stage, take advantage to make changes on your
-data model, but once the service is promoted to stage environment, the update
-process will be more complicated, sometimes requiring two deployments
-(set all the versions with the new fields and tables, a second one to remove deprecated tables and fields).
+**NOTE** bear in mind that the update process is more complicated, sometimes
+requiring two deployments (set all the versions with the new fields and
+tables, a second one to remove deprecated tables and fields).
 
+- Do small changes on the model, so the risk is lower, even if this
+  require more deployments.
 - Add your data model at `internal/infrastructure/domain/model/`.
 - Add your up/down migrations `./bin/db-tool migrate new MIGRATION_NAME`.
 - Edit your up/down migration scripts at: `scripts/db/migrations/` directory.
@@ -346,14 +377,9 @@ field:
 
 ## TODOs
 
-- Rename the Service interface at: `internal/infrastructure/
-- Centralize error handling:
-  - Define error types.
-  - Use hmscontent custom error handler implementation as a guide.
 - Add linting for sql migration scripts, and automatic fixer
   (see how hmscontent has this integrated).
 
 ## References
 
 - Public APIs: https://console.redhat.com/docs/api
-
