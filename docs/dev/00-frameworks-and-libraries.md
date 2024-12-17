@@ -18,13 +18,6 @@
   - Testify: https://pkg.go.dev/github.com/stretchr/testify
   - Mockery: https://github.com/vektra/mockery
   - SqlMock: https://github.com/DATA-DOG/go-sqlmock
-  - (todo)
-
->> Create a Question google doc to retrieve all the questions
-
-## Notes about hmscontent experience
-
-- https://docs.google.com/document/d/1hqnGTvRqE2GSj6D3FYb6ymdtXttTzG3wDWmUwaMu8fE/edit#
 
 ## Contents
 
@@ -35,5 +28,4 @@
 - [RBAC](05-rbac.md)
 - [Metrics](06-metrics.md)
 - [Configurations](07-configs.md)
-- [RBAC](08-rbac.md)
-- [Logs](09-logs.md)
+- [Logs](08-logs.md)

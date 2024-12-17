@@ -9,19 +9,23 @@ for visualizing the metrics.
 Define which metrics want to be exposed:
 
 - Read the naming conventions at: https://prometheus.io/docs/practices/naming/
-- Add a namespace for your metrics (eg 'idmsvc'), this will prefix
+- Add a namespace for your metrics (eg `idmsvc`), this will prefix
   your metric names.
-- Common metric could be the http_status_count with `status`, `method`, `path` labels; this can raise state information of our API.
+- Common metric could be the http_status_count with `status`, `method`, `path`
+  labels; this can raise state information of our API.
 - Other common is a histogram for the service latency.
 
 ## Concerns
 
 - How to monitor kafka events? It will need some mechanism.
+- What to measure here?
+  - event_status_count with `status`, `topic`.
 
 ## Developer actions
 
 - Create a new Service that expose the metrics endpoint.
-- The configuration about port and path should be read from clowder.Configuration
+- The configuration about port and path should be read from
+  `clowder.Configuration`.
 - For the service, some metrics are generated at 3scale API gateway, but it only
   provides the external vision of the service.
 - To gather internal metrics when our endpoints are called, define a middleware
@@ -43,8 +47,6 @@ Define which metrics want to be exposed:
 
 - Prometheus launch a http request to an internal endpoint exposed at some port
   eg: http://idmsvc:9000/metrics
-- The metrics endpoint are specified into the cluster by a ServiceMonitor resource.
-  Eg: 
 
 ## Client libraries
 
@@ -56,7 +58,3 @@ Define which metrics want to be exposed:
 
 - https://prometheus.io/docs/introduction/overview/
 - https://grafana.com/docs/grafana/v9.3/introduction/
-- https://service.pages.redhat.com/dev-guidelines/docs/appsre/onboarding/observability/
-- https://service.pages.redhat.com/dev-guidelines/docs/appsre/onboarding/creating-slos/
-- https://service.pages.redhat.com/dev-guidelines/docs/appsre/advanced/grafana/
-

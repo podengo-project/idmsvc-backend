@@ -19,8 +19,10 @@ using the primitive `LogFromCtx` function; for instance:
 ```
 
 The above add to every message the `request-id` recovered
-from the request headers. This allow to link all the
-messages for a sequence of actions.
+from the request headers, and any other information aggregated
+by the middlewares; this simplify the error message and allow
+to focus on the message and any additional from the current
+context.
 
 ## Guidelines
 

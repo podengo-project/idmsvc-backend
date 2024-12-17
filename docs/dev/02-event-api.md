@@ -28,7 +28,7 @@ TODO:
 - Serialize message to don't loose them if something fail.
 - Job to recover not processed events or error
 - Define schema for headers?
-- Error handling for kafka metrics
+- Error handling for kafka consumers.
 - Metrics for kafka events
 
 ## Some notes about kafka

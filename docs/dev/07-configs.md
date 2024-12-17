@@ -19,8 +19,6 @@ We need to inject this value in the form of environment variable into the pods
 that will need this parameter, so in the same file, add the parameter as an
 environment variable:
 
-For no string values:
-
 ```yaml
 ---
 apiVersion: template.openshift.io/v1
