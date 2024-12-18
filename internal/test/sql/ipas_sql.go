@@ -19,7 +19,7 @@ func PrepSqlSelectIpas(mock sqlmock.Sqlmock, withError bool, expectedErr error, 
 		expectedQuery.WillReturnError(expectedErr)
 	} else {
 		expectedQuery.WillReturnRows(sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deletet_at",
+			"id", "created_at", "updated_at", "deleted_at",
 
 			"realm_name", "realm_domains",
 		}).AddRow(
@@ -41,7 +41,7 @@ func PrepSqlSelectIpaCerts(mock sqlmock.Sqlmock, withError bool, expectedErr err
 		expectedQuery.WillReturnError(expectedErr)
 	} else {
 		rows := sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deletet_at",
+			"id", "created_at", "updated_at", "deleted_at",
 
 			"ipa_id", "issuer", "nickname",
 			"not_after", "not_before", "serial_number",
@@ -75,7 +75,7 @@ func PrepSqlSelectIpaLocations(mock sqlmock.Sqlmock, withError bool, expectedErr
 		expectedQuery.WillReturnError(expectedErr)
 	} else {
 		rows := sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deletet_at",
+			"id", "created_at", "updated_at", "deleted_at",
 
 			"ipa_id",
 			"name", "description",
@@ -103,7 +103,7 @@ func PrepSqlSelectIpaServers(mock sqlmock.Sqlmock, withError bool, expectedErr e
 		expectedQuery.WillReturnError(expectedErr)
 	} else {
 		rows := sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deletet_at",
+			"id", "created_at", "updated_at", "deleted_at",
 
 			"ipa_id", "fqdn", "rhsm_id", "location",
 			"ca_server", "hcc_enrollment_server", "hcc_update_server",

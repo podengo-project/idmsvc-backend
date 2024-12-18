@@ -26,7 +26,7 @@ func PrepSqlSelectDomainsByID(mock sqlmock.Sqlmock, withError bool, expectedErr 
 			autoenrollment = *data.AutoEnrollmentEnabled
 		}
 		expectQuery.WillReturnRows(sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deletet_at",
+			"id", "created_at", "updated_at", "deleted_at",
 
 			"org_id", "domain_uuid", "domain_name",
 			"title", "description", "type",
@@ -231,7 +231,7 @@ func PrepSqlSelectFromDomainsFilterMatchDomain(mock sqlmock.Sqlmock, withError b
 		expectQuery.WillReturnError(expectedErr)
 	} else {
 		rows := sqlmock.NewRows([]string{
-			"id", "created_at", "updated_at", "deletet_at",
+			"id", "created_at", "updated_at", "deleted_at",
 
 			"org_id", "domain_uuid", "domain_name",
 			"title", "description", "type",
