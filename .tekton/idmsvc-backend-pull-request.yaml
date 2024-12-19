@@ -273,16 +273,16 @@ spec:
               limits:
                 memory: 14Gi
                 cpu: 2000m
-            # securityContext:
-            #   runAsUser: 0
+            securityContext:
+              runAsUser: 0
             script: |
               #!/bin/bash
               set -ex
 
               # pwd >&2
-              
               # ls -1 >&2
 
+              export CONFIG_PATH="/tmp/configs"
               cp -vf configs/config.example.yaml /tmp/configs/config.yaml
 
               make test-unit
