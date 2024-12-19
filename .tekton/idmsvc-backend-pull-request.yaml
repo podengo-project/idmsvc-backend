@@ -240,6 +240,8 @@ spec:
       workspaces:
         - name: git-basic-auth
           workspace: git-auth
+        - name: configs
+          workspace: configs
         # - name: source
         #   workspace: workspace
       taskSpec:
@@ -251,6 +253,9 @@ spec:
           volumeMounts:
             - name: workdir
               mountPath: /var/workdir
+              readOnly: false
+            - name: configs
+              mountPath: /tmp/configs
               readOnly: false
         steps:
           - name: use-trusted-artifact
@@ -278,12 +283,14 @@ spec:
               
               # ls -1 >&2
 
-              # cp -vf configs/config.example.yaml configs/config.yaml
+              cp -vf configs/config.example.yaml /tmp/configs/config.yaml
 
               make test-unit
         volumes:
           # New volume to store a copy of the source code accessible only to this Task.
           - name: workdir
+            emptyDir: {}
+          - name: configs
             emptyDir: {}
     - name: build-images
       matrix:
