@@ -15,8 +15,8 @@ RUN mkdir /licenses \
     && cp -vf LICENSE /licenses/LICENSE
 
 
-# https://catalog.redhat.com/software/containers/ubi9-minimal/61832888c0d15aff4912fe0d
-FROM registry.access.redhat.com/ubi9-minimal:9.5-1734497536@sha256:daa61d6103e98bccf40d7a69a0d4f8786ec390e2204fd94f7cc49053e9949360
+# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5-1734497536@sha256:94b434a29a894129301f6ff52dbddb19422fc800a109170c634b056da8cd704f
 LABEL idmsvc-backend=backend
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
