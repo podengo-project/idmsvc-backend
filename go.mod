@@ -10,7 +10,8 @@ module github.com/podengo-project/idmsvc-backend
 //  scripts/mk/variables.mk  GO_VERSION value
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
-go 1.22.1
+go 1.22.5
+
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/RedHatInsights/cloudwatch v0.0.0-20210111105023-1df2bdfe3291
