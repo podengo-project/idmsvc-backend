@@ -11,6 +11,7 @@ module github.com/podengo-project/idmsvc-backend
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
 go 1.22.5
+toolchain go1.23.6
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -36,7 +37,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.35.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
