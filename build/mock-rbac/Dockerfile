@@ -13,7 +13,7 @@ USER 0
 RUN make bin/mock-rbac
 
 # https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5-1739420147@sha256:fb77e447ab97f3fecd15d2fa5361a99fe2f34b41422e8ebb3612eecd33922fa0
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5-1741850109@sha256:8b314e254e9ab9a7a08b675fcfd3ed66a2943eeda7b26395210d451569976b9b
 LABEL idmsvc-backend=backend
 # https://developers.redhat.com/articles/2022/05/31/your-go-application-fips-compliant
 ENV OPENSSL_FORCE_FIPS_MODE=1
