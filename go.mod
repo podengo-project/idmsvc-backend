@@ -12,6 +12,8 @@ module github.com/podengo-project/idmsvc-backend
 //    => run.go
 go 1.22.5
 
+toolchain go1.24.1
+
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/RedHatInsights/cloudwatch v0.0.0-20210111105023-1df2bdfe3291
@@ -34,7 +36,7 @@ require (
 	github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-beta.2
 	github.com/shirou/gopsutil/v4 v4.25.2
 	github.com/spf13/cobra v1.9.1
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/crypto v0.33.0
 	gopkg.in/yaml.v3 v3.0.1
