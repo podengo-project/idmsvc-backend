@@ -686,8 +686,8 @@ github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 h1:M8mH9eK4OUR4l
 github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567/go.mod h1:DWNGW8A4Y+GyBgPuaQJuWiy0XYftx4Xm/y5Jqk9I6VQ=
 github.com/raeperd/recvcheck v0.2.0 h1:GnU+NsbiCqdC2XX5+vMZzP+jAJC5fht7rcVTAhX74UI=
 github.com/raeperd/recvcheck v0.2.0/go.mod h1:n04eYkwIR0JbgD73wT8wL4JjPC3wm0nFtzBnWNocnYU=
-github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-20240118174021-7836c2be5281 h1:L20lFlHbO92CNOH+xNM3U+TnSQfnSPIZdUjgIhtCIl0=
-github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-20240118174021-7836c2be5281/go.mod h1:GI4AFQc+iHCvHGbbuY1roOY7KXKDqWbldRemReHk7Pk=
+github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-beta.2 h1:pEDiKYqxEoZT6Mx7B57rYqIgmYyly0f8JfzfY38b9T4=
+github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-beta.2/go.mod h1:Ipl1kmvhZSpgRoe7MyJNK+VAvGG1cIqn535TuId5npw=
 github.com/rivo/uniseg v0.2.0/go.mod h1:J6wj4VEh+S6ZtnVlnTBMWIodfgj8LQOQFoIToxlJtxc=
 github.com/rivo/uniseg v0.4.7 h1:WUdvkW8uEhrYfLC4ZzdpI2ztxP1I582+49Oc5Mq64VQ=
 github.com/rivo/uniseg v0.4.7/go.mod h1:FN3SvrM+Zdj16jyLfmOkMNblXMcoc8DfTHruCPUcx88=
