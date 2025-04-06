@@ -2,7 +2,9 @@ module github.com/podengo-project/idmsvc-backend/tools
 
 // See: https://go.dev/ref/mod#go-mod-edit
 
-go 1.22.5
+go 1.23
+
+toolchain go1.23.8
 
 require (
 	github.com/achiku/planter v0.0.0-20240123065711-dff6de0e438e
@@ -183,7 +185,7 @@ require (
 	github.com/sashamelentyev/interfacebloat v1.1.0 // indirect
 	github.com/sashamelentyev/usestdlibvars v1.28.0 // indirect
 	github.com/securego/gosec/v2 v2.21.4 // indirect
-	github.com/sgreben/flagvar v1.10.1 // indirect
+	github.com/sgreben/flagvar v1.10.2 // indirect
 	github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sivchari/containedctx v1.0.3 // indirect

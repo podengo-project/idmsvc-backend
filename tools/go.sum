@@ -723,8 +723,8 @@ github.com/sashamelentyev/usestdlibvars v1.28.0/go.mod h1:9nl0jgOfHKWNFS43Ojw0i7
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
 github.com/securego/gosec/v2 v2.21.4 h1:Le8MSj0PDmOnHJgUATjD96PaXRvCpKC+DGJvwyy0Mlk=
 github.com/securego/gosec/v2 v2.21.4/go.mod h1:Jtb/MwRQfRxCXyCm1rfM1BEiiiTfUOdyzzAhlr6lUTA=
-github.com/sgreben/flagvar v1.10.1 h1:ukN3zqVj9T9U7CiKG6owmejxswJYMbAg9Mxkhi1B4tw=
-github.com/sgreben/flagvar v1.10.1/go.mod h1:AxDmbFDIxZ4dHj2zg8LxuJn5CSwSS28iY/Wy56e+nhI=
+github.com/sgreben/flagvar v1.10.2 h1:TNEuTXpTha4ERVcFk9m/8DhXALINha6d13FYoqVoJSM=
+github.com/sgreben/flagvar v1.10.2/go.mod h1:sMiA3dViOfFVv/VRLfWo5szYIOD3ZRYVLrwh9E8tHLs=
 github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c h1:W65qqJCIOVP4jpqPQ0YvHYKwcMEMVWIzWC5iNQQfBTU=
 github.com/shazow/go-diff v0.0.0-20160112020656-b6b7b6733b8c/go.mod h1:/PevMnwAxekIXwN8qQyfc5gl2NlkB3CQlkizAbOkeBs=
 github.com/shurcooL/go v0.0.0-20180423040247-9e1955d9fb6e/go.mod h1:TDJrrUr11Vxrven61rcy3hJMUqaf/CLWYhHNPmT14Lk=
