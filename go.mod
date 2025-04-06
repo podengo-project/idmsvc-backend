@@ -10,7 +10,9 @@ module github.com/podengo-project/idmsvc-backend
 //  scripts/mk/variables.mk  GO_VERSION value
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
-go 1.22.5
+go 1.23
+
+toolchain go1.23.8
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -32,7 +34,7 @@ require (
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/redhatinsights/app-common-go v1.6.8
 	github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-beta.2
-	github.com/shirou/gopsutil/v4 v4.25.2
+	github.com/shirou/gopsutil/v4 v4.25.3
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.0
 	github.com/stretchr/testify v1.10.0
