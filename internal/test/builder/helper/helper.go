@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/openlyinc/pointy"
-	"github.com/pioz/faker"
+	"github.com/pioz/faker/v2"
 )
 
 // GenRandNum generate a random number >= min and <= max interval.
