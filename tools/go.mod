@@ -2,7 +2,7 @@ module github.com/podengo-project/idmsvc-backend/tools
 
 // See: https://go.dev/ref/mod#go-mod-edit
 
-go 1.22.5
+go 1.22.9
 
 require (
 	github.com/achiku/planter v0.0.0-20240123065711-dff6de0e438e
@@ -99,7 +99,7 @@ require (
 	github.com/google/subcommands v1.2.0 // indirect
 	github.com/gordonklaus/ineffassign v0.1.0 // indirect
 	github.com/gostaticanalysis/analysisutil v0.7.1 // indirect
-	github.com/gostaticanalysis/comment v1.4.2 // indirect
+	github.com/gostaticanalysis/comment v1.5.0 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.1.0 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
 	github.com/hashicorp/go-immutable-radix/v2 v2.1.0 // indirect
