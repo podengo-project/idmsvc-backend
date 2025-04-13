@@ -10,7 +10,9 @@ module github.com/podengo-project/idmsvc-backend
 //  scripts/mk/variables.mk  GO_VERSION value
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
-go 1.22.5
+go 1.23.0
+
+toolchain go1.23.8
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -36,7 +38,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/crypto v0.33.0
+	golang.org/x/crypto v0.37.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
@@ -110,9 +112,9 @@ require (
 	go.uber.org/atomic v1.11.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
 	google.golang.org/protobuf v1.36.1 // indirect
 )
