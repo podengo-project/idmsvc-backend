@@ -2,7 +2,9 @@ module github.com/podengo-project/idmsvc-backend/tools
 
 // See: https://go.dev/ref/mod#go-mod-edit
 
-go 1.22.5
+go 1.23.0
+
+toolchain go1.23.8
 
 require (
 	github.com/achiku/planter v0.0.0-20240123065711-dff6de0e438e
@@ -226,7 +228,7 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/mod v0.22.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
-	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sync v0.13.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/term v0.27.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
