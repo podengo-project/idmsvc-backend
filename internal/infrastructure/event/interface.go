@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
 // Eventable represent the interface for any kafka message handler.
