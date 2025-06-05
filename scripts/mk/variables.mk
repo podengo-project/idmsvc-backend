@@ -16,7 +16,7 @@ COMPOSE_FILE ?= $(PROJECT_DIR)/deployments/docker-compose.yaml
 
 CONTAINER_IMAGE_BASE ?= quay.io/$(firstword $(subst +, ,$(QUAY_USER)))/$(APP_NAME)-$(APP_COMPONENT)
 
-GO_VERSION ?= 1.22.5
+GO_VERSION ?= 1.23.6
 
 # Tools and their dependencies
 # Build dependencies
