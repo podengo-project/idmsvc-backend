@@ -392,6 +392,7 @@ func (a *application) UpdateDomainAgent(ctx echo.Context, domain_id uuid.UUID, p
 			logger.Error(errDBNotFound)
 			return internal_errors.NewHTTPErrorF(
 				http.StatusNotFound,
+				"%s",
 				err.Error(),
 			)
 		}
@@ -512,6 +513,7 @@ func (a *application) UpdateDomainUser(ctx echo.Context, domain_id uuid.UUID, pa
 			logger.Error(errDBNotFound)
 			return internal_errors.NewHTTPErrorF(
 				http.StatusNotFound,
+				"%s",
 				err.Error(),
 			)
 		}

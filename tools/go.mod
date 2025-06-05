@@ -2,7 +2,7 @@ module github.com/podengo-project/idmsvc-backend/tools
 
 // See: https://go.dev/ref/mod#go-mod-edit
 
-go 1.23.6
+go 1.24.4
 
 require (
 	github.com/achiku/planter v0.0.0-20240123065711-dff6de0e438e
