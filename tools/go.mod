@@ -8,7 +8,7 @@ require (
 	github.com/achiku/planter v0.0.0-20240123065711-dff6de0e438e
 	github.com/atombender/go-jsonschema v0.10.0
 	github.com/deepmap/oapi-codegen v1.16.3
-	github.com/golangci/golangci-lint v1.63.4
+	github.com/golangci/golangci-lint v1.64.8
 	github.com/loov/goda v0.5.11
 	github.com/mikefarah/yq/v4 v4.45.1
 	github.com/spf13/cobra-cli v1.3.0
