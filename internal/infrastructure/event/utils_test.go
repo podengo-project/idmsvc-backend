@@ -8,10 +8,10 @@ import (
 	"testing"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/event"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/message"
 	"github.com/stretchr/testify/assert"
+	"go.openly.dev/pointy"
 )
 
 func TestLogEventMessageInfo(t *testing.T) {

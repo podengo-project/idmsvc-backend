@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	validator "github.com/go-playground/validator/v10"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/secrets"
 	clowder "github.com/redhatinsights/app-common-go/pkg/api/v1"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"go.openly.dev/pointy"
 )
 
 func TestSetDefaults(t *testing.T) {

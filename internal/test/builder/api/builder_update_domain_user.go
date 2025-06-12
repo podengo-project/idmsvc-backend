@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
+	"go.openly.dev/pointy"
 )
 
 type UpdateDomainUserRequest interface {

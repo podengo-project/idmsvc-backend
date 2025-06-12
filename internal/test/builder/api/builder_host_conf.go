@@ -1,9 +1,9 @@
 package api
 
 import (
-	"github.com/openlyinc/pointy"
 	"github.com/pioz/faker"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"go.openly.dev/pointy"
 )
 
 // HostConf builder interface

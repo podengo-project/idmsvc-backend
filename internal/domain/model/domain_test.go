@@ -3,9 +3,9 @@ package model
 import (
 	"testing"
 
-	"github.com/openlyinc/pointy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 )
 

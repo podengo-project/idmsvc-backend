@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/client/pendo"
@@ -14,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	"go.openly.dev/pointy"
 )
 
 const (

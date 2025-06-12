@@ -14,9 +14,9 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/openlyinc/pointy"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
+	"go.openly.dev/pointy"
 )
 
 func DefaultErrorHandler(err error, c echo.Context) {
