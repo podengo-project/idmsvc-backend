@@ -2,9 +2,9 @@ package api
 
 import (
 	"github.com/google/uuid"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
+	"go.openly.dev/pointy"
 )
 
 type Domain interface {

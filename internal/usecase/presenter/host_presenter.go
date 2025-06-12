@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/presenter"
+	"go.openly.dev/pointy"
 )
 
 type hostPresenter struct {

@@ -4,10 +4,10 @@ import (
 	"testing"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/test/mock/infrastructure/event"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.openly.dev/pointy"
 )
 
 func TestNewRouter(t *testing.T) {

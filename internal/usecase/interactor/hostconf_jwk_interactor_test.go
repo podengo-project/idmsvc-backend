@@ -3,12 +3,12 @@ package interactor
 import (
 	"testing"
 
-	"github.com/openlyinc/pointy"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
 	"github.com/stretchr/testify/assert"
+	"go.openly.dev/pointy"
 )
 
 func TestNewHostconfJwkInteractor(t *testing.T) {

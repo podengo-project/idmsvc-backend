@@ -4,9 +4,9 @@ import (
 	"strings"
 
 	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 )
 

@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 )
 

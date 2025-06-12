@@ -6,10 +6,10 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
+	"go.openly.dev/pointy"
 )
 
 func (p *domainPresenter) fillRhelIdmLocations(

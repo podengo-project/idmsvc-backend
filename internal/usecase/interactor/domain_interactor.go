@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
@@ -16,6 +15,7 @@ import (
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/domain_token"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
+	"go.openly.dev/pointy"
 )
 
 type domainInteractor struct{}

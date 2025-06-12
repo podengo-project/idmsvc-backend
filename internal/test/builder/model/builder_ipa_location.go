@@ -1,9 +1,9 @@
 package model
 
 import (
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	"github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 )
 

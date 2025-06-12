@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/openlyinc/pointy"
 	"github.com/pioz/faker"
+	"go.openly.dev/pointy"
 )
 
 // GenRandNum generate a random number >= min and <= max interval.

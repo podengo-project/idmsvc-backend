@@ -26,7 +26,6 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.4
 	github.com/lib/pq v1.10.9
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/openlyinc/pointy v1.2.1
 	github.com/pioz/faker v1.7.3
 	github.com/prometheus/client_golang v1.22.0
 	github.com/qri-io/jsonschema v0.2.1
@@ -36,6 +35,7 @@ require (
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
+	go.openly.dev/pointy v1.3.0
 	golang.org/x/crypto v0.39.0
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.5.11

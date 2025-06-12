@@ -8,12 +8,12 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/config"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	app_context "github.com/podengo-project/idmsvc-backend/internal/infrastructure/context"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/datastore"
 	repository_impl "github.com/podengo-project/idmsvc-backend/internal/usecase/repository"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 )
 

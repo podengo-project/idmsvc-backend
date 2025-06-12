@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
+	"go.openly.dev/pointy"
 )
 
 type ErrorInfo interface {

@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/lib/pq"
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"github.com/podengo-project/idmsvc-backend/internal/domain/model"
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
+	"go.openly.dev/pointy"
 	"gorm.io/gorm"
 )
 

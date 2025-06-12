@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/openlyinc/pointy"
 	api_public "github.com/podengo-project/idmsvc-backend/internal/api/public"
 	internal_errors "github.com/podengo-project/idmsvc-backend/internal/errors"
 	"github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
@@ -13,6 +12,7 @@ import (
 	identity "github.com/redhatinsights/platform-go-middlewares/v2/identity"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.openly.dev/pointy"
 )
 
 func TestNewHostInteractor(t *testing.T) {

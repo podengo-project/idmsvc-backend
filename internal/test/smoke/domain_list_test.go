@@ -6,13 +6,13 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/openlyinc/pointy"
 	"github.com/podengo-project/idmsvc-backend/internal/api/header"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	builder_api "github.com/podengo-project/idmsvc-backend/internal/test/builder/api"
 	builder_helper "github.com/podengo-project/idmsvc-backend/internal/test/builder/helper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.openly.dev/pointy"
 )
 
 // SuiteTokenCreate is the suite token for smoke tests at /api/idmsvc/v1/domains/token
