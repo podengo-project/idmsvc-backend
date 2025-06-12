@@ -24,7 +24,7 @@ TOOLS_BIN := tools/bin
 
 COBRA_CLI := $(TOOLS_BIN)/cobra-cli
 GODA := $(TOOLS_BIN)/goda
-GOJSONSCHEMA := $(TOOLS_BIN)/gojsonschema
+GOJSONSCHEMA := $(TOOLS_BIN)/go-jsonschema
 GOLANGCI_LINT := $(TOOLS_BIN)/golangci-lint
 MOCKERY := $(TOOLS_BIN)/mockery
 OAPI_CODEGEN := $(TOOLS_BIN)/oapi-codegen
