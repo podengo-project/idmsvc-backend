@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/pioz/faker"
+	"github.com/pioz/faker/v2"
 	"go.openly.dev/pointy"
 )
 
