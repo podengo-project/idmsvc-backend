@@ -30,7 +30,7 @@ require (
 	github.com/prometheus/client_golang v1.22.0
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/redhatinsights/app-common-go v1.6.8
-	github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0-beta.2
+	github.com/redhatinsights/platform-go-middlewares/v2 v2.0.0
 	github.com/shirou/gopsutil/v4 v4.25.5
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/viper v1.20.1
