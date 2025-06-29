@@ -31,7 +31,7 @@ require (
 	github.com/Masterminds/semver/v3 v3.3.1 // indirect
 	github.com/OpenPeeDeeP/depguard/v2 v2.2.1 // indirect
 	github.com/a8m/envsubst v1.4.2 // indirect
-	github.com/alecthomas/chroma/v2 v2.17.2 // indirect
+	github.com/alecthomas/chroma/v2 v2.18.0 // indirect
 	github.com/alecthomas/go-check-sumtype v0.3.1 // indirect
 	github.com/alecthomas/kingpin v2.2.6+incompatible // indirect
 	github.com/alecthomas/participle/v2 v2.1.4 // indirect
