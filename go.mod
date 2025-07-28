@@ -10,7 +10,7 @@ module github.com/podengo-project/idmsvc-backend
 //  scripts/mk/variables.mk  GO_VERSION value
 //    => linters-settings.gofumpt.lang-version
 //    => run.go
-go 1.23.6
+go 1.24.4
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
@@ -57,7 +57,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
