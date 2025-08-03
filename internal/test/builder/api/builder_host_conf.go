@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/pioz/faker"
+	"github.com/pioz/faker/v2"
 	"github.com/podengo-project/idmsvc-backend/internal/api/public"
 	"go.openly.dev/pointy"
 )

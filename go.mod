@@ -26,7 +26,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.6
 	github.com/lib/pq v1.10.9
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/pioz/faker v1.7.3
+	github.com/pioz/faker/v2 v2.7.2
 	github.com/prometheus/client_golang v1.22.0
 	github.com/qri-io/jsonschema v0.2.1
 	github.com/redhatinsights/app-common-go v1.6.8
