@@ -7,7 +7,7 @@ go 1.24.4
 require (
 	github.com/achiku/planter v0.0.0-20240123065711-dff6de0e438e
 	github.com/atombender/go-jsonschema v0.20.0
-	github.com/deepmap/oapi-codegen v1.16.3
+	github.com/deepmap/oapi-codegen/v2 v2.5.0
 	github.com/golangci/golangci-lint/v2 v2.3.0
 	github.com/loov/goda v0.7.1
 	github.com/mikefarah/yq/v4 v4.47.1
