@@ -168,6 +168,33 @@ spec:
       workspaces:
       - name: basic-auth
         workspace: git-auth
+      - name: clone-repository
+        params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.revision)
+        - name: ociStorage
+          value: $(params.output-image).git
+        runAfter:
+        - init
+        taskRef:
+          params:
+          - name: name
+            value: git-clone-oci-ta
+          - name: bundle
+            value: quay.io/konflux-ci/tekton-catalog/task-git-clone-oci-ta@sha256:0f4360ce144d46171ebd2e8f4d4575539a0600e02208ba5fc9beeb2c27ddfd4c
+          - name: kind
+            value: task
+          resolver: bundles
+        when:
+        - input: $(tasks.init.results.build)
+          operator: in
+          values:
+          - "true"
+        workspaces:
+        - name: basic-auth
+          workspace: git-auth
     - name: prefetch-dependencies
       params:
       - name: input
@@ -194,6 +221,66 @@ spec:
         workspace: git-auth
       - name: netrc
         workspace: netrc
+    - name: run-unit-tests
+      description: Execute the unit tests for idmsvc-backend
+      params:
+        - name: SOURCE_ARTIFACT
+          value: $(tasks.clone-repository.results.SOURCE_ARTIFACT)
+      runAfter:
+        - clone-repository
+      workspaces:
+        - name: git-basic-auth
+          workspace: git-auth
+        - name: source
+          workspace: workspace
+        - name: netrc
+          workspace: netrc
+      taskSpec:
+        params:
+          - description: The Trusted Artifact URI pointing to the artifact with the application source code.
+            name: SOURCE_ARTIFACT
+            type: string
+        volumes:
+          # New volume to store a copy of the source code accessible only to this Task.
+          - name: workdir
+            emptyDir: {}
+        stepTemplates:
+          volumeMounts:
+            - name: workdir
+              mountPath: /var/workdir
+              readOnly: false
+        steps:
+          - name: use-trusted-artifact
+            image: quay.io/redhat-appstudio/build-trusted-artifacts:latest@sha256:81c4864dae6bb11595f657be887e205262e70086a05ed16ada827fd6391926ac
+            args:
+              - use
+              - $(params.SOURCE_ARTIFACT)=/var/workdir
+          - name: unit-tests
+            image: registry.access.redhat.com/ubi9/go-toolset:1.21.11-9.1726696856@sha256:2fead14be2734020f98c731fef30cc54e99fe889a53cac97e80f6f043778b567 
+            workingDir: /var/workdir
+            computeResources:
+              requests:
+                memory: 7Gi
+                cpu: 1000m
+              limits:
+                memory: 14Gi
+                cpu: 2000m
+            # securityContext:
+            #   runAsUser: 0
+            scripts: |
+              #!/bin/bash
+              set -ex
+
+              make test-unit
+      # taskRef:
+      #   params:
+      #     - name: name
+      #       value: run-test-unit
+      #     - name: bundle
+      #       value: quay.io/konflux-ci/tekton-catalog/task-buildah:0.2@sha256:11b7f08ddaa281fcf40494a2a2f79e0aebcaa3e7da93790fecad4d46983648d2
+      #     - name: kind
+      #       value: task
+      #   resolver: bundles
     - name: build-container
       params:
       - name: IMAGE
@@ -222,7 +309,7 @@ spec:
       - name: CACHI2_ARTIFACT
         value: $(tasks.prefetch-dependencies.results.CACHI2_ARTIFACT)
       runAfter:
-      - prefetch-dependencies
+      - run-unit-tests
       taskRef:
         params:
         - name: name
@@ -599,4 +686,14 @@ spec:
   - name: git-auth
     secret:
       secretName: '{{ git_auth_secret }}'
+  # - name: go-deps
+  #   volumeClaimTemplate:
+  #     metadata:
+  #       creationTimestamp: null
+  #     spec:
+  #       accessModes:
+  #         - ReadWriteOnce
+  #       resources:
+  #         requests:
+  #           storage: 1Gi
 status: {}
