@@ -13,7 +13,7 @@ require (
 	github.com/mikefarah/yq/v4 v4.47.1
 	github.com/spf13/cobra-cli v1.3.0
 	github.com/subpop/xrhidgen v0.2.0
-	github.com/vektra/mockery/v2 v2.53.3
+	github.com/vektra/mockery/v2 v2.53.5
 )
 
 require (
