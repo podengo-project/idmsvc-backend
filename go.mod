@@ -40,7 +40,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.0
-	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
+	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d
 )
 
 require (
