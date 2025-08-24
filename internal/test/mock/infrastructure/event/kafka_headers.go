@@ -3,7 +3,7 @@
 package event
 
 import (
-	kafka "github.com/confluentinc/confluent-kafka-go/kafka"
+	kafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	echo "github.com/labstack/echo/v4"
 	mock "github.com/stretchr/testify/mock"
 )

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/labstack/echo/v4"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/event/message"
 	"github.com/stretchr/testify/assert"
