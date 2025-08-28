@@ -1,4 +1,7 @@
-# idm-domains-backend
+# idmsvc-backend (FreeIPA Domain Join)
+
+**This project is currently inactive.  Issues and pull requests will
+not be attended to.**
 
 ## Getting started
 
