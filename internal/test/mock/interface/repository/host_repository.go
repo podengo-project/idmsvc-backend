@@ -5,7 +5,7 @@ package repository
 import (
 	context "context"
 
-	jwk "github.com/lestrrat-go/jwx/v2/jwk"
+	jwk "github.com/lestrrat-go/jwx/v3/jwk"
 	interactor "github.com/podengo-project/idmsvc-backend/internal/interface/interactor"
 
 	mock "github.com/stretchr/testify/mock"

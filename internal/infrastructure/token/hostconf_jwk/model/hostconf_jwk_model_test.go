@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v3/jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/secrets"
 	"github.com/podengo-project/idmsvc-backend/internal/infrastructure/token/hostconf_jwk"
 	"github.com/podengo-project/idmsvc-backend/internal/test"
