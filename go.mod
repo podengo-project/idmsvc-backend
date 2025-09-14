@@ -113,7 +113,7 @@ require (
 	golang.org/x/sys v0.34.0 // indirect
 	golang.org/x/text v0.27.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	google.golang.org/protobuf v1.36.5 // indirect
+	google.golang.org/protobuf v1.36.9 // indirect
 )
 
 exclude github.com/mitchellh/osext v0.0.0-20151018003038-5e2d6d41470f
